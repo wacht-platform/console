@@ -1,0 +1,10 @@
+import type { Deployment } from "./deployment";
+
+export type ProjectWithDeployments = {
+	id: string;
+	created_at: string;
+	updated_at: string;
+	deleted_at: string | null;
+	name: string;
+	deployments: Deployment[];
+};
