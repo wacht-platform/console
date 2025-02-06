@@ -68,7 +68,7 @@ export default function WorkspacesPage() {
 	const [sortOrder, setSortOrder] = useState<string>("desc");
 	const [page, setPage] = useState(1);
 	const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_OPTIONS[0]);
-	const offset = (page - 1) * itemsPerPage;
+	// const offset = (page - 1) * itemsPerPage;
 
 	// TODO: Replace with actual data hook
 	const isLoading = false;
@@ -167,11 +167,10 @@ export default function WorkspacesPage() {
 									</TableCell>
 									<TableCell>
 										<span
-											className={`px-2 py-1 rounded-full text-xs ${
-												workspace.status === "active"
+											className={`px-2 py-1 rounded-full text-xs ${workspace.status === "active"
 													? "bg-green-100 text-green-800"
 													: "bg-yellow-100 text-yellow-800"
-											}`}
+												}`}
 										>
 											{workspace.status}
 										</span>

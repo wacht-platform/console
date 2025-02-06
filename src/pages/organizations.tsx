@@ -68,7 +68,7 @@ export default function OrganizationsPage() {
 	const [sortOrder, setSortOrder] = useState<string>("desc");
 	const [page, setPage] = useState(1);
 	const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_OPTIONS[0]);
-	const offset = (page - 1) * itemsPerPage;
+	// const offset = (page - 1) * itemsPerPage;
 
 	const isLoading = false;
 	const data = {
@@ -162,11 +162,10 @@ export default function OrganizationsPage() {
 									</TableCell>
 									<TableCell>
 										<span
-											className={`px-2 py-1 rounded-full text-xs ${
-												org.status === "active"
+											className={`px-2 py-1 rounded-full text-xs ${org.status === "active"
 													? "bg-green-100 text-green-800"
 													: "bg-yellow-100 text-yellow-800"
-											}`}
+												}`}
 										>
 											{org.status}
 										</span>

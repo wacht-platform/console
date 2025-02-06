@@ -4,12 +4,11 @@ import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Divider } from "@/components/ui/divider";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
 import { Field, FieldGroup, Label } from "@/components/ui/fieldset";
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import { Switch } from "@/components/ui/switch";
-import { AdjustmentsVerticalIcon, Cog8ToothIcon, WrenchScrewdriverIcon } from "@heroicons/react/24/outline"
+import { WrenchScrewdriverIcon } from "@heroicons/react/24/outline"
 
 export default function SessionsPage() {
   return (
