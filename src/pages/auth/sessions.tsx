@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 export default function SessionsPage() {
 
   let [isOpen, setIsOpen] = useState(false);
+  const [isSwitchOn, setIsSwitchOn] = useState(true);
   const [steps, setSteps] = useState(1);
 
   const [jwtTemplates, setJwtTemplates] = useState([{ id: "default", name: "Default" }, { id: "custom", name: "Custom" }]);
@@ -147,7 +148,7 @@ export default function SessionsPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button plain type="button" onClick={() => setIsOpen(true)}>
+            <Button plain type="button" onClick={() => setIsOpen(true)} disabled={!isSwitchOn}>
               <WrenchScrewdriverIcon />
             </Button>
             {/* Dialoge open here  */}
@@ -311,12 +312,16 @@ export default function SessionsPage() {
                   </DialogBody>
                   <DialogActions className="flex justify-between gap-4 mt-6">
                     <Button plain onClick={goBackToMainStep}>Back</Button>
-                    <Button onClick={() => setIsOpen(false)}>Done</Button>
+                    <Button onClick={goBackToMainStep}>Done</Button>
                   </DialogActions>
                 </>
               )}
             </Dialog>
-            <Switch name="email_enabled" defaultChecked />
+            <Switch
+              name="email_enabled"
+              checked={isSwitchOn}
+              onChange={setIsSwitchOn}
+            />
           </div>
         </div>
       </section>
