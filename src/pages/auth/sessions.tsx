@@ -20,7 +20,10 @@ export default function SessionsPage() {
   const [isSwitchOn, setIsSwitchOn] = useState(true);
   const [steps, setSteps] = useState(1);
 
-  const [jwtTemplates, setJwtTemplates] = useState([{ id: "default", name: "Default" }, { id: "custom", name: "Custom" }]);
+  const jwtTemplates = [
+    { id: "default", name: "Default" },
+    { id: "custom", name: "Custom" }
+  ]
 
 
   const [claims, setClaims] = useState(`{
@@ -55,11 +58,6 @@ export default function SessionsPage() {
     "user.id", "user.username", "user.email_verified", "user.image_url",
     "org.id", "org.name", "org.public_metadata", "session.actor", "source.platform"
   ];
-
-  interface JwtTemplate {
-    id: string;
-    name: string;
-  }
 
   interface Shortcode {
     shortcode: string;

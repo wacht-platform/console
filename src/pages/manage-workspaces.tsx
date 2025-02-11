@@ -7,9 +7,6 @@ import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Strong, Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
-import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/fieldset";
-import { Radio, RadioField, RadioGroup } from "@/components/ui/radio";
 
 export default function ManageWorkspacesPage() {
   const [isWorkspaceEnabled, setIsWorkspaceEnabled] = useState(() => {
