@@ -9,7 +9,7 @@ export function OrganizationRolesTab() {
     { id: 2, name: "Member" },
   ]);
   const [newRole, setNewRole] = useState("");
-  const [editingRole, setEditingRole] = useState(null);
+  const [editingRole, setEditingRole] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
 
   const handleAddRole = () => {
@@ -19,18 +19,23 @@ export function OrganizationRolesTab() {
     }
   };
 
-  const handleDeleteRole = (id) => {
+  const handleDeleteRole = (id: number) => {
     setRoles(roles.filter((role) => role.id !== id));
   };
 
-  const handleEditRole = (id, name) => {
+  interface Role {
+    id: number;
+    name: string;
+  }
+
+  const handleEditRole = (id: number, name: string) => {
     setEditingRole(id);
     setEditValue(name);
   };
 
-  const handleSaveEdit = (id) => {
+  const handleSaveEdit = (id: number) => {
     setRoles(
-      roles.map((role) => (role.id === id ? { ...role, name: editValue } : role))
+      roles.map((role: Role) => (role.id === id ? { ...role, name: editValue } : role))
     );
     setEditingRole(null);
   };
