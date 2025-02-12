@@ -5,24 +5,26 @@ import { Radio, RadioField, RadioGroup } from "@/components/ui/radio";
 import { Button } from "@/components/ui/button";
 import { Divider } from "@/components/ui/divider";
 import { Heading, Subheading } from "@/components/ui/heading";
+import { UserIcon } from "@heroicons/react/24/outline";
 
 export default function AvatarsPage() {
 
-	// User Avatar Settings
 	const [userBackground, setUserBackground] = useState("marble");
 	const [userMarbleColors, setUserMarbleColors] = useState(["#6C47FF", "#FFD600"]);
 	const [userSolidColor, setUserSolidColor] = useState("#FFFFFF");
 	const [userForeground, setUserForeground] = useState("silhouette");
 	const [userShowInitials, setUserShowInitials] = useState(false);
-	const [userforegroundColor, setUserForegroundColor] = useState("#000000");
+	const [userforegroundSilhoutteColor, setUserForegroundSilhoutteColor] = useState("#000000");
+	const [userforegroundInitialsColor, setUserForegroundInitialsColor] = useState("#000000");
 
-	// Organization Avatar Settings
+
 	const [orgBackground, setOrgBackground] = useState("marble");
 	const [orgMarbleColors, setOrgMarbleColors] = useState(["#6C47FF", "#FFD600"]);
 	const [orgSolidColor, setOrgSolidColor] = useState("#FFFFFF");
 	const [orgForeground, setOrgForeground] = useState("silhouette");
 	const [orgShowInitials, setOrgShowInitials] = useState(false);
-	const [orgforegroundColor, setOrgForegroundColor] = useState("#000000");
+	const [orgforegroundSilhoutteColor, setOrgForegroundSilhoutteColor] = useState("#000000");
+	const [orgforegroundInitialsColor, setOrgForegroundInitialsColor] = useState("#000000");
 
 	const addMarbleColor = (setMarbleColors, marbleColors) => {
 		if (marbleColors.length < 3) {
@@ -54,8 +56,10 @@ export default function AvatarsPage() {
 		showInitials,
 		setShowInitials,
 		title,
-		setForegroundColor,
-		foregroundColor
+		setForegroundInitialsColor,
+		setForegroundSilhoutteColor,
+		foregroundSilhoutteColor,
+		foregroundInitialsColor,
 	}) => (
 		<div className="flex gap-8">
 			<div className="flex-shrink-0 w-1/2 flex">
@@ -68,7 +72,12 @@ export default function AvatarsPage() {
 								: solidColor,
 					}}
 				>
-					{showInitials ? <Strong>AB</Strong> : "👤"}
+					{foreground === "silhouette" ? (
+						<UserIcon className="w-10 h-10" style={{ color: foregroundSilhoutteColor }} />
+					) : showInitials ? (
+						<Strong style={{ color: foregroundInitialsColor }}>AB</Strong>
+					) : null}
+
 				</div>
 			</div>
 			<div className="w-1/2 space-y-6">
@@ -123,9 +132,9 @@ export default function AvatarsPage() {
 				<Subheading>Foreground</Subheading>
 				<RadioGroup
 					name="foreground"
-					value={foreground}
+					value={foreground || "none"}
 					onChange={(value) => {
-						setForeground(value);
+						setForeground(value === "none" ? false : value);
 						setShowInitials(value === "initials");
 					}}
 				>
@@ -137,8 +146,8 @@ export default function AvatarsPage() {
 						{foreground === "silhouette" && (
 							<input
 								type="color"
-								value={foregroundColor}
-								onChange={(e) => setForegroundColor(e.target.value)}
+								value={foregroundSilhoutteColor}
+								onChange={(e) => setForegroundSilhoutteColor(e.target.value)}
 								className="w-20 h-12 cursor-pointer rounded-md border border-gray-100 ml-6"
 							/>
 						)}
@@ -150,8 +159,8 @@ export default function AvatarsPage() {
 						{foreground === "initials" && (
 							<input
 								type="color"
-								value={foregroundColor}
-								onChange={(e) => setForegroundColor(e.target.value)}
+								value={foregroundInitialsColor}
+								onChange={(e) => setForegroundInitialsColor(e.target.value)}
 								className="w-20 h-12 cursor-pointer rounded-md border border-gray-100 ml-6"
 							/>
 						)}
@@ -162,6 +171,7 @@ export default function AvatarsPage() {
 						</RadioField>
 					</div>
 				</RadioGroup>
+
 			</div>
 		</div>
 	);
@@ -183,8 +193,10 @@ export default function AvatarsPage() {
 					setForeground={setUserForeground}
 					showInitials={userShowInitials}
 					setShowInitials={setUserShowInitials}
-					setForegroundColor={setUserForegroundColor}
-					foregroundColor={userforegroundColor}
+					setForegroundInitialsColor={setUserForegroundInitialsColor}
+					setForegroundSilhoutteColor={setUserForegroundSilhoutteColor}
+					foregroundSilhoutteColor={userforegroundSilhoutteColor}
+					foregroundInitialsColor={userforegroundInitialsColor}
 				/>
 				<Divider className="my-8" soft />
 				<AvatarSettings
@@ -199,8 +211,10 @@ export default function AvatarsPage() {
 					setForeground={setOrgForeground}
 					showInitials={orgShowInitials}
 					setShowInitials={setOrgShowInitials}
-					setForegroundColor={setOrgForegroundColor}
-					foregroundColor={orgforegroundColor}
+					setForegroundInitialsColor={setOrgForegroundInitialsColor}
+					setForegroundSilhoutteColor={setOrgForegroundSilhoutteColor}
+					foregroundSilhoutteColor={orgforegroundInitialsColor}
+					foregroundInitialsColor={orgforegroundSilhoutteColor}
 				/>
 			</div>
 			<Divider className="my-4" soft />
