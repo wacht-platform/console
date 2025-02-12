@@ -20,7 +20,6 @@ export function Tooltip({ message, children, trigger }: TooltipProps) {
 
 	return (
 		<div className="relative flex items-center">
-			{/* Tooltip */}
 			<AnimatePresence>
 				{visible && (
 					<motion.div

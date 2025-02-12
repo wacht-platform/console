@@ -47,8 +47,6 @@ export default function PortalPage() {
 	};
 
 
-
-
 	return (
 		<div>
 			<Heading>Account Portal</Heading>
@@ -173,16 +171,16 @@ export default function PortalPage() {
 				<div className="grid gap-6 md:grid-cols-3 mt-4">
 
 					<div className="p-4 bg-white rounded-lg shadow-md space-y-2 border border-gray-100">
-						<Subheading>Primary Color</Subheading>
-						<div className="flex items-center gap-3 p-2 bg-gray-50 rounded-md">
-							<input
-								type="color"
-								value={primaryColor}
-								onChange={(e) => setPrimaryColor(e.target.value)}
-								className="w-12 h-12 cursor-pointer rounded-md border border-gray-300"
-							/>
-							<Text className="text-gray-700 font-medium">{primaryColor}</Text>
-						</div>
+							<Subheading>Primary Color</Subheading>
+							<div className="flex items-center gap-3 p-2 bg-gray-50 rounded-md">
+								<input
+									type="color"
+									value={primaryColor}
+									onChange={(e) => setPrimaryColor(e.target.value)}
+									className="w-12 h-12 cursor-pointer rounded-md border border-gray-100"
+								/>
+								<Text className="text-gray-700 font-medium">{primaryColor}</Text>
+							</div>
 					</div>
 
 					<div className="p-4 bg-white rounded-lg shadow-md space-y-2 border border-gray-100">
@@ -192,7 +190,7 @@ export default function PortalPage() {
 								type="color"
 								value={backgroundColor}
 								onChange={(e) => setBackgroundColor(e.target.value)}
-								className="w-12 h-12 cursor-pointer rounded-md border border-gray-300"
+								className="w-12 h-12 cursor-pointer rounded-md border border-gray-100"
 							/>
 							<Text className="text-gray-700 font-medium">{backgroundColor}</Text>
 						</div>
@@ -205,7 +203,7 @@ export default function PortalPage() {
 								type="color"
 								value={borderColor}
 								onChange={(e) => setBorderColor(e.target.value)}
-								className="w-12 h-12 cursor-pointer rounded-md border border-gray-300"
+								className="w-12 h-12 cursor-pointer rounded-md border border-gray-100"
 							/>
 							<Text className="text-gray-700 font-medium">{borderColor}</Text>
 						</div>
