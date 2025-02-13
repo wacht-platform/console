@@ -4,9 +4,9 @@ import { Strong, Text } from "@/components/ui/text";
 
 export default function EmailsPage() {
 	return (
-		<div className="p-4 border border-gray-200 rounded-lg bg-white shadow-sm w-64">
+		<div className="flex flex-col gap-2 mb-2">
 			<Heading>E-mails Templates</Heading>
-			<div className="p-4 border rounded-lg bg-white shadow-sm w-64">
+			<div className="p-4 border border-gray-200 rounded-lg bg-white shadow-sm w-64">
 				<div className="space-y-2">
 					<Strong>Invitation</Strong>
 					<Text className="text-gray-500">Never modified</Text>
