@@ -7,7 +7,7 @@ import { Divider } from "@/components/ui/divider";
 import { Heading, Subheading } from "@/components/ui/heading";
 import { UserIcon } from "@heroicons/react/24/outline";
 
-export function AvatarsPage() {
+export default function AvatarsPage() {
 
 	const [userBackground, setUserBackground] = useState("marble");
 	const [userMarbleColors, setUserMarbleColors] = useState(["#6C47FF", "#FFD600"]);
