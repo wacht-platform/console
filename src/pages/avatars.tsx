@@ -26,19 +26,48 @@ export default function AvatarsPage() {
 	const [orgforegroundSilhoutteColor, setOrgForegroundSilhoutteColor] = useState("#000000");
 	const [orgforegroundInitialsColor, setOrgForegroundInitialsColor] = useState("#000000");
 
-	const addMarbleColor = (setMarbleColors, marbleColors) => {
+	interface AvatarSettingsProps {
+		background: string;
+		setBackground: (value: string) => void;
+		marbleColors: string[];
+		setMarbleColors: (colors: string[]) => void;
+		solidColor: string;
+		setSolidColor: (color: string) => void;
+		foreground: string;
+		setForeground: (value: string) => void;
+		showInitials: boolean;
+		setShowInitials: (value: boolean) => void;
+		title: string;
+		setForegroundInitialsColor: (color: string) => void;
+		setForegroundSilhoutteColor: (color: string) => void;
+		foregroundSilhoutteColor: string;
+		foregroundInitialsColor: string;
+	}
+
+	const addMarbleColor = (setMarbleColors: (colors: string[]) => void, marbleColors: string[]): void => {
 		if (marbleColors.length < 3) {
 			setMarbleColors([...marbleColors, "#FFFFFF"]);
 		}
 	};
 
-	const updateMarbleColor = (setMarbleColors, marbleColors, index, color) => {
+	const updateMarbleColor = (
+		setMarbleColors: (colors: string[]) => void,
+		marbleColors: string[],
+		index: number,
+		color: string
+	): void => {
 		const newColors = [...marbleColors];
 		newColors[index] = color;
 		setMarbleColors(newColors);
 	};
 
-	const removeMarbleColor = (setMarbleColors, marbleColors, index) => {
+	interface RemoveMarbleColorProps {
+		setMarbleColors: (colors: string[]) => void;
+		marbleColors: string[];
+		index: number;
+	}
+
+	const removeMarbleColor = ({ setMarbleColors, marbleColors, index }: RemoveMarbleColorProps): void => {
 		if (marbleColors.length > 2) {
 			setMarbleColors(marbleColors.filter((_, i) => i !== index));
 		}
@@ -60,7 +89,7 @@ export default function AvatarsPage() {
 		setForegroundSilhoutteColor,
 		foregroundSilhoutteColor,
 		foregroundInitialsColor,
-	}) => (
+	}: AvatarSettingsProps) => (
 		<div className="flex gap-8">
 			<div className="flex-shrink-0 w-1/2 flex">
 				<div
@@ -102,7 +131,7 @@ export default function AvatarsPage() {
 									className="w-10 h-10 cursor-pointer rounded-md border border-gray-100"
 								/>
 								{index > 1 && (
-									<Button onClick={() => removeMarbleColor(setMarbleColors, marbleColors, index)} plain>
+									<Button onClick={() => removeMarbleColor({ setMarbleColors, marbleColors, index })} plain>
 										Remove
 									</Button>
 								)}
@@ -134,7 +163,7 @@ export default function AvatarsPage() {
 					name="foreground"
 					value={foreground || "none"}
 					onChange={(value) => {
-						setForeground(value === "none" ? false : value);
+						setForeground(value === "none" ? "" : value);
 						setShowInitials(value === "initials");
 					}}
 				>
