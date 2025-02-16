@@ -5,6 +5,8 @@ import { useState } from "react";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Divider } from "@/components/ui/divider";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
 
 export default function PortalPage() {
 	const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -62,38 +64,35 @@ export default function PortalPage() {
 					</div>
 				</section>
 
-				<div className="grid gap-6 md:grid-cols-2">
-					{data.map((item, index) => (
-						<div key={index} className="p-4 bg-white rounded-lg shadow-md space-y-2 border border-gray-100">
+				{data.map((item, index) => (
+					<section key={index} className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+						<div className="space-y-1">
 							<Subheading>{item.title}</Subheading>
 							<Text>{item.desc}</Text>
-							<div className="relative flex items-center gap-3">
-								<input
-									type="text"
-									value={item.demoLink}
-									readOnly
-									className="w-full pr-24 py-3 px-4 text-sm rounded-lg shadow-sm  focus:outline-none focus:ring-0 "
-								/>
-								<div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-2">
-									<Tooltip message="Copied!" trigger={copiedIndex === index}>
-										<button
-											onClick={() => handleCopy(item.demoLink, index)}
-											className="p-2 rounded-lg bg-gray-300 hover:bg-gray-400 transition-all duration-200 shadow-sm hover:shadow-md"
-										>
-											<ClipboardIcon className="w-5 h-5" />
-										</button>
-									</Tooltip>
-									<button
-										onClick={() => handleOpenLink(item.demoLink)}
-										className="p-2 rounded-lg bg-gray-300 hover:bg-gray-400 transition-all duration-200 shadow-sm hover:shadow-md"
+						</div>
+						<div className="relative flex items-center gap-3">
+							<Input type="text" value={item.demoLink} size={29} readOnly />
+							<div className="flex gap-1">
+								<Tooltip message="Copied!" trigger={copiedIndex === index}>
+									<Button
+										onClick={() => handleCopy(item.demoLink, index)}
+										className="p-2"
+										outline
 									>
-										<ArrowTopRightOnSquareIcon className="w-5 h-5" />
-									</button>
-								</div>
+										<ClipboardIcon className="w-5 h-5" />
+									</Button>
+								</Tooltip>
+								<Button
+									onClick={() => handleOpenLink(item.demoLink)}
+									className="p-2"
+									outline
+								>
+									<ArrowTopRightOnSquareIcon className="w-5 h-5" />
+								</Button>
 							</div>
 						</div>
-					))}
-				</div>
+					</section>
+				))}
 
 				<Divider className="my-8" soft />
 
@@ -108,22 +107,18 @@ export default function PortalPage() {
 					</div>
 				</section>
 
-				<div className="grid gap-6 md:grid-cols-2">
-					{data2.map((item, index) => (
-						<div key={index} className="p-4 bg-white rounded-lg shadow-md space-y-2 border border-gray-100">
+				{data2.map((item, index) => (
+					<section key={index} className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+						<div className="space-y-1">
 							<Subheading>{item.title}</Subheading>
 							<Text>{item.desc}</Text>
-							<div className="relative flex items-center gap-3">
-								<input
-									type="text"
-									placeholder="/path"
-									className="w-full pr-24 py-3 px-4 text-sm rounded-lg shadow-sm focus:outline-none focus:ring-0"
-								/>
-								<Button type="button" color="zinc">Add</Button>
-							</div>
 						</div>
-					))}
-				</div>
+						<div className="flex justify-end items-center gap-3">
+							<Input type="text" placeholder="/path" size={29} />
+							<Button>Add</Button>
+						</div>
+					</section>
+				))}
 
 				<Divider className="my-8" soft />
 
@@ -138,22 +133,19 @@ export default function PortalPage() {
 					</div>
 				</section>
 
-				<div className="grid gap-6 md:grid-cols-2">
-					{data3.map((item, index) => (
-						<div key={index} className="p-4 bg-white rounded-lg shadow-md space-y-2 border border-gray-100">
+				{data3.map((item, index) => (
+					<section key={index} className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+						<div className="space-y-1">
 							<Subheading>{item.title}</Subheading>
 							<Text>{item.desc}</Text>
-							<div className="relative flex items-center gap-3">
-								<input
-									type="text"
-									placeholder="/path"
-									className="w-full pr-24 py-3 px-4 text-sm rounded-lg shadow-sm focus:outline-none focus:ring-0"
-								/>
-								<Button type="button" color="zinc">Add</Button>
-							</div>
 						</div>
-					))}
-				</div>
+						<div className="flex justify-end items-center gap-3">
+							<Input type="text" placeholder="/path" size={29} />
+							<Button>Add</Button>
+						</div>
+					</section>
+				))}
+
 
 				<Divider className="my-8" soft />
 
@@ -168,51 +160,31 @@ export default function PortalPage() {
 					</div>
 				</section>
 
-				<div className="grid gap-6 md:grid-cols-3 mt-4">
 
-					<div className="p-4 bg-white rounded-lg shadow-md space-y-2 border border-gray-100">
-							<Subheading>Primary Color</Subheading>
-							<div className="flex items-center gap-3 p-2 bg-gray-50 rounded-md">
+				<div className="grid gap-2">
+					{[
+						{ label: "Primary Color", value: primaryColor, setValue: setPrimaryColor },
+						{ label: "Background Color", value: backgroundColor, setValue: setBackgroundColor },
+						{ label: "Border Color", value: borderColor, setValue: setBorderColor },
+					].map((color, index) => (
+						<section key={index} className="grid gap-x-8 sm:grid-cols-2 items-center">
+							<Subheading>{color.label}</Subheading>
+							<div className="flex flex-col items-end">
 								<input
 									type="color"
-									value={primaryColor}
-									onChange={(e) => setPrimaryColor(e.target.value)}
+									value={color.value}
+									onChange={(e) => color.setValue(e.target.value)}
 									className="w-12 h-12 cursor-pointer rounded-md border border-gray-100"
 								/>
-								<Text className="text-gray-700 font-medium">{primaryColor}</Text>
+								<Text className="text-gray-700 font-medium mt-2">{color.value}</Text>
 							</div>
-					</div>
-
-					<div className="p-4 bg-white rounded-lg shadow-md space-y-2 border border-gray-100">
-						<Subheading>Background Color</Subheading>
-						<div className="flex items-center gap-3 p-2 bg-gray-50 rounded-md">
-							<input
-								type="color"
-								value={backgroundColor}
-								onChange={(e) => setBackgroundColor(e.target.value)}
-								className="w-12 h-12 cursor-pointer rounded-md border border-gray-100"
-							/>
-							<Text className="text-gray-700 font-medium">{backgroundColor}</Text>
-						</div>
-					</div>
-
-					<div className="p-4 bg-white rounded-lg shadow-md space-y-2 border border-gray-100">
-						<Subheading>Border Color</Subheading>
-						<div className="flex items-center gap-3 p-2 bg-gray-50 rounded-md">
-							<input
-								type="color"
-								value={borderColor}
-								onChange={(e) => setBorderColor(e.target.value)}
-								className="w-12 h-12 cursor-pointer rounded-md border border-gray-100"
-							/>
-							<Text className="text-gray-700 font-medium">{borderColor}</Text>
-						</div>
-					</div>
+						</section>
+					))}
 				</div>
 
 				<Divider className="my-8" soft />
 
-				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-3 items-center">
 					<div className="space-y-1 col-span-2">
 						<Subheading>
 							<Strong>Disable Account Portal</Strong>
@@ -221,11 +193,12 @@ export default function PortalPage() {
 							Turn off all pages hosted by Clerk in the Account Portal.
 						</Text>
 					</div>
-					<div>
+					<div className="flex justify-end">
 						<Button type="button" color="red">Disable Account Portal</Button>
 					</div>
 				</section>
+
 			</div>
-		</div>
+		</div >
 	);
 }

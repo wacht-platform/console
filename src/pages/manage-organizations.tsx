@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { OrganizationsTabs, type Tab } from "@/components/organizations-tabs";
 import { Button } from "@/components/ui/button";
 import { Divider } from "@/components/ui/divider";
 import { Heading, Subheading } from "@/components/ui/heading";
@@ -10,8 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/fieldset";
 import { Radio, RadioField, RadioGroup } from "@/components/ui/radio";
-// import { OrganizationRolesTab} from "@/pages/roles-organization";
-
 
 export default function ManageOrganizationsPage() {
 	const [isOrganizationEnabled, setIsOrganizationEnabled] = useState(() => {
@@ -57,12 +54,6 @@ export default function ManageOrganizationsPage() {
 		localStorage.setItem("organization_enabled", JSON.stringify(isOrganizationEnabled));
 	}, [isOrganizationEnabled]);
 
-	const tabs: Tab[] = [
-		{ name: "Settings", href: "/organizations", current: true },
-		{ name: "Roles", href: "/organizations/roles", current: false },
-		{ name: "Permissions", href: "/organizations/permissions", current: false },
-	];
-
 	return (
 		<div className="flex flex-col gap-2 mb-2">
 			<Heading className="mb-8">Manage Organizations</Heading>
@@ -81,12 +72,17 @@ export default function ManageOrganizationsPage() {
 				/>
 			</div>
 
+			{!isOrganizationEnabled && (
+				<div className="h-[80svh]">
+				</div>
+			)}
+
 			{isOrganizationEnabled && (
-				<div>
-					<OrganizationsTabs tabs={tabs} className="my-10" />
+				<div className="my-10">
 
 					<div className="space-y-28">
 						<div className="space-y-6">
+
 							<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
 								<div className="space-y-1">
 									<Subheading><Strong>Default role for members</Strong></Subheading>
@@ -138,13 +134,12 @@ export default function ManageOrganizationsPage() {
 											value={membershipLimit}
 											onChange={handleMembershipLimitChange}
 											placeholder="Enter limit"
-											className="w-16"
+											size={7}
 											disabled={creationLimit === "unlimited"}
 										/>
 									</RadioGroup>
 								</div>
 							</section>
-
 
 							<Divider className="my-10" soft />
 
@@ -200,7 +195,7 @@ export default function ManageOrganizationsPage() {
 									<Input
 										type="number"
 										placeholder="Number of organizations"
-										className="w-48"
+										size={19}
 										disabled={!allowCreation}
 										value={limitedCreationLimit}
 										onChange={handleLimitedCreationLimitChange}

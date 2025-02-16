@@ -31,10 +31,12 @@ type DateType = (typeof dateTypes)[number];
 
 export const Input = forwardRef(function Input(
 	{
+		size,
 		className,
 		inputClassName,
 		...props
 	}: {
+		size?: number;
 		className?: string;
 		inputClassName?: string;
 		type?:
@@ -52,17 +54,13 @@ export const Input = forwardRef(function Input(
 	return (
 		<span
 			data-slot="control"
+			style={{ width: size ? `${size}rem` : undefined }}
 			className={clsx([
 				className,
-				// Basic layout
-				"relative block w-full",
-				// Background color + shadow applied to inset pseudo element, so shadow blends with border in light mode
+				"relative block",
 				"before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)] before:bg-white before:shadow-sm",
-				// Background color is moved to control and shadow is removed in dark mode so hide `before` pseudo
 				"dark:before:hidden",
-				// Focus ring
 				"after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset sm:focus-within:after:ring-2 sm:focus-within:after:ring-blue-500",
-				// Disabled state
 				"has-data-disabled:opacity-50 has-data-disabled:before:bg-zinc-950/5 has-data-disabled:before:shadow-none",
 				// Invalid state
 				"has-data-invalid:before:shadow-red-500/10",

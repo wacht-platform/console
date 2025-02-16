@@ -1,11 +1,9 @@
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
-import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Divider } from "@/components/ui/divider";
 import { Input } from "@/components/ui/input";
-import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
-import { Field, FieldGroup, Label } from "@/components/ui/fieldset";
+import { Field, FieldGroup } from "@/components/ui/fieldset";
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import { Switch } from "@/components/ui/switch";
 import { WrenchScrewdriverIcon } from "@heroicons/react/24/outline"
@@ -73,6 +71,7 @@ export default function SessionsPage() {
     <div>
       <Heading>Sessions</Heading>
       <div className="mt-8 space-y-10">
+
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
           <div className="space-y-1 col-span-2">
             <Subheading>Session Validity</Subheading>
@@ -324,44 +323,8 @@ export default function SessionsPage() {
         </div>
       </section>
       <Divider className="my-10" soft />
-      <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
-        <div className="space-y-1">
-          <Subheading>Organization Email</Subheading>
-          <Text>This is how customers can contact you for support.</Text>
-        </div>
-        <div className="space-y-4">
-          <Input type="email" aria-label="Organization Email" name="email" defaultValue="info@example.com" />
-          <CheckboxField>
-            <Checkbox name="email_is_public" defaultChecked />
-            <Label>Show email on public profile</Label>
-          </CheckboxField>
-        </div>
-      </section>
-
-      <Divider className="my-10" soft />
-
-      <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
-        <div className="space-y-1">
-          <Subheading>Address</Subheading>
-          <Text>This is where your organization is registered.</Text>
-        </div>
-        {/* <Address /> */}
-      </section>
-
-      <Divider className="my-10" soft />
-
-      <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
-        <div className="space-y-1">
-          <Subheading>Currency</Subheading>
-          <Text>The currency that your organization will be collecting.</Text>
-        </div>
-        <div>
-          <Select aria-label="Currency" name="currency" defaultValue="cad">
-            <option value="cad">CAD - Canadian Dollar</option>
-            <option value="usd">USD - United States Dollar</option>
-          </Select>
-        </div>
-      </section>
+      
+      
 
       <Divider className="my-10" soft />
 
