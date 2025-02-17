@@ -9,8 +9,7 @@ import {
   DialogActions,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/fieldset";
+
 
 import AppleIcon from "@/assets/apple.svg";
 import DiscordIcon from "@/assets/discord.svg";
@@ -19,6 +18,8 @@ import GithubIcon from "@/assets/github.svg";
 import GoogleIcon from "@/assets/google.svg";
 import LinkedInIcon from "@/assets/linkedin.svg";
 import MicrosoftIcon from "@/assets/microsoft.svg";
+import { Field, Label } from "@/components/ui/fieldset";
+import { Input } from "@/components/ui/input";
 
 function SettingsIcon() {
   return (
@@ -61,18 +62,18 @@ function ProviderSettingsDialog({
       <DialogTitle>{provider} Configuration</DialogTitle>
       <DialogDescription>Configure connection settings</DialogDescription>
       <DialogBody className="space-y-4">
-        <div>
+        <Field>
           <Label>Client ID</Label>
           <Input className="mt-1" placeholder="Enter client ID" />
-        </div>
-        <div>
+        </Field>
+        <Field>
           <Label>Client Secret</Label>
           <Input
             className="mt-1"
             type="password"
             placeholder="Enter client secret"
           />
-        </div>
+        </Field>
       </DialogBody>
       <DialogActions>
         <Button onClick={onClose}>Save Changes</Button>
@@ -93,7 +94,6 @@ const PROVIDERS = [
 
 export default function SSOConnectionsPage() {
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
-  console.log(selectedProvider, PROVIDERS);
 
   return (
     <>
