@@ -115,7 +115,6 @@ export default function PortalPage() {
 						</div>
 						<div className="flex justify-end items-center gap-3">
 							<Input type="text" placeholder="/path" size={29} />
-							<Button>Add</Button>
 						</div>
 					</section>
 				))}
@@ -141,7 +140,6 @@ export default function PortalPage() {
 						</div>
 						<div className="flex justify-end items-center gap-3">
 							<Input type="text" placeholder="/path" size={29} />
-							<Button>Add</Button>
 						</div>
 					</section>
 				))}
@@ -197,6 +195,13 @@ export default function PortalPage() {
 						<Button type="button" color="red">Disable Account Portal</Button>
 					</div>
 				</section>
+
+				<Divider className="my-10" soft />
+
+				<div className="flex justify-end gap-4">
+					<Button type="reset" plain>Reset</Button>
+					<Button type="submit">Save changes</Button>
+				</div>
 
 			</div>
 		</div >
