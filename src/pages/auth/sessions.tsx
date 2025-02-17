@@ -10,11 +10,13 @@ import { PencilSquareIcon, TrashIcon, WrenchScrewdriverIcon } from "@heroicons/r
 import { useState } from "react";
 import { Dialog, DialogActions, DialogBody, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Select } from "@/components/ui/select";
 
 
 export default function SessionsPage() {
 
   let [isOpen, setIsOpen] = useState(false);
+  let [isOpenJWT, setIsOpenJWT] = useState(false);
   const [isSwitchOn, setIsSwitchOn] = useState(true);
 
   const SHORTCODES = [
@@ -150,16 +152,15 @@ export default function SessionsPage() {
       <section className="space-y-6">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-sm font-medium">Email address</h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            <Subheading className="text-sm font-medium">Email address</Subheading>
+            <Text className="text-sm text-zinc-500 dark:text-zinc-400">
               Multi Session Support
-            </p>
+            </Text>
           </div>
           <div className="flex items-center gap-2">
             <Button plain type="button" onClick={() => setIsOpen(true)} disabled={!isSwitchOn}>
               <WrenchScrewdriverIcon />
             </Button>
-            {/* Dialoge open here  */}
             <Dialog open={isOpen} onClose={setIsOpen} className="rounded-xl p-6">
               <>
                 <DialogTitle className="mb-2">Customize session token</DialogTitle>
@@ -272,82 +273,106 @@ export default function SessionsPage() {
           </div>
         </div>
       </section>
+
       <Divider className="my-10" soft />
 
       <section className="space-y-6">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-sm font-medium">JWT Templates</h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Manage JWT templates and set a default one for session tokens.
-            </p>
+            <Subheading>JWT Templates</Subheading>
+            <Text className="text-sm text-zinc-500 dark:text-zinc-400">
+              Manage and configure JWT tokens for authentication.
+            </Text>
           </div>
-          <Button outline onClick={() => openModal()}>Add JWT Template</Button>
+          <div className="flex items-center gap-3">
+            <Button plain onClick={() => setIsOpenJWT(true)}>
+              <WrenchScrewdriverIcon className="w-5 h-5 text-zinc-600 dark:text-zinc-300" />
+            </Button>
+            <Dialog open={isOpenJWT} onClose={setIsOpenJWT}>
+              <DialogTitle>JWT Templates</DialogTitle>
+              <DialogDescription>
+                Manage JWT Tokens efficiently.
+              </DialogDescription>
+              <DialogBody className="space-y-6">
+                <section className="space-y-4">
+                  <Button outline className="w-40" onClick={() => openModal()}>
+                    Add JWT Template
+                  </Button>
+                  <div className="space-y-3">
+                    {jwtTemplates.map((template) => (
+                      <div key={template.id} className="flex items-center justify-between p-3 bg-zinc-50 shadow-sm">
+                        <div>
+                          <h4 className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{template.name}</h4>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400">{template.claims}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button outline onClick={() => openModal(template)}>
+                            <PencilSquareIcon className="w-4 h-4" />
+                          </Button>
+                          <Button outline onClick={() => handleDelete(template.id)}>
+                            <TrashIcon className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {isModalOpen && (
+                    <Dialog open={isModalOpen} onClose={closeModal} className="rounded-xl p-6 max-w-md">
+                      <DialogTitle className="mb-2 text-lg font-semibold">
+                        {editingTemplate ? "Edit JWT Template" : "Add JWT Template"}
+                      </DialogTitle>
+                      <DialogBody className="space-y-6">
+                        <div>
+                          <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Template Name</label>
+                          <Input
+                            value={templateName}
+                            onChange={(e) => setTemplateName(e.target.value)}
+                            placeholder="Enter template name"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Claims</label>
+                          <Textarea
+                            className="mt-2 w-full h-40 p-3 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200"
+                            value={claims}
+                            onChange={(e) => setClaims(e.target.value)}
+                            placeholder="Enter claims JSON with shortcodes"
+                          />
+                        </div>
+                        <Divider className="my-4" soft />
+                        <div>
+                          <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Insert shortcodes</label>
+                          <div className="grid grid-cols-3 gap-2 mt-2">
+                            {SHORTCODES.map((code) => (
+                              <Button outline key={code} onClick={() => insertShortcode(code)}>
+                                {code}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      </DialogBody>
+                      <DialogActions className="flex justify-between gap-4 mt-6">
+                        <Button plain onClick={closeModal}>Cancel</Button>
+                        <Button onClick={handleSave}>{editingTemplate ? "Save Changes" : "Create"}</Button>
+                      </DialogActions>
+                    </Dialog>
+                  )}
+                </section>
+              </DialogBody>
+              <DialogActions className="flex justify-end gap-4 mt-4">
+                <Button plain onClick={() => setIsOpenJWT(false)}>Cancel</Button>
+                <Button onClick={() => setIsOpenJWT(false)}>OK</Button>
+              </DialogActions>
+            </Dialog>
+            <Select aria-label="tokens" name="jwt_tokens" defaultValue="default">
+              <option value="default" disabled>Select a template</option>
+              {jwtTemplates.map((template) => (
+                <option key={template.id} value={template.id}>{template.name}</option>
+              ))}
+            </Select>
+          </div>
         </div>
-
-        <div className="space-y-4">
-          {jwtTemplates.map((template) => (
-            <div key={template.id} className="flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-medium">{template.name}</h4>
-                <p className="text-xs text-zinc-500">{template.claims}</p>
-              </div>
-              <div className="flex gap-2">
-                <Button plain onClick={() => openModal(template)}>
-                  <PencilSquareIcon className="w-5 h-5 inline-block mr-1" />
-                  Edit
-                </Button>
-                <Button plain  onClick={() => handleDelete(template.id)}>
-                  <TrashIcon className="w-5 h-5 inline-block mr-1" />
-                  Delete
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {isModalOpen && (
-          <Dialog open={isModalOpen} onClose={closeModal} className="rounded-xl p-6">
-            <DialogTitle className="mb-2">{editingTemplate ? "Edit JWT Template" : "Add JWT Template"}</DialogTitle>
-            <DialogBody className="space-y-6">
-              <div>
-                <label className="text-sm font-medium">Template Name</label>
-                <input
-                  className="mt-2 w-full p-2 border rounded-md"
-                  value={templateName}
-                  onChange={(e) => setTemplateName(e.target.value)}
-                  placeholder="Enter template name"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Claims</label>
-                <Textarea
-                  className="mt-2 w-full h-40 p-3 bg-zinc-900 text-white rounded-md"
-                  value={claims}
-                  onChange={(e) => setClaims(e.target.value)}
-                  placeholder="Enter claims JSON with shortcodes"
-                />
-              </div>
-              <Divider className="my-4" soft />
-              <div>
-                <label className="text-sm font-medium">Insert shortcodes</label>
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  {SHORTCODES.map((code) => (
-                    <Button key={code} outline onClick={() => insertShortcode(code)}>
-                      {code}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </DialogBody>
-            <DialogActions className="flex justify-between gap-4 mt-6">
-              <Button plain onClick={closeModal}>Cancel</Button>
-              <Button onClick={handleSave}>{editingTemplate ? "Save Changes" : "Create"}</Button>
-            </DialogActions>
-          </Dialog>
-        )}
       </section>
-
 
       <Divider className="my-10" soft />
 
