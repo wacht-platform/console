@@ -31,12 +31,23 @@ export default function AvatarsPage() {
 	const [currentGradientIndex, setCurrentGradientIndex] = useState(0);
 	let [isOpen, setIsOpen] = useState(false);
 	const [userBackground, setUserBackground] = useState("marble");
-	const [userMarbleColors, setUserMarbleColors] = useState(["#6C47FF", "#FFD600"]);
+	const [userMarbleColors, setUserMarbleColors] = useState(["#4158D0", "#C850C0"]);
 	const [userSolidColor, setUserSolidColor] = useState("#FFFFFF");
 	const [userForeground, setUserForeground] = useState("silhouette");
 	const [userShowInitials, setUserShowInitials] = useState(false);
 	const [userForegroundSilhoutteColor, setUserForegroundSilhoutteColor] = useState("#000000");
 	const [userForegroundInitialsColor, setUserForegroundInitialsColor] = useState("#000000");
+
+	//This useState will store the user's selected all information it will be used to display the user's avatar in the preview section of our page.
+	const [userAvatar, setUserAvatar] = useState({
+		background: "marble",
+		marbleColors: "linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%)",
+		solidColor: "#FFFFFF",
+		foreground: "silhouette",
+		showInitials: false,
+		foregroundSilhoutteColor: "#000000",
+		foregroundInitialsColor: "#000000"
+	});
 
 	const addMarbleColor = () => {
 		if (userMarbleColors.length < 3) {
@@ -65,10 +76,21 @@ export default function AvatarsPage() {
 		}
 	};
 
-
 	const changeGradient = () => {
-		setCurrentGradientIndex((prevIndex) => (prevIndex + 1) % gradients.length);
-	};
+    setCurrentGradientIndex((prevIndex) => {
+        const newIndex = (prevIndex + 1) % gradients.length;
+        
+        setUserAvatar((prevAvatar) => ({
+            ...prevAvatar,
+            marbleColors: gradients[newIndex].gradient
+        }));
+
+        return newIndex;
+    });
+};
+
+
+
 
 	return (
 		<div className="flex flex-col gap-6 p-6">
@@ -191,22 +213,40 @@ export default function AvatarsPage() {
 								<Button plain onClick={() => setIsOpen(false)} >
 									Cancel
 								</Button>
-								<Button onClick={() => setIsOpen(false)}>
+								<Button
+									onClick={() => {
+										const gradientString = `linear-gradient(to right, ${userMarbleColors.join(", ")})`;
+
+										setUserAvatar({
+											background: userBackground,
+											marbleColors: userBackground === "marble" ? gradientString : "",
+											solidColor: userSolidColor,
+											foreground: userForeground,
+											showInitials: userShowInitials,
+											foregroundSilhoutteColor: userForegroundSilhoutteColor,
+											foregroundInitialsColor: userForegroundInitialsColor
+										});
+
+										setIsOpen(false);
+									}}
+								>
 									Save
 								</Button>
+
 							</DialogActions>
 						</Dialog>
 					</div>
 					<div
 						className="w-80 h-80 rounded-full flex items-center justify-center cursor-pointer shadow-lg transition-all hover:scale-105 hover:shadow-xl"
-						style={{ backgroundImage: gradients[currentGradientIndex].gradient }}
+						style={{
+							background: userAvatar.background === "marble" ? userAvatar.marbleColors : userAvatar.solidColor
+						}}
 						onClick={changeGradient}
-						aria-label={`Change to ${gradients[currentGradientIndex].name}`}
 					>
-						{userForeground === "silhouette" ? (
-							<UserIcon className="w-40 h-40 drop-shadow-md" style={{ color: userForegroundSilhoutteColor }} />
-						) : userShowInitials ? (
-							<Strong style={{ color: userForegroundInitialsColor, fontSize: "8rem" }}>AB</Strong>
+						{userAvatar.foreground === "silhouette" ? (
+							<UserIcon className="w-40 h-40 drop-shadow-md" style={{ color: userAvatar.foregroundSilhoutteColor }} />
+						) : userAvatar.showInitials ? (
+							<Strong style={{ color: userAvatar.foregroundInitialsColor, fontSize: "8rem" }}>AB</Strong>
 						) : null}
 					</div>
 					<Subheading className="mt-4">Preview of default user avatar</Subheading>
