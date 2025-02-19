@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Field, FieldGroup } from "@/components/ui/fieldset";
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import { Switch } from "@/components/ui/switch";
-import { PencilSquareIcon, TrashIcon, WrenchScrewdriverIcon } from "@heroicons/react/24/outline"
+import { PencilSquareIcon, TrashIcon, Cog6ToothIcon } from "@heroicons/react/24/outline"
 import { useState } from "react";
 import { Dialog, DialogActions, DialogBody, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -159,7 +159,7 @@ export default function SessionsPage() {
           </div>
           <div className="flex items-center gap-2">
             <Button plain type="button" onClick={() => setIsOpen(true)} disabled={!isSwitchOn}>
-              <WrenchScrewdriverIcon />
+              <Cog6ToothIcon />
             </Button>
             <Dialog open={isOpen} onClose={setIsOpen} className="rounded-xl p-6">
               <>
@@ -286,24 +286,18 @@ export default function SessionsPage() {
           </div>
           <div className="flex items-center gap-3">
             <Button plain onClick={() => setIsOpenJWT(true)}>
-              <WrenchScrewdriverIcon className="w-5 h-5 text-zinc-600 dark:text-zinc-300" />
+              <Cog6ToothIcon />
             </Button>
             <Dialog open={isOpenJWT} onClose={setIsOpenJWT}>
               <DialogTitle>JWT Templates</DialogTitle>
-              <DialogDescription>
-                Manage JWT Tokens efficiently.
-              </DialogDescription>
+              <DialogDescription>Manage JWT Tokens efficiently.</DialogDescription>
               <DialogBody className="space-y-6">
                 <section className="space-y-4">
-                  <Button outline className="w-40" onClick={() => openModal()}>
-                    Add JWT Template
-                  </Button>
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     {jwtTemplates.map((template) => (
-                      <div key={template.id} className="flex items-center justify-between p-3 bg-zinc-50 shadow-sm">
+                      <div key={template.id} className="flex items-center justify-between">
                         <div>
                           <h4 className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{template.name}</h4>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400">{template.claims}</p>
                         </div>
                         <div className="flex gap-2">
                           <Button outline onClick={() => openModal(template)}>
@@ -316,12 +310,17 @@ export default function SessionsPage() {
                       </div>
                     ))}
                   </div>
+
+                  <Button outline className="w-40" onClick={() => openModal()}>
+                    Add JWT Template
+                  </Button>
+
                   {isModalOpen && (
                     <Dialog open={isModalOpen} onClose={closeModal} className="rounded-xl p-6 max-w-md">
                       <DialogTitle className="mb-2 text-lg font-semibold">
                         {editingTemplate ? "Edit JWT Template" : "Add JWT Template"}
                       </DialogTitle>
-                      <DialogBody className="space-y-6">
+                      <DialogBody>
                         <div>
                           <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Template Name</label>
                           <Input
@@ -351,7 +350,7 @@ export default function SessionsPage() {
                           </div>
                         </div>
                       </DialogBody>
-                      <DialogActions className="flex justify-between gap-4 mt-6">
+                      <DialogActions>
                         <Button plain onClick={closeModal}>Cancel</Button>
                         <Button onClick={handleSave}>{editingTemplate ? "Save Changes" : "Create"}</Button>
                       </DialogActions>
