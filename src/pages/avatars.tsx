@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { UserIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import { SettingsIcon } from "@/assets/setting-icon";
@@ -10,38 +10,39 @@ import { Radio, RadioField, RadioGroup } from "@/components/ui/radio";
 import { Label } from "@/components/ui/fieldset";
 
 export default function AvatarsPage() {
+
 	const gradients = [
-		{ id: 1, name: "Blue-Purple-Orange", gradient: "linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%)" },
-		{ id: 2, name: "Blue-Turquoise", gradient: "linear-gradient(160deg, #0093E9 0%, #80D0C7 100%)" },
-		{ id: 3, name: "Light Blue-Purple", gradient: "linear-gradient(62deg, #8EC5FC 0%, #E0C3FC 100%)" },
-		{ id: 4, name: "Pink-Turquoise", gradient: "linear-gradient(0deg, #D9AFD9 0%, #97D9E1 100%)" },
-		{ id: 5, name: "Cyan-Magenta", gradient: "linear-gradient(90deg, #00DBDE 0%, #FC00FF 100%)" },
-		{ id: 6, name: "Peach-Yellow", gradient: "linear-gradient(62deg, #FBAB7E 0%, #F7CE68 100%)" },
-		{ id: 7, name: "Green-Yellow", gradient: "linear-gradient(45deg, #85FFBD 0%, #FFFB7D 100%)" },
-		{ id: 8, name: "Sky Blue-Lavender", gradient: "linear-gradient(135deg, #8BC6EC 0%, #9599E2 100%)" },
-		{ id: 9, name: "Pink-Aqua", gradient: "linear-gradient(0deg, #FFDEE9 0%, #B5FFFC 100%)" },
-		{ id: 10, name: "Blue-Green", gradient: "linear-gradient(0deg, #08AEEA 0%, #2AF598 100%)" },
-		{ id: 11, name: "Yellow-Red", gradient: "linear-gradient(147deg, #FFE53B 0%, #FF2525 74%)" },
-		{ id: 12, name: "Light Blue-Purple", gradient: "linear-gradient(19deg, #21D4FD 0%, #B721FF 100%)" },
-		{ id: 13, name: "Yellow-Pink", gradient: "linear-gradient(45deg, #FBDA61 0%, #FF5ACD 100%)" },
-		{ id: 14, name: "Orange-Yellow", gradient: "linear-gradient(90deg, #FAD961 0%, #F76B1C 100%)" },
-		{ id: 15, name: "Pink-Purple-Blue", gradient: "linear-gradient(225deg, #FF3CAC 0%, #784BA0 50%, #2B86C5 100%)" }
+		{ id: 1, name: "Blue-Purple-Orange", gradient: "linear-gradient(to right, #4158D0, #C850C0, #FFCC70)" },
+		{ id: 2, name: "Blue-Turquoise", gradient: "linear-gradient(to right, #0093E9, #80D0C7)" },
+		{ id: 3, name: "Light Blue-Purple", gradient: "linear-gradient(to right, #8EC5FC, #E0C3FC)" },
+		{ id: 4, name: "Pink-Turquoise", gradient: "linear-gradient(to right, #D9AFD9, #97D9E1)" },
+		{ id: 5, name: "Cyan-Magenta", gradient: "linear-gradient(to right, #00DBDE, #FC00FF)" },
+		{ id: 6, name: "Peach-Yellow", gradient: "linear-gradient(to right, #FBAB7E, #F7CE68)" },
+		{ id: 7, name: "Green-Yellow", gradient: "linear-gradient(to right, #85FFBD, #FFFB7D)" },
+		{ id: 8, name: "Sky Blue-Lavender", gradient: "linear-gradient(to right, #8BC6EC, #9599E2)" },
+		{ id: 9, name: "Pink-Aqua", gradient: "linear-gradient(to right, #FFDEE9, #B5FFFC)" },
+		{ id: 10, name: "Blue-Green", gradient: "linear-gradient(to right, #08AEEA, #2AF598)" },
+		{ id: 11, name: "Yellow-Red", gradient: "linear-gradient(to right, #FFE53B, #FF2525)" },
+		{ id: 12, name: "Light Blue-Purple", gradient: "linear-gradient(to right, #21D4FD, #B721FF)" },
+		{ id: 13, name: "Yellow-Pink", gradient: "linear-gradient(to right, #FBDA61, #FF5ACD)" },
+		{ id: 14, name: "Orange-Yellow", gradient: "linear-gradient(to right, #FAD961, #F76B1C)" },
+		{ id: 15, name: "Pink-Purple-Blue", gradient: "linear-gradient(to right, #FF3CAC, #784BA0, #2B86C5)" }
 	];
+
 
 	const [currentGradientIndex, setCurrentGradientIndex] = useState(0);
 	let [isOpen, setIsOpen] = useState(false);
 	const [userBackground, setUserBackground] = useState("marble");
-	const [userMarbleColors, setUserMarbleColors] = useState(["#4158D0", "#C850C0"]);
+	const [userMarbleColors, setUserMarbleColors] = useState(["#4158D0", "#C850C0", "#FFCC70"]);
 	const [userSolidColor, setUserSolidColor] = useState("#FFFFFF");
 	const [userForeground, setUserForeground] = useState("silhouette");
 	const [userShowInitials, setUserShowInitials] = useState(false);
 	const [userForegroundSilhoutteColor, setUserForegroundSilhoutteColor] = useState("#000000");
 	const [userForegroundInitialsColor, setUserForegroundInitialsColor] = useState("#000000");
 
-	//This useState will store the user's selected all information it will be used to display the user's avatar in the preview section of our page.
 	const [userAvatar, setUserAvatar] = useState({
 		background: "marble",
-		marbleColors: "linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%)",
+		marbleColors: "linear-gradient(to right, #4158D0, #C850C0,  #FFCC70)",
 		solidColor: "#FFFFFF",
 		foreground: "silhouette",
 		showInitials: false,
@@ -77,17 +78,17 @@ export default function AvatarsPage() {
 	};
 
 	const changeGradient = () => {
-    setCurrentGradientIndex((prevIndex) => {
-        const newIndex = (prevIndex + 1) % gradients.length;
-        
-        setUserAvatar((prevAvatar) => ({
-            ...prevAvatar,
-            marbleColors: gradients[newIndex].gradient
-        }));
+		setCurrentGradientIndex((prevIndex) => {
+			const newIndex = (prevIndex + 1) % gradients.length;
 
-        return newIndex;
-    });
-};
+			setUserAvatar((prevAvatar) => ({
+				...prevAvatar,
+				marbleColors: gradients[newIndex].gradient
+			}));
+
+			return newIndex;
+		});
+	};
 
 
 
