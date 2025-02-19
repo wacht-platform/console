@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { UserIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import { SettingsIcon } from "@/assets/setting-icon";
@@ -12,43 +12,41 @@ import { Label } from "@/components/ui/fieldset";
 export default function AvatarsPage() {
 
 	const gradients = [
-		{ id: 1, name: "Blue-Purple-Orange", gradient: "linear-gradient(to right, #4158D0, #C850C0, #FFCC70)" },
-		{ id: 2, name: "Blue-Turquoise", gradient: "linear-gradient(to right, #0093E9, #80D0C7)" },
-		{ id: 3, name: "Light Blue-Purple", gradient: "linear-gradient(to right, #8EC5FC, #E0C3FC)" },
-		{ id: 4, name: "Pink-Turquoise", gradient: "linear-gradient(to right, #D9AFD9, #97D9E1)" },
-		{ id: 5, name: "Cyan-Magenta", gradient: "linear-gradient(to right, #00DBDE, #FC00FF)" },
-		{ id: 6, name: "Peach-Yellow", gradient: "linear-gradient(to right, #FBAB7E, #F7CE68)" },
-		{ id: 7, name: "Green-Yellow", gradient: "linear-gradient(to right, #85FFBD, #FFFB7D)" },
-		{ id: 8, name: "Sky Blue-Lavender", gradient: "linear-gradient(to right, #8BC6EC, #9599E2)" },
-		{ id: 9, name: "Pink-Aqua", gradient: "linear-gradient(to right, #FFDEE9, #B5FFFC)" },
-		{ id: 10, name: "Blue-Green", gradient: "linear-gradient(to right, #08AEEA, #2AF598)" },
-		{ id: 11, name: "Yellow-Red", gradient: "linear-gradient(to right, #FFE53B, #FF2525)" },
-		{ id: 12, name: "Light Blue-Purple", gradient: "linear-gradient(to right, #21D4FD, #B721FF)" },
-		{ id: 13, name: "Yellow-Pink", gradient: "linear-gradient(to right, #FBDA61, #FF5ACD)" },
-		{ id: 14, name: "Orange-Yellow", gradient: "linear-gradient(to right, #FAD961, #F76B1C)" },
-		{ id: 15, name: "Pink-Purple-Blue", gradient: "linear-gradient(to right, #FF3CAC, #784BA0, #2B86C5)" }
+		{ id: 1, name: "Blue-Purple-Orange", marbleColors: ["#4158D0", "#C850C0", "#FFCC70"] },
+		{ id: 2, name: "Blue-Turquoise", marbleColors: ["#0093E9", "#80D0C7"] },
+		{ id: 3, name: "Light Blue-Purple", marbleColors: ["#8EC5FC", "#E0C3FC"] },
+		{ id: 4, name: "Pink-Turquoise", marbleColors: ["#D9AFD9", "#97D9E1"] },
+		{ id: 5, name: "Cyan-Magenta", marbleColors: ["#00DBDE", "#FC00FF"] },
+		{ id: 6, name: "Peach-Yellow", marbleColors: ["#FBAB7E", "#F7CE68"] },
+		{ id: 7, name: "Green-Yellow", marbleColors: ["#85FFBD", "#FFFB7D"] },
+		{ id: 8, name: "Sky Blue-Lavender", marbleColors: ["#8BC6EC", "#9599E2"] },
+		{ id: 9, name: "Pink-Aqua", marbleColors: ["#FFDEE9", "#B5FFFC"] },
+		{ id: 10, name: "Blue-Green", marbleColors: ["#08AEEA", "#2AF598"] },
+		{ id: 11, name: "Yellow-Red", marbleColors: ["#FFE53B", "#FF2525"] },
+		{ id: 12, name: "Light Blue-Purple", marbleColors: ["#21D4FD", "#B721FF"] },
+		{ id: 13, name: "Yellow-Pink", marbleColors: ["#FBDA61", "#FF5ACD"] },
+		{ id: 14, name: "Orange-Yellow", marbleColors: ["#FAD961", "#F76B1C"] },
+		{ id: 15, name: "Pink-Purple-Blue", marbleColors: ["#FF3CAC", "#784BA0", "#2B86C5"] }
 	];
 
+	const [userAvatar, setUserAvatar] = useState({
+		background: "marble",
+		marbleColors: ["#FF3CAC", "#784BA0", "#2B86C5"],
+		solidColor: "#FFFFFF",
+		foreground: "silhouette",
+		showInitials: false,
+		foregroundSilhouetteColor: "#000000",
+		foregroundInitialsColor: "#000000"
+	});
 
-	const [currentGradientIndex, setCurrentGradientIndex] = useState(0);
 	let [isOpen, setIsOpen] = useState(false);
-	const [userBackground, setUserBackground] = useState("marble");
-	const [userMarbleColors, setUserMarbleColors] = useState(["#4158D0", "#C850C0", "#FFCC70"]);
+	const [userBackground, setUserBackground] = useState<"marble" | "solid">("marble");
+	const [userMarbleColors, setUserMarbleColors] = useState<string[]>(userAvatar.marbleColors);
 	const [userSolidColor, setUserSolidColor] = useState("#FFFFFF");
 	const [userForeground, setUserForeground] = useState("silhouette");
 	const [userShowInitials, setUserShowInitials] = useState(false);
 	const [userForegroundSilhoutteColor, setUserForegroundSilhoutteColor] = useState("#000000");
 	const [userForegroundInitialsColor, setUserForegroundInitialsColor] = useState("#000000");
-
-	const [userAvatar, setUserAvatar] = useState({
-		background: "marble",
-		marbleColors: "linear-gradient(to right, #4158D0, #C850C0,  #FFCC70)",
-		solidColor: "#FFFFFF",
-		foreground: "silhouette",
-		showInitials: false,
-		foregroundSilhoutteColor: "#000000",
-		foregroundInitialsColor: "#000000"
-	});
 
 	const addMarbleColor = () => {
 		if (userMarbleColors.length < 3) {
@@ -78,20 +76,14 @@ export default function AvatarsPage() {
 	};
 
 	const changeGradient = () => {
-		setCurrentGradientIndex((prevIndex) => {
-			const newIndex = (prevIndex + 1) % gradients.length;
-
-			setUserAvatar((prevAvatar) => ({
-				...prevAvatar,
-				marbleColors: gradients[newIndex].gradient
-			}));
-
-			return newIndex;
+		setUserAvatar((prevAvatar) => {
+			const currentIndex = gradients.findIndex(g =>
+				JSON.stringify(g.marbleColors) === JSON.stringify(prevAvatar.marbleColors)
+			);
+			const newIndex = (currentIndex + 1) % gradients.length;
+			return { ...prevAvatar, marbleColors: gradients[newIndex].marbleColors };
 		});
 	};
-
-
-
 
 	return (
 		<div className="flex flex-col gap-6 p-6">
@@ -100,7 +92,20 @@ export default function AvatarsPage() {
 			<div className="mt-8 space-y-10">
 				<div className="flex flex-col items-center justify-center w-full h-full relative">
 					<div className="absolute top-4 right-4">
-						<Button plain aria-label="Avatar Settings" onClick={() => setIsOpen(true)}>
+						<Button
+							plain
+							aria-label="Avatar Settings"
+							onClick={() => {
+								setUserBackground(userAvatar.background as "marble" | "solid");
+								setUserMarbleColors([...userAvatar.marbleColors]);
+								setUserSolidColor(userAvatar.solidColor);
+								setUserForeground(userAvatar.foreground);
+								setUserShowInitials(userAvatar.showInitials);
+								setUserForegroundSilhoutteColor(userAvatar.foregroundSilhouetteColor);
+								setUserForegroundInitialsColor(userAvatar.foregroundInitialsColor);
+								setIsOpen(true);
+							}}
+						>
 							<SettingsIcon />
 						</Button>
 						<Dialog open={isOpen} onClose={setIsOpen}>
@@ -173,7 +178,7 @@ export default function AvatarsPage() {
 												name="foreground"
 												value={userForeground || "none"}
 												onChange={(value) => {
-													setUserForeground(value === "none" ? "" : value);
+													setUserForeground(value);
 													setUserShowInitials(value === "initials");
 												}}
 											>
@@ -216,15 +221,13 @@ export default function AvatarsPage() {
 								</Button>
 								<Button
 									onClick={() => {
-										const gradientString = `linear-gradient(to right, ${userMarbleColors.join(", ")})`;
-
 										setUserAvatar({
 											background: userBackground,
-											marbleColors: userBackground === "marble" ? gradientString : "",
+											marbleColors: userBackground === "marble" ? [...userMarbleColors] : [],
 											solidColor: userSolidColor,
 											foreground: userForeground,
 											showInitials: userShowInitials,
-											foregroundSilhoutteColor: userForegroundSilhoutteColor,
+											foregroundSilhouetteColor: userForegroundSilhoutteColor,
 											foregroundInitialsColor: userForegroundInitialsColor
 										});
 
@@ -233,21 +236,30 @@ export default function AvatarsPage() {
 								>
 									Save
 								</Button>
-
 							</DialogActions>
 						</Dialog>
 					</div>
 					<div
-						className="w-80 h-80 rounded-full flex items-center justify-center cursor-pointer shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+						className="w-48 h-48 rounded-full flex items-center justify-center cursor-pointer shadow-md transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-lg"
 						style={{
-							background: userAvatar.background === "marble" ? userAvatar.marbleColors : userAvatar.solidColor
+							background: userAvatar.background === "marble"
+								? `linear-gradient(to right, ${userAvatar.marbleColors.join(", ")})`
+								: userAvatar.solidColor
 						}}
 						onClick={changeGradient}
 					>
 						{userAvatar.foreground === "silhouette" ? (
-							<UserIcon className="w-40 h-40 drop-shadow-md" style={{ color: userAvatar.foregroundSilhoutteColor }} />
+							<UserIcon
+								className="w-16 h-16 drop-shadow-sm transition-all duration-300 ease-in-out"
+								style={{ color: userAvatar.foregroundSilhouetteColor }}
+							/>
 						) : userAvatar.showInitials ? (
-							<Strong style={{ color: userAvatar.foregroundInitialsColor, fontSize: "8rem" }}>AB</Strong>
+							<strong
+								className="text-3xl font-semibold transition-all duration-300 ease-in-out"
+								style={{ color: userAvatar.foregroundInitialsColor }}
+							>
+								AB
+							</strong>
 						) : null}
 					</div>
 					<Subheading className="mt-4">Preview of default user avatar</Subheading>
