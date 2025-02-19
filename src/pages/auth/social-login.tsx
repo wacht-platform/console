@@ -20,7 +20,7 @@ import LinkedInIcon from "@/assets/linkedin.svg";
 import MicrosoftIcon from "@/assets/microsoft.svg";
 import { Field, Label } from "@/components/ui/fieldset";
 import { Input } from "@/components/ui/input";
-import { SettingsIcon } from "@/assets/setting-icon";
+import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 
 
 
@@ -72,6 +72,19 @@ const PROVIDERS = [
 
 export default function SSOConnectionsPage() {
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
+  const [switchStates, setSwitchStates] = useState<Record<string, boolean>>(
+    PROVIDERS.reduce((acc, provider) => {
+      acc[provider.name] = false;
+      return acc;
+    }, {} as Record<string, boolean>)
+  );
+
+  const handleSwitchChange = (providerName: string) => {
+    setSwitchStates((prevState) => ({
+      ...prevState,
+      [providerName]: !prevState[providerName],
+    }));
+  };
 
   return (
     <>
@@ -112,10 +125,15 @@ export default function SSOConnectionsPage() {
                   <Button
                     plain
                     onClick={() => setSelectedProvider(provider.name)}
+                    disabled={!switchStates[provider.name]}
                   >
-                    <SettingsIcon />
+                    <Cog6ToothIcon />
                   </Button>
-                  <Switch name={`${provider.name.toLowerCase()}_enabled`} />
+                  <Switch
+                    name={`${provider.name.toLowerCase()}_enabled`}
+                    checked={switchStates[provider.name]}
+                    onChange={() => handleSwitchChange(provider.name)}
+                  />
                 </div>
               </div>
             ))}
@@ -125,3 +143,4 @@ export default function SSOConnectionsPage() {
     </>
   );
 }
+
