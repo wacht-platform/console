@@ -10,9 +10,14 @@ import { ChevronDownIcon, TrashIcon } from "@heroicons/react/24/outline";
 export default function RestrictionsPage() {
 
   const [bannedKeywords, setBannedKeywords] = useState<string[]>([]);
-  const [blockedNumbers, setBlockedNumbers] = useState<string[]>([]);
   const [newKeyword, setNewKeyword] = useState('');
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+
+  const [allowlistedEmails, setAllowlistedEmails] = useState<string[]>([]);
+  const [newEmail, setNewEmail] = useState('');
+
+  const [blocklistedEmails, setBlocklistedEmails] = useState<string[]>([]);
+  const [newBlockedEmail, setNewBlockedEmail] = useState('');
 
 
   const addKeyword = (keyword: string) => {
@@ -37,6 +42,53 @@ export default function RestrictionsPage() {
     if (e.key === "Enter") {
       e.preventDefault();
       addKeyword(newKeyword);
+    }
+  };
+
+
+  const addEmailToAllowlist = (email: string) => {
+    const trimmedEmail = email.trim();
+    if (
+      trimmedEmail &&
+      /\S+@\S+\.\S+/.test(trimmedEmail) &&
+      !allowlistedEmails.includes(trimmedEmail)
+    ) {
+      setAllowlistedEmails([...allowlistedEmails, trimmedEmail]);
+    }
+    setNewEmail('');
+  };
+
+  const handleEmailInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewEmail(e.target.value);
+  };
+
+  const handleEmailKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addEmailToAllowlist(newEmail);
+    }
+  };
+
+  const addEmailToBlocklist = (email: string) => {
+    const trimmedEmail = email.trim();
+    if (
+      trimmedEmail &&
+      /\S+@\S+\.\S+/.test(trimmedEmail) &&
+      !blocklistedEmails.includes(trimmedEmail)
+    ) {
+      setBlocklistedEmails([...blocklistedEmails, trimmedEmail]);
+    }
+    setNewBlockedEmail('');
+  };
+
+  const handleBlockedEmailInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewBlockedEmail(e.target.value);
+  };
+
+  const handleBlockedEmailKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addEmailToBlocklist(newBlockedEmail);
     }
   };
 
@@ -67,7 +119,7 @@ export default function RestrictionsPage() {
             <Text>Add keywords that will block usernames and emails.</Text>
           </div>
 
-          <div className="flex justify-end items-center px-8">
+          <div className="items-center px-8">
             <Input
               type="text"
               placeholder="Enter keyword"
@@ -108,28 +160,35 @@ export default function RestrictionsPage() {
 
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>VOIP/ Virtual Number Restrictions</Subheading>
-            <Text>Block specific number series associated with VOIP or virtual numbers.</Text>
+            <Subheading>Email Allowlist</Subheading>
+            <Text>Add emails that are allowed to sign-in or sign-up.</Text>
           </div>
 
-          <div>
-            <div className="flex justify-end items-center gap-3 py-2">
-              <Switch />
-            </div>
+          <div className="items-center px-8">
+            <Input
+              type="email"
+              placeholder="Enter email"
+              size={29}
+              value={newEmail}
+              onChange={handleEmailInputChange}
+              onKeyDown={handleEmailKeyDown}
+            />
 
-            {blockedNumbers.length > 0 && (
-              <div className="col-span-2 mx-2">
+            {allowlistedEmails.length > 0 && (
+              <div className="col-span-2 mx-2 mt-2">
                 <div className="mb-2 flex flex-wrap gap-2">
-                  {blockedNumbers.map((number) => (
+                  {allowlistedEmails.map((email) => (
                     <span
-                      key={number}
-                      className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm flex items-center space-x-2 border border-indigo-200"
+                      key={email}
+                      className="bg-gray-50 text-gray-700 px-3 py-1 rounded-full text-sm flex items-center space-x-2 border border-gray-200"
                     >
-                      <span>{number}</span>
+                      <span>{email}</span>
                       <button
-                        onClick={() => setBlockedNumbers(blockedNumbers.filter(n => n !== number))}
-                        title="Remove number"
-                        className="text-indigo-600 hover:text-indigo-800"
+                        onClick={() =>
+                          setAllowlistedEmails(allowlistedEmails.filter((e) => e !== email))
+                        }
+                        title="Remove email"
+                        className="text-gray-600 hover:text-gray-800"
                       >
                         <TrashIcon className="w-4 h-4" />
                       </button>
@@ -141,6 +200,96 @@ export default function RestrictionsPage() {
           </div>
         </section>
 
+        <Divider soft />
+
+        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+          <div className="space-y-1">
+            <Subheading>Email Blocklist</Subheading>
+            <Text>Add emails that are blocked from signing-in or signing-up.</Text>
+          </div>
+
+          <div className="items-center px-8">
+            <Input
+              type="email"
+              placeholder="Enter email"
+              size={29}
+              value={newBlockedEmail}
+              onChange={handleBlockedEmailInputChange}
+              onKeyDown={handleBlockedEmailKeyDown}
+            />
+
+            {blocklistedEmails.length > 0 && (
+              <div className="col-span-2 mx-2 mt-2">
+                <div className="mb-2 flex flex-wrap gap-2">
+                  {blocklistedEmails.map((email) => (
+                    <span
+                      key={email}
+                      className="bg-gray-50 text-gray-700 px-3 py-1 rounded-full text-sm flex items-center space-x-2 border border-gray-200"
+                    >
+                      <span>{email}</span>
+                      <button
+                        onClick={() =>
+                          setBlocklistedEmails(
+                            blocklistedEmails.filter((e) => e !== email)
+                          )
+                        }
+                        title="Remove email"
+                        className="text-gray-600 hover:text-gray-800"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <Divider soft />
+
+        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+          <div className="space-y-1">
+            <Subheading>VOIP/ Virtual Number Restrictions</Subheading>
+            <Text>Block specific number series associated with VOIP or virtual numbers.</Text>
+          </div>
+
+          <div>
+            <div className="flex justify-end items-center gap-3 py-2">
+              <Switch />
+            </div>
+          </div>
+        </section>
+
+        <Divider soft />
+
+        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+          <div className="space-y-1">
+            <Subheading>Ristrict User Sign-Up</Subheading>
+            <Text>Restrict new user registrations on the platform.</Text>
+          </div>
+
+          <div>
+            <div className="flex justify-end items-center gap-3 py-2">
+              <Switch />
+            </div>
+          </div>
+        </section>
+
+        <Divider soft />
+
+        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+          <div className="space-y-1">
+            <Subheading>Restrict Signup from Temporary Emails</Subheading>
+            <Text>Prevent users from signing up with disposable or temporary email addresses.</Text>
+          </div>
+
+          <div>
+            <div className="flex justify-end items-center gap-3 py-2">
+              <Switch />
+            </div>
+          </div>
+        </section>
 
         <Divider soft />
 
@@ -150,7 +299,7 @@ export default function RestrictionsPage() {
               <Subheading className="text-sm font-medium">Block Special Characters in Email</Subheading>
               <Text className="text-sm text-zinc-500 dark:text-zinc-400">
                 Prevent email addresses that contain the characters +, = or # from signing up or being added to existing accounts.
-                e.g., user+sub@clerk.com will be blocked.
+                e.g., user+sub@intellinesia.com will be blocked.
               </Text>
             </div>
             <div className="flex items-center gap-2">
@@ -162,6 +311,13 @@ export default function RestrictionsPage() {
         </section>
 
         <Divider soft />
+
+        <div className="flex justify-end gap-4">
+          <Button type="reset" plain>
+            Reset
+          </Button>
+          <Button type="submit">Save changes</Button>
+        </div>
 
       </div>
 
