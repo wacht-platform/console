@@ -127,7 +127,7 @@ export default function AvatarsPage() {
 												{userForeground === "silhouette" ? (
 													<UserIcon className="w-10 h-10" style={{ color: userForegroundSilhoutteColor }} />
 												) : userShowInitials ? (
-													<Strong style={{ color: userForegroundInitialsColor }}>AB</Strong>
+													<Strong className="text-4xl" style={{ color: userForegroundInitialsColor }}>AB</Strong>
 												) : null}
 											</div>
 											<Heading className="mt-4 text-lg">Preview</Heading>
@@ -136,7 +136,7 @@ export default function AvatarsPage() {
 										{/* Right Section (Customization Options) */}
 										<div className="w-full lg:w-1/2 space-y-6">
 											<Subheading>Background</Subheading>
-											<RadioGroup name="background" value={userBackground} onChange={setUserBackground}>
+											<RadioGroup name="background" value={userBackground} onChange={(value: string) => setUserBackground(value as "marble" | "solid")}>
 												<RadioField>
 													<Radio value="marble" />
 													<Label>Marble</Label>
@@ -254,13 +254,14 @@ export default function AvatarsPage() {
 								style={{ color: userAvatar.foregroundSilhouetteColor }}
 							/>
 						) : userAvatar.showInitials ? (
-							<strong
-								className="text-3xl font-semibold transition-all duration-300 ease-in-out"
+							<p
+								className="text-7xl font-semibold tracking-wide transition-all duration-300 ease-in-out"
 								style={{ color: userAvatar.foregroundInitialsColor }}
 							>
 								AB
-							</strong>
+							</p>
 						) : null}
+
 					</div>
 					<Subheading className="mt-4">Preview of default user avatar</Subheading>
 				</div>
