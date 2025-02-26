@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Strong, Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
+import { Divider } from "@/components/ui/divider";
 
 export default function EmailWorkspaceInvitationPage() {
-
-  const [content, setContent] = useState('');
-  const [ejsContent, setEjsContent] = useState<string>('')
+  const [content, setContent] = useState("");
+  const [ejsContent, setEjsContent] = useState<string>("");
 
   const defaultTemplate = `
 <div style="font-family: Helvetica, Arial, sans-serif; max-width: 90%; margin: auto; line-height: 1.6; color: #333; padding: 20px; box-sizing: border-box;">
@@ -42,76 +42,78 @@ export default function EmailWorkspaceInvitationPage() {
 `;
 
   useEffect(() => {
-    console.log('Raw HTML:', content);
-    console.log('EJS Template:', ejsContent);
-  }, [content, ejsContent
-  ]);
+    console.log("Raw HTML:", content);
+    console.log("EJS Template:", ejsContent);
+  }, [content, ejsContent]);
 
   return (
     <div className="flex flex-col gap-2 mb-2">
       <Heading className="mb-8">Workspace Invitation</Heading>
 
       <div className="flex items-start justify-between">
-        <div>
+        <div className="w-3/4">
           <h2 className="text-base font-medium">Delivered by Wacht</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Intended for B2B SaaS products, this feature allows users to create workspaces, invite their team, and assign roles.
+            If enabled, Wacht will utilize SendGrid to deliver this email automatically. If disabled, Wacht will not send the email, and you will need to handle the delivery manually by listening to the email webhook.
           </p>
         </div>
         <Switch
-          name="workspace_invitation"
+          name="organization_invitation"
         // checked={}
         // onChange={}
         />
       </div>
 
+      <Divider className="mt-3" />
+
       <div className="my-10">
         <div className="space-y-10">
-
           <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
             <div className="space-y-1">
-              <Subheading><Strong>Name</Strong></Subheading>
+              <Subheading>
+                <Strong>Name</Strong>
+              </Subheading>
             </div>
             <div>
-              <Input
-                type="text"
-                placeholder="Enter your name"
-                size={29}
-              />
+              <Input type="text" placeholder="Enter your name" size={29} />
             </div>
           </section>
 
           <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
             <div className="space-y-1">
-              <Subheading><Strong>From</Strong></Subheading>
-              <Text>Enter the local email part you would like this email to be sent from, or leave empty to default to `invitations`.</Text>
+              <Subheading>
+                <Strong>From</Strong>
+              </Subheading>
+              <Text>
+                Enter the local email part you would like this email to be sent
+                from, or leave empty to default to `invitations`.
+              </Text>
             </div>
             <div>
-              <Input
-                type="text"
-                placeholder="person@accounts.dev"
-                size={29}
-              />
+              <Input type="text" placeholder="person@accounts.dev" size={29} />
             </div>
           </section>
 
           <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
             <div className="space-y-1">
-              <Subheading><Strong>Reply-To</Strong></Subheading>
-              <Text>Enter the local email part you would like this email's Reply-To header to be set to</Text>
+              <Subheading>
+                <Strong>Reply-To</Strong>
+              </Subheading>
+              <Text>
+                Enter the local email part you would like this email's Reply-To
+                header to be set to
+              </Text>
             </div>
             <div>
-              <Input
-                type="text"
-                placeholder="person@accounts.dev"
-                size={29}
-              />
+              <Input type="text" placeholder="person@accounts.dev" size={29} />
             </div>
           </section>
 
           <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
             <div className="space-y-1">
-              <Subheading><Strong>Subject</Strong></Subheading>
+              <Subheading>
+                <Strong>Subject</Strong>
+              </Subheading>
             </div>
             <div>
               <Input
