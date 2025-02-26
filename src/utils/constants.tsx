@@ -1,5 +1,6 @@
 import { ComputerDesktopIcon, DevicePhoneMobileIcon, DeviceTabletIcon,  } from "@heroicons/react/24/outline";
 
+//change this
 export const DYNAMIC_VARIABLES: Record<string, string> = {
   action_url: "https://example.com/action",
   "app.domain_name": "example.com",
