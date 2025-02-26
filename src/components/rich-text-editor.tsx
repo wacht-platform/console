@@ -102,7 +102,7 @@ const EmailEditor: React.FC<EditorProps> = ({ initialContent = '', onChange }) =
           ) : (
             <Editor
               apiKey="727jg9e6yh3lx2re9uhp3i0lkhxsyj8zwtdav45rc440krm3"
-              onInit={(evt, editor) => {
+              onInit={(_, editor) => {
                 editorRef.current = editor;
               }}
               value={content}
