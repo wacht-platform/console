@@ -32,11 +32,11 @@ const EmailNewSignUpPage = lazy(() => import("./pages/emails/new-sign-up"));
 const EmailNewDeviceLogInPage = lazy(
   () => import("./pages/emails/new-device-log-in")
 );
-// const EmailOtpPage = lazy(() => import("./pages/emails/email-otp"));
-// const EmailMagicLinkPage = lazy(() => import("./pages/emails/magic-link"));
-// const EmailPasswordResetPage = lazy(() => import("./pages/emails/password-reset"));
-// const EmailBadSignUpAttemptPage = lazy(() => import("./pages/emails/bad-sign-up-attempt"));
-// const EmailPasswordChangedPage = lazy(() => import("./pages/emails/password-changed"));
+const EmailOtpPage = lazy(() => import("./pages/emails/email-otp"));
+const EmailMagicLinkPage = lazy(() => import("./pages/emails/magic-link"));
+const EmailPasswordResetPage = lazy(() => import("./pages/emails/password-reset"));
+const EmailBadSignUpAttemptPage = lazy(() => import("./pages/emails/bad-sign-up-attempt"));
+const EmailPasswordChangedPage = lazy(() => import("./pages/emails/password-changed"));
 
 export const router = createBrowserRouter([
   {
@@ -221,6 +221,46 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingFallback />}>
             <EmailNewDeviceLogInPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "emails/email-otp",
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <EmailOtpPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "emails/magic-link",
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <EmailMagicLinkPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "emails/password-reset",
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <EmailPasswordResetPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "emails/bad-sign-up-attempt",
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <EmailBadSignUpAttemptPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "emails/password-changed",
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <EmailPasswordChangedPage />
           </Suspense>
         ),
       },
