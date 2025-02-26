@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
 import { DYNAMIC_VARIABLES, PREVIEW_MODES, TINYMCE_CONFIG } from '../utils/constants';
-import { convertToEjs } from '../utils/template-parser';
+import { convertToEjs, convertToSquareBracketSyntax } from '../utils/template-parser';
 import type { EditorProps } from '../types/rich-text-editor';
 import { Button } from './ui/button';
 import { CodeBracketIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
@@ -14,7 +14,7 @@ const EmailEditor: React.FC<EditorProps> = ({ initialContent = '', onChange }) =
 
   const handleEditorChange = (content: string) => {
     setContent(content);
-    const ejsContent = convertToEjs(content);
+    const ejsContent = showHtml ? convertToEjs(content) : content;
     if (onChange) {
       onChange(content, ejsContent);
     }
@@ -45,6 +45,17 @@ const EmailEditor: React.FC<EditorProps> = ({ initialContent = '', onChange }) =
     return ejsTemplate;
   };
 
+  const toggleHtmlMode = () => {
+    if (showHtml) {
+      const squareBracketContent = convertToSquareBracketSyntax(content);
+      setContent(squareBracketContent);
+    } else {
+      const ejsContent = convertToEjs(content);
+      setContent(ejsContent);
+    }
+    setShowHtml(!showHtml);
+  };
+
   return (
     <div className="flex flex-col">
 
@@ -68,12 +79,10 @@ const EmailEditor: React.FC<EditorProps> = ({ initialContent = '', onChange }) =
           ))}
         </div>
 
-        <Button outline
-          onClick={() => setShowHtml(!showHtml)}
-          className={`${showHtml
-            ? 'bg-gray-100'
-            : ''
-            }`}
+        <Button
+          outline
+          onClick={toggleHtmlMode}
+          className={`${showHtml ? 'bg-gray-100' : ''}`}
           aria-label={showHtml ? 'Switch to Rich Text Editor' : 'Switch to HTML Editor'}
         >
           {showHtml ? (

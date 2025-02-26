@@ -25,13 +25,13 @@ const EmailsPage = lazy(() => import("./pages/emails"));
 const SMSPage = lazy(() => import("./pages/sms"));
 
 // E-maile Templates
-const EmailWorkspaceInvitationPage = lazy(
-  () => import("./pages/emails/workspace-invitations")
-);
+const EmailWorkspaceInvitationPage = lazy(() => import("./pages/emails/workspace-invitations"));
 const EmailOrganizationInvitationPage = lazy(() => import("./pages/emails/organization-invitation"));
 const EmailWaitlistedPage = lazy(() => import("./pages/emails/waitlisted"));
 const EmailNewSignUpPage = lazy(() => import("./pages/emails/new-sign-up"));
-// const EmailNewDeviceLogInPage = lazy(() => import("./pages/emails/new-device-log-in"));
+const EmailNewDeviceLogInPage = lazy(
+  () => import("./pages/emails/new-device-log-in")
+);
 // const EmailOtpPage = lazy(() => import("./pages/emails/email-otp"));
 // const EmailMagicLinkPage = lazy(() => import("./pages/emails/magic-link"));
 // const EmailPasswordResetPage = lazy(() => import("./pages/emails/password-reset"));
@@ -213,6 +213,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingFallback />}>
             <EmailNewSignUpPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "emails/new-device-log-in",
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <EmailNewDeviceLogInPage />
           </Suspense>
         ),
       },

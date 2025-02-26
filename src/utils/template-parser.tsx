@@ -1,19 +1,16 @@
 import Handlebars from 'handlebars';
 
 export const convertToEjs = (content: string): string => {
-  // Check if it's a simple variable replacement
   if (content.match(/^My name is \[([^\]]+)\]\.$/)) {
     return content.replace(/My name is \[([^\]]+)\]\./, '<p>The inviter name is <%= $1 %>.</p>');
   }
 
-  // Handle conditional blocks with inline EJS
   let ejsContent = content
     .replace(/\[#if\s+([^\]]+)\]/g, '<% if ($1) { %>')
     .replace(/\[#else\]/g, '<% } else { %>')
     .replace(/\[#endif\]/g, '<% } %>')
     .replace(/\[([^\]]+)\]/g, '<%= $1 %>');
 
-  // Wrap in paragraph tags if not already wrapped
   if (!ejsContent.startsWith('<p>')) {
     ejsContent = `<p>${ejsContent}</p>`;
   }
@@ -21,16 +18,28 @@ export const convertToEjs = (content: string): string => {
   return ejsContent;
 };
 
+export const convertToSquareBracketSyntax = (content: string): string => {
+  let squareBracketContent = content
+    .replace(/<% if \(([^)]+)\) { %>/g, '[#if $1]')
+    .replace(/<% } else { %>/g, '[#else]')
+    .replace(/<% } %>/g, '[#endif]')
+    .replace(/<%= ([^%]+) %>/g, '[$1]');
+
+  if (squareBracketContent.startsWith('<p>') && squareBracketContent.endsWith('</p>')) {
+    squareBracketContent = squareBracketContent.slice(3, -4);
+  }
+
+  return squareBracketContent;
+};
+
 export const parseTemplate = (template: string, variables: Record<string, any>): string => {
   try {
-    // Convert square bracket syntax to Handlebars syntax for parsing
     const handlebarsTemplate = template
       .replace(/\[#if\s+([^\]]+)\]/g, '{{#if $1}}')
       .replace(/\[#else\]/g, '{{else}}')
       .replace(/\[#endif\]/g, '{{/if}}')
       .replace(/\[([^\]]+)\]/g, '{{$1}}');
 
-    // Wrap in paragraph tags if not already wrapped
     const wrappedTemplate = handlebarsTemplate.startsWith('<p>') 
       ? handlebarsTemplate 
       : `<p>${handlebarsTemplate}</p>`;

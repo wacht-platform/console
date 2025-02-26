@@ -7,9 +7,39 @@ import { Input } from "@/components/ui/input";
 
 export default function EmailOrganizationInvitationPage() {
 
-  const [content, setContent] = useState(`[#if inviter_name][inviter_name] has invited you to join them on [app.name].[#else]You are invited to join [app.name][#endif]`);
+  const [content, setContent] = useState('');
+  const [ejsContent, setEjsContent] = useState<string>('')
 
-  const [ejsContent, setEjsContent] = useState('');
+  const defaultTemplate = `
+<div style="font-family: Helvetica, Arial, sans-serif; max-width: 90%; margin: auto; line-height: 1.6; color: #333; padding: 20px; box-sizing: border-box;">
+  <div style="margin: auto; padding: 20px; background: #f9f9f9; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+    <div style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; display: flex; align-items: center;">
+      <img src="[app.logo_image_url]" alt="[app.name] Logo" style="height: 40px; margin-right: 10px;">
+      <a href="[app.url]" style="font-size: 1.5em; color: #000; text-decoration: none; font-weight: bold;">[app.name]</a>
+    </div>
+    <p style="font-size: 1.2em; margin-bottom: 10px;">Hi,</p>
+    <p style="margin-bottom: 20px;">
+      [#if inviter_name]
+        [inviter_name] has invited you to join their organization on [app.name].
+      [#else]
+        You are invited to join [app.name].
+      [#endif]
+    </p>
+    [#if invitation.public_metadata]
+      <p style="margin-bottom: 20px;"><strong>Message from [inviter_name]:</strong> [invitation.public_metadata]</p>
+    [#endif]
+    <p style="margin-bottom: 20px;">Click the button below to accept the invitation. This invitation will expire in [invitation.expires_in_days] days.</p>
+    <div style="text-align: center;">
+      <a href="[action_url]" style="background: #000; color: #fff; padding: 12px 24px; border-radius: 5px; text-decoration: none; font-size: 1.2em; display: inline-block;">Accept Invitation</a>
+    </div>
+    <p style="font-size: 1em; margin-top: 20px;">Regards,<br><strong>[app.name]</strong></p>
+    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+    <div style="text-align: right; color: #aaa; font-size: 0.9em; line-height: 1.4;">
+      <p style="margin: 0;">[app.domain_name]</p>
+    </div>
+  </div>
+</div>
+`;
 
   useEffect(() => {
     console.log('Raw HTML:', content);
@@ -25,7 +55,7 @@ export default function EmailOrganizationInvitationPage() {
         <div>
           <h2 className="text-base font-medium">Delivered by Wacht</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Intended for B2B SaaS products, this feature allows users to create Organizations, invite their team, and assign roles.
+            Intended for B2B SaaS products, this feature allows users to create organizations, invite their team, and assign roles.
           </p>
         </div>
         <Switch
@@ -95,7 +125,7 @@ export default function EmailOrganizationInvitationPage() {
       </div>
 
       <EmailEditor
-        initialContent={content}
+        initialContent={defaultTemplate}
         onChange={(rawContent, ejsContent) => {
           setContent(rawContent);
           setEjsContent(ejsContent);
