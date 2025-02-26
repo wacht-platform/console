@@ -20,6 +20,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.66.0
         version: 5.66.0(react@18.3.1)
+      '@tinymce/tinymce-react':
+        specifier: ^6.0.0
+        version: 6.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(tinymce@7.7.0)
       axios:
         specifier: ^1.7.9
         version: 1.7.9
@@ -32,6 +35,9 @@ importers:
       framer-motion:
         specifier: ^12.0.6
         version: 12.0.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      handlebars:
+        specifier: ^4.7.8
+        version: 4.7.8
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -44,6 +50,9 @@ importers:
       tailwindcss:
         specifier: ^4.0.1
         version: 4.0.1
+      tinymce:
+        specifier: ^7
+        version: 7.7.0
     devDependencies:
       '@eslint/js':
         specifier: ^9.17.0
@@ -635,6 +644,16 @@ packages:
   '@tanstack/virtual-core@3.11.3':
     resolution: {integrity: sha512-v2mrNSnMwnPJtcVqNvV0c5roGCBqeogN8jDtgtuHCphdwBasOZ17x8UV8qpHUh+u0MLfX43c0uUHKje0s+Zb0w==}
 
+  '@tinymce/tinymce-react@6.0.0':
+    resolution: {integrity: sha512-v5q6x3/kgg3rfQjFYrAm8ZVCnPbUgOuB3yUvSskp75VwR/EUQimONG4S16KL85kFbstiiat6AUDDLMXN4hRxhQ==}
+    peerDependencies:
+      react: ^18.0.0 || ^17.0.1 || ^16.7.0
+      react-dom: ^18.0.0 || ^17.0.1 || ^16.7.0
+      tinymce: ^7.0.0 || ^6.0.0 || ^5.5.1
+    peerDependenciesMeta:
+      tinymce:
+        optional: true
+
   '@types/cookie@0.6.0':
     resolution: {integrity: sha512-4Kh9a6B2bQciAhf7FSuMRRkUWecJgJu9nPnx3yzpsfXX/c50REIqpHY4C82bXP90qrLtXtkDxTZosYO3UpOwlA==}
 
@@ -965,6 +984,11 @@ packages:
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
 
+  handlebars@4.7.8:
+    resolution: {integrity: sha512-vafaFqs8MZkRrSX7sFVUdo3ap/eNiLnb4IakshzvP56X5Nr1iGKAIqdX6tMlm6HcNRIkr6AxO5jFEoJzzpT8aQ==}
+    engines: {node: '>=0.4.7'}
+    hasBin: true
+
   has-flag@4.0.0:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
     engines: {node: '>=8'}
@@ -1121,6 +1145,9 @@ packages:
     resolution: {integrity: sha512-G6T0ZX48xgozx7587koeX9Ys2NYy6Gmv//P89sEte9V9whIapMNF4idKxnW2QtCcLiTWlb/wfCabAtAFWhhBow==}
     engines: {node: '>=16 || 14 >=14.17'}
 
+  minimist@1.2.8:
+    resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
+
   motion-dom@12.0.0:
     resolution: {integrity: sha512-CvYd15OeIR6kHgMdonCc1ihsaUG4MYh/wrkz8gZ3hBX/uamyZCXN9S9qJoYF03GqfTt7thTV/dxnHYX4+55vDg==}
 
@@ -1137,6 +1164,13 @@ packages:
 
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
+
+  neo-async@2.6.2:
+    resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
+
+  object-assign@4.1.1:
+    resolution: {integrity: sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg==}
+    engines: {node: '>=0.10.0'}
 
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
@@ -1177,6 +1211,9 @@ packages:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
 
+  prop-types@15.8.1:
+    resolution: {integrity: sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==}
+
   proxy-from-env@1.1.0:
     resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
 
@@ -1191,6 +1228,9 @@ packages:
     resolution: {integrity: sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw==}
     peerDependencies:
       react: ^18.3.1
+
+  react-is@16.13.1:
+    resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
   react-router@7.1.4:
     resolution: {integrity: sha512-aJWVrKoLI0nIK1lfbTU3d5al1ZEUiwtSus/xjYL8K5sv2hyPesiOIojHM7QnaNLVtroOB1McZsWk37fMQVoc6A==}
@@ -1245,6 +1285,10 @@ packages:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
 
+  source-map@0.6.1:
+    resolution: {integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==}
+    engines: {node: '>=0.10.0'}
+
   strip-json-comments@3.1.1:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
@@ -1262,6 +1306,9 @@ packages:
   tapable@2.2.1:
     resolution: {integrity: sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==}
     engines: {node: '>=6'}
+
+  tinymce@7.7.0:
+    resolution: {integrity: sha512-zDFPXeje5fQIxuYzv9fE6YmjFBQmeB9SU+85ofizIHqCCkbBnDdEWhD5R8rBu9MwdjIQP3aNohgGe9D6JOhNaw==}
 
   to-regex-range@5.0.1:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
@@ -1293,6 +1340,11 @@ packages:
   typescript@5.6.3:
     resolution: {integrity: sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==}
     engines: {node: '>=14.17'}
+    hasBin: true
+
+  uglify-js@3.19.3:
+    resolution: {integrity: sha512-v3Xu+yuwBXisp6QYTcH4UbH+xYJXqnq2m/LtQVWKWzYc1iehYnLixoQDN9FH6/j9/oybfd6W9Ghwkl8+UMKTKQ==}
+    engines: {node: '>=0.8.0'}
     hasBin: true
 
   undici-types@6.20.0:
@@ -1349,6 +1401,9 @@ packages:
   word-wrap@1.2.5:
     resolution: {integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==}
     engines: {node: '>=0.10.0'}
+
+  wordwrap@1.0.0:
+    resolution: {integrity: sha512-gvVzJFlPycKc5dZN4yPkP8w7Dc37BtP1yczEneOb4uq34pXZcvrtRTmWV8W+Ume+XCxKgbjM+nevkyFPMybd4Q==}
 
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
@@ -1769,6 +1824,14 @@ snapshots:
 
   '@tanstack/virtual-core@3.11.3': {}
 
+  '@tinymce/tinymce-react@6.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(tinymce@7.7.0)':
+    dependencies:
+      prop-types: 15.8.1
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    optionalDependencies:
+      tinymce: 7.7.0
+
   '@types/cookie@0.6.0': {}
 
   '@types/estree@1.0.6': {}
@@ -2146,6 +2209,15 @@ snapshots:
 
   graphemer@1.4.0: {}
 
+  handlebars@4.7.8:
+    dependencies:
+      minimist: 1.2.8
+      neo-async: 2.6.2
+      source-map: 0.6.1
+      wordwrap: 1.0.0
+    optionalDependencies:
+      uglify-js: 3.19.3
+
   has-flag@4.0.0: {}
 
   ignore@5.3.2: {}
@@ -2266,6 +2338,8 @@ snapshots:
     dependencies:
       brace-expansion: 2.0.1
 
+  minimist@1.2.8: {}
+
   motion-dom@12.0.0:
     dependencies:
       motion-utils: 12.0.0
@@ -2277,6 +2351,10 @@ snapshots:
   nanoid@3.3.8: {}
 
   natural-compare@1.4.0: {}
+
+  neo-async@2.6.2: {}
+
+  object-assign@4.1.1: {}
 
   optionator@0.9.4:
     dependencies:
@@ -2315,6 +2393,12 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
+  prop-types@15.8.1:
+    dependencies:
+      loose-envify: 1.4.0
+      object-assign: 4.1.1
+      react-is: 16.13.1
+
   proxy-from-env@1.1.0: {}
 
   punycode@2.3.1: {}
@@ -2326,6 +2410,8 @@ snapshots:
       loose-envify: 1.4.0
       react: 18.3.1
       scheduler: 0.23.2
+
+  react-is@16.13.1: {}
 
   react-router@7.1.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
@@ -2390,6 +2476,8 @@ snapshots:
 
   source-map-js@1.2.1: {}
 
+  source-map@0.6.1: {}
+
   strip-json-comments@3.1.1: {}
 
   supports-color@7.2.0:
@@ -2401,6 +2489,8 @@ snapshots:
   tailwindcss@4.0.1: {}
 
   tapable@2.2.1: {}
+
+  tinymce@7.7.0: {}
 
   to-regex-range@5.0.1:
     dependencies:
@@ -2430,6 +2520,9 @@ snapshots:
 
   typescript@5.6.3: {}
 
+  uglify-js@3.19.3:
+    optional: true
+
   undici-types@6.20.0: {}
 
   uri-js@4.4.1:
@@ -2452,5 +2545,7 @@ snapshots:
       isexe: 2.0.0
 
   word-wrap@1.2.5: {}
+
+  wordwrap@1.0.0: {}
 
   yocto-queue@0.1.0: {}

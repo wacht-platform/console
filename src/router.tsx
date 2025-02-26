@@ -16,13 +16,27 @@ const RestrictionsPage = lazy(() => import("./pages/auth/restrictions"));
 const ProtectionPage = lazy(() => import("./pages/auth/protection"));
 const SessionsPage = lazy(() => import("./pages/auth/sessions"));
 const ManageOrganizationsPage = lazy(
-  () => import("./pages/manage-organizations"),
+  () => import("./pages/manage-organizations")
 );
 const ManageWorkspacesPage = lazy(() => import("./pages/manage-workspaces"));
 const PortalPage = lazy(() => import("./pages/portal"));
 const AvatarsPage = lazy(() => import("./pages/avatars"));
 const EmailsPage = lazy(() => import("./pages/emails"));
 const SMSPage = lazy(() => import("./pages/sms"));
+
+// E-maile Templates
+const EmailWorkspaceInvitationPage = lazy(
+  () => import("./pages/emails/workspace-invitations")
+);
+const EmailOrganizationInvitationPage = lazy(() => import("./pages/emails/organization-invitation"));
+const EmailWaitlistedPage = lazy(() => import("./pages/emails/waitlisted"));
+const EmailNewSignUpPage = lazy(() => import("./pages/emails/new-sign-up"));
+// const EmailNewDeviceLogInPage = lazy(() => import("./pages/emails/new-device-log-in"));
+// const EmailOtpPage = lazy(() => import("./pages/emails/email-otp"));
+// const EmailMagicLinkPage = lazy(() => import("./pages/emails/magic-link"));
+// const EmailPasswordResetPage = lazy(() => import("./pages/emails/password-reset"));
+// const EmailBadSignUpAttemptPage = lazy(() => import("./pages/emails/bad-sign-up-attempt"));
+// const EmailPasswordChangedPage = lazy(() => import("./pages/emails/password-changed"));
 
 export const router = createBrowserRouter([
   {
@@ -167,6 +181,38 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingFallback />}>
             <EmailsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "emails/workspace-invitation",
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <EmailWorkspaceInvitationPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "emails/organization-invitation",
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <EmailOrganizationInvitationPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "emails/waitlisted",
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <EmailWaitlistedPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "emails/new-sign-up",
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <EmailNewSignUpPage />
           </Suspense>
         ),
       },
