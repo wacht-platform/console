@@ -23,6 +23,7 @@ const PortalPage = lazy(() => import("./pages/portal"));
 const AvatarsPage = lazy(() => import("./pages/avatars"));
 const EmailsPage = lazy(() => import("./pages/emails"));
 const SMSPage = lazy(() => import("./pages/sms"));
+const ApplicationSettingsPage = lazy(() => import("./pages/settings"));
 
 // E-maile Templates
 const EmailWorkspaceInvitationPage = lazy(() => import("./pages/emails/workspace-invitations"));
@@ -269,6 +270,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingFallback />}>
             <SMSPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "settings",
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <ApplicationSettingsPage />
           </Suspense>
         ),
       },
