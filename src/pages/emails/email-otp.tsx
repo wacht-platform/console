@@ -6,7 +6,7 @@ import { Strong, Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
 import { Divider } from "@/components/ui/divider";
 
-export default function EmailNewDeviceLogInPage() {
+export default function EmailOtpPage() {
   const [content, setContent] = useState("");
   const [ejsContent, setEjsContent] = useState<string>("");
 
@@ -19,21 +19,19 @@ export default function EmailNewDeviceLogInPage() {
     </div>
     <p style="font-size: 1.2em; margin-bottom: 10px;">Hi [user_name],</p>
     <p style="margin-bottom: 20px;">
-      We noticed a recent login to your [app.name] account from a new device.
+      Your One-Time Password (OTP) for [app.name] is:
     </p>
-    <p style="margin-bottom: 20px;">
-      <strong>Device Details:</strong><br>
-      - Device: [device.type]<br>
-      - Browser: [device.browser]<br>
-      - Location: [device.location]<br>
-      - Time: [device.time]
-    </p>
-    <p style="margin-bottom: 20px;">
-      If this was you, no further action is required. If you don't recognize this activity, please secure your account immediately.
-    </p>
-    <div style="text-align: center;">
-      <a href="[action_url]" style="background: #000; color: #fff; padding: 12px 24px; border-radius: 5px; text-decoration: none; font-size: 1.2em; display: inline-block;">Secure Your Account</a>
+    <div style="text-align: center; margin-bottom: 20px;">
+      <div style="background: #000; color: #fff; padding: 12px 24px; border-radius: 5px; font-size: 1.5em; display: inline-block;">
+        [otp.code]
+      </div>
     </div>
+    <p style="margin-bottom: 20px;">
+      This OTP is valid for [otp.expires_in_minutes] minutes. Please do not share it with anyone.
+    </p>
+    <p style="margin-bottom: 20px;">
+      If you did not request this OTP, please ignore this email or contact support immediately.
+    </p>
     <p style="font-size: 1em; margin-top: 20px;">Regards,<br><strong>[app.name]</strong></p>
     <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
     <div style="text-align: right; color: #aaa; font-size: 0.9em; line-height: 1.4;">
@@ -50,7 +48,7 @@ export default function EmailNewDeviceLogInPage() {
 
   return (
     <div className="flex flex-col gap-2 mb-2">
-      <Heading className="mb-8">New Device Login</Heading>
+      <Heading className="mb-8">Email OTP</Heading>
 
       <div className="flex items-start justify-between">
         <div className="w-3/4">
@@ -60,13 +58,13 @@ export default function EmailNewDeviceLogInPage() {
           </p>
         </div>
         <Switch
-          name="new_device_login_email"
+          name="email_otp"
         // checked={}
         // onChange={}
         />
       </div>
 
-      <Divider className="mt-3" />
+      <Divider className="mt-3"/>
 
       <div className="my-10">
         <div className="space-y-10">
@@ -120,7 +118,7 @@ export default function EmailNewDeviceLogInPage() {
             <div>
               <Input
                 type="text"
-                placeholder="New Device Login Detected on [app.name]"
+                placeholder="Your One-Time Password (OTP) for [app.name]"
                 size={29}
               />
             </div>

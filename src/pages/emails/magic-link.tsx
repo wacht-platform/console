@@ -6,7 +6,7 @@ import { Strong, Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
 import { Divider } from "@/components/ui/divider";
 
-export default function EmailNewDeviceLogInPage() {
+export default function EmailMagicLinkPage() {
   const [content, setContent] = useState("");
   const [ejsContent, setEjsContent] = useState<string>("");
 
@@ -19,21 +19,14 @@ export default function EmailNewDeviceLogInPage() {
     </div>
     <p style="font-size: 1.2em; margin-bottom: 10px;">Hi [user_name],</p>
     <p style="margin-bottom: 20px;">
-      We noticed a recent login to your [app.name] account from a new device.
-    </p>
-    <p style="margin-bottom: 20px;">
-      <strong>Device Details:</strong><br>
-      - Device: [device.type]<br>
-      - Browser: [device.browser]<br>
-      - Location: [device.location]<br>
-      - Time: [device.time]
-    </p>
-    <p style="margin-bottom: 20px;">
-      If this was you, no further action is required. If you don't recognize this activity, please secure your account immediately.
+      You requested a magic link to sign in to your [app.name] account. Click the button below to log in securely:
     </p>
     <div style="text-align: center;">
-      <a href="[action_url]" style="background: #000; color: #fff; padding: 12px 24px; border-radius: 5px; text-decoration: none; font-size: 1.2em; display: inline-block;">Secure Your Account</a>
+      <a href="[action_url]" style="background: #000; color: #fff; padding: 12px 24px; border-radius: 5px; text-decoration: none; font-size: 1.2em; display: inline-block;">Sign In with Magic Link</a>
     </div>
+    <p style="margin-bottom: 20px;">
+      This magic link will expire in [magic_link.expires_in_minutes] minutes. If you did not request this, please ignore this email.
+    </p>
     <p style="font-size: 1em; margin-top: 20px;">Regards,<br><strong>[app.name]</strong></p>
     <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
     <div style="text-align: right; color: #aaa; font-size: 0.9em; line-height: 1.4;">
@@ -50,7 +43,7 @@ export default function EmailNewDeviceLogInPage() {
 
   return (
     <div className="flex flex-col gap-2 mb-2">
-      <Heading className="mb-8">New Device Login</Heading>
+      <Heading className="mb-8">Magic Link</Heading>
 
       <div className="flex items-start justify-between">
         <div className="w-3/4">
@@ -60,7 +53,7 @@ export default function EmailNewDeviceLogInPage() {
           </p>
         </div>
         <Switch
-          name="new_device_login_email"
+          name="magic_link_email"
         // checked={}
         // onChange={}
         />
@@ -120,7 +113,7 @@ export default function EmailNewDeviceLogInPage() {
             <div>
               <Input
                 type="text"
-                placeholder="New Device Login Detected on [app.name]"
+                placeholder="Your Magic Link to Sign In to [app.name]"
                 size={29}
               />
             </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Strong, Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
+import { Divider } from "@/components/ui/divider";
 
 export default function EmailOrganizationInvitationPage() {
 
@@ -52,10 +53,10 @@ export default function EmailOrganizationInvitationPage() {
       <Heading className="mb-8">Organization Invitation</Heading>
 
       <div className="flex items-start justify-between">
-        <div>
+        <div className="w-3/4">
           <h2 className="text-base font-medium">Delivered by Wacht</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Intended for B2B SaaS products, this feature allows users to create organizations, invite their team, and assign roles.
+          If enabled, Wacht will utilize SendGrid to deliver this email automatically. If disabled, Wacht will not send the email, and you will need to handle the delivery manually by listening to the email webhook.
           </p>
         </div>
         <Switch
@@ -64,6 +65,8 @@ export default function EmailOrganizationInvitationPage() {
         // onChange={}
         />
       </div>
+
+      <Divider className="mt-3" />
 
       <div className="my-10">
         <div className="space-y-10">

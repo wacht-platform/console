@@ -11,7 +11,7 @@ export const convertToEjs = (content: string): string => {
     .replace(/\[#endif\]/g, '<% } %>')
     .replace(/\[([^\]]+)\]/g, '<%= $1 %>');
 
-  if (!ejsContent.startsWith('<p>')) {
+  if (!ejsContent.startsWith('<div') && !ejsContent.startsWith('<p>')) {
     ejsContent = `<p>${ejsContent}</p>`;
   }
 

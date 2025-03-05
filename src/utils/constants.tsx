@@ -47,4 +47,7 @@ export const TINYMCE_CONFIG = {
     "removeformat | variables ",
   content_style:
     "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
+  valid_elements: '*[*]',
+  forced_root_block: false,
+  extended_valid_elements: 'div[style|class|id]',
 };

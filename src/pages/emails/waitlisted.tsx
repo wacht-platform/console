@@ -1,8 +1,138 @@
+import { Heading, Subheading } from "@/components/ui/heading";
+import EmailEditor from "../../components/rich-text-editor";
+import { useEffect, useState } from "react";
+import { Switch } from "@/components/ui/switch";
+import { Strong, Text } from "@/components/ui/text";
+import { Input } from "@/components/ui/input";
+import { Divider } from "@/components/ui/divider";
 
 export default function EmailWaitlistedPage() {
+  const [content, setContent] = useState("");
+  const [ejsContent, setEjsContent] = useState<string>("");
+
+  const defaultTemplate = `
+<div style="font-family: Helvetica, Arial, sans-serif; max-width: 90%; margin: auto; line-height: 1.6; color: #333; padding: 20px; box-sizing: border-box;">
+  <div style="margin: auto; padding: 20px; background: #f9f9f9; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+    <div style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; display: flex; align-items: center;">
+      <img src="[app.logo_image_url]" alt="[app.name] Logo" style="height: 40px; margin-right: 10px;">
+      <a href="[app.url]" style="font-size: 1.5em; color: #000; text-decoration: none; font-weight: bold;">[app.name]</a>
+    </div>
+    <p style="font-size: 1.2em; margin-bottom: 10px;">Hi,</p>
+    <p style="margin-bottom: 20px;">
+      [#if user_name]
+        [user_name], thank you for joining the waitlist for [app.name].
+      [#else]
+        Thank you for joining the waitlist for [app.name].
+      [#endif]
+    </p>
+    <p style="margin-bottom: 20px;">
+      We’re excited to have you on board and will notify you as soon as your spot opens up.
+    </p>
+    <p style="margin-bottom: 20px;">
+      In the meantime, feel free to explore more about [app.name] by visiting our website:
+      <a href="[app.url]" style="color: #000; text-decoration: underline;">[app.url]</a>.
+    </p>
+    <p style="font-size: 1em; margin-top: 20px;">Regards,<br><strong>[app.name]</strong></p>
+    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+    <div style="text-align: right; color: #aaa; font-size: 0.9em; line-height: 1.4;">
+      <p style="margin: 0;">[app.domain_name]</p>
+    </div>
+  </div>
+</div>
+`;
+
+  useEffect(() => {
+    console.log("Raw HTML:", content);
+    console.log("EJS Template:", ejsContent);
+  }, [content, ejsContent]);
+
   return (
-    <div>
-      <h1>E-mail Invitation</h1>
+    <div className="flex flex-col gap-2 mb-2">
+      <Heading className="mb-8">Waitlisted E-mail</Heading>
+
+      <div className="flex items-start justify-between">
+        <div className="w-3/4">
+          <h2 className="text-base font-medium">Delivered by Wacht</h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            If enabled, Wacht will utilize SendGrid to deliver this email automatically. If disabled, Wacht will not send the email, and you will need to handle the delivery manually by listening to the email webhook.
+          </p>
+        </div>
+        <Switch
+          name="waitlisted_email"
+        // checked={}
+        // onChange={}
+        />
+      </div>
+
+      <Divider className="mt-3" />
+
+      <div className="my-10">
+        <div className="space-y-10">
+          <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Subheading>
+                <Strong>Name</Strong>
+              </Subheading>
+            </div>
+            <div>
+              <Input type="text" placeholder="Enter your name" size={29} />
+            </div>
+          </section>
+
+          <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Subheading>
+                <Strong>From</Strong>
+              </Subheading>
+              <Text>
+                Enter the local email part you would like this email to be sent
+                from, or leave empty to default to `notifications`.
+              </Text>
+            </div>
+            <div>
+              <Input type="text" placeholder="notifications@accounts.dev" size={29} />
+            </div>
+          </section>
+
+          <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Subheading>
+                <Strong>Reply-To</Strong>
+              </Subheading>
+              <Text>
+                Enter the local email part you would like this email's Reply-To
+                header to be set to.
+              </Text>
+            </div>
+            <div>
+              <Input type="text" placeholder="support@accounts.dev" size={29} />
+            </div>
+          </section>
+
+          <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Subheading>
+                <Strong>Subject</Strong>
+              </Subheading>
+            </div>
+            <div>
+              <Input
+                type="text"
+                placeholder="You're on the waitlist for [app.name]"
+                size={29}
+              />
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <EmailEditor
+        initialContent={defaultTemplate}
+        onChange={(rawContent, ejsContent) => {
+          setContent(rawContent);
+          setEjsContent(ejsContent);
+        }}
+      />
     </div>
   );
 }
