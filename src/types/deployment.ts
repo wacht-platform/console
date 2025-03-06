@@ -18,6 +18,10 @@ export type SecondFactorPolicy = "none" | "optional" | "enforced";
 export interface IndividualAuthSettings {
   enabled: boolean;
   required: boolean;
+  verify_signup: boolean;
+  otp_verification_allowed: boolean;
+  magic_link_verification_allowed: boolean;
+  whatsapp_verification_allowed: boolean;
 }
 
 export interface AuthFactorsEnabled {
@@ -36,6 +40,46 @@ export interface VerificationPolicy {
   email: boolean;
 }
 
+export interface PasswordPolicy {
+  enabled: boolean;
+  min_length: boolean;
+  require_lowercase: boolean;
+  require_uppercase: boolean;
+  require_number: boolean;
+  require_special: boolean;
+}
+
+export interface UsernamePolicy {
+  enabled: boolean;
+  required: boolean;
+  min_length: number;
+  max_length: number;
+}
+
+export interface LastNamePolicy {
+  enabled: boolean;
+  required: boolean;
+}
+
+export interface FirstNamePolicy {
+  enabled: boolean;
+  required: boolean;
+}
+
+export interface AuthFactorsPolicy {
+  sso: boolean;
+  email_password: boolean;
+  username_password: boolean;
+  email_otp: boolean;
+  email_magic_link: boolean;
+  phone_otp: boolean;
+  web3_wallet: boolean;
+  backup_code: boolean;
+  authenticator: boolean;
+  passkey: boolean;
+}
+
+
 export interface DeploymentAuthSettings {
   id: string;
   created_at: string | null;
@@ -44,14 +88,14 @@ export interface DeploymentAuthSettings {
   deployment_id: string;
   email_address: IndividualAuthSettings;
   phone_number: IndividualAuthSettings;
-  username: IndividualAuthSettings;
-  first_name: IndividualAuthSettings;
-  last_name: IndividualAuthSettings;
-  password: IndividualAuthSettings;
+  username: UsernamePolicy;
+  first_name: FirstNamePolicy;
+  last_name: LastNamePolicy;
+  password: PasswordPolicy;
   backup_code: IndividualAuthSettings;
   web3_wallet: IndividualAuthSettings;
   password_policy: IndividualAuthSettings;
-  auth_factors_enabled: AuthFactorsEnabled;
+  auth_factors_enabled: AuthFactorsPolicy;
   verification_policy: VerificationPolicy;
   second_factor_policy?: SecondFactorPolicy;
   first_factor: FirstFactor;

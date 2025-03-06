@@ -6,10 +6,10 @@ import { useProjectAndDeployments } from "./use-projects";
 async function fetchDeploymentSettings(
   deploymentId: string,
 ): Promise<DeploymentWithSettings> {
-  const { data } = await apiClient.get<{ data: DeploymentWithSettings }>(
-    `/deployments/${deploymentId}/settings`,
+  const { data } = await apiClient.get<DeploymentWithSettings>(
+    `/deployment/${deploymentId}/settings`,
   );
-  return data.data;
+  return data;
 }
 
 export function useDeploymentSettings() {
