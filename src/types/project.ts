@@ -6,5 +6,6 @@ export type ProjectWithDeployments = {
 	updated_at: string;
 	deleted_at: string | null;
 	name: string;
+	image_url: string;
 	deployments: Deployment[];
 };

@@ -48,6 +48,36 @@ export function DropdownMenu({
 	);
 }
 
+// Custom wrapper for Heroicons to ensure proper styling in all states
+export function DropdownIcon({
+	icon: Icon,
+	className,
+}: {
+	icon: React.ElementType;
+	className?: string;
+}) {
+	return (
+		<Icon
+			className={clsx(
+				"h-5 w-5",
+				"text-zinc-600 group-hover:text-zinc-900 group-data-[focus]:text-white",
+				"dark:text-zinc-400 dark:group-hover:text-white dark:group-data-[focus]:text-white",
+				className,
+			)}
+			style={{
+				strokeWidth: 1.5,
+				minWidth: 20,
+				minHeight: 20,
+				// Ensure proper coloring for Heroicon outline icons in all states
+				stroke: "currentColor",
+				strokeLinecap: "round",
+				strokeLinejoin: "round",
+				fill: "none",
+			}}
+		/>
+	);
+}
+
 export function DropdownItem({
 	className,
 	...props
@@ -69,9 +99,12 @@ export function DropdownItem({
 		"forced-color-adjust-none forced-colors:data-focus:bg-[Highlight] forced-colors:data-focus:text-[HighlightText] forced-colors:data-focus:*:data-[slot=icon]:text-[HighlightText]",
 		// Use subgrid when available but fallback to an explicit grid layout if not
 		"col-span-full grid grid-cols-[auto_1fr_1.5rem_0.5rem_auto] items-center supports-[grid-template-columns:subgrid]:grid-cols-subgrid",
-		// Icons
+		// Icons - basic sizing and position
 		"*:data-[slot=icon]:col-start-1 *:data-[slot=icon]:row-start-1 *:data-[slot=icon]:mr-2.5 *:data-[slot=icon]:-ml-0.5 *:data-[slot=icon]:size-5 sm:*:data-[slot=icon]:mr-2 sm:*:data-[slot=icon]:size-4",
-		"*:data-[slot=icon]:text-zinc-500 data-focus:*:data-[slot=icon]:text-white dark:*:data-[slot=icon]:text-zinc-400 dark:data-focus:*:data-[slot=icon]:text-white",
+		// Direct SVG styling for plain SVG icons without DropdownIcon wrapper
+		"[&>svg]:h-5 [&>svg]:w-5 [&>svg]:stroke-zinc-600 [&>svg]:stroke-[1.5]",
+		"hover:[&>svg]:stroke-zinc-900 data-focus:[&>svg]:stroke-white",
+		"dark:[&>svg]:stroke-zinc-400 dark:hover:[&>svg]:stroke-white",
 		// Avatar
 		"*:data-[slot=avatar]:mr-2.5 *:data-[slot=avatar]:-ml-1 *:data-[slot=avatar]:size-6 sm:*:data-[slot=avatar]:mr-2 sm:*:data-[slot=avatar]:size-5",
 	);
@@ -205,13 +238,13 @@ export function DropdownShortcut({
 				"col-start-5 row-start-1 flex justify-self-end",
 			)}
 		>
-			{(Array.isArray(keys) ? keys : keys.split("")).map((char, index) => (
+			{(Array.isArray(keys) ? keys : keys.split("")).map((char) => (
 				<kbd
-					key={index}
+					key={`key-${char}`}
 					className={clsx([
 						"min-w-[2ch] text-center font-sans text-zinc-400 capitalize group-data-focus:text-white forced-colors:group-data-focus:text-[HighlightText]",
 						// Make sure key names that are longer than one character (like "Tab") have extra space
-						index > 0 && char.length > 1 && "pl-1",
+						char.length > 1 && "pl-1",
 					])}
 				>
 					{char}

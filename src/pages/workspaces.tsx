@@ -131,7 +131,7 @@ export default function WorkspacesPage() {
 			</div>
 
 			<div className="mt-6">
-				<Table striped modern>
+				<Table>
 					<TableHead>
 						<TableRow>
 							<TableHeader>Workspace</TableHeader>
@@ -167,10 +167,11 @@ export default function WorkspacesPage() {
 									</TableCell>
 									<TableCell>
 										<span
-											className={`px-2 py-1 rounded-full text-xs ${workspace.status === "active"
+											className={`px-2 py-1 rounded-full text-xs ${
+												workspace.status === "active"
 													? "bg-green-100 text-green-800"
 													: "bg-yellow-100 text-yellow-800"
-												}`}
+											}`}
 										>
 											{workspace.status}
 										</span>

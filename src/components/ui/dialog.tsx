@@ -13,6 +13,8 @@ const sizes = {
 	"3xl": "sm:max-w-3xl",
 	"4xl": "sm:max-w-4xl",
 	"5xl": "sm:max-w-5xl",
+	"6xl": "sm:max-w-6xl",
+	"7xl": "sm:max-w-7xl",
 };
 
 export function Dialog({
@@ -89,7 +91,7 @@ export function DialogBody({
 	className,
 	...props
 }: React.ComponentPropsWithoutRef<"div">) {
-	return <div {...props} className={clsx(className, "mt-4")} />;
+	return <div {...props} className={clsx("mt-4", className)} />;
 }
 
 export function DialogActions({

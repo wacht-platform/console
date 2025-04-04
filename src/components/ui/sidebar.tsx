@@ -144,11 +144,15 @@ export const SidebarItem = forwardRef(function SidebarItem(
 		"*:last:data-[slot=icon]:ml-auto *:last:data-[slot=icon]:size-5 sm:*:last:data-[slot=icon]:size-4",
 		// Avatar
 		"*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7 *:data-[slot=avatar]:[--ring-opacity:10%] sm:*:data-[slot=avatar]:size-6",
+		// Direct SVG targeting for Heroicons
+		"[&>svg]:h-5 [&>svg]:w-5 [&>svg]:stroke-zinc-700 [&>svg]:stroke-[1.5]",
+		"hover:[&>svg]:stroke-zinc-900",
+		"dark:[&>svg]:stroke-zinc-400 dark:hover:[&>svg]:stroke-white",
 		// Dark mode
-		"dark:text-white dark:*:data-[slot=icon]:fill-zinc-400",
-		"dark:data-hover:bg-white/5 dark:data-hover:*:data-[slot=icon]:fill-white",
-		"dark:data-active:bg-white/5 dark:data-active:*:data-[slot=icon]:fill-white",
-		"dark:data-current:*:data-[slot=icon]:fill-white",
+		"dark:text-white",
+		"dark:data-hover:bg-white/5",
+		"dark:data-active:bg-white/5",
+		"dark:data-current:[&>svg]:stroke-white",
 	);
 
 	return (

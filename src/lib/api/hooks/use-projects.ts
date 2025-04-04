@@ -5,37 +5,43 @@ import { useEffect, useState } from "react";
 import type { Deployment } from "@/types/deployment";
 
 async function fetchProjects(): Promise<ProjectWithDeployments[]> {
-  const { data } = await apiClient.get<{ data: ProjectWithDeployments[] }>(
-    "/projects",
-  );
-  return data.data;
+	const { data } = await apiClient.get<{ data: ProjectWithDeployments[] }>(
+		"/projects",
+	);
+	return data.data;
 }
 
+const createProject = async (data: FormData) => {
+	const response = await apiClient.post("/project", data);
+	return response.data;
+};
+
 export function useProjectAndDeployments() {
-  const [selectedProject, setSelectedProject] =
-    useState<ProjectWithDeployments | null>(null);
-  const [selectedDeployment, setSelectedDeployment] =
-    useState<Deployment | null>(null);
+	const [selectedProject, setSelectedProject] =
+		useState<ProjectWithDeployments | null>(null);
+	const [selectedDeployment, setSelectedDeployment] =
+		useState<Deployment | null>(null);
 
-  const { data: projects, isLoading } = useQuery({
-    queryKey: ["projects"],
-    queryFn: fetchProjects,
-  });
+	const { data: projects, isLoading } = useQuery({
+		queryKey: ["projects"],
+		queryFn: fetchProjects,
+	});
 
-  useEffect(() => {
-    if (isLoading || selectedProject) return;
-    const project = projects?.[0];
-    if (!project) return;
-    setSelectedProject(project);
-    setSelectedDeployment(project.deployments[0]);
-  }, [isLoading, projects, selectedProject]);
+	useEffect(() => {
+		if (isLoading || selectedProject) return;
+		const project = projects?.[0];
+		if (!project) return;
+		setSelectedProject(project);
+		setSelectedDeployment(project.deployments[0]);
+	}, [isLoading, projects, selectedProject]);
 
-  return {
-    projects,
-    isLoading,
-    selectedProject,
-    selectedDeployment,
-    setSelectedProject,
-    setSelectedDeployment,
-  };
+	return {
+		projects,
+		isLoading,
+		selectedProject,
+		selectedDeployment,
+		setSelectedProject,
+		setSelectedDeployment,
+		createProject,
+	};
 }
