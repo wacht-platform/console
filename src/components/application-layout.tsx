@@ -35,7 +35,9 @@ import {
 	PlusIcon,
 	ShieldCheckIcon,
 	UserCircleIcon,
+	LockClosedIcon,
 	KeyIcon,
+	// Square3Stack3DIcon,
 	UserGroupIcon,
 	ClockIcon,
 	EnvelopeIcon,
@@ -46,7 +48,7 @@ import {
 	BriefcaseIcon,
 	NoSymbolIcon,
 } from "@heroicons/react/24/outline";
-import { useProjectAndDeployments } from "@/lib/api/hooks/use-projects";
+import { useProjects } from "@/lib/api/hooks/use-projects";
 import { capitalize } from "@/lib/capitalize";
 import { CreateProjectDialog } from "./create-project-dialog";
 
@@ -90,7 +92,7 @@ export function ApplicationLayout() {
 		selectedDeployment,
 		setSelectedProject,
 		setSelectedDeployment,
-	} = useProjectAndDeployments();
+	} = useProjects();
 
 	if (isLoading) {
 		return (
@@ -129,6 +131,7 @@ export function ApplicationLayout() {
 									>
 										<Avatar
 											slot="icon"
+											src={project.image_url}
 											initials={project.name.substring(0, 2).toUpperCase()}
 											className="bg-blue-500 text-white"
 										/>
@@ -167,11 +170,10 @@ export function ApplicationLayout() {
 											>
 												<div
 													slot="icon"
-													className={`h-5 w-5 rounded flex items-center justify-center ${
-														deployment.mode === "production"
-															? "bg-green-500"
-															: "bg-yellow-500"
-													} text-white`}
+													className={`h-5 w-5 rounded flex items-center justify-center ${deployment.mode === "production"
+														? "bg-green-500"
+														: "bg-yellow-500"
+														} text-white`}
 												>
 													{deployment.mode === "production" ? "P" : "S"}
 												</div>
@@ -275,14 +277,19 @@ export function ApplicationLayout() {
 						<SidebarSection className="max-lg:hidden">
 							<SidebarHeading>Authentication</SidebarHeading>
 							<SidebarItem href="/auth/schema-factors">
-								<DropdownIcon icon={EnvelopeIcon} />
-								<SidebarLabel>Schema & Factors</SidebarLabel>
+								<DropdownIcon icon={LockClosedIcon} />
+								<SidebarLabel>Auth Settings</SidebarLabel>
 							</SidebarItem>
 
 							<SidebarItem href="/auth/sso">
 								<DropdownIcon icon={KeyIcon} />
-								<SidebarLabel>Social logins</SidebarLabel>
+								<SidebarLabel>Configure SSO</SidebarLabel>
 							</SidebarItem>
+
+							{/* <SidebarItem href="/auth/web3">
+								<DropdownIcon icon={Square3Stack3DIcon} />
+								<SidebarLabel>Configure Web3</SidebarLabel>
+							</SidebarItem> */}
 
 							<SidebarItem href="/auth/restrictions">
 								<DropdownIcon icon={NoSymbolIcon} />

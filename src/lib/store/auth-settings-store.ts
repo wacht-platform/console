@@ -1,0 +1,447 @@
+import { create } from "zustand";
+import type { DeploymentAuthSettings, IndividualAuthSettings, EmailSettings, PhoneSettings, UsernameSettings, PasswordSettings, EmailLinkSettings, PasskeySettings, AuthFactorsEnabled } from "@/types/deployment"; // Import full types
+import { useDeploymentSettings } from "@/lib/api/hooks/use-deployment-settings";
+import { useUpdateDeploymentAuthSettings } from "@/lib/api/hooks/use-update-deployment-auth-settings";
+
+let originalSettings: DeploymentAuthSettings | null = null;
+
+interface PartialEmailSettings {
+    enabled?: boolean;
+    required?: boolean;
+    verify_signup?: boolean;
+    otp_verification_allowed?: boolean;
+    magic_link_verification_allowed?: boolean;
+}
+
+interface PartialPhoneSettings {
+    enabled?: boolean;
+    required?: boolean;
+    verify_signup?: boolean;
+    sms_verification_allowed?: boolean;
+    whatsapp_verification_allowed?: boolean;
+}
+
+interface PartialUsernameSettings {
+    enabled?: boolean;
+    required?: boolean;
+    min_length?: number | null;
+    max_length?: number | null;
+}
+
+interface PartialPasswordSettings {
+    enabled?: boolean;
+    min_length?: number | null;
+    require_lowercase?: boolean;
+    require_uppercase?: boolean;
+    require_number?: boolean;
+    require_special?: boolean;
+}
+
+interface PartialNameSettings {
+    first_name_enabled?: boolean;
+    first_name_required?: boolean;
+    last_name_enabled?: boolean;
+    last_name_required?: boolean;
+}
+
+interface PartialEmailLinkSettings {
+    enabled?: boolean;
+    require_same_device?: boolean;
+}
+
+interface PartialPasskeySettings {
+    enabled?: boolean;
+    allow_autofill?: boolean;
+}
+
+interface PartialAuthenticationFactorSettings {
+    sso_enabled?: boolean;
+    web3_wallet_enabled?: boolean;
+    email_otp_enabled?: boolean;
+    phone_otp_enabled?: boolean;
+    magic_link?: PartialEmailLinkSettings;
+    passkey?: PartialPasskeySettings;
+    second_factor_authenticator_enabled?: boolean;
+    second_factor_backup_code_enabled?: boolean;
+}
+
+interface DeploymentAuthSettingsUpdatesPayload {
+    email?: PartialEmailSettings;
+    phone?: PartialPhoneSettings;
+    username?: PartialUsernameSettings;
+    password?: PartialPasswordSettings;
+    name?: PartialNameSettings;
+    authentication_factors?: PartialAuthenticationFactorSettings;
+    backup_code?: PartialIndividualAuthSettings;
+    web3_wallet?: PartialIndividualAuthSettings;
+    second_factor_policy?: DeploymentAuthSettings["second_factor_policy"];
+}
+
+interface PartialIndividualAuthSettings {
+    enabled?: boolean;
+    required?: boolean;
+}
+
+
+interface AuthSettingsState {
+    settings: DeploymentAuthSettings;
+    isLoaded: boolean;
+    isDirty: boolean;
+
+    initializeSettings: (settings: DeploymentAuthSettings) => void;
+    updateEmailSettings: (settings: Partial<EmailSettings>) => void;
+    updatePhoneSettings: (settings: Partial<PhoneSettings>) => void;
+    updateUsernameSettings: (settings: Partial<UsernameSettings>) => void;
+    updatePasswordSettings: (settings: Partial<PasswordSettings>) => void;
+    updateFirstNameSettings: (settings: Partial<IndividualAuthSettings>) => void;
+    updateLastNameSettings: (settings: Partial<IndividualAuthSettings>) => void;
+    updateMagicLinkSettings: (settings: Partial<EmailLinkSettings>) => void;
+    updatePasskeySettings: (settings: Partial<PasskeySettings>) => void;
+    updateSecondFactorPolicy: (policy: DeploymentAuthSettings["second_factor_policy"]) => void;
+    updateAuthFactorsEnabled: (settings: Partial<AuthFactorsEnabled>) => void;
+    updateWeb3WalletSettings: (settings: Partial<IndividualAuthSettings>) => void;
+    saveSettings: () => Promise<boolean>;
+    resetSettings: () => void;
+}
+
+let updateAuthSettingsMethod: null | ((payload: DeploymentAuthSettingsUpdatesPayload) => Promise<void>) = null;
+
+export const setUpdateAuthSettingsMethod = (method: any) => {
+    updateAuthSettingsMethod = (payload: DeploymentAuthSettingsUpdatesPayload) => {
+        return new Promise<void>((resolve, reject) => {
+            try {
+                console.log("payload", payload);
+                method(payload, {
+                    onSuccess: () => resolve(),
+                    onError: (error: Error) => reject(error)
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    };
+};
+
+const getNested = (obj: any, path: string[]): any => {
+    return path.reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : undefined), obj);
+};
+
+export const useAuthSettingsStore = create<AuthSettingsState>((set, get) => ({
+    settings: {} as DeploymentAuthSettings,
+    isLoaded: false,
+    isDirty: false,
+
+    initializeSettings: (settings) => {
+        originalSettings = JSON.parse(JSON.stringify(settings));
+        set(() => ({
+            settings,
+            isLoaded: true,
+            isDirty: false
+        }));
+    },
+
+    updateEmailSettings: (emailSettings) => {
+        set((state) => ({
+            settings: {
+                ...state.settings,
+                email_address: {
+                    ...(state.settings.email_address),
+                    ...emailSettings
+                } as EmailSettings
+            },
+            isDirty: true
+        }));
+    },
+
+    updatePhoneSettings: (phoneSettings) => {
+        set((state) => ({
+            settings: {
+                ...state.settings,
+                phone_number: {
+                    ...(state.settings.phone_number),
+                    ...phoneSettings
+                } as PhoneSettings
+            },
+            isDirty: true
+        }));
+    },
+
+    updateUsernameSettings: (usernameSettings) => {
+        const cleanSettings = { ...usernameSettings };
+        if (cleanSettings.min_length === undefined) cleanSettings.min_length = undefined;
+        if (cleanSettings.max_length === undefined) cleanSettings.max_length = undefined;
+
+        set((state) => ({
+            settings: {
+                ...state.settings,
+                username: {
+                    ...(state.settings.username),
+                    ...cleanSettings
+                } as UsernameSettings
+            },
+            isDirty: true
+        }));
+    },
+
+    updatePasswordSettings: (passwordSettings) => {
+        const cleanSettings = { ...passwordSettings };
+        if (cleanSettings.min_length === undefined) cleanSettings.min_length = undefined;
+
+        set((state) => ({
+            settings: {
+                ...state.settings,
+                password: {
+                    ...(state.settings.password),
+                    ...cleanSettings
+                } as PasswordSettings
+            },
+            isDirty: true
+        }));
+    },
+
+    updateFirstNameSettings: (firstNameSettings) => {
+        set((state) => ({
+            settings: {
+                ...state.settings,
+                first_name: {
+                    ...(state.settings.first_name),
+                    ...firstNameSettings
+                } as IndividualAuthSettings
+            },
+            isDirty: true
+        }));
+    },
+
+    updateLastNameSettings: (lastNameSettings) => {
+        set((state) => ({
+            settings: {
+                ...state.settings,
+                last_name: {
+                    ...(state.settings.last_name),
+                    ...lastNameSettings
+                } as IndividualAuthSettings
+            },
+            isDirty: true
+        }));
+    },
+
+    updateMagicLinkSettings: (magicLinkSettings) => {
+        set((state) => ({
+            settings: {
+                ...state.settings,
+                magic_link: {
+                    ...(state.settings.magic_link),
+                    ...magicLinkSettings
+                } as EmailLinkSettings
+            },
+            isDirty: true
+        }));
+    },
+
+    updatePasskeySettings: (passkeySettings) => {
+        set((state) => ({
+            settings: {
+                ...state.settings,
+                passkey: {
+                    ...(state.settings.passkey),
+                    ...passkeySettings
+                } as PasskeySettings
+            },
+            isDirty: true
+        }));
+    },
+
+    updateSecondFactorPolicy: (policy) => {
+        set((state) => ({
+            settings: {
+                ...state.settings,
+                second_factor_policy: policy
+            },
+            isDirty: true
+        }));
+    },
+
+    updateAuthFactorsEnabled: (authFactorsSettings) => {
+        set((state) => ({
+            settings: {
+                ...state.settings,
+                auth_factors_enabled: {
+                    ...(state.settings.auth_factors_enabled),
+                    ...authFactorsSettings
+                } as AuthFactorsEnabled
+            },
+            isDirty: true
+        }));
+    },
+
+    updateWeb3WalletSettings: (web3WalletSettings) => {
+        set((state) => ({
+            settings: {
+                ...state.settings,
+                web3_wallet: {
+                    ...(state.settings.web3_wallet),
+                    ...web3WalletSettings
+                } as IndividualAuthSettings
+            },
+            isDirty: true
+        }));
+    },
+
+    saveSettings: async (): Promise<boolean> => {
+        if (!get().isDirty) {
+            console.log("Form is not dirty, skipping save.");
+            return true;
+        }
+
+        const currentSettings = get().settings;
+        if (!originalSettings) {
+            console.error("Original settings not available for comparison.");
+            return false;
+        }
+        if (!updateAuthSettingsMethod) {
+            console.error("Update method not set");
+            return false;
+        }
+
+        const updates: DeploymentAuthSettingsUpdatesPayload = {};
+        let hasChanges = false;
+
+        const areDifferent = (path: string[]) => {
+            const currentVal = getNested(currentSettings, path);
+            const originalVal = getNested(originalSettings, path);
+            return JSON.stringify(currentVal) !== JSON.stringify(originalVal);
+        };
+
+        if (areDifferent(['email_address'])) {
+            updates.email = { ...currentSettings.email_address };
+            hasChanges = true;
+        }
+        if (areDifferent(['phone_number'])) {
+            updates.phone = { ...currentSettings.phone_number };
+            hasChanges = true;
+        }
+        if (areDifferent(['username'])) {
+            updates.username = {
+                enabled: currentSettings.username?.enabled,
+                required: currentSettings.username?.required,
+                min_length: currentSettings.username?.min_length ?? null,
+                max_length: currentSettings.username?.max_length ?? null,
+            };
+            hasChanges = true;
+        }
+        if (areDifferent(['password'])) {
+            updates.password = {
+                enabled: currentSettings.password?.enabled,
+                min_length: currentSettings.password?.min_length ?? null,
+                require_lowercase: currentSettings.password?.require_lowercase,
+                require_uppercase: currentSettings.password?.require_uppercase,
+                require_number: currentSettings.password?.require_number,
+                require_special: currentSettings.password?.require_special,
+            };
+            hasChanges = true;
+        }
+        if (areDifferent(['backup_code'])) {
+            updates.backup_code = { ...currentSettings.backup_code };
+            hasChanges = true;
+        }
+        if (areDifferent(['web3_wallet'])) {
+            updates.web3_wallet = { ...currentSettings.web3_wallet };
+            hasChanges = true;
+        }
+
+        if (areDifferent(['first_name']) || areDifferent(['last_name'])) {
+            updates.name = {
+                first_name_enabled: currentSettings.first_name?.enabled,
+                first_name_required: currentSettings.first_name?.required,
+                last_name_enabled: currentSettings.last_name?.enabled,
+                last_name_required: currentSettings.last_name?.required,
+            };
+            hasChanges = true;
+        }
+
+        const authFactorsPayload: PartialAuthenticationFactorSettings = {};
+        let authFactorsHasChanges = false;
+
+        if (areDifferent(['auth_factors_enabled', 'sso'])) {
+            authFactorsPayload.sso_enabled = currentSettings.auth_factors_enabled?.sso;
+            authFactorsHasChanges = true;
+        }
+        if (areDifferent(['auth_factors_enabled', 'web3_wallet'])) {
+            authFactorsPayload.web3_wallet_enabled = currentSettings.auth_factors_enabled?.web3_wallet;
+            authFactorsHasChanges = true;
+        }
+        if (areDifferent(['auth_factors_enabled', 'email_otp'])) {
+            authFactorsPayload.email_otp_enabled = currentSettings.auth_factors_enabled?.email_otp;
+            authFactorsHasChanges = true;
+        }
+        if (areDifferent(['auth_factors_enabled', 'phone_otp'])) {
+            authFactorsPayload.phone_otp_enabled = currentSettings.auth_factors_enabled?.phone_otp;
+            authFactorsHasChanges = true;
+        }
+        if (areDifferent(['auth_factors_enabled', 'authenticator'])) {
+            authFactorsPayload.second_factor_authenticator_enabled = currentSettings.auth_factors_enabled?.authenticator;
+            authFactorsHasChanges = true;
+        }
+        if (areDifferent(['auth_factors_enabled', 'backup_code'])) {
+            authFactorsPayload.second_factor_backup_code_enabled = currentSettings.auth_factors_enabled?.backup_code;
+            authFactorsHasChanges = true;
+        }
+        if (areDifferent(['magic_link'])) {
+            authFactorsPayload.magic_link = { ...currentSettings.magic_link };
+            authFactorsHasChanges = true;
+        }
+        if (areDifferent(['passkey'])) {
+            authFactorsPayload.passkey = { ...currentSettings.passkey };
+            authFactorsHasChanges = true;
+        }
+
+        if (authFactorsHasChanges) {
+            updates.authentication_factors = authFactorsPayload;
+            hasChanges = true;
+        }
+
+        if (areDifferent(['second_factor_policy'])) {
+            updates.second_factor_policy = currentSettings.second_factor_policy;
+            hasChanges = true;
+        }
+
+        if (!hasChanges && get().isDirty) {
+            console.warn("Form is dirty, but no specific changes detected by diffing logic. Sending empty update.");
+        }
+
+        try {
+            await updateAuthSettingsMethod(updates);
+            originalSettings = JSON.parse(JSON.stringify(get().settings));
+            set({ isDirty: false });
+            return true;
+        } catch (error) {
+            console.error("Error saving settings:", error);
+            return false;
+        }
+    },
+
+    resetSettings: () => {
+        if (originalSettings) {
+            set({
+                settings: JSON.parse(JSON.stringify(originalSettings)),
+                isDirty: false
+            });
+        }
+    }
+}));
+
+export const useInitializeAuthSettings = () => {
+    const { deploymentSettings, isLoading } = useDeploymentSettings();
+    const { initializeSettings, isLoaded } = useAuthSettingsStore();
+    const updateMutation = useUpdateDeploymentAuthSettings();
+
+    if (updateMutation && !updateAuthSettingsMethod) {
+        setUpdateAuthSettingsMethod(updateMutation.mutate);
+    }
+
+    if (!isLoading && deploymentSettings?.auth_settings && !isLoaded) {
+        initializeSettings(deploymentSettings.auth_settings);
+    }
+
+    return { isLoading };
+}; 

@@ -1,19 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "../client";
-import type { DeploymentWithSettings } from "../../../types/deployment";
-import { useProjectAndDeployments } from "./use-projects";
+import { useProjects } from "./use-projects";
+import type { DeploymentWithSettings } from "@/types/deployment";
 
 async function fetchDeploymentSettings(
   deploymentId: string,
 ): Promise<DeploymentWithSettings> {
-  const { data } = await apiClient.get<{ data: DeploymentWithSettings }>(
-    `/deployments/${deploymentId}/settings`,
+  const { data } = await apiClient.get<DeploymentWithSettings>(
+    `/deployments/${deploymentId}`,
   );
-  return data.data;
+  return data;
 }
 
 export function useDeploymentSettings() {
-  const { selectedDeployment } = useProjectAndDeployments();
+  const { selectedDeployment, isLoading: isLoadingProjects } = useProjects();
 
   const { data: deploymentSettings, isLoading } = useQuery({
     queryKey: ["deploymentSettings", selectedDeployment?.id],
@@ -23,6 +23,6 @@ export function useDeploymentSettings() {
 
   return {
     deploymentSettings,
-    isLoading,
+    isLoading: isLoadingProjects || isLoading,
   };
 }

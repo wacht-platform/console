@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "../client";
-import { useProjectAndDeployments } from "@/lib/api/hooks/use-projects";
+import { useProjects } from "@/lib/api/hooks/use-projects";
 
 interface UserWithIdentifiers {
   id: string;
@@ -38,7 +38,7 @@ async function fetchUsers(
 }
 
 export function useUsers(params: UsersQueryParams = {}) {
-  const { selectedDeployment } = useProjectAndDeployments();
+  const { selectedDeployment } = useProjects();
 
   return useQuery({
     queryKey: ["users", selectedDeployment?.id, params],

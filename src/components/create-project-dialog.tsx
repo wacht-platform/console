@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import {
@@ -10,7 +10,6 @@ import { Dialog, DialogActions } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/fieldset";
 import { Field } from "@/components/ui/fieldset";
 import { Switch } from "@/components/ui/switch";
-
 import AppleIcon from "@/assets/apple.svg";
 import DiscordIcon from "@/assets/discord.svg";
 import FacebookIcon from "@/assets/facebook.svg";
@@ -19,6 +18,7 @@ import GoogleIcon from "@/assets/google.svg";
 import LinkedInIcon from "@/assets/linkedin.svg";
 import MicrosoftIcon from "@/assets/microsoft.svg";
 import { Button } from "./ui/button";
+import { useProjects } from "@/lib/api/hooks/use-projects";
 
 type AuthMethod =
 	| "email"
@@ -47,6 +47,8 @@ export function CreateProjectDialog({
 	]);
 	const [logoUrl, setLogoUrl] = useState<string | null>(null);
 	const [logoFile, setLogoFile] = useState<File | null>(null);
+	const logoInputRef = useRef<HTMLInputElement>(null);
+	const { createProject } = useProjects();
 
 	const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
@@ -65,14 +67,22 @@ export function CreateProjectDialog({
 		}
 	};
 
-	const handleContinue = () => {
-		const formData = new FormData();
-		formData.append("name", appName);
-		if (logoFile) {
-			formData.append("logo", logoFile);
-		}
-		for (const method of selectedMethods) {
-			formData.append("methods", method);
+	const handleContinue = async () => {
+		try {
+			const formData = new FormData();
+			if (logoFile) {
+				formData.append("logo", logoFile);
+			}
+			for (const method of selectedMethods) {
+				formData.append("methods", method);
+			}
+
+			formData.append("name", appName);
+
+			await createProject(formData);
+			onClose();
+		} catch (error) {
+			console.error(error);
 		}
 	};
 
@@ -89,10 +99,8 @@ export function CreateProjectDialog({
 							<div className="shrink-0">
 								<button
 									type="button"
-									className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-800 overflow-hidden relative"
-									onClick={() =>
-										document.getElementById("logo-upload")?.click()
-									}
+									className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 overflow-hidden relative"
+									onClick={() => logoInputRef.current?.click()}
 									aria-label="Upload logo"
 								>
 									{logoUrl ? (
@@ -106,33 +114,10 @@ export function CreateProjectDialog({
 											{appName ? appName.charAt(0).toUpperCase() : "M"}
 										</span>
 									)}
-									<div className="absolute inset-0 bg-black/5 dark:bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											className="h-5 w-5 text-zinc-700 dark:text-white"
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-											aria-hidden="true"
-										>
-											<path
-												strokeLinecap="round"
-												strokeLinejoin="round"
-												strokeWidth={2}
-												d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-											/>
-											<path
-												strokeLinecap="round"
-												strokeLinejoin="round"
-												strokeWidth={2}
-												d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-											/>
-										</svg>
-									</div>
 								</button>
 								<input
 									type="file"
-									id="logo-upload"
+									ref={logoInputRef}
 									className="hidden"
 									accept="image/*"
 									onChange={handleLogoUpload}

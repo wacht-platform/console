@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
 import type { ProjectWithDeployments } from "@/types/project";
-import { useEffect, useState } from "react";
-import type { Deployment } from "@/types/deployment";
+import { useEffect, useCallback } from "react";
+import { useProjectStore } from "@/lib/store/project";
 
 async function fetchProjects(): Promise<ProjectWithDeployments[]> {
 	const { data } = await apiClient.get<{ data: ProjectWithDeployments[] }>(
@@ -11,29 +11,52 @@ async function fetchProjects(): Promise<ProjectWithDeployments[]> {
 	return data.data;
 }
 
-const createProject = async (data: FormData) => {
-	const response = await apiClient.post("/project", data);
-	return response.data;
-};
+export function useProjects() {
+	const {
+		projects,
+		isLoading: storeIsLoading,
+		selectedProject,
+		selectedDeployment,
+		setSelectedProject,
+		setSelectedDeployment,
+		setProjects,
+	} = useProjectStore();
 
-export function useProjectAndDeployments() {
-	const [selectedProject, setSelectedProject] =
-		useState<ProjectWithDeployments | null>(null);
-	const [selectedDeployment, setSelectedDeployment] =
-		useState<Deployment | null>(null);
-
-	const { data: projects, isLoading } = useQuery({
+	const { data: queryProjects, isLoading: queryIsLoading, refetch } = useQuery({
 		queryKey: ["projects"],
 		queryFn: fetchProjects,
+		refetchOnWindowFocus: false,
 	});
 
 	useEffect(() => {
-		if (isLoading || selectedProject) return;
-		const project = projects?.[0];
-		if (!project) return;
-		setSelectedProject(project);
-		setSelectedDeployment(project.deployments[0]);
-	}, [isLoading, projects, selectedProject]);
+		if (queryProjects) {
+			setProjects(queryProjects);
+		}
+	}, [queryProjects, setProjects]);
+
+	const createProject = useCallback(async (data: FormData) => {
+		try {
+			const response = await apiClient.post("/project", data);
+			refetch();
+			return response.data;
+		} catch (error) {
+			console.error("Error creating project:", error);
+			throw error;
+		}
+	}, [refetch]);
+
+	const deleteProject = useCallback(async (projectId: string) => {
+		try {
+			const response = await apiClient.delete(`/project/${projectId}`);
+			refetch();
+			return response.data;
+		} catch (error) {
+			console.error("Error deleting project:", error);
+			throw error;
+		}
+	}, [refetch]);
+
+	const isLoading = storeIsLoading || queryIsLoading;
 
 	return {
 		projects,
@@ -43,5 +66,6 @@ export function useProjectAndDeployments() {
 		setSelectedProject,
 		setSelectedDeployment,
 		createProject,
+		deleteProject,
 	};
 }

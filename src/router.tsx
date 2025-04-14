@@ -11,9 +11,7 @@ const SchemaFactorsPage = lazy(() => import("./pages/auth/schema-factors"));
 const SSOConnectionsPage = lazy(() => import("./pages/auth/social-login"));
 const OAuthApplicationsPage = lazy(() => import("./pages/auth/oauth"));
 const Web3AuthPage = lazy(() => import("./pages/auth/web3"));
-const MFAPage = lazy(() => import("./pages/auth/mfa"));
 const RestrictionsPage = lazy(() => import("./pages/auth/restrictions"));
-const ProtectionPage = lazy(() => import("./pages/auth/protection"));
 const SessionsPage = lazy(() => import("./pages/auth/sessions"));
 const ManageOrganizationsPage = lazy(
 	() => import("./pages/manage-organizations"),
@@ -25,7 +23,6 @@ const EmailsPage = lazy(() => import("./pages/emails"));
 const SMSPage = lazy(() => import("./pages/sms"));
 const ApplicationSettingsPage = lazy(() => import("./pages/settings"));
 
-// E-maile Templates
 const EmailWorkspaceInvitationPage = lazy(
 	() => import("./pages/emails/workspace-invitations"),
 );
@@ -122,26 +119,10 @@ export const router = createBrowserRouter([
 						),
 					},
 					{
-						path: "mfa",
-						element: (
-							<Suspense fallback={<LoadingFallback />}>
-								<MFAPage />
-							</Suspense>
-						),
-					},
-					{
 						path: "restrictions",
 						element: (
 							<Suspense fallback={<LoadingFallback />}>
 								<RestrictionsPage />
-							</Suspense>
-						),
-					},
-					{
-						path: "protection",
-						element: (
-							<Suspense fallback={<LoadingFallback />}>
-								<ProtectionPage />
 							</Suspense>
 						),
 					},
