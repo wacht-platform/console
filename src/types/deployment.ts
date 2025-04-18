@@ -82,6 +82,12 @@ export interface VerificationPolicy {
 	email: boolean;
 }
 
+export interface MultiSessionSupport {
+	enabled: boolean;
+	max_accounts_per_session: number;
+	max_sessions_per_account: number;
+}
+
 export interface DeploymentAuthSettings {
 	id: string;
 	created_at: string | null;
@@ -105,6 +111,10 @@ export interface DeploymentAuthSettings {
 	second_factor?: SecondFactor;
 	alternate_first_factors?: FirstFactor[];
 	alternate_second_factors?: SecondFactor[];
+	multi_session_support: MultiSessionSupport;
+	session_token_lifetime: number;
+	session_validity_period: number;
+	session_inactive_timeout: number;
 }
 
 export interface ButtonConfig {
@@ -178,6 +188,68 @@ export enum DeploymentRestrictionsSignUpMode {
 	Waitlist = "waitlist",
 }
 
+export interface CustomSigningKey {
+	key: string;
+	algorithm: string;
+	enabled: boolean;
+}
+
+export interface DeploymentJWTTemplate {
+	id: string;
+	name: string;
+	token_lifetime: number;
+	allowed_clock_skew: number;
+	custom_signing_key: CustomSigningKey | null;
+	template: string;
+	deployment_id: string;
+	created_at: string;
+	updated_at: string;
+	deleted_at: string | null;
+}
+
+export interface DeploymentWorkspaceRole {
+	id: string;
+	name: string;
+	permissions: string[];
+}
+
+export interface DeploymentOrganizationRole {
+	id: string;
+	name: string;
+	permissions: string[];
+}
+
+export interface DeploymentB2bSettings {
+	id: string;
+	created_at: string | null;
+	updated_at: string | null;
+	deleted_at: string | null;
+	deployment_id: string;
+	organizations_enabled: boolean;
+	workspaces_enabled: boolean;
+	ip_allowlist_per_workspace_enabled: boolean;
+	ip_allowlist_per_org_enabled: boolean;
+	max_allowed_org_members: number;
+	max_allowed_workspace_members: number;
+	allow_users_to_create_orgs: boolean;
+	allow_org_deletion: boolean;
+	allow_workspace_deletion: boolean;
+	custom_org_role_enabled: boolean;
+	custom_workspace_role_enabled: boolean;
+	limit_org_creation_per_user: boolean;
+	limit_workspace_creation_per_org: boolean;
+	org_creation_per_user_count: number;
+	workspaces_per_org_count: number;
+	default_workspace_creator_role_id: string;
+	default_workspace_member_role_id: string;
+	default_org_creator_role_id: string;
+	default_org_member_role_id: string;
+	default_workspace_creator_role: DeploymentWorkspaceRole;
+	default_workspace_member_role: DeploymentWorkspaceRole;
+	default_org_creator_role: DeploymentOrganizationRole;
+	default_org_member_role: DeploymentOrganizationRole;
+}
+
 export interface DeploymentWithSettings {
 	id: string;
 	created_at: string | null;
@@ -192,12 +264,18 @@ export interface DeploymentWithSettings {
 	display_settings?: DeploymentDisplaySettings;
 	org_settings?: DeploymentOrgSettings;
 	restrictions?: DeploymentRestrictions;
+	jwt_templates?: DeploymentJWTTemplate[];
+	b2b_settings?: DeploymentB2bSettings;
 }
 
 export interface Deployment {
 	id: string;
 	mode: DeploymentMode;
 	name: string;
+	backend_host: string;
+	frontend_host: string;
+	updated_at: string;
+	created_at: string;
 }
 
 export enum SocialConnectionProvider {

@@ -9,18 +9,113 @@ import {
   DialogActions,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { Description, Label } from "@/components/ui/fieldset";
+import { useEffect, useState } from "react";
+import { Description, Field, FieldGroup, Label } from "@/components/ui/fieldset";
 import { SwitchField, SwitchGroup } from "@/components/ui/switch";
-import { Heading } from "@/components/ui/heading";
+import { Heading, Subheading } from "@/components/ui/heading";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import type { DeploymentAuthSettings } from "@/types/deployment";
 import { useAuthSettingsStore, useInitializeAuthSettings } from "@/lib/store/auth-settings-store";
 import { useSaveAuthSettings } from "@/lib/api/hooks/use-save-auth-settings";
+import { ListboxLabel } from "@/components/ui/listbox";
+import { ListboxOption } from "@/components/ui/listbox";
+import { Listbox } from "@/components/ui/listbox";
+import { Text } from "@/components/ui/text";
 
 interface DialogProps {
   open: boolean;
   onClose: () => void;
+}
+
+function MultiSessionSettingsDialog({ open, onClose }: DialogProps) {
+  const { settings, updateMultiSessionSupport } = useAuthSettingsStore();
+  const [maxAccountsPerSession, setMaxAccountsPerSession] = useState("0");
+  const [maxSessionsPerAccount, setMaxSessionsPerAccount] = useState("0");
+
+  useEffect(() => {
+    setMaxAccountsPerSession(settings.multi_session_support.max_accounts_per_session.toString());
+    setMaxSessionsPerAccount(settings.multi_session_support.max_sessions_per_account.toString());
+  }, [settings]);
+
+  const handleSubmit = () => {
+    // check if the values are valid
+    if (parseInt(maxAccountsPerSession) < 0 || parseInt(maxSessionsPerAccount) < 0) {
+      return;
+    }
+
+    updateMultiSessionSupport({
+      max_accounts_per_session: parseInt(maxAccountsPerSession),
+      max_sessions_per_account: parseInt(maxSessionsPerAccount),
+    });
+
+    onClose();
+  }
+
+  return (
+    <Dialog open={open} onClose={onClose} className="rounded-xl p-6">
+      <>
+        <DialogTitle className="mb-2">Customize session token</DialogTitle>
+        <DialogDescription className="mb-6">
+          Customize the session token to include additional information.
+        </DialogDescription>
+        <DialogBody className="space-y-8">
+          <section className="grid gap-6 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Subheading>Maximum accounts per session</Subheading>
+              <Text>
+                Limit the number of accounts that can be active within a single session.
+              </Text>
+            </div>
+            <div className="space-y-4">
+              <Field className="flex items-center gap-4">
+                <FieldGroup>
+                  <Input
+                    aria-label="Max accounts"
+                    name="maxAccounts"
+                    inputClassName="text-right"
+                    value={maxAccountsPerSession}
+                    onChange={(e) => setMaxAccountsPerSession(e.target.value)}
+                  />
+                </FieldGroup>
+              </Field>
+              <Text>Set a value between 1 and 10.</Text>
+            </div>
+          </section>
+
+          <Divider className="my-8" soft />
+
+          <section className="grid gap-6 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Subheading>Maximum user logins</Subheading>
+              <Text>
+                Set the maximum number of active sessions a user can have at the same time.
+              </Text>
+            </div>
+            <div className="space-y-4">
+              <Field className="flex items-center gap-4">
+                <FieldGroup>
+                  <Input
+                    aria-label="Max user logins"
+                    name="maxUserLogins"
+                    inputClassName="text-right"
+                    value={maxSessionsPerAccount}
+                    onChange={(e) => setMaxSessionsPerAccount(e.target.value)}
+                  />
+                </FieldGroup>
+              </Field>
+              <Text>Set a value between 1 and 10.</Text>
+            </div>
+          </section>
+
+          <Divider className="my-8" soft />
+        </DialogBody>
+        <DialogActions className="flex justify-end gap-4 mt-6">
+          <Button plain onClick={onClose}>Cancel</Button>
+          <Button onClick={handleSubmit}>Submit</Button>
+        </DialogActions>
+      </>
+    </Dialog>
+  )
 }
 
 function EmailSettingsDialog({ open, onClose }: DialogProps) {
@@ -682,8 +777,14 @@ export default function SchemaFactorsPage() {
   const [emailLinkSettingsOpen, setEmailLinkSettingsOpen] = useState(false);
   const [passkeySettingsOpen, setPasskeySettingsOpen] = useState(false);
   const [secondFactorPolicyOpen, setSecondFactorPolicyOpen] = useState(false);
+  const [multiSessionSettingsOpen, setMultiSessionSettingsOpen] = useState(false);
+  const [sessionValidityPeriod, setSessionValidityPeriod] = useState('30');
+  const [sessionTokenLifetime, setSessionTokenLifetime] = useState('30');
+  const [sessionInactiveTimeout, setSessionInactiveTimeout] = useState('7');
+  const [sessionValidityUnit, setSessionValidityUnit] = useState<'days' | 'hours' | 'minutes'>('days');
+  const [sessionTokenLifetimeUnit, setSessionTokenLifetimeUnit] = useState<'hours' | 'minutes'>('minutes');
+  const [sessionInactiveTimeoutUnit, setSessionInactiveTimeoutUnit] = useState<'days' | 'hours' | 'minutes'>('days');
 
-  // Initialize auth settings store
   const { isLoading } = useInitializeAuthSettings();
   const { settings } = useAuthSettingsStore();
   const { isDirty, isSaving, saveSettings, resetSettings } = useSaveAuthSettings();
@@ -697,6 +798,10 @@ export default function SchemaFactorsPage() {
     updateLastNameSettings,
     updateAuthFactorsEnabled,
     updatePasskeySettings,
+    updateMultiSessionSupport,
+    updateSessionTokenLifetime,
+    updateSessionValidityPeriod,
+    updateSessionInactiveTimeout
   } = useAuthSettingsStore();
 
   const handleToggle = (settingType: string, value: boolean) => {
@@ -752,26 +857,124 @@ export default function SchemaFactorsPage() {
       case 'second_factor_backup_code_enabled':
         updateAuthFactorsEnabled({ backup_code: value });
         break;
+      case 'multi_session_support_enabled':
+        updateMultiSessionSupport({ enabled: value });
+        break;
       default:
         console.warn(`Unhandled setting type: ${settingType}`);
     }
   };
 
-  // Handle save settings
+  useEffect(() => {
+    if (isDirty) return;
+    const sessionValidityPeriod = settings.session_validity_period;
+    const sessionTokenLifetime = settings.session_token_lifetime;
+    const sessionInactiveTimeout = settings.session_inactive_timeout;
+
+    // find closest unit
+    const sessionValidityPeriodUnit = sessionValidityPeriod / 86400 > 1 ? 'days' : sessionValidityPeriod / 3600 > 1 ? 'hours' : 'minutes';
+    const sessionTokenLifetimeUnit = sessionTokenLifetime / (3600) > 1 ? 'hours' : 'minutes';
+    const sessionInactiveTimeoutUnit = sessionInactiveTimeout / 86400 > 1 ? 'days' : sessionInactiveTimeout / 3600 > 1 ? 'hours' : 'minutes';
+
+    if (sessionValidityPeriodUnit === 'days') {
+      const sessionValidityPeriodInDays = sessionValidityPeriod / 86400;
+      setSessionValidityPeriod(sessionValidityPeriodInDays.toString());
+      setSessionValidityUnit('days');
+    } else if (sessionValidityPeriodUnit === 'hours') {
+      const sessionValidityPeriodInHours = sessionValidityPeriod / 3600;
+      setSessionValidityPeriod(sessionValidityPeriodInHours.toString());
+      setSessionValidityUnit('hours');
+    } else {
+      const sessionValidityPeriodInMinutes = sessionValidityPeriod / 60;
+      setSessionValidityPeriod(sessionValidityPeriodInMinutes.toString());
+      setSessionValidityUnit('minutes');
+    }
+
+    if (sessionTokenLifetimeUnit === 'hours') {
+      const sessionTokenLifetimeInHours = sessionTokenLifetime / 3600;
+      setSessionTokenLifetime(sessionTokenLifetimeInHours.toString());
+      setSessionTokenLifetimeUnit('hours');
+    } else {
+      const sessionTokenLifetimeInMinutes = sessionTokenLifetime / 60;
+      setSessionTokenLifetime(sessionTokenLifetimeInMinutes.toString());
+      setSessionTokenLifetimeUnit('minutes');
+    }
+
+    if (sessionInactiveTimeoutUnit === 'days') {
+      const sessionInactiveTimeoutInDays = sessionInactiveTimeout / 86400;
+      setSessionInactiveTimeout(sessionInactiveTimeoutInDays.toString());
+      setSessionInactiveTimeoutUnit('days');
+    } else if (sessionInactiveTimeoutUnit === 'hours') {
+      const sessionInactiveTimeoutInHours = sessionInactiveTimeout / 3600;
+      setSessionInactiveTimeout(sessionInactiveTimeoutInHours.toString());
+      setSessionInactiveTimeoutUnit('hours');
+    } else {
+      const sessionInactiveTimeoutInMinutes = sessionInactiveTimeout / 60;
+      setSessionInactiveTimeout(sessionInactiveTimeoutInMinutes.toString());
+      setSessionInactiveTimeoutUnit('minutes');
+    }
+
+  }, [settings]);
+
+  const handleSessionValidityPeriodChange = (value: string, unit: 'days' | 'hours' | 'minutes') => {
+    if (value === '') {
+      setSessionValidityPeriod('');
+      setSessionValidityUnit(unit);
+      updateSessionValidityPeriod(0);
+      return;
+    }
+
+    setSessionValidityPeriod(value);
+    setSessionValidityUnit(unit);
+
+    const period = parseInt(value);
+    const valueInSeconds = period * (unit === 'days' ? 86400 : unit === 'hours' ? 3600 : 60);
+    updateSessionValidityPeriod(valueInSeconds);
+  };
+
+  const handleSessionTokenLifetimeChange = (value: string, unit: 'hours' | 'minutes') => {
+    if (value === '') {
+      setSessionTokenLifetime('');
+      setSessionTokenLifetimeUnit(unit);
+      updateSessionTokenLifetime(0);
+      return;
+    }
+
+    setSessionTokenLifetime(value);
+    setSessionTokenLifetimeUnit(unit);
+
+    const period = parseInt(value);
+    const valueInSeconds = period * (unit === 'hours' ? 3600 : 60);
+    updateSessionTokenLifetime(valueInSeconds);
+  };
+
+  const handleSessionInactiveTimeoutChange = (value: string, unit: 'days' | 'hours' | 'minutes') => {
+    if (value === '') {
+      setSessionInactiveTimeout('');
+      setSessionInactiveTimeoutUnit(unit);
+      updateSessionInactiveTimeout(0);
+      return;
+    }
+
+    setSessionInactiveTimeout(value);
+    setSessionInactiveTimeoutUnit(unit);
+
+    const period = parseInt(value);
+    const valueInSeconds = period * (unit === 'days' ? 86400 : unit === 'hours' ? 3600 : 60);
+    updateSessionInactiveTimeout(valueInSeconds);
+  };
+
   const handleSaveSettings = async () => {
     try {
       const success = await saveSettings();
       if (!success) {
-        // Here you would show an error notification
         console.error("Failed to save settings");
       }
     } catch (error) {
       console.error("Failed to save settings:", error);
-      // Here you would show an error notification
     }
   };
 
-  // Handle reset settings
   const handleResetSettings = () => {
     resetSettings();
   };
@@ -817,6 +1020,10 @@ export default function SchemaFactorsPage() {
       <SecondFactorPolicyDialog
         open={secondFactorPolicyOpen}
         onClose={() => setSecondFactorPolicyOpen(false)}
+      />
+      <MultiSessionSettingsDialog
+        open={multiSessionSettingsOpen}
+        onClose={() => setMultiSessionSettingsOpen(false)}
       />
 
       <div>
@@ -1116,6 +1323,122 @@ export default function SchemaFactorsPage() {
                   onChange={(checked) => handleToggle('2fa_backup_code_enabled', checked)}
                 />
               </SwitchField>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-base font-medium">
+                  Session Settings
+                </h2>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  Configure the settings for user sessions
+                </p>
+              </div>
+            </div>
+
+            <Divider soft />
+
+            <div className="space-y-6">
+              <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
+                <div className="space-y-1 col-span-2">
+                  <Subheading>Session Validity</Subheading>
+                  <Text>
+                    The maximum lifetime of a session, regardless of user activity. After that, the
+                    session will be expired and the user will need to log in again.
+                  </Text>
+                </div>
+                <Field className="flex items-center gap-x-4">
+                  <FieldGroup>
+                    <Input aria-label="Duration" name="duration" inputClassName="text-right" value={sessionValidityPeriod || ''} onChange={(e) => handleSessionValidityPeriodChange(e.target.value, sessionValidityUnit)} />
+                  </FieldGroup>
+                  <FieldGroup className="flex-1">
+                    <Listbox name="unit" value={sessionValidityUnit} onChange={(value) => handleSessionValidityPeriodChange(sessionValidityPeriod, value)}>
+                      <ListboxOption value="minutes">
+                        <ListboxLabel>Minutes</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="hours">
+                        <ListboxLabel>Hours</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="days">
+                        <ListboxLabel>Days</ListboxLabel>
+                      </ListboxOption>
+                    </Listbox>
+                  </FieldGroup>
+                </Field>
+              </section>
+
+              <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
+                <div className="space-y-1 col-span-2">
+                  <Subheading>Inactivity Timeout</Subheading>
+                  <Text>
+                    The maximum period of inactivity after which a session is terminated.
+                  </Text>
+                </div>
+                <Field className="flex items-center gap-x-4">
+                  <FieldGroup>
+                    <Input aria-label="Duration" inputClassName="text-right" name="duration" value={sessionInactiveTimeout} onChange={(e) => setSessionInactiveTimeout(e.target.value)} />
+                  </FieldGroup>
+                  <FieldGroup className="flex-1">
+                    <Listbox name="unit" value={sessionInactiveTimeoutUnit} onChange={(value) => handleSessionInactiveTimeoutChange(sessionInactiveTimeout, value)}>
+                      <ListboxOption value="minutes">
+                        <ListboxLabel>Minutes</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="hours">
+                        <ListboxLabel>Hours</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="days">
+                        <ListboxLabel>Days</ListboxLabel>
+                      </ListboxOption>
+                    </Listbox>
+                  </FieldGroup>
+                </Field>
+              </section>
+
+              <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
+                <div className="space-y-1 col-span-2">
+                  <Subheading>Token Expiration</Subheading>
+                  <Text>
+                    The maximum lifetime of a token. After that, the token will be expired and the token with be revalidated.
+                  </Text>
+                </div>
+                <Field className="flex items-center gap-x-4">
+                  <FieldGroup>
+                    <Input aria-label="Duration" name="duration" inputClassName="text-right" value={sessionTokenLifetime} onChange={(e) => handleSessionTokenLifetimeChange(e.target.value, sessionTokenLifetimeUnit)} />
+                  </FieldGroup>
+                  <FieldGroup className="flex-1">
+                    <Listbox name="unit" value={sessionTokenLifetimeUnit} onChange={(value) => handleSessionTokenLifetimeChange(sessionTokenLifetime, value)}>
+                      <ListboxOption value="minutes">
+                        <ListboxLabel>Minutes</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="hours">
+                        <ListboxLabel>Hours</ListboxLabel>
+                      </ListboxOption>
+                    </Listbox>
+                  </FieldGroup>
+                </Field>
+              </section>
+
+              <div className="flex items-start justify-between">
+                <div>
+                  <Subheading className="text-sm font-medium">Multi Session Support</Subheading>
+                  <Text className="text-sm text-zinc-500 dark:text-zinc-400">
+                    Enable multi-session support to allow users to have multiple sessions at the same time.
+                  </Text>
+                </div>
+                <div className="flex items-center gap-2 h-[48px]">
+                  <Button plain type="button" onClick={() => setMultiSessionSettingsOpen(true)}>
+                    <Cog6ToothIcon />
+                  </Button>
+
+                  <Switch
+                    name="email_enabled"
+                    checked={settings.multi_session_support.enabled}
+                    onChange={(checked) => handleToggle('multi_session_support_enabled', checked)}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -12,7 +12,6 @@ const SSOConnectionsPage = lazy(() => import("./pages/auth/social-login"));
 const OAuthApplicationsPage = lazy(() => import("./pages/auth/oauth"));
 const Web3AuthPage = lazy(() => import("./pages/auth/web3"));
 const RestrictionsPage = lazy(() => import("./pages/auth/restrictions"));
-const SessionsPage = lazy(() => import("./pages/auth/sessions"));
 const ManageOrganizationsPage = lazy(
 	() => import("./pages/manage-organizations"),
 );
@@ -46,9 +45,15 @@ const EmailPasswordChangedPage = lazy(
 	() => import("./pages/emails/password-changed"),
 );
 
+const ProjectsPage = lazy(() => import("./pages/projects"));
+const JWTTemplatesPage = lazy(() => import("./pages/auth/jwt-templates"));
+const JWTTemplateCreateUpdatePage = lazy(
+	() => import("./pages/auth/jwt-template-create-update"),
+);
+
 export const router = createBrowserRouter([
 	{
-		path: "/",
+		path: "/project/:projectId/deployment/:deploymentId",
 		element: <ApplicationLayout />,
 		children: [
 			{
@@ -126,15 +131,36 @@ export const router = createBrowserRouter([
 							</Suspense>
 						),
 					},
+					{
+						path: "jwt-templates",
+						children: [
+							{
+								index: true,
+								element: (
+									<Suspense fallback={<LoadingFallback />}>
+										<JWTTemplatesPage />
+									</Suspense>
+								),
+							},
+							{
+								path: "new",
+								element: (
+									<Suspense fallback={<LoadingFallback />}>
+										<JWTTemplateCreateUpdatePage />
+									</Suspense>
+								),
+							},
+							{
+								path: "edit/:templateId",
+								element: (
+									<Suspense fallback={<LoadingFallback />}>
+										<JWTTemplateCreateUpdatePage />
+									</Suspense>
+								),
+							}
+						]
+					},
 				],
-			},
-			{
-				path: "sessions",
-				element: (
-					<Suspense fallback={<LoadingFallback />}>
-						<SessionsPage />
-					</Suspense>
-				),
 			},
 			{
 				path: "manage-organizations",
@@ -273,5 +299,13 @@ export const router = createBrowserRouter([
 				),
 			},
 		],
+	},
+	{
+		path: "",
+		element: (
+			<Suspense fallback={<LoadingFallback />}>
+				<ProjectsPage />
+			</Suspense>
+		),
 	},
 ]);

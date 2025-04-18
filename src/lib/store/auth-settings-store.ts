@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { DeploymentAuthSettings, IndividualAuthSettings, EmailSettings, PhoneSettings, UsernameSettings, PasswordSettings, EmailLinkSettings, PasskeySettings, AuthFactorsEnabled } from "@/types/deployment"; // Import full types
+import type { DeploymentAuthSettings, IndividualAuthSettings, EmailSettings, PhoneSettings, UsernameSettings, PasswordSettings, EmailLinkSettings, PasskeySettings, AuthFactorsEnabled, MultiSessionSupport } from "@/types/deployment"; // Import full types
 import { useDeploymentSettings } from "@/lib/api/hooks/use-deployment-settings";
 import { useUpdateDeploymentAuthSettings } from "@/lib/api/hooks/use-update-deployment-auth-settings";
 
@@ -65,6 +65,11 @@ interface PartialAuthenticationFactorSettings {
     second_factor_backup_code_enabled?: boolean;
 }
 
+interface PartialMultiSessionSupport {
+    max_accounts_per_session?: number;
+    max_sessions_per_account?: number;
+}
+
 interface DeploymentAuthSettingsUpdatesPayload {
     email?: PartialEmailSettings;
     phone?: PartialPhoneSettings;
@@ -75,6 +80,10 @@ interface DeploymentAuthSettingsUpdatesPayload {
     backup_code?: PartialIndividualAuthSettings;
     web3_wallet?: PartialIndividualAuthSettings;
     second_factor_policy?: DeploymentAuthSettings["second_factor_policy"];
+    multi_session_support?: PartialMultiSessionSupport;
+    session_token_lifetime?: number;
+    session_validity_period?: number;
+    session_inactive_timeout?: number;
 }
 
 interface PartialIndividualAuthSettings {
@@ -90,6 +99,10 @@ interface AuthSettingsState {
 
     initializeSettings: (settings: DeploymentAuthSettings) => void;
     updateEmailSettings: (settings: Partial<EmailSettings>) => void;
+    updateMultiSessionSupport: (settings: Partial<MultiSessionSupport>) => void;
+    updateSessionTokenLifetime: (settings: number) => void;
+    updateSessionValidityPeriod: (settings: number) => void;
+    updateSessionInactiveTimeout: (settings: number) => void;
     updatePhoneSettings: (settings: Partial<PhoneSettings>) => void;
     updateUsernameSettings: (settings: Partial<UsernameSettings>) => void;
     updatePasswordSettings: (settings: Partial<PasswordSettings>) => void;
@@ -148,6 +161,46 @@ export const useAuthSettingsStore = create<AuthSettingsState>((set, get) => ({
                     ...(state.settings.email_address),
                     ...emailSettings
                 } as EmailSettings
+            },
+            isDirty: true
+        }));
+    },
+
+    updateMultiSessionSupport: (multiSessionSupport: Partial<MultiSessionSupport>) => {
+        set((state) => ({
+            settings: {
+                ...state.settings,
+                multi_session_support: { ...state.settings.multi_session_support, ...multiSessionSupport } as MultiSessionSupport
+            },
+            isDirty: true
+        }));
+    },
+
+    updateSessionTokenLifetime: (sessionTokenLifetime: number) => {
+        set((state) => ({
+            settings: {
+                ...state.settings,
+                session_token_lifetime: sessionTokenLifetime
+            },
+            isDirty: true
+        }));
+    },
+
+    updateSessionValidityPeriod: (sessionValidityPeriod: number) => {
+        set((state) => ({
+            settings: {
+                ...state.settings,
+                session_validity_period: sessionValidityPeriod
+            },
+            isDirty: true
+        }));
+    },
+
+    updateSessionInactiveTimeout: (sessionInactiveTimeout: number) => {
+        set((state) => ({
+            settings: {
+                ...state.settings,
+                session_inactive_timeout: sessionInactiveTimeout
             },
             isDirty: true
         }));
@@ -402,6 +455,26 @@ export const useAuthSettingsStore = create<AuthSettingsState>((set, get) => ({
 
         if (areDifferent(['second_factor_policy'])) {
             updates.second_factor_policy = currentSettings.second_factor_policy;
+            hasChanges = true;
+        }
+
+        if (areDifferent(['multi_session_support'])) {
+            updates.multi_session_support = currentSettings.multi_session_support;
+            hasChanges = true;
+        }
+
+        if (areDifferent(['session_token_lifetime'])) {
+            updates.session_token_lifetime = currentSettings.session_token_lifetime;
+            hasChanges = true;
+        }
+
+        if (areDifferent(['session_validity_period'])) {
+            updates.session_validity_period = currentSettings.session_validity_period;
+            hasChanges = true;
+        }
+
+        if (areDifferent(['session_inactive_timeout'])) {
+            updates.session_inactive_timeout = currentSettings.session_inactive_timeout;
             hasChanges = true;
         }
 

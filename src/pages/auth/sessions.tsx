@@ -14,7 +14,6 @@ import { Select } from "@/components/ui/select";
 
 
 export default function SessionsPage() {
-
   let [isOpen, setIsOpen] = useState(false);
   let [isOpenJWT, setIsOpenJWT] = useState(false);
   const [isSwitchOn, setIsSwitchOn] = useState(true);
@@ -23,7 +22,6 @@ export default function SessionsPage() {
     "user.id", "user.username", "user.email_verified", "user.image_url",
     "org.id", "org.name", "org.public_metadata", "session.actor", "source.platform"
   ];
-
 
   const [jwtTemplates, setJwtTemplates] = useState([
     { id: 1, name: "Default Template", claims: "{}" },
@@ -145,6 +143,36 @@ export default function SessionsPage() {
             </FieldGroup>
           </Field>
         </section>
+
+        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
+          <div className="space-y-1 col-span-2">
+            <Subheading>Token Expiration</Subheading>
+            <Text>
+              The maximum lifetime of a token. After that, the token will be expired and the token with be revalidated.
+            </Text>
+          </div>
+          <Field className="flex items-center gap-x-4">
+            <FieldGroup>
+              <Input aria-label="Duration" name="duration" inputClassName="text-right" defaultValue="30" />
+            </FieldGroup>
+            <FieldGroup className="flex-1">
+              <Listbox name="unit" defaultValue="minutes">
+                <ListboxOption value="minutes">
+                  <ListboxLabel>Minutes</ListboxLabel>
+                </ListboxOption>
+                <ListboxOption value="hours">
+                  <ListboxLabel>Hours</ListboxLabel>
+                </ListboxOption>
+                <ListboxOption value="days">
+                  <ListboxLabel>Days</ListboxLabel>
+                </ListboxOption>
+                <ListboxOption value="weeks">
+                  <ListboxLabel>Weeks</ListboxLabel>
+                </ListboxOption>
+              </Listbox>
+            </FieldGroup>
+          </Field>
+        </section>
       </div>
 
       <Divider className="my-10" soft />
@@ -152,9 +180,9 @@ export default function SessionsPage() {
       <section className="space-y-6">
         <div className="flex items-start justify-between">
           <div>
-            <Subheading className="text-sm font-medium">Email address</Subheading>
+            <Subheading className="text-sm font-medium">Multi Session Support</Subheading>
             <Text className="text-sm text-zinc-500 dark:text-zinc-400">
-              Multi Session Support
+              Enable multi-session support to allow users to have multiple sessions at the same time.
             </Text>
           </div>
           <div className="flex items-center gap-2">
@@ -168,49 +196,6 @@ export default function SessionsPage() {
                   Customize the session token to include additional information.
                 </DialogDescription>
                 <DialogBody className="space-y-8">
-                  <section className="grid gap-6 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Subheading>Session lifetime</Subheading>
-                      <Text>
-                        Set session duration limits for the long-lived cookie by configuring
-                        the inactivity timeout or the maximum lifetime.
-                      </Text>
-                    </div>
-                    <div className="space-y-4">
-                      <Subheading>Maximum lifetime</Subheading>
-                      <Text>Set the maximum lifetime duration for a session</Text>
-                      <Field className="flex items-center gap-4">
-                        <FieldGroup>
-                          <Input
-                            aria-label="Duration"
-                            name="duration"
-                            inputClassName="text-right"
-                            defaultValue="30"
-                          />
-                        </FieldGroup>
-                        <FieldGroup className="flex-1">
-                          <Listbox name="unit" defaultValue="days">
-                            <ListboxOption value="minutes">
-                              <ListboxLabel>Minutes</ListboxLabel>
-                            </ListboxOption>
-                            <ListboxOption value="hours">
-                              <ListboxLabel>Hours</ListboxLabel>
-                            </ListboxOption>
-                            <ListboxOption value="days">
-                              <ListboxLabel>Days</ListboxLabel>
-                            </ListboxOption>
-                            <ListboxOption value="weeks">
-                              <ListboxLabel>Weeks</ListboxLabel>
-                            </ListboxOption>
-                          </Listbox>
-                        </FieldGroup>
-                      </Field>
-                      <Text>Set duration between 5 minutes and 10 years.</Text>
-                    </div>
-                  </section>
-
-                  <Divider className="my-8" soft />
-
                   <section className="grid gap-6 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Subheading>Maximum accounts per session</Subheading>

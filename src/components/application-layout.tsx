@@ -39,7 +39,6 @@ import {
 	KeyIcon,
 	// Square3Stack3DIcon,
 	UserGroupIcon,
-	ClockIcon,
 	EnvelopeIcon,
 	DevicePhoneMobileIcon,
 	SparklesIcon,
@@ -47,6 +46,7 @@ import {
 	BuildingOffice2Icon,
 	BriefcaseIcon,
 	NoSymbolIcon,
+	DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { capitalize } from "@/lib/capitalize";
@@ -250,7 +250,7 @@ export function ApplicationLayout() {
 								<SidebarLabel>Overview</SidebarLabel>
 							</SidebarItem>
 							<SidebarItem
-								href="/users"
+								href="./users"
 								current={pathname.startsWith("/users")}
 							>
 								<DropdownIcon icon={UserGroupIcon} />
@@ -276,55 +276,50 @@ export function ApplicationLayout() {
 
 						<SidebarSection className="max-lg:hidden">
 							<SidebarHeading>Authentication</SidebarHeading>
-							<SidebarItem href="/auth/schema-factors">
+							<SidebarItem href="./auth/schema-factors">
 								<DropdownIcon icon={LockClosedIcon} />
 								<SidebarLabel>Auth Settings</SidebarLabel>
 							</SidebarItem>
 
-							<SidebarItem href="/auth/sso">
+							<SidebarItem href="./auth/sso">
 								<DropdownIcon icon={KeyIcon} />
 								<SidebarLabel>Configure SSO</SidebarLabel>
 							</SidebarItem>
 
-							{/* <SidebarItem href="/auth/web3">
-								<DropdownIcon icon={Square3Stack3DIcon} />
-								<SidebarLabel>Configure Web3</SidebarLabel>
-							</SidebarItem> */}
-
-							<SidebarItem href="/auth/restrictions">
+							<SidebarItem href="./auth/restrictions">
 								<DropdownIcon icon={NoSymbolIcon} />
 								<SidebarLabel>Restrictions</SidebarLabel>
 							</SidebarItem>
 
-							<SidebarItem href="/sessions">
-								<DropdownIcon icon={ClockIcon} />
-								<SidebarLabel>Sessions</SidebarLabel>
+							<SidebarItem href="./auth/jwt-templates">
+								<DropdownIcon icon={DocumentTextIcon} />
+								<SidebarLabel>JWT Templates</SidebarLabel>
 							</SidebarItem>
 
 							<SidebarHeading className="mt-3">B2B Features</SidebarHeading>
-							<SidebarItem href="/manage-organizations">
+							<SidebarItem href="./manage-organizations">
 								<DropdownIcon icon={BuildingOffice2Icon} />
 								<SidebarLabel>Organizations</SidebarLabel>
 							</SidebarItem>
-							<SidebarItem href="/manage-workspaces">
+							<SidebarItem href="./manage-workspaces">
 								<DropdownIcon icon={BriefcaseIcon} />
 								<SidebarLabel>Workspaces</SidebarLabel>
 							</SidebarItem>
 
 							<SidebarHeading className="mt-3">Customization</SidebarHeading>
-							<SidebarItem href="/portal">
+							<SidebarItem href="./portal">
 								<DropdownIcon icon={SparklesIcon} />
 								<SidebarLabel>Account Portal</SidebarLabel>
 							</SidebarItem>
-							<SidebarItem href="/avatars">
+							<SidebarItem href="./avatars">
 								<DropdownIcon icon={UserCircleIcon} />
 								<SidebarLabel>Avatars</SidebarLabel>
 							</SidebarItem>
-							<SidebarItem href="/emails">
+							<SidebarItem href="./emails">
 								<DropdownIcon icon={EnvelopeIcon} />
 								<SidebarLabel>Emails</SidebarLabel>
 							</SidebarItem>
-							<SidebarItem href="/sms">
+							<SidebarItem href="./sms">
 								<DropdownIcon icon={DevicePhoneMobileIcon} />
 								<SidebarLabel>SMS</SidebarLabel>
 							</SidebarItem>

@@ -24,13 +24,15 @@ type AuthMethod =
 	| "email"
 	| "phone"
 	| "username"
-	| "google"
-	| "apple"
-	| "facebook"
-	| "github"
-	| "microsoft"
-	| "discord"
-	| "linkedin";
+	| "google_oauth"
+	| "apple_oauth"
+	| "facebook_oauth"
+	| "microsoft_oauth"
+	| "linkedin_oauth"
+	| "discord_oauth"
+	| "github_oauth"
+	| "gitlab_oauth"
+	| "x_oauth";
 
 interface CreateProjectDialogProps {
 	open: boolean;
@@ -167,25 +169,25 @@ export function CreateProjectDialog({
 							/>
 
 							<AuthMethodItem
-								method="google"
+								method="google_oauth"
 								icon={<img src={GoogleIcon} alt="Google" className="h-5 w-5" />}
 								label="Google"
 								description="Allow users to sign in with Google"
-								selected={selectedMethods.includes("google")}
-								onClick={() => toggleAuthMethod("google")}
+								selected={selectedMethods.includes("google_oauth")}
+								onClick={() => toggleAuthMethod("google_oauth")}
 							/>
 
 							<AuthMethodItem
-								method="apple"
+								method="apple_oauth"
 								icon={<img src={AppleIcon} alt="Apple" className="h-5 w-5" />}
 								label="Apple"
 								description="Allow users to sign in with Apple"
-								selected={selectedMethods.includes("apple")}
-								onClick={() => toggleAuthMethod("apple")}
+								selected={selectedMethods.includes("apple_oauth")}
+								onClick={() => toggleAuthMethod("apple_oauth")}
 							/>
 
 							<AuthMethodItem
-								method="microsoft"
+								method="microsoft_oauth"
 								icon={
 									<img
 										src={MicrosoftIcon}
@@ -195,50 +197,50 @@ export function CreateProjectDialog({
 								}
 								label="Microsoft"
 								description="Allow users to sign in with Microsoft"
-								selected={selectedMethods.includes("microsoft")}
-								onClick={() => toggleAuthMethod("microsoft")}
+								selected={selectedMethods.includes("microsoft_oauth")}
+								onClick={() => toggleAuthMethod("microsoft_oauth")}
 							/>
 
 							<AuthMethodItem
-								method="discord"
+								method="discord_oauth"
 								icon={
 									<img src={DiscordIcon} alt="Discord" className="h-5 w-5" />
 								}
 								label="Discord"
 								description="Allow users to sign in with Discord"
-								selected={selectedMethods.includes("discord")}
-								onClick={() => toggleAuthMethod("discord")}
+								selected={selectedMethods.includes("discord_oauth")}
+								onClick={() => toggleAuthMethod("discord_oauth")}
 							/>
 
 							<AuthMethodItem
-								method="linkedin"
+								method="linkedin_oauth"
 								icon={
 									<img src={LinkedInIcon} alt="LinkedIn" className="h-5 w-5" />
 								}
 								label="LinkedIn"
 								description="Allow users to sign in with LinkedIn"
-								selected={selectedMethods.includes("linkedin")}
-								onClick={() => toggleAuthMethod("linkedin")}
+								selected={selectedMethods.includes("linkedin_oauth")}
+								onClick={() => toggleAuthMethod("linkedin_oauth")}
 							/>
 
 							<AuthMethodItem
-								method="github"
+								method="github_oauth"
 								icon={<img src={GithubIcon} alt="GitHub" className="h-5 w-5" />}
 								label="GitHub"
 								description="Allow users to sign in with GitHub"
-								selected={selectedMethods.includes("github")}
-								onClick={() => toggleAuthMethod("github")}
+								selected={selectedMethods.includes("github_oauth")}
+								onClick={() => toggleAuthMethod("github_oauth")}
 							/>
 
 							<AuthMethodItem
-								method="facebook"
+								method="facebook_oauth"
 								icon={
 									<img src={FacebookIcon} alt="Facebook" className="h-5 w-5" />
 								}
 								label="Facebook"
 								description="Allow users to sign in with Facebook"
-								selected={selectedMethods.includes("facebook")}
-								onClick={() => toggleAuthMethod("facebook")}
+								selected={selectedMethods.includes("facebook_oauth")}
+								onClick={() => toggleAuthMethod("facebook_oauth")}
 							/>
 						</div>
 					</div>

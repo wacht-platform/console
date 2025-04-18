@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Divider } from "@/components/ui/divider";
 import { Heading, Subheading } from "@/components/ui/heading";
@@ -9,45 +9,137 @@ import { TrashIcon } from "@heroicons/react/24/outline";
 import { RadioGroup, Radio, RadioField } from '@/components/ui/radio'
 import { Description, Field, FieldGroup, Fieldset, Label, Legend } from "@/components/ui/fieldset";
 import { useDeploymentSettings } from "@/lib/api/hooks/use-deployment-settings";
+import { useUpdateDeploymentRestrictions } from "@/lib/api/hooks/use-deployment-restrictions";
+import type { DeploymentRestrictions, DeploymentRestrictionsSignUpMode } from "@/types/deployment";
 
 export default function RestrictionsPage() {
-  const [bannedKeywords, setBannedKeywords] = useState<string[]>([]);
-  const [newKeyword, setNewKeyword] = useState('');
-  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
-  const [allowlistedEmails, setAllowlistedEmails] = useState<string[]>([]);
-  const [newEmail, setNewEmail] = useState('');
-  const [blocklistedEmails, setBlocklistedEmails] = useState<string[]>([]);
-  const [newBlockedEmail, setNewBlockedEmail] = useState('');
-  const [signUpMode, setSignUpMode] = useState('public');
-  const [isAllowlistEnabled, setIsAllowlistEnabled] = useState(false);
-  const [isBlocklistEnabled, setIsBlocklistEnabled] = useState(false);
-  const [blockSubaddresses, setBlockSubaddresses] = useState(false);
-  const [blockDisposableEmails, setBlockDisposableEmails] = useState(false);
-  const [enableVoipRestriction, setEnableVoipRestriction] = useState(false);
+  const [initialRestrictions, setInitialRestrictions] = useState<DeploymentRestrictions | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
 
-  const { deploymentSettings } = useDeploymentSettings();
-  console.log(deploymentSettings?.restrictions);
+  const setDirty = useCallback(() => setIsDirty(true), []);
+
+  const [bannedKeywords, _setBannedKeywords] = useState<string[]>([]);
+  const setBannedKeywords = useCallback((value: React.SetStateAction<string[]>) => {
+    _setBannedKeywords(prev => typeof value === 'function' ? value(prev) : value);
+    setDirty();
+  }, [setDirty]);
+
+  const [newKeyword, setNewKeyword] = useState('');
+
+  const [selectedCountries, _setSelectedCountries] = useState<string[]>([]);
+  const setSelectedCountries = useCallback((value: React.SetStateAction<string[]>) => {
+    _setSelectedCountries(prev => typeof value === 'function' ? value(prev) : value);
+    setDirty();
+  }, [setDirty]);
+
+  const [allowlistedEmails, _setAllowlistedEmails] = useState<string[]>([]);
+  const setAllowlistedEmails = useCallback((value: React.SetStateAction<string[]>) => {
+    _setAllowlistedEmails(prev => typeof value === 'function' ? value(prev) : value);
+    setDirty();
+  }, [setDirty]);
+
+  const [newEmail, setNewEmail] = useState('');
+
+  const [blocklistedEmails, _setBlocklistedEmails] = useState<string[]>([]);
+  const setBlocklistedEmails = useCallback((value: React.SetStateAction<string[]>) => {
+    _setBlocklistedEmails(prev => typeof value === 'function' ? value(prev) : value);
+    setDirty();
+  }, [setDirty]);
+
+  const [newBlockedEmail, setNewBlockedEmail] = useState('');
+
+  const [signUpMode, _setSignUpMode] = useState<DeploymentRestrictionsSignUpMode>(
+    'public' as DeploymentRestrictionsSignUpMode
+  );
+  const setSignUpMode = useCallback((value: React.SetStateAction<DeploymentRestrictionsSignUpMode>) => {
+    _setSignUpMode(prev => typeof value === 'function' ? value(prev) : value);
+    setDirty();
+  }, [setDirty]);
+
+
+  const [isAllowlistEnabled, _setIsAllowlistEnabled] = useState(false);
+  const setIsAllowlistEnabled = useCallback((value: React.SetStateAction<boolean>) => {
+    _setIsAllowlistEnabled(prev => typeof value === 'function' ? value(prev) : value);
+    setDirty();
+  }, [setDirty]);
+
+  const [isBlocklistEnabled, _setIsBlocklistEnabled] = useState(false);
+  const setIsBlocklistEnabled = useCallback((value: React.SetStateAction<boolean>) => {
+    _setIsBlocklistEnabled(prev => typeof value === 'function' ? value(prev) : value);
+    setDirty();
+  }, [setDirty]);
+
+  const [blockSubaddresses, _setBlockSubaddresses] = useState(false);
+  const setBlockSubaddresses = useCallback((value: React.SetStateAction<boolean>) => {
+    _setBlockSubaddresses(prev => typeof value === 'function' ? value(prev) : value);
+    setDirty();
+  }, [setDirty]);
+
+
+  const [blockDisposableEmails, _setBlockDisposableEmails] = useState(false);
+  const setBlockDisposableEmails = useCallback((value: React.SetStateAction<boolean>) => {
+    _setBlockDisposableEmails(prev => typeof value === 'function' ? value(prev) : value);
+    setDirty();
+  }, [setDirty]);
+
+  const [enableVoipRestriction, _setEnableVoipRestriction] = useState(false);
+  const setEnableVoipRestriction = useCallback((value: React.SetStateAction<boolean>) => {
+    _setEnableVoipRestriction(prev => typeof value === 'function' ? value(prev) : value);
+    setDirty();
+  }, [setDirty]);
+
+  const [isCountryRestrictionEnabled, _setIsCountryRestrictionEnabled] = useState(false);
+  const setIsCountryRestrictionEnabled = useCallback((value: React.SetStateAction<boolean>) => {
+    _setIsCountryRestrictionEnabled(prev => typeof value === 'function' ? value(prev) : value);
+    if ((typeof value === 'function' ? value(false) : value) === false) {
+      _setSelectedCountries([]);
+    }
+    setDirty();
+  }, [setDirty]);
+
+
+  const { deploymentSettings, isLoading: isLoadingSettings } = useDeploymentSettings();
+  const { mutate: updateRestrictions, isLoading: isUpdatingRestrictions } = useUpdateDeploymentRestrictions();
+
+  const setFormState = (restrictions: DeploymentRestrictions | null) => {
+    if (!restrictions) return;
+    _setSignUpMode(restrictions.sign_up_mode || 'public');
+    _setIsAllowlistEnabled(restrictions.allowlist_enabled ?? false);
+    _setAllowlistedEmails(restrictions.allowlisted_resources?.sort() ?? []);
+    _setIsBlocklistEnabled(restrictions.blocklist_enabled ?? false);
+    _setBlocklistedEmails(restrictions.blocklisted_resources?.sort() ?? []);
+    _setBlockSubaddresses(restrictions.block_subaddresses ?? false);
+    _setBlockDisposableEmails(restrictions.block_disposable_emails ?? false);
+    _setEnableVoipRestriction(restrictions.block_voip_numbers ?? false);
+    _setBannedKeywords(restrictions.banned_keywords?.sort() ?? []);
+    _setSelectedCountries(restrictions.country_restrictions?.country_codes?.sort() ?? []);
+    _setIsCountryRestrictionEnabled(restrictions.country_restrictions?.enabled ?? false);
+  };
+
 
   useEffect(() => {
     if (deploymentSettings?.restrictions) {
       const restrictions = deploymentSettings.restrictions;
-      setSignUpMode(restrictions.sign_up_mode || 'public');
-      setIsAllowlistEnabled(restrictions.allowlist_enabled ?? false);
-      setAllowlistedEmails(restrictions.allowlisted_resources ?? []);
-      setIsBlocklistEnabled(restrictions.blocklist_enabled ?? false);
-      setBlocklistedEmails(restrictions.blocklisted_resources ?? []);
-      setBlockSubaddresses(restrictions.block_subaddresses ?? false);
-      setBlockDisposableEmails(restrictions.block_disposable_emails ?? false);
-      setEnableVoipRestriction(restrictions.block_voip_numbers ?? false);
-      setBannedKeywords(restrictions.banned_keywords ?? []);
-      setSelectedCountries(restrictions.country_restrictions?.country_codes ?? []);
+      const normalizedRestrictions = {
+        ...restrictions,
+        allowlisted_resources: [...(restrictions.allowlisted_resources ?? [])].sort(),
+        blocklisted_resources: [...(restrictions.blocklisted_resources ?? [])].sort(),
+        banned_keywords: [...(restrictions.banned_keywords ?? [])].sort(),
+        country_restrictions: {
+          ...(restrictions.country_restrictions ?? { enabled: false, country_codes: [] }),
+          country_codes: [...(restrictions.country_restrictions?.country_codes ?? [])].sort(),
+        },
+      };
+      setInitialRestrictions(normalizedRestrictions);
+      setFormState(normalizedRestrictions);
+      setIsDirty(false);
     }
   }, [deploymentSettings]);
 
   const addKeyword = (keyword: string) => {
     const trimmedKeyword = keyword.trim();
-    if (trimmedKeyword && !bannedKeywords.includes(trimmedKeyword)) {
-      setBannedKeywords([...bannedKeywords, trimmedKeyword]);
+    if (trimmedKeyword) {
+      setBannedKeywords(prev => prev.includes(trimmedKeyword) ? prev : [...prev, trimmedKeyword]);
     }
     setNewKeyword("");
   };
@@ -72,12 +164,8 @@ export default function RestrictionsPage() {
 
   const addEmailToAllowlist = (email: string) => {
     const trimmedEmail = email.trim();
-    if (
-      trimmedEmail &&
-      /\S+@\S+\.\S+/.test(trimmedEmail) &&
-      !allowlistedEmails.includes(trimmedEmail)
-    ) {
-      setAllowlistedEmails([...allowlistedEmails, trimmedEmail]);
+    if (trimmedEmail) {
+      setAllowlistedEmails(prev => prev.includes(trimmedEmail) ? prev : [...prev, trimmedEmail]);
     }
     setNewEmail('');
   };
@@ -93,14 +181,15 @@ export default function RestrictionsPage() {
     }
   };
 
+  const removeEmailFromAllowlist = (email: string) => {
+    setAllowlistedEmails(prev => prev.filter(e => e !== email));
+  };
+
+
   const addEmailToBlocklist = (email: string) => {
     const trimmedEmail = email.trim();
-    if (
-      trimmedEmail &&
-      /\S+@\S+\.\S+/.test(trimmedEmail) &&
-      !blocklistedEmails.includes(trimmedEmail)
-    ) {
-      setBlocklistedEmails([...blocklistedEmails, trimmedEmail]);
+    if (trimmedEmail) {
+      setBlocklistedEmails(prev => prev.includes(trimmedEmail) ? prev : [...prev, trimmedEmail]);
     }
     setNewBlockedEmail('');
   };
@@ -116,287 +205,355 @@ export default function RestrictionsPage() {
     }
   };
 
+  const removeEmailFromBlocklist = (email: string) => {
+    setBlocklistedEmails(prev => prev.filter(e => e !== email));
+  };
+
+  const removeKeyword = (keyword: string) => {
+    setBannedKeywords(prev => prev.filter(k => k !== keyword));
+  };
+
+
+  const handleSave = () => {
+    const payload: Partial<DeploymentRestrictions> = {
+      sign_up_mode: signUpMode,
+      allowlist_enabled: isAllowlistEnabled,
+      allowlisted_resources: allowlistedEmails,
+      blocklist_enabled: isBlocklistEnabled,
+      blocklisted_resources: blocklistedEmails,
+      block_subaddresses: blockSubaddresses,
+      block_disposable_emails: blockDisposableEmails,
+      block_voip_numbers: enableVoipRestriction,
+      banned_keywords: bannedKeywords,
+      country_restrictions: {
+        enabled: isCountryRestrictionEnabled,
+        country_codes: isCountryRestrictionEnabled ? selectedCountries : [],
+      },
+    };
+
+    updateRestrictions(payload as DeploymentRestrictions, {
+      onSuccess: () => {
+        setIsDirty(false);
+      },
+      onError: (error) => {
+        console.error("Failed to update restrictions:", error);
+      }
+    });
+  };
+
+  const handleReset = () => {
+    if (initialRestrictions) {
+      setFormState(initialRestrictions);
+    }
+    setIsDirty(false);
+  };
+
+  if (isLoadingSettings) {
+    return <div>Loading restrictions...</div>;
+  }
+
+  const handleSignUpModeChange = (value: string) => {
+    setSignUpMode(value as DeploymentRestrictionsSignUpMode);
+  }
 
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <Heading>Restrictions</Heading>
-        <Text>Specify restrictions for this deployment.</Text>
-      </div>
-
-      <div className="space-y-8">
-        <Fieldset>
-          <Legend>Sign-up mode</Legend>
-          <Text>Choose the sign up mode for your application.</Text>
-          <FieldGroup>
-            <RadioGroup value={signUpMode} onChange={setSignUpMode} className="space-y-4">
-              <Field>
-                <RadioField>
-                  <Radio value="public" />
-                  <Label>Public</Label>
-                  <Description>Anyone can sign up to your application.</Description>
-                </RadioField>
-              </Field>
-              <Field>
-                <RadioField>
-                  <Radio value="restricted" />
-                  <Label>Restricted</Label>
-                  <Description>Sign ups are disabled, and users can only access your application if they are invited, created manually, or authenticated through an enterprise SSO connection.</Description>
-                </RadioField>
-              </Field>
-              <Field>
-                <RadioField>
-                  <Radio value="waitlist" />
-                  <Label>Waitlist</Label>
-                  <Description>Sign ups are disabled, but people can join a waitlist.</Description>
-                </RadioField>
-              </Field>
-            </RadioGroup>
-          </FieldGroup>
-        </Fieldset>
-
-        <Divider soft />
-
-        <section className="space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <Subheading>Allowlist</Subheading>
-              <Text>Restrict sign-ups and sign-ins to accounts with pre-approved identifiers.</Text>
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch checked={isAllowlistEnabled} onChange={setIsAllowlistEnabled} />
-            </div>
-          </div>
-          {isAllowlistEnabled && (
-            <FieldGroup className="border-t border-zinc-950/10 pt-4 dark:border-white/10 space-y-4">
-              <Field>
-                <Label>Identifiers</Label>
-                <Description>Enter a domain, email address, phone number, or Web3 wallet address to add it to the allowlist.</Description>
-              </Field>
-              <Field>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="text"
-                    placeholder="Enter phone, email, domain"
-                    className="flex-grow"
-                    value={newEmail}
-                    onChange={handleEmailInputChange}
-                    onKeyDown={handleEmailKeyDown}
-                  />
-                  <Button plain onClick={() => addEmailToAllowlist(newEmail)}>Add</Button>
-                </div>
-              </Field>
-
-              {allowlistedEmails.length > 0 && (
-                <div className="mt-2">
-                  <div className="flex flex-wrap gap-2">
-                    {allowlistedEmails.map((email) => (
-                      <span
-                        key={email}
-                        className="bg-gray-50 text-gray-700 px-3 py-1 rounded-full text-sm flex items-center space-x-2 border border-gray-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
-                      >
-                        <span>{email}</span>
-                        <button
-                          onClick={() =>
-                            setAllowlistedEmails(allowlistedEmails.filter((e) => e !== email))
-                          }
-                          title="Remove identifier"
-                          className="text-gray-600 hover:text-gray-800 dark:text-zinc-400 dark:hover:text-zinc-200"
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <Field>
-                <Description>
-                  ⓘ When enabled, only identifiers on the allowlist will be able to sign in or sign up.
-                </Description>
-              </Field>
-            </FieldGroup>
-          )}
-        </section>
-
-        <Divider soft />
-
-        <section className="space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <Subheading>Blocklist</Subheading>
-              <Text>Block accounts with certain identifiers.</Text>
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch checked={isBlocklistEnabled} onChange={setIsBlocklistEnabled} />
-            </div>
-          </div>
-          {isBlocklistEnabled && (
-            <FieldGroup className="border-t border-zinc-950/10 pt-4 dark:border-white/10 space-y-4">
-              <Field>
-                <Label>Identifiers</Label>
-                <Description>Enter a domain, email address, phone number, or Web3 wallet address to add it to the blocklist.</Description>
-              </Field>
-              <Field>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="text"
-                    placeholder="Enter phone, email, domain"
-                    className="flex-grow"
-                    value={newBlockedEmail}
-                    onChange={handleBlockedEmailInputChange}
-                    onKeyDown={handleBlockedEmailKeyDown}
-                  />
-                  <Button plain onClick={() => addEmailToBlocklist(newBlockedEmail)}>Add</Button>
-                </div>
-              </Field>
-
-              {blocklistedEmails.length > 0 && (
-                <div className="mt-2">
-                  <div className="flex flex-wrap gap-2">
-                    {blocklistedEmails.map((email) => (
-                      <span
-                        key={email}
-                        className="bg-gray-50 text-gray-700 px-3 py-1 rounded-full text-sm flex items-center space-x-2 border border-gray-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
-                      >
-                        <span>{email}</span>
-                        <button
-                          onClick={() =>
-                            setBlocklistedEmails(
-                              blocklistedEmails.filter((e) => e !== email)
-                            )
-                          }
-                          title="Remove identifier"
-                          className="text-gray-600 hover:text-gray-800 dark:text-zinc-400 dark:hover:text-zinc-200"
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </FieldGroup>
-          )}
-        </section>
-
-        <Divider soft />
-
-        <Fieldset>
-          <Legend>Restrictions</Legend>
-          <Text>Specify restrictions for this application.</Text>
-          <FieldGroup className="space-y-4">
-            <Field>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <Label>Block email subaddresses</Label>
-                  <Description>
-                    Prevent email addresses containing the characters +, =, or # from signing up or being added to existing accounts. For example, user+sub@clerk.com will be blocked.
-                  </Description>
-                </div>
-                <Switch checked={blockSubaddresses} onChange={setBlockSubaddresses} className="ml-auto flex-shrink-0" />
-              </div>
-            </Field>
-
-            <Field>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <Label>Block sign-ups that use disposable email addresses</Label>
-                  <Description>If enabled, all sign-up attempts using an email address from a disposable email domain will be rejected.</Description>
-                </div>
-                <Switch checked={blockDisposableEmails} onChange={setBlockDisposableEmails} className="ml-auto flex-shrink-0" />
-              </div>
-            </Field>
-          </FieldGroup>
-        </Fieldset>
-
-        <Divider soft />
-
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
-          <Field>
-            <Subheading>Country Restrictions</Subheading>
-            <Text>Select countries to block sign-in and sign-up attempts.</Text>
-          </Field>
-          <Field>
-            <div className="flex justify-end">
-              <CountryBanSelector
-                selectedCountries={selectedCountries}
-                onCountriesChange={setSelectedCountries}
-              />
-            </div>
-          </Field>
-        </section>
-
-        <Divider soft />
-
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
-          <Field>
-            <Subheading>Banned Keywords</Subheading>
-            <Text>Add keywords that will block usernames and emails.</Text>
-          </Field>
-          <Field>
-            <div className="flex flex-col items-end space-y-2">
-              <div className="flex items-center w-full max-w-xs">
-                <Input
-                  type="text"
-                  placeholder="Enter keyword"
-                  className="flex-grow"
-                  value={newKeyword}
-                  onChange={handleInputChange}
-                  onKeyDown={handleKeyDown}
-                />
-                <Button plain onClick={() => addKeyword(newKeyword)} className="ml-2 flex-shrink-0">Add</Button>
-              </div>
-
-              {bannedKeywords.length > 0 && (
-                <div className="w-full max-w-xs">
-                  <div className="flex flex-wrap gap-2 justify-end">
-                    {bannedKeywords.map((keyword) => (
-                      <span
-                        key={keyword}
-                        className="bg-gray-50 text-gray-700 px-3 py-1 rounded-full text-sm flex items-center space-x-2 border border-gray-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
-                      >
-                        <span>{keyword}</span>
-                        <button
-                          onClick={() =>
-                            setBannedKeywords(bannedKeywords.filter((k) => k !== keyword))
-                          }
-                          title="Remove keyword"
-                          className="text-gray-600 hover:text-gray-800 dark:text-zinc-400 dark:hover:text-zinc-200"
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </Field>
-        </section>
-
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
-          <Field>
-            <Subheading>VOIP/ Virtual Number Restrictions</Subheading>
-            <Text>Block specific number series associated with VOIP or virtual numbers.</Text>
-          </Field>
-          <Field>
-            <div className="flex justify-end items-center">
-              <Switch checked={enableVoipRestriction} onChange={setEnableVoipRestriction} />
-            </div>
-          </Field>
-        </section>
-
-        <div className="flex justify-end gap-4 mt-8">
-          <Button type="reset" plain>
-            Reset
-          </Button>
-          <Button type="submit">Save changes</Button>
+    <>
+      <div className="flex flex-col gap-8 pb-24">
+        <div>
+          <Heading>Restrictions</Heading>
+          <Text>Specify restrictions for this deployment.</Text>
         </div>
 
+        <div className="space-y-8">
+          <Fieldset>
+            <Legend>Sign-up mode</Legend>
+            <Text>Choose the sign up mode for your application.</Text>
+            <FieldGroup>
+              <RadioGroup value={signUpMode} onChange={handleSignUpModeChange} className="space-y-4">
+                <Field>
+                  <RadioField>
+                    <Radio value="public" />
+                    <Label>Public</Label>
+                    <Description>Anyone can sign up to your application.</Description>
+                  </RadioField>
+                </Field>
+                <Field>
+                  <RadioField>
+                    <Radio value="restricted" />
+                    <Label>Restricted</Label>
+                    <Description>Sign ups are disabled, and users can only access your application if they are invited, created manually, or authenticated through an enterprise SSO connection.</Description>
+                  </RadioField>
+                </Field>
+                <Field>
+                  <RadioField>
+                    <Radio value="waitlist" />
+                    <Label>Waitlist</Label>
+                    <Description>Sign ups are disabled, but people can join a waitlist.</Description>
+                  </RadioField>
+                </Field>
+              </RadioGroup>
+            </FieldGroup>
+          </Fieldset>
+
+          <Divider soft />
+
+          <section className="space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <Subheading>Allowlist</Subheading>
+                <Text>Restrict sign-ups and sign-ins to accounts with pre-approved identifiers.</Text>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch checked={isAllowlistEnabled} onChange={setIsAllowlistEnabled} />
+              </div>
+            </div>
+            {isAllowlistEnabled && (
+              <FieldGroup className="border-t border-zinc-950/10 pt-4 dark:border-white/10 space-y-4">
+                <Field>
+                  <Label>Identifiers</Label>
+                  <Description>Enter a domain, email address, phone number, or Web3 wallet address to add it to the allowlist.</Description>
+                </Field>
+                <Field>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="text"
+                      placeholder="Enter phone, email, domain"
+                      className="flex-grow"
+                      value={newEmail}
+                      onChange={handleEmailInputChange}
+                      onKeyDown={handleEmailKeyDown}
+                    />
+                    <Button plain onClick={() => addEmailToAllowlist(newEmail)}>Add</Button>
+                  </div>
+                </Field>
+
+                {allowlistedEmails.length > 0 && (
+                  <div className="mt-2">
+                    <div className="flex flex-wrap gap-2">
+                      {allowlistedEmails.map((email) => (
+                        <span
+                          key={email}
+                          className="bg-gray-50 text-gray-700 px-3 py-1 rounded-full text-sm flex items-center space-x-2 border border-gray-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
+                        >
+                          <span>{email}</span>
+                          <button
+                            onClick={() => removeEmailFromAllowlist(email)}
+                            title="Remove identifier"
+                            className="text-gray-600 hover:text-gray-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <Field>
+                  <Description>
+                    ⓘ When enabled, only identifiers on the allowlist will be able to sign in or sign up.
+                  </Description>
+                </Field>
+              </FieldGroup>
+            )}
+          </section>
+
+          <Divider soft />
+
+          <section className="space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <Subheading>Blocklist</Subheading>
+                <Text>Block accounts with certain identifiers.</Text>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch checked={isBlocklistEnabled} onChange={setIsBlocklistEnabled} />
+              </div>
+            </div>
+            {isBlocklistEnabled && (
+              <FieldGroup className="border-t border-zinc-950/10 pt-4 dark:border-white/10 space-y-4">
+                <Field>
+                  <Label>Identifiers</Label>
+                  <Description>Enter a domain, email address, phone number, or Web3 wallet address to add it to the blocklist.</Description>
+                </Field>
+                <Field>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="text"
+                      placeholder="Enter phone, email, domain"
+                      className="flex-grow"
+                      value={newBlockedEmail}
+                      onChange={handleBlockedEmailInputChange}
+                      onKeyDown={handleBlockedEmailKeyDown}
+                    />
+                    <Button plain onClick={() => addEmailToBlocklist(newBlockedEmail)}>Add</Button>
+                  </div>
+                </Field>
+
+                {blocklistedEmails.length > 0 && (
+                  <div className="mt-2">
+                    <div className="flex flex-wrap gap-2">
+                      {blocklistedEmails.map((email) => (
+                        <span
+                          key={email}
+                          className="bg-gray-50 text-gray-700 px-3 py-1 rounded-full text-sm flex items-center space-x-2 border border-gray-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
+                        >
+                          <span>{email}</span>
+                          <button
+                            onClick={() => removeEmailFromBlocklist(email)}
+                            title="Remove identifier"
+                            className="text-gray-600 hover:text-gray-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </FieldGroup>
+            )}
+          </section>
+
+          <Divider soft />
+
+          <Fieldset>
+            <Legend>Restrictions</Legend>
+            <Text>Specify restrictions for this application.</Text>
+            <FieldGroup className="space-y-4">
+              <Field>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <Label>Block email subaddresses</Label>
+                    <Description>
+                      Prevent email addresses containing the characters +, =, or # from signing up or being added to existing accounts.                     </Description>
+                  </div>
+                  <Switch checked={blockSubaddresses} onChange={setBlockSubaddresses} className="ml-auto flex-shrink-0" />
+                </div>
+              </Field>
+
+              <Field>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <Label>Block sign-ups that use disposable email addresses</Label>
+                    <Description>If enabled, all sign-up attempts using an email address from a disposable email domain will be rejected.</Description>
+                  </div>
+                  <Switch checked={blockDisposableEmails} onChange={setBlockDisposableEmails} className="ml-auto flex-shrink-0" />
+                </div>
+              </Field>
+            </FieldGroup>
+          </Fieldset>
+
+          <Divider soft />
+
+          <section className="grid gap-x-8 items-start">
+            <Field>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <Label>Country Restrictions</Label>
+                  <Description>
+                    Select countries to block sign-in and sign-up attempts.
+                  </Description>
+                </div>
+                <Switch checked={isCountryRestrictionEnabled} onChange={setIsCountryRestrictionEnabled} id="country-restriction-toggle" />
+              </div>
+            </Field>
+            {isCountryRestrictionEnabled && (
+              <div className="flex justify-end -mt-4">
+                <CountryBanSelector
+                  selectedCountries={selectedCountries}
+                  onCountriesChange={setSelectedCountries}
+                />
+              </div>
+            )}
+          </section>
+
+          <Divider soft />
+
+          <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
+            <Field>
+              <Subheading>Banned Keywords</Subheading>
+              <Text>Add keywords that will block usernames and emails.</Text>
+            </Field>
+            <Field>
+              <div className="flex flex-col items-end space-y-2">
+                <div className="flex items-center w-full max-w-xs">
+                  <Input
+                    type="text"
+                    placeholder="Enter keyword"
+                    className="flex-grow"
+                    value={newKeyword}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
+                  />
+                  <Button plain onClick={() => addKeyword(newKeyword)} className="ml-2 flex-shrink-0">Add</Button>
+                </div>
+
+                {bannedKeywords.length > 0 && (
+                  <div className="w-full max-w-xs">
+                    <div className="flex flex-wrap gap-2 justify-end">
+                      {bannedKeywords.map((keyword) => (
+                        <span
+                          key={keyword}
+                          className="bg-gray-50 text-gray-700 px-3 py-1 rounded-full text-sm flex items-center space-x-2 border border-gray-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
+                        >
+                          <span>{keyword}</span>
+                          <button
+                            onClick={() => removeKeyword(keyword)}
+                            title="Remove keyword"
+                            className="text-gray-600 hover:text-gray-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Field>
+          </section>
+
+          <Divider soft />
+
+          <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
+            <Field>
+              <Subheading>VOIP/ Virtual Number Restrictions</Subheading>
+              <Text>Block specific number series associated with VOIP or virtual numbers.</Text>
+            </Field>
+            <Field>
+              <div className="flex justify-end items-center">
+                <Switch checked={enableVoipRestriction} onChange={setEnableVoipRestriction} />
+              </div>
+            </Field>
+          </section>
+        </div>
       </div>
 
-    </div>
+      {isDirty && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-zinc-200 bg-white p-4 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 pl-[max(env(safe-area-inset-left),1.5rem)] pr-[max(env(safe-area-inset-right),1.5rem)] lg:pl-8 lg:pr-8">
+            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+              You have unsaved changes.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                plain
+                onClick={handleReset}
+                disabled={isUpdatingRestrictions}
+              >
+                Discard
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={isUpdatingRestrictions}
+              >
+                {isUpdatingRestrictions ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -676,11 +833,11 @@ const COUNTRIES = [
   { name: "Yemen", code: "YE", dialCode: "+967", flag: "🇾🇪" },
   { name: "Zambia", code: "ZM", dialCode: "+260", flag: "🇿🇲" },
   { name: "Zimbabwe", code: "ZW", dialCode: "+263", flag: "🇿🇼" },
-].sort((a, b) => a.name.localeCompare(b.name));
+];
 
 interface CountryBanSelectorProps {
   selectedCountries: string[];
-  onCountriesChange: (countries: string[]) => void;
+  onCountriesChange: (value: React.SetStateAction<string[]>) => void;
 }
 
 export function CountryBanSelector({ selectedCountries, onCountriesChange }: CountryBanSelectorProps) {
@@ -704,14 +861,15 @@ export function CountryBanSelector({ selectedCountries, onCountriesChange }: Cou
   );
 
   const handleCountryToggle = (code: string) => {
-    const newSelection = selectedCountries.includes(code)
-      ? selectedCountries.filter(c => c !== code)
-      : [...selectedCountries, code];
-    onCountriesChange(newSelection);
+    onCountriesChange(prev =>
+      prev.includes(code)
+        ? prev.filter(c => c !== code)
+        : [...prev, code]
+    );
   };
 
   const removeCountry = (code: string) => {
-    onCountriesChange(selectedCountries.filter(c => c !== code));
+    onCountriesChange(prev => prev.filter(c => c !== code));
   };
 
   return (
@@ -719,9 +877,7 @@ export function CountryBanSelector({ selectedCountries, onCountriesChange }: Cou
       <div className="relative">
         <div
           className="w-full rounded-md border border-zinc-950/10 bg-white py-1.5 px-3 text-zinc-950 sm:text-sm/6 dark:border-white/10 dark:bg-zinc-900 dark:text-white data-[focus]:border-blue-500 data-[focus]:outline-none data-[focus]:ring-1 data-[focus]:ring-blue-500"
-          onClick={() => setIsOpen(!isOpen)}
           tabIndex={0}
-          onFocus={() => setIsOpen(true)}
         >
           <input
             type="text"
@@ -732,7 +888,7 @@ export function CountryBanSelector({ selectedCountries, onCountriesChange }: Cou
               setSearchQuery(e.target.value);
               setIsOpen(true);
             }}
-            onFocus={(e) => {
+            onFocus={() => {
               setIsOpen(true);
             }}
           />

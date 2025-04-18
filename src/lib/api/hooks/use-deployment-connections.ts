@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../client";
 import { useProjects } from "./use-projects";
-import type { DeploymentSocialConnection, DeploymentSocialConnectionUpsert, OauthCredentials, SocialConnectionProvider } from "@/types/deployment";
+import type { DeploymentSocialConnection, DeploymentSocialConnectionUpsert } from "@/types/deployment";
 
 async function fetchDeploymentSocialConnections(
     deploymentId: string,
