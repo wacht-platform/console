@@ -37,7 +37,6 @@ import {
 	UserCircleIcon,
 	LockClosedIcon,
 	KeyIcon,
-	// Square3Stack3DIcon,
 	UserGroupIcon,
 	EnvelopeIcon,
 	DevicePhoneMobileIcon,
@@ -309,11 +308,7 @@ export function ApplicationLayout() {
 							<SidebarHeading className="mt-3">Customization</SidebarHeading>
 							<SidebarItem href="./portal">
 								<DropdownIcon icon={SparklesIcon} />
-								<SidebarLabel>Account Portal</SidebarLabel>
-							</SidebarItem>
-							<SidebarItem href="./avatars">
-								<DropdownIcon icon={UserCircleIcon} />
-								<SidebarLabel>Avatars</SidebarLabel>
+								<SidebarLabel>UI Settings</SidebarLabel>
 							</SidebarItem>
 							<SidebarItem href="./emails">
 								<DropdownIcon icon={EnvelopeIcon} />

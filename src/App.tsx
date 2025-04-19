@@ -2,14 +2,6 @@ import { RouterProvider } from "react-router";
 import { router } from "./router";
 import { QueryProvider } from "./lib/providers/query";
 import "./index.css";
-import {
-	DeploymentInstanceInitialized,
-	DeploymentInstanceInitializing,
-	NavigateToSignin,
-	SignedIn,
-	SignedOut,
-} from "@snipextt/wacht";
-import { LoadingFallback } from "./components/loading-fallback";
 
 function App() {
 	return (

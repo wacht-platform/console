@@ -1,6 +1,3 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
-
 // Import social login icons
 import GoogleIcon from "@/assets/google.svg";
 import MicrosoftIcon from "@/assets/microsoft.svg";
@@ -68,7 +65,6 @@ const socialAuthProviders = {
 
 export function SignInForm({
 	appName = "Sign in",
-	logo,
 	enabledMethods = ["email"],
 }: SignInFormProps) {
 	const socialMethods = enabledMethods.filter(
@@ -120,9 +116,8 @@ export function SignInForm({
 										<button
 											key={method}
 											type="button"
-											className={`flex items-center justify-center gap-2 border border-gray-300 rounded-md hover:bg-gray-50 h-10 ${
-												row.length === 1 ? "w-full" : "flex-1"
-											}`}
+											className={`flex items-center justify-center gap-2 border border-gray-300 rounded-md hover:bg-gray-50 h-10 ${row.length === 1 ? "w-full" : "flex-1"
+												}`}
 										>
 											<img
 												src={providerInfo.icon}

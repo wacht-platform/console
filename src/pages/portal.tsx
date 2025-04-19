@@ -1,42 +1,102 @@
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Strong, Text } from "@/components/ui/text";
 import { ArrowTopRightOnSquareIcon, ClipboardIcon } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Divider } from "@/components/ui/divider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useDeploymentSettings } from "@/lib/api/hooks/use-deployment-settings";
+import { Switch } from "@/components/ui/switch";
+import { Spinner } from "@/components/ui/spinner";
+import { useUpdateDeploymentDisplaySettings, DeploymentDisplaySettingsUpdates } from "@/lib/api/hooks/use-update-deployment-display-settings";
+import { useUploadImage } from "@/lib/api/hooks/use-upload-image";
+import SavePopup from "@/components/save-popup";
+
 
 
 export default function PortalPage() {
+	const { deploymentSettings } = useDeploymentSettings();
+	const updateDisplaySettings = useUpdateDeploymentDisplaySettings();
+	const [isSaving, setIsSaving] = useState(false);
+	const [isDirty, setIsDirty] = useState(false);
 	const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+	const [appName, setAppName] = useState("");
+	const [privacyPolicyUrl, setPrivacyPolicyUrl] = useState("");
+	const [tosPageUrl, setTosPageUrl] = useState("");
+	const [afterSignupRedirectUrl, setAfterSignupRedirectUrl] = useState("");
+	const [afterSigninRedirectUrl, setAfterSigninRedirectUrl] = useState("");
+	const [afterLogoClickUrl, setAfterLogoClickUrl] = useState("");
+	const [afterCreateOrganizationUrl, setAfterCreateOrganizationUrl] = useState("");
 	const [primaryColor, setPrimaryColor] = useState("#1E40AF");
 	const [backgroundColor, setBackgroundColor] = useState("#F3F4F6");
-	const [borderColor, setBorderColor] = useState("#D1D5DB");
+	const [darkModePrimaryColor, setDarkModePrimaryColor] = useState("#FFFFFF");
+	const [darkModeBackgroundColor, setDarkModeBackgroundColor] = useState("#1F2937");
+	const [defaultUserProfileImageUrl, setDefaultUserProfileImageUrl] = useState("");
+	const [defaultOrganizationProfileImageUrl, setDefaultOrganizationProfileImageUrl] = useState("");
+	const [useInitialsForUserProfileImage, setUseInitialsForUserProfileImage] = useState(true);
+	const [useInitialsForOrganizationProfileImage, setUseInitialsForOrganizationProfileImage] = useState(true);
+	const [faviconImageUrl, setFaviconImageUrl] = useState("");
+	const [logoImageUrl, setLogoImageUrl] = useState("");
+	const [signupTermsStatement, setSignupTermsStatement] = useState("");
+	const [signupTermsStatementShown, setSignupTermsStatementShown] = useState(true);
+	const [afterSignOutOnePageUrl, setAfterSignOutOnePageUrl] = useState("");
+	const [afterSignOutAllPageUrl, setAfterSignOutAllPageUrl] = useState("");
+
+	const [isUploadingUserImage, setIsUploadingUserImage] = useState(false);
+	const [isUploadingOrgImage, setIsUploadingOrgImage] = useState(false);
+	const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+	const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
+
+	const userImageInputRef = useRef<HTMLInputElement>(null);
+	const orgImageInputRef = useRef<HTMLInputElement>(null);
+	const logoImageInputRef = useRef<HTMLInputElement>(null);
+	const faviconImageInputRef = useRef<HTMLInputElement>(null);
+	const primaryColorInputRef = useRef<HTMLInputElement>(null);
+	const backgroundColorInputRef = useRef<HTMLInputElement>(null);
+	const darkModePrimaryColorInputRef = useRef<HTMLInputElement>(null);
+	const darkModeBackgroundColorInputRef = useRef<HTMLInputElement>(null);
+
+	const updateField = <T extends unknown>(setter: React.Dispatch<React.SetStateAction<T>>, value: T) => {
+		setter(value);
+		setIsDirty(true);
+	};
+
+	useEffect(() => {
+		if (deploymentSettings?.display_settings) {
+			const settings = deploymentSettings.display_settings;
+			setAppName(settings.app_name || "");
+			setPrivacyPolicyUrl(settings.privacy_policy_url || "");
+			setTosPageUrl(settings.tos_page_url || "");
+			setAfterSignupRedirectUrl(settings.after_signup_redirect_url || "");
+			setAfterSigninRedirectUrl(settings.after_signin_redirect_url || "");
+			setAfterLogoClickUrl(settings.after_logo_click_url || "");
+			setAfterCreateOrganizationUrl(settings.after_create_organization_redirect_url || "");
+			setPrimaryColor(settings.light_mode_settings?.primary_color || "#1E40AF");
+			setBackgroundColor(settings.light_mode_settings?.background_color || "#F3F4F6");
+			setDarkModePrimaryColor(settings.dark_mode_settings?.primary_color || "#FFFFFF");
+			setDarkModeBackgroundColor(settings.dark_mode_settings?.background_color || "#1F2937");
+			setDefaultUserProfileImageUrl(settings.default_user_profile_image_url || "");
+			setDefaultOrganizationProfileImageUrl(settings.default_organization_profile_image_url || "");
+			setUseInitialsForUserProfileImage(settings.use_initials_for_user_profile_image ?? true);
+			setUseInitialsForOrganizationProfileImage(settings.use_initials_for_organization_profile_image ?? true);
+			setFaviconImageUrl(settings.favicon_image_url || "");
+			setLogoImageUrl(settings.logo_image_url || "");
+			setSignupTermsStatement(settings.signup_terms_statement || "");
+			setSignupTermsStatementShown(settings.signup_terms_statement_shown ?? true);
+			setAfterSignOutOnePageUrl(settings.after_sign_out_one_page_url || "");
+			setAfterSignOutAllPageUrl(settings.after_sign_out_all_page_url || "");
+		}
+	}, [deploymentSettings]);
+
 
 	const data = [
-		{ index: 1, title: "Sign-in", desc: "Preview your application’s hosted sign-in flow.", demoLink: "https://example.com/sign-in" },
-		{ index: 2, title: "Sign-up", desc: "Preview your application’s hosted sign-up flow.", demoLink: "https://example.com/sign-up" },
-		{ index: 3, title: "User profile", desc: "Preview your application’s hosted user profile page.", demoLink: "https://example.com/profile" },
-		{ index: 4, title: "Unauthorized sign in", desc: "Preview your application’s hosted unauthorized sign-in page.", demoLink: "https://example.com/unauthorized" },
-		{ index: 5, title: "Organization profile", desc: "Preview your application’s hosted organization profile page.", demoLink: "https://example.com/organization" },
-		{ index: 6, title: "Create organization", desc: "Preview your application’s hosted create organization flow.", demoLink: "https://example.com/create-organization" },
+		{ index: 1, title: "Sign-in", desc: "Preview your application's hosted sign-in flow.", demoLink: deploymentSettings?.display_settings?.sign_in_page_url || "" },
+		{ index: 2, title: "Sign-up", desc: "Preview your application's hosted sign-up flow.", demoLink: deploymentSettings?.display_settings?.sign_up_page_url || "" },
+		{ index: 3, title: "User profile", desc: "Preview your application's hosted user profile page.", demoLink: deploymentSettings?.display_settings?.user_profile_url || "" },
+		{ index: 4, title: "Organization profile", desc: "Preview your application's hosted organization profile page.", demoLink: deploymentSettings?.display_settings?.organization_profile_url || "" },
+		{ index: 5, title: "Create organization", desc: "Preview your application's hosted create organization flow.", demoLink: deploymentSettings?.display_settings?.create_organization_url || "" },
 	];
-
-	const data2 = [
-		{ "title": "After sign-up fallback", "desc": "Specify where to send a user if it cannot be determined from the redirect_url query parameter.", "demoLink": "https://example.com/sign-up" },
-		{ "title": "After sign-in fallback", "desc": "Specify where to send a user if it cannot be determined from the redirect_url query parameter.", "demoLink": "https://example.com/sign-in" },
-		{ "title": "After logo click", "desc": "Specify where to send a user after they click your application’s logo.", "demoLink": "https://example.com/sign-in" },
-	]
-
-	const data3 = [
-		{
-			index: 1, title: "After create organization", desc: "Specify where to send a user after they create an organization. (Leave blank to redirect to the host’s root.)", demoLink: "https://example.com/sign-out"
-		},
-		{
-			index: 2, title: "After leave organization", desc: "Specify where to send a user after they leave an organization. (Leave blank to redirect to the host's root)", demoLink: "https://example.com/password-reset"
-		}
-	]
 
 
 	const handleCopy = (link: string, index: number): void => {
@@ -48,22 +108,363 @@ export default function PortalPage() {
 		window.open(link, "_blank", "noopener,noreferrer");
 	};
 
+	const uploadImageMutation = useUploadImage();
+
+	const handleUserImageUploadClick = () => {
+		userImageInputRef.current?.click();
+	};
+
+	const handleOrgImageUploadClick = () => {
+		orgImageInputRef.current?.click();
+	};
+
+
+
+	const handleUserFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (!file) return;
+
+		if (!file.type.startsWith("image/")) {
+			alert("Please select an image file.");
+			return;
+		}
+
+		setIsUploadingUserImage(true);
+		try {
+			const imageUrl = await uploadImageMutation.mutateAsync({
+				imageType: "user-profile",
+				file
+			});
+			updateField(setDefaultUserProfileImageUrl, imageUrl);
+		} catch (error) {
+			console.error("Error uploading user image:", error);
+			alert("Failed to upload user image.");
+		} finally {
+			setIsUploadingUserImage(false);
+			if (event.target) {
+				event.target.value = "";
+			}
+		}
+	};
+
+	const handleOrgFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (!file) return;
+
+		if (!file.type.startsWith("image/")) {
+			alert("Please select an image file.");
+			return;
+		}
+
+		setIsUploadingOrgImage(true);
+		try {
+			const imageUrl = await uploadImageMutation.mutateAsync({
+				imageType: "org-profile",
+				file
+			});
+			updateField(setDefaultOrganizationProfileImageUrl, imageUrl);
+		} catch (error) {
+			console.error("Error uploading organization image:", error);
+			alert("Failed to upload organization image.");
+		} finally {
+			setIsUploadingOrgImage(false);
+			if (event.target) {
+				event.target.value = "";
+			}
+		}
+	};
+
+	const handleLogoFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (!file) return;
+
+		if (!file.type.startsWith("image/")) {
+			alert("Please select an image file.");
+			return;
+		}
+
+		setIsUploadingLogo(true);
+		try {
+			const imageUrl = await uploadImageMutation.mutateAsync({
+				imageType: "logo",
+				file
+			});
+			updateField(setLogoImageUrl, imageUrl);
+		} catch (error) {
+			console.error("Error uploading logo image:", error);
+			alert("Failed to upload logo image.");
+		} finally {
+			setIsUploadingLogo(false);
+			if (event.target) {
+				event.target.value = "";
+			}
+		}
+	};
+
+	const handleFaviconFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (!file) return;
+
+		if (!file.type.startsWith("image/")) {
+			alert("Please select an image file.");
+			return;
+		}
+
+		setIsUploadingFavicon(true);
+		try {
+			const imageUrl = await uploadImageMutation.mutateAsync({
+				imageType: "favicon",
+				file
+			});
+			updateField(setFaviconImageUrl, imageUrl);
+		} catch (error) {
+			console.error("Error uploading favicon image:", error);
+			alert("Failed to upload favicon image.");
+		} finally {
+			setIsUploadingFavicon(false);
+			if (event.target) {
+				event.target.value = "";
+			}
+		}
+	};
+
+	const handleSaveSettings = async () => {
+		setIsSaving(true);
+
+		try {
+			const updates: DeploymentDisplaySettingsUpdates = {
+				app_name: appName,
+				privacy_policy_url: privacyPolicyUrl,
+				tos_page_url: tosPageUrl,
+				sign_in_page_url: deploymentSettings?.display_settings?.sign_in_page_url || "",
+				sign_up_page_url: deploymentSettings?.display_settings?.sign_up_page_url || "",
+				after_sign_up_page_url: "",
+				after_sign_in_page_url: "",
+				after_signup_redirect_url: afterSignupRedirectUrl,
+				after_signin_redirect_url: afterSigninRedirectUrl,
+				after_logo_click_url: afterLogoClickUrl,
+				after_create_organization_redirect_url: afterCreateOrganizationUrl,
+				favicon_image_url: faviconImageUrl,
+				logo_image_url: logoImageUrl,
+				signup_terms_statement: signupTermsStatement,
+				signup_terms_statement_shown: signupTermsStatementShown,
+				after_sign_out_one_page_url: afterSignOutOnePageUrl,
+				after_sign_out_all_page_url: afterSignOutAllPageUrl,
+				default_user_profile_image_url: defaultUserProfileImageUrl,
+				default_organization_profile_image_url: defaultOrganizationProfileImageUrl,
+				use_initials_for_user_profile_image: useInitialsForUserProfileImage,
+				use_initials_for_organization_profile_image: useInitialsForOrganizationProfileImage,
+				organization_profile_url: deploymentSettings?.display_settings?.organization_profile_url || "",
+				create_organization_url: deploymentSettings?.display_settings?.create_organization_url || "",
+				user_profile_url: deploymentSettings?.display_settings?.user_profile_url || "",
+				light_mode_settings: {
+					primary_color: primaryColor,
+					background_color: backgroundColor
+				},
+				dark_mode_settings: {
+					primary_color: darkModePrimaryColor,
+					background_color: darkModeBackgroundColor
+				}
+			};
+
+			await updateDisplaySettings.mutateAsync(updates);
+			setIsDirty(false);
+		} catch (error) {
+			console.error('Error saving display settings:', error);
+		} finally {
+			setIsSaving(false);
+		}
+	};
+
+	const handleResetSettings = () => {
+		if (deploymentSettings?.display_settings) {
+			const settings = deploymentSettings.display_settings;
+			setAppName(settings.app_name || "");
+			setPrivacyPolicyUrl(settings.privacy_policy_url || "");
+			setTosPageUrl(settings.tos_page_url || "");
+			setAfterSignupRedirectUrl(settings.after_signup_redirect_url || "");
+			setAfterSigninRedirectUrl(settings.after_signin_redirect_url || "");
+			setAfterLogoClickUrl(settings.after_logo_click_url || "");
+			setAfterCreateOrganizationUrl(settings.after_create_organization_redirect_url || "");
+			setPrimaryColor(settings.light_mode_settings?.primary_color || "#1E40AF");
+			setBackgroundColor(settings.light_mode_settings?.background_color || "#F3F4F6");
+			setDarkModePrimaryColor(settings.dark_mode_settings?.primary_color || "#FFFFFF");
+			setDarkModeBackgroundColor(settings.dark_mode_settings?.background_color || "#1F2937");
+			setDefaultUserProfileImageUrl(settings.default_user_profile_image_url || "");
+			setDefaultOrganizationProfileImageUrl(settings.default_organization_profile_image_url || "");
+			setUseInitialsForUserProfileImage(settings.use_initials_for_user_profile_image);
+			setUseInitialsForOrganizationProfileImage(settings.use_initials_for_organization_profile_image);
+			setFaviconImageUrl(settings.favicon_image_url || "");
+			setLogoImageUrl(settings.logo_image_url || "");
+			setSignupTermsStatement(settings.signup_terms_statement || "");
+			setSignupTermsStatementShown(settings.signup_terms_statement_shown);
+			setAfterSignOutOnePageUrl(settings.after_sign_out_one_page_url || "");
+			setAfterSignOutAllPageUrl(settings.after_sign_out_all_page_url || "");
+		}
+		setIsDirty(false);
+	};
 
 	return (
 		<div>
-			<Heading>Account Portal</Heading>
+			<input
+				type="file"
+				ref={userImageInputRef}
+				onChange={handleUserFileSelected}
+				accept="image/*"
+				style={{ display: 'none' }}
+			/>
+			<input
+				type="file"
+				ref={orgImageInputRef}
+				onChange={handleOrgFileSelected}
+				accept="image/*"
+				style={{ display: 'none' }}
+			/>
+			<input
+				type="file"
+				ref={logoImageInputRef}
+				onChange={handleLogoFileSelected}
+				accept="image/jpeg,image/png,image/gif,image/webp"
+				style={{ display: 'none' }}
+			/>
+			<input
+				type="file"
+				ref={faviconImageInputRef}
+				onChange={handleFaviconFileSelected}
+				accept="image/x-icon,image/png,image/jpeg,image/gif"
+				style={{ display: 'none' }}
+			/>
+
+			<Heading>UI Settings</Heading>
+
+			<SavePopup
+				isDirty={isDirty}
+				isSaving={isSaving}
+				onSave={handleSaveSettings}
+				onCancel={handleResetSettings}
+			/>
 			<div className="mt-8 space-y-10">
 				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
 					<div className="space-y-1 col-span-2">
 						<Subheading>
-							<Strong>Page</Strong>
+							<Strong>Application Details</Strong>
 						</Subheading>
 						<Text>
-							Wacht’s Account Portal offers the fastest and most seamless way to integrate authentication and user management into your application. Our fully managed, hosted solution runs directly on your domain, ensuring security and ease of use.
+							Basic application information and links.
 						</Text>
 					</div>
 				</section>
 
+				{/* Added App Name */}
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+					<div className="space-y-1">
+						<Subheading>App Name</Subheading>
+						<Text>The name of your application displayed to users.</Text>
+					</div>
+					<div className="flex justify-end items-center gap-3">
+						<Input
+							type="text"
+							placeholder="My Awesome App"
+							value={appName}
+							onChange={(e) => updateField(setAppName, e.target.value)}
+							size={29} />
+					</div>
+				</section>
+
+				{/* Added Privacy Policy URL */}
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+					<div className="space-y-1">
+						<Subheading>Privacy Policy URL</Subheading>
+						<Text>Link to your application's privacy policy.</Text>
+					</div>
+					<div className="flex justify-end items-center gap-3">
+						<Input
+							type="text"
+							placeholder="/privacy-policy"
+							value={privacyPolicyUrl}
+							onChange={(e) => updateField(setPrivacyPolicyUrl, e.target.value)}
+							size={29} />
+					</div>
+				</section>
+
+				{/* Added Terms of Service URL */}
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+					<div className="space-y-1">
+						<Subheading>Terms of Service URL</Subheading>
+						<Text>Link to your application's terms of service.</Text>
+					</div>
+					<div className="flex justify-end items-center gap-3">
+						<Input
+							type="text"
+							placeholder="/terms-of-service"
+							value={tosPageUrl}
+							onChange={(e) => updateField(setTosPageUrl, e.target.value)}
+							size={29} />
+					</div>
+				</section>
+
+				{/* Added Logo & Favicon URLs */}
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+					<div className="space-y-1">
+						<Subheading>Logo</Subheading>
+						<Text>Logo displayed on hosted pages.</Text>
+					</div>
+					<div className="flex justify-end items-center">
+						<div className="flex items-center gap-4">
+							<div className="w-15 h-15 rounded-md flex items-center justify-center overflow-hidden">
+								{logoImageUrl ? (
+									<img src={logoImageUrl} alt="Logo" className="max-w-full max-h-full object-contain" />
+								) : (
+									<div className="w-15 h-15 border border-gray-200 rounded-full flex items-center justify-center bg-gray-50 overflow-hidden"> </div>
+								)}
+							</div>
+							<Button
+								outline
+								onClick={() => logoImageInputRef.current?.click()}
+								disabled={isUploadingLogo}
+							>
+								{isUploadingLogo ? <Spinner className="h-4 w-4" /> : "Change Logo"}
+							</Button>
+						</div>
+					</div>
+				</section>
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+					<div className="space-y-1">
+						<Subheading>Favicon</Subheading>
+						<Text>Favicon used by hosted pages.</Text>
+					</div>
+					<div className="flex justify-end items-center">
+						<div className="flex items-center gap-4">
+							<div className="w-15 h-15 rounded-md flex items-center justify-center overflow-hidden">
+								{faviconImageUrl ? (
+									<img src={faviconImageUrl} alt="Favicon" className="max-w-full max-h-full object-contain" />
+								) : (
+									<div className="w-15 h-15 border border-gray-200 rounded-full flex items-center justify-center bg-gray-50 overflow-hidden"> </div>
+								)}
+							</div>
+							<Button
+								outline
+								onClick={() => faviconImageInputRef.current?.click()}
+								disabled={isUploadingFavicon}
+							>
+								{isUploadingFavicon ? <Spinner className="h-4 w-4" /> : "Change Logo"}
+							</Button>
+						</div>
+					</div>
+				</section>
+
+				<Divider className="my-8" soft />
+
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
+					<div className="space-y-1 col-span-2">
+						<Subheading>
+							<Strong>Page Previews</Strong>
+						</Subheading>
+						<Text>
+							Preview the hosted pages for your application. These links use your configured settings.
+						</Text>
+					</div>
+				</section>
 				{data.map((item, index) => (
 					<section key={index} className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
 						<div className="space-y-1">
@@ -107,17 +508,49 @@ export default function PortalPage() {
 					</div>
 				</section>
 
-				{data2.map((item, index) => (
-					<section key={index} className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
-						<div className="space-y-1">
-							<Subheading>{item.title}</Subheading>
-							<Text>{item.desc}</Text>
-						</div>
-						<div className="flex justify-end items-center gap-3">
-							<Input type="text" placeholder="/path" size={29} />
-						</div>
-					</section>
-				))}
+				{/* Mapped User Redirects */}
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+					<div className="space-y-1">
+						<Subheading>After sign-up fallback</Subheading>
+						<Text>Specify where to send a user if it cannot be determined from the redirect_url query parameter.</Text>
+					</div>
+					<div className="flex justify-end items-center gap-3">
+						<Input
+							type="text"
+							placeholder="/path"
+							value={afterSignupRedirectUrl}
+							onChange={(e) => updateField(setAfterSignupRedirectUrl, e.target.value)}
+							size={29} />
+					</div>
+				</section>
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+					<div className="space-y-1">
+						<Subheading>After sign-in fallback</Subheading>
+						<Text>Specify where to send a user if it cannot be determined from the redirect_url query parameter.</Text>
+					</div>
+					<div className="flex justify-end items-center gap-3">
+						<Input
+							type="text"
+							placeholder="/path"
+							value={afterSigninRedirectUrl}
+							onChange={(e) => updateField(setAfterSigninRedirectUrl, e.target.value)}
+							size={29} />
+					</div>
+				</section>
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+					<div className="space-y-1">
+						<Subheading>After logo click</Subheading>
+						<Text>Specify where to send a user after they click your application's logo.</Text>
+					</div>
+					<div className="flex justify-end items-center gap-3">
+						<Input
+							type="text"
+							placeholder="/path"
+							value={afterLogoClickUrl}
+							onChange={(e) => updateField(setAfterLogoClickUrl, e.target.value)}
+							size={29} />
+					</div>
+				</section>
 
 				<Divider className="my-8" soft />
 
@@ -132,77 +565,250 @@ export default function PortalPage() {
 					</div>
 				</section>
 
-				{data3.map((item, index) => (
-					<section key={index} className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+				{/* Mapped Organization Redirects */}
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+					<div className="space-y-1">
+						<Subheading>After create organization</Subheading>
+						<Text>Specify where to send a user after they create an organization. (Leave blank to redirect to the host's root.)</Text>
+					</div>
+					<div className="flex justify-end items-center gap-3">
+						<Input
+							type="text"
+							placeholder="/path"
+							value={afterCreateOrganizationUrl}
+							onChange={(e) => updateField(setAfterCreateOrganizationUrl, e.target.value)}
+							size={29} />
+					</div>
+				</section>
+				{/* Removed "After leave organization" section */}
+
+				<Divider className="my-8" soft />
+
+				{/* Profile Images Section */}
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
+					<div className="space-y-1 col-span-2">
+						<Subheading>
+							<Strong>Profile Images</Strong>
+						</Subheading>
+						<Text>
+							Configure default profile images and fallback behavior.
+						</Text>
+					</div>
+				</section>
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+					<div className="space-y-1">
+						<Subheading>Use Initials for User Profile Image</Subheading>
+						<Text>Fallback to user initials if no image is available.</Text>
+					</div>
+					<div className="flex justify-end items-center gap-3">
+						<Switch
+							checked={useInitialsForUserProfileImage}
+							onChange={(value) => updateField(setUseInitialsForUserProfileImage, value)}
+						/>
+					</div>
+				</section>
+
+				{!useInitialsForUserProfileImage && (
+					<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
 						<div className="space-y-1">
-							<Subheading>{item.title}</Subheading>
-							<Text>{item.desc}</Text>
+							<Subheading>Default User Profile Image</Subheading>
+							<Text>Image used when initials are disabled.</Text>
 						</div>
-						<div className="flex justify-end items-center gap-3">
-							<Input type="text" placeholder="/path" size={29} />
+						<div className="flex justify-end items-center">
+							<div className="flex items-center gap-4">
+								<div className="w-15 h-15 rounded-md flex items-center justify-center overflow-hidden">
+									{defaultUserProfileImageUrl ? (
+										<img src={defaultUserProfileImageUrl} alt="User Profile" className="w-full h-full object-cover" />
+									) : (
+										<div className="w-15 h-15 border border-gray-200 rounded-full flex items-center justify-center bg-gray-50 overflow-hidden"> </div>
+									)}
+								</div>
+								<Button
+									outline
+									onClick={handleUserImageUploadClick}
+									disabled={isUploadingUserImage}
+								>
+									{isUploadingUserImage ? <Spinner className="h-4 w-4" /> : "Change Logo"}
+								</Button>
+							</div>
 						</div>
 					</section>
-				))}
+				)}
 
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+					<div className="space-y-1">
+						<Subheading>Use Initials for Org Profile Image</Subheading>
+						<Text>Fallback to organization initials if no image is available.</Text>
+					</div>
+					<div className="flex justify-end items-center gap-3">
+						<Switch
+							checked={useInitialsForOrganizationProfileImage}
+							onChange={(value) => updateField(setUseInitialsForOrganizationProfileImage, value)}
+						/>
+					</div>
+				</section>
+
+				{!useInitialsForOrganizationProfileImage && (
+					<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+						<div className="space-y-1">
+							<Subheading>Default Organization Profile Image</Subheading>
+							<Text>Image used when initials are disabled.</Text>
+						</div>
+						<div className="flex justify-end items-center">
+							<div className="flex items-center gap-4">
+								<div className="w-15 h-15 rounded-md flex items-center justify-center overflow-hidden">
+									{defaultOrganizationProfileImageUrl ? (
+										<img src={defaultOrganizationProfileImageUrl} alt="Organization Profile" className="w-full h-full object-cover" />
+									) : (
+										<div className="w-15 h-15 border border-gray-200 rounded-full flex items-center justify-center bg-gray-50 overflow-hidden"> </div>
+									)}
+								</div>
+								<Button
+									outline
+									onClick={handleOrgImageUploadClick}
+									disabled={isUploadingOrgImage}
+								>
+									{isUploadingOrgImage ? <Spinner className="h-4 w-4" /> : "Change Logo"}
+								</Button>
+							</div>
+						</div>
+					</section>
+				)}
+
+				<Divider className="my-8" soft />
+
+				{/* Signup Terms Section */}
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
+					<div className="space-y-1 col-span-2">
+						<Subheading>
+							<Strong>Sign-up Terms</Strong>
+						</Subheading>
+						<Text>
+							Customize the terms statement shown during sign-up.
+						</Text>
+					</div>
+				</section>
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+					<div className="space-y-1">
+						<Subheading>Sign-up Terms Statement</Subheading>
+						<Text>The text displayed (links to ToS/Privacy Policy are automatic).</Text>
+					</div>
+					<div className="flex justify-end items-center gap-3">
+						<Input
+							type="text"
+							placeholder="I agree to the terms..."
+							value={signupTermsStatement}
+							onChange={(e) => updateField(setSignupTermsStatement, e.target.value)}
+							size={29} />
+					</div>
+				</section>
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+					<div className="space-y-1">
+						<Subheading>Show Sign-up Terms Statement</Subheading>
+						<Text>Whether to display the terms statement during sign-up.</Text>
+					</div>
+					<div className="flex justify-end items-center gap-3">
+						<Switch
+							checked={signupTermsStatementShown}
+							onChange={(value) => updateField(setSignupTermsStatementShown, value)}
+						/>
+					</div>
+				</section>
 
 				<Divider className="my-8" soft />
 
 				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
 					<div className="space-y-1 col-span-2">
 						<Subheading>
-							<Strong>Colors</Strong>
+							<Strong>Colors (Light / Dark Mode)</Strong>
 						</Subheading>
 						<Text>
-							Set color for customize your Account Portal.
+							Set colors for both light and dark mode versions of your Account Portal.
 						</Text>
 					</div>
 				</section>
 
+				<div className="grid gap-x-8 gap-y-10 sm:grid-cols-2">
+					<section className="space-y-3">
+						<Subheading>Primary Color (Light)</Subheading>
+						<div className="flex items-center gap-4">
+							<div
+								style={{ backgroundColor: primaryColor }}
+								className="h-10 w-10 shrink-0 cursor-pointer rounded-md p-0"
+								onClick={() => primaryColorInputRef.current?.click()}
+							/>
+							<input
+								ref={primaryColorInputRef}
+								type="color"
+								value={primaryColor}
+								onChange={(e) => updateField(setPrimaryColor, e.target.value)}
+								style={{ display: 'none' }}
+							/>
+							<Input readOnly value={primaryColor} className="font-medium" />
+						</div>
+						<div style={{ backgroundColor: primaryColor }} className="h-8 w-full rounded-md"></div>
+					</section>
 
-				<div className="grid gap-2">
-					{[
-						{ label: "Primary Color", value: primaryColor, setValue: setPrimaryColor },
-						{ label: "Background Color", value: backgroundColor, setValue: setBackgroundColor },
-						{ label: "Border Color", value: borderColor, setValue: setBorderColor },
-					].map((color, index) => (
-						<section key={index} className="grid gap-x-8 sm:grid-cols-2 items-center">
-							<Subheading>{color.label}</Subheading>
-							<div className="flex flex-col items-end">
-								<input
-									type="color"
-									value={color.value}
-									onChange={(e) => color.setValue(e.target.value)}
-									className="w-12 h-12 cursor-pointer rounded-md border border-gray-100"
-								/>
-								<Text className="text-gray-700 font-medium mt-2">{color.value}</Text>
-							</div>
-						</section>
-					))}
+					<section className="space-y-3">
+						<Subheading>Primary Color (Dark)</Subheading>
+						<div className="flex items-center gap-4">
+							<div
+								style={{ backgroundColor: darkModePrimaryColor }}
+								className="h-10 w-10 shrink-0 cursor-pointer rounded-md p-0"
+								onClick={() => darkModePrimaryColorInputRef.current?.click()}
+							/>
+							<input
+								ref={darkModePrimaryColorInputRef}
+								type="color"
+								value={darkModePrimaryColor}
+								onChange={(e) => updateField(setDarkModePrimaryColor, e.target.value)}
+								style={{ display: 'none' }}
+							/>
+							<Input readOnly value={darkModePrimaryColor} className="font-medium" />
+						</div>
+						<div style={{ backgroundColor: darkModePrimaryColor }} className="h-8 w-full rounded-md"></div>
+					</section>
+
+					<section className="space-y-3">
+						<Subheading>Background Color (Light)</Subheading>
+						<div className="flex items-center gap-4">
+							<div
+								style={{ backgroundColor: backgroundColor }}
+								className="h-10 w-10 shrink-0 cursor-pointer border border-gray-200 rounded-md p-0"
+								onClick={() => backgroundColorInputRef.current?.click()}
+							/>
+							<input
+								ref={backgroundColorInputRef}
+								type="color"
+								value={backgroundColor}
+								onChange={(e) => updateField(setBackgroundColor, e.target.value)}
+								style={{ display: 'none' }}
+							/>
+							<Input readOnly value={backgroundColor} className="font-medium" />
+						</div>
+						<div style={{ backgroundColor: backgroundColor }} className="h-8 w-full rounded-md"></div>
+					</section>
+
+					<section className="space-y-3">
+						<Subheading>Background Color (Dark)</Subheading>
+						<div className="flex items-center gap-4">
+							<div
+								style={{ backgroundColor: darkModeBackgroundColor }}
+								className="h-10 w-10 shrink-0 cursor-pointer rounded-md p-0"
+								onClick={() => darkModeBackgroundColorInputRef.current?.click()}
+							/>
+							<input
+								ref={darkModeBackgroundColorInputRef}
+								type="color"
+								value={darkModeBackgroundColor}
+								onChange={(e) => updateField(setDarkModeBackgroundColor, e.target.value)}
+								style={{ display: 'none' }}
+							/>
+							<Input readOnly value={darkModeBackgroundColor} className="font-medium" />
+						</div>
+						<div style={{ backgroundColor: darkModeBackgroundColor }} className="h-8 w-full rounded-md"></div>
+					</section>
 				</div>
-
-				<Divider className="my-8" soft />
-
-				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-3 items-center">
-					<div className="space-y-1 col-span-2">
-						<Subheading>
-							<Strong>Disable Account Portal</Strong>
-						</Subheading>
-						<Text>
-							Turn off all pages hosted by Clerk in the Account Portal.
-						</Text>
-					</div>
-					<div className="flex justify-end">
-						<Button type="button" color="red">Disable Account Portal</Button>
-					</div>
-				</section>
-
-				<Divider className="my-10" soft />
-
-				<div className="flex justify-end gap-4">
-					<Button type="reset" plain>Reset</Button>
-					<Button type="submit">Save changes</Button>
-				</div>
-
 			</div>
 		</div >
 	);

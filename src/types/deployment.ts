@@ -117,16 +117,14 @@ export interface DeploymentAuthSettings {
 	session_inactive_timeout: number;
 }
 
-export interface ButtonConfig {
+export interface LightModeSettings {
+	primary_color: string;
 	background_color: string;
-	text_color: string;
-	border_radius: number;
 }
 
-export interface InputConfig {
-	placeholder: string;
-	text_color: string;
-	border_color: string;
+export interface DarkModeSettings {
+	primary_color: string;
+	background_color: string;
 }
 
 export interface DeploymentDisplaySettings {
@@ -136,13 +134,29 @@ export interface DeploymentDisplaySettings {
 	deleted_at: string | null;
 	deployment_id: string;
 	app_name: string;
-	primary_color: string;
 	tos_page_url: string;
+	sign_in_page_url: string;
+	sign_up_page_url: string;
+	after_sign_out_one_page_url: string;
+	after_sign_out_all_page_url: string;
+	favicon_image_url: string;
+	logo_image_url: string;
 	privacy_policy_url: string;
 	signup_terms_statement: string;
 	signup_terms_statement_shown: boolean;
-	button_config: ButtonConfig;
-	input_config: InputConfig;
+	light_mode_settings: LightModeSettings;
+	dark_mode_settings: DarkModeSettings;
+	after_logo_click_url: string;
+	organization_profile_url: string;
+	create_organization_url: string;
+	default_user_profile_image_url: string;
+	default_organization_profile_image_url: string;
+	use_initials_for_user_profile_image: boolean;
+	use_initials_for_organization_profile_image: boolean;
+	after_signup_redirect_url: string;
+	after_signin_redirect_url: string;
+	user_profile_url: string;
+	after_create_organization_redirect_url: string;
 }
 
 export interface DeploymentOrgSettings {

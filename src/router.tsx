@@ -17,34 +17,9 @@ const ManageOrganizationsPage = lazy(
 );
 const ManageWorkspacesPage = lazy(() => import("./pages/manage-workspaces"));
 const PortalPage = lazy(() => import("./pages/portal"));
-const AvatarsPage = lazy(() => import("./pages/avatars"));
 const EmailsPage = lazy(() => import("./pages/emails"));
 const SMSPage = lazy(() => import("./pages/sms"));
 const ApplicationSettingsPage = lazy(() => import("./pages/settings"));
-
-const EmailWorkspaceInvitationPage = lazy(
-	() => import("./pages/emails/workspace-invitations"),
-);
-const EmailOrganizationInvitationPage = lazy(
-	() => import("./pages/emails/organization-invitation"),
-);
-const EmailWaitlistedPage = lazy(() => import("./pages/emails/waitlisted"));
-const EmailNewSignUpPage = lazy(() => import("./pages/emails/new-sign-up"));
-const EmailNewDeviceLogInPage = lazy(
-	() => import("./pages/emails/new-device-log-in"),
-);
-const EmailOtpPage = lazy(() => import("./pages/emails/email-otp"));
-const EmailMagicLinkPage = lazy(() => import("./pages/emails/magic-link"));
-const EmailPasswordResetPage = lazy(
-	() => import("./pages/emails/password-reset"),
-);
-const EmailBadSignUpAttemptPage = lazy(
-	() => import("./pages/emails/bad-sign-up-attempt"),
-);
-const EmailPasswordChangedPage = lazy(
-	() => import("./pages/emails/password-changed"),
-);
-
 const ProjectsPage = lazy(() => import("./pages/projects"));
 const JWTTemplatesPage = lazy(() => import("./pages/auth/jwt-templates"));
 const JWTTemplateCreateUpdatePage = lazy(
@@ -187,98 +162,10 @@ export const router = createBrowserRouter([
 				),
 			},
 			{
-				path: "avatars",
-				element: (
-					<Suspense fallback={<LoadingFallback />}>
-						<AvatarsPage />
-					</Suspense>
-				),
-			},
-			{
 				path: "emails",
 				element: (
 					<Suspense fallback={<LoadingFallback />}>
 						<EmailsPage />
-					</Suspense>
-				),
-			},
-			{
-				path: "emails/workspace-invitation",
-				element: (
-					<Suspense fallback={<LoadingFallback />}>
-						<EmailWorkspaceInvitationPage />
-					</Suspense>
-				),
-			},
-			{
-				path: "emails/organization-invitation",
-				element: (
-					<Suspense fallback={<LoadingFallback />}>
-						<EmailOrganizationInvitationPage />
-					</Suspense>
-				),
-			},
-			{
-				path: "emails/waitlisted",
-				element: (
-					<Suspense fallback={<LoadingFallback />}>
-						<EmailWaitlistedPage />
-					</Suspense>
-				),
-			},
-			{
-				path: "emails/new-sign-up",
-				element: (
-					<Suspense fallback={<LoadingFallback />}>
-						<EmailNewSignUpPage />
-					</Suspense>
-				),
-			},
-			{
-				path: "emails/new-device-log-in",
-				element: (
-					<Suspense fallback={<LoadingFallback />}>
-						<EmailNewDeviceLogInPage />
-					</Suspense>
-				),
-			},
-			{
-				path: "emails/email-otp",
-				element: (
-					<Suspense fallback={<LoadingFallback />}>
-						<EmailOtpPage />
-					</Suspense>
-				),
-			},
-			{
-				path: "emails/magic-link",
-				element: (
-					<Suspense fallback={<LoadingFallback />}>
-						<EmailMagicLinkPage />
-					</Suspense>
-				),
-			},
-			{
-				path: "emails/password-reset",
-				element: (
-					<Suspense fallback={<LoadingFallback />}>
-						<EmailPasswordResetPage />
-					</Suspense>
-				),
-			},
-			{
-				path: "emails/bad-sign-up-attempt",
-				element: (
-					<Suspense fallback={<LoadingFallback />}>
-						<EmailBadSignUpAttemptPage />
-					</Suspense>
-				),
-			},
-			{
-				path: "emails/password-changed",
-				element: (
-					<Suspense fallback={<LoadingFallback />}>
-						<EmailPasswordChangedPage />
 					</Suspense>
 				),
 			},
