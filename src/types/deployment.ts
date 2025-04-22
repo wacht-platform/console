@@ -274,6 +274,7 @@ export interface DeploymentWithSettings {
 	publishable_key: string;
 	secret: string;
 	mode: DeploymentMode;
+	mail_from_host: string;
 	auth_settings?: DeploymentAuthSettings;
 	display_settings?: DeploymentDisplaySettings;
 	org_settings?: DeploymentOrgSettings;
@@ -288,6 +289,7 @@ export interface Deployment {
 	name: string;
 	backend_host: string;
 	frontend_host: string;
+	mail_from_host: string;
 	updated_at: string;
 	created_at: string;
 }
@@ -326,4 +328,12 @@ export interface DeploymentSocialConnectionUpsert {
 	provider: SocialConnectionProvider;
 	enabled: boolean;
 	credentials?: OauthCredentials | null;
+}
+
+export interface EmailTemplate {
+	template_name: string;
+	template_data: string;
+	template_from: string;
+	template_reply_to: string;
+	template_subject: string;
 }

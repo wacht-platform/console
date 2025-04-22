@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { RadioGroup, Radio, RadioField } from '@/components/ui/radio'
 import { Description, Field, FieldGroup, Fieldset, Label, Legend } from "@/components/ui/fieldset";
-import { useDeploymentSettings } from "@/lib/api/hooks/use-deployment-settings";
+import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 import { useUpdateDeploymentRestrictions } from "@/lib/api/hooks/use-deployment-restrictions";
 import type { DeploymentRestrictions, DeploymentRestrictionsSignUpMode } from "@/types/deployment";
 
@@ -98,7 +98,7 @@ export default function RestrictionsPage() {
   }, [setDirty]);
 
 
-  const { deploymentSettings, isLoading: isLoadingSettings } = useDeploymentSettings();
+  const { deploymentSettings, isLoading: isLoadingSettings } = useCurrentDeployemnt();
   const { mutate: updateRestrictions, isLoading: isUpdatingRestrictions } = useUpdateDeploymentRestrictions();
 
   const setFormState = (restrictions: DeploymentRestrictions | null) => {

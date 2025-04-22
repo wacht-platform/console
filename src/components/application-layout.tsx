@@ -93,6 +93,10 @@ export function ApplicationLayout() {
 		setSelectedDeployment,
 	} = useProjects();
 
+	const createNavigationLink = useCallback((pathname: string) => {
+		return `/project/${selectedProject?.id}/deployment/${selectedDeployment?.id}/${pathname}`
+	}, [selectedDeployment, selectedProject])
+
 	if (isLoading) {
 		return (
 			<div className="flex h-screen w-full items-center justify-center">
@@ -103,10 +107,6 @@ export function ApplicationLayout() {
 			</div>
 		);
 	}
-
-	const createNavigationLink = useCallback((pathname: string) => {
-		return `/project/${selectedProject?.id}/deployment/${selectedDeployment?.id}/${pathname}`
-	}, [selectedDeployment, selectedProject])
 
 	return (
 		<SidebarLayout
@@ -317,10 +317,6 @@ export function ApplicationLayout() {
 							<SidebarItem href={createNavigationLink("emails")}>
 								<DropdownIcon icon={EnvelopeIcon} />
 								<SidebarLabel>Email Settings</SidebarLabel>
-							</SidebarItem>
-							<SidebarItem href={createNavigationLink("sms")}>
-								<DropdownIcon icon={DevicePhoneMobileIcon} />
-								<SidebarLabel>SMS Settings</SidebarLabel>
 							</SidebarItem>
 						</SidebarSection>
 					</SidebarBody>

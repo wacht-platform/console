@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/fieldset";
 import { Radio, RadioField, RadioGroup } from "@/components/ui/radio";
-import { useDeploymentSettings } from "@/lib/api/hooks/use-deployment-settings";
+import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 import { useUpdateDeploymentB2bSettings } from "@/lib/api/hooks/use-update-deployment-b2b-settings";
 import { useDeploymentWorkspaceRoles } from "@/lib/api/hooks/use-deployment-workspace-roles";
 import SavePopup from "@/components/save-popup";
@@ -43,7 +43,7 @@ const initialSettingsState: WorkspaceSettingsState = {
 };
 
 export default function ManageWorkspacesPage() {
-	const { deploymentSettings, isLoading: isLoadingSettings } = useDeploymentSettings();
+	const { deploymentSettings, isLoading: isLoadingSettings } = useCurrentDeployemnt();
 	const updateB2bSettings = useUpdateDeploymentB2bSettings();
 	const { data: workspaceRoles, isLoading: isLoadingRoles, error: rolesError } = useDeploymentWorkspaceRoles();
 

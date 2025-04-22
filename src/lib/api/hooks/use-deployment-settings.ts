@@ -12,7 +12,7 @@ async function fetchDeploymentSettings(
   return data;
 }
 
-export function useDeploymentSettings() {
+export function useCurrentDeployemnt() {
   const { selectedDeployment, isLoading: isLoadingProjects } = useProjects();
 
   const { data: deploymentSettings, isLoading } = useQuery({

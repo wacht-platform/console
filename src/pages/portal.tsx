@@ -6,7 +6,7 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { Divider } from "@/components/ui/divider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useDeploymentSettings } from "@/lib/api/hooks/use-deployment-settings";
+import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 import { Switch } from "@/components/ui/switch";
 import { Spinner } from "@/components/ui/spinner";
 import { useUpdateDeploymentDisplaySettings, DeploymentDisplaySettingsUpdates } from "@/lib/api/hooks/use-update-deployment-display-settings";
@@ -32,7 +32,7 @@ interface ValidationErrors {
 }
 
 export default function PortalPage() {
-	const { deploymentSettings } = useDeploymentSettings();
+	const { deploymentSettings } = useCurrentDeployemnt();
 	const updateDisplaySettings = useUpdateDeploymentDisplaySettings();
 	const [isSaving, setIsSaving] = useState(false);
 	const [isDirty, setIsDirty] = useState(false);

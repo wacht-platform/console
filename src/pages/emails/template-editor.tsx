@@ -3,9 +3,12 @@ import { useParams } from "react-router";
 import { Heading } from "@/components/ui/heading";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Template, emailTemplates } from "@/data/email-templates";
 import JoditEditor from 'jodit-react';
+import { EmailTemplate } from "@/types/deployment";
 import type { IJodit } from 'jodit/esm/types/jodit';
+import { useEmailTemplate } from "@/lib/api/hooks/use-email-templates";
+import { useProjects } from "@/lib/api/hooks/use-projects";
+import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 
 interface RichTextEditorProps {
     value: string;
@@ -53,40 +56,35 @@ export default function EmailTemplateEditor() {
     const { templateId } = useParams<{ templateId: string }>();
     const editorRef = useRef<IJodit | null>(null);
 
-    const [formData, setFormData] = useState<Template>({
-        name: "",
-        from: "",
-        replyTo: "",
-        subject: "",
-        body: ""
+    const { emailTemplate, isLoading, error, updateTemplate } = useEmailTemplate(templateId!);
+    const { deploymentSettings } = useCurrentDeployemnt();
+
+    const [formData, setFormData] = useState<EmailTemplate>({
+        template_name: "",
+        template_data: "",
+        template_from: "",
+        template_reply_to: "",
+        template_subject: ""
     });
 
-    const [hasChanges, setHasChanges] = useState(false);
-
     useEffect(() => {
-        if (templateId && emailTemplates[templateId]) {
-            const template = emailTemplates[templateId];
-            console.log(template);
-
+        if (emailTemplate && !isLoading && !error) {
             setFormData({
-                name: template.name,
-                from: template.from,
-                replyTo: template.replyTo,
-                subject: template.subject,
-                body: template.body,
+                template_name: emailTemplate.template_name,
+                template_data: emailTemplate.template_data,
+                template_from: emailTemplate.template_from,
+                template_reply_to: emailTemplate.template_reply_to,
+                template_subject: emailTemplate.template_subject,
             });
 
-            setHasChanges(false);
         }
-    }, [templateId]);
+    }, [templateId, emailTemplate, isLoading, error]);
 
-    // Handle input changes
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
-        setHasChanges(true);
     };
 
     const handleEditorChange = (html: string) => {
@@ -94,7 +92,6 @@ export default function EmailTemplateEditor() {
             ...prev,
             body: html
         }));
-        setHasChanges(true);
     };
 
     const handleEditorInit = (editor: IJodit) => {
@@ -102,9 +99,7 @@ export default function EmailTemplateEditor() {
     };
 
     const onSave = () => {
-        setTimeout(() => {
-            setHasChanges(false);
-        }, 1000);
+        updateTemplate(formData);
     };
 
     return (
@@ -112,7 +107,7 @@ export default function EmailTemplateEditor() {
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-2">
                     <Heading className="text-2xl font-bold">
-                        {formData.name || "New template"}
+                        {formData.template_name || "New template"}
                     </Heading>
                 </div>
                 <Button onClick={onSave}>
@@ -131,8 +126,8 @@ export default function EmailTemplateEditor() {
                                     </label>
                                     <Input
                                         id="name"
-                                        value={formData.name}
-                                        onChange={(e) => handleInputChange("name", e.target.value)}
+                                        value={formData.template_name}
+                                        onChange={(e) => handleInputChange("template_name", e.target.value)}
                                         placeholder="Enter template name"
                                         className="w-full"
                                     />
@@ -146,29 +141,29 @@ export default function EmailTemplateEditor() {
                                         <div className="relative">
                                             <Input
                                                 id="from"
-                                                value={formData.from}
-                                                onChange={(e) => handleInputChange("from", e.target.value)}
+                                                value={formData.template_from}
+                                                onChange={(e) => handleInputChange("template_from", e.target.value)}
                                                 className="w-full rounded-r-none"
                                             />
                                             <div className="absolute rounded-r-md right-[1.2px] top-[1.2px] bottom-[1.2px] px-3 bg-gray-100 text-gray-500 flex items-center">
-                                                @loooooolll.com
+                                                @{deploymentSettings?.mail_from_host}
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="space-y-2">
                                         <label htmlFor="reply-to" className="text-sm font-medium text-gray-700">
-                                            Reply-to
+                                            Reply-To
                                         </label>
                                         <div className="relative">
                                             <Input
                                                 id="reply-to"
-                                                value={formData.replyTo}
-                                                onChange={(e) => handleInputChange("replyTo", e.target.value)}
+                                                value={formData.template_reply_to}
+                                                onChange={(e) => handleInputChange("template_reply_to", e.target.value)}
                                                 className="w-full rounded-r-none"
                                             />
                                             <div className="absolute rounded-r-md right-[1.2px] top-[1.2px] bottom-[1.2px] px-3 bg-gray-100 text-gray-500 flex items-center">
-                                                @loooooolll.com
+                                                @{deploymentSettings?.mail_from_host}
                                             </div>
                                         </div>
                                     </div>
@@ -180,8 +175,8 @@ export default function EmailTemplateEditor() {
                                     </label>
                                     <Input
                                         id="subject"
-                                        value={formData.subject}
-                                        onChange={(e) => handleInputChange("subject", e.target.value)}
+                                        value={formData.template_subject}
+                                        onChange={(e) => handleInputChange("template_subject", e.target.value)}
                                         className="w-full"
                                     />
                                 </div>
@@ -190,7 +185,7 @@ export default function EmailTemplateEditor() {
                             <div className="space-y-4">
                                 <h2 className="text-lg font-semibold">Email Body</h2>
                                 <RichTextEditor
-                                    value={formData.body}
+                                    value={formData.template_data}
                                     onChange={handleEditorChange}
                                     onEditorInit={handleEditorInit}
                                 />

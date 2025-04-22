@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { DeploymentAuthSettings, IndividualAuthSettings, EmailSettings, PhoneSettings, UsernameSettings, PasswordSettings, EmailLinkSettings, PasskeySettings, AuthFactorsEnabled, MultiSessionSupport } from "@/types/deployment"; // Import full types
-import { useDeploymentSettings } from "@/lib/api/hooks/use-deployment-settings";
+import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 import { useUpdateDeploymentAuthSettings } from "@/lib/api/hooks/use-update-deployment-auth-settings";
 
 let originalSettings: DeploymentAuthSettings | null = null;
@@ -504,7 +504,7 @@ export const useAuthSettingsStore = create<AuthSettingsState>((set, get) => ({
 }));
 
 export const useInitializeAuthSettings = () => {
-    const { deploymentSettings, isLoading } = useDeploymentSettings();
+    const { deploymentSettings, isLoading } = useCurrentDeployemnt();
     const { initializeSettings, isLoaded } = useAuthSettingsStore();
     const updateMutation = useUpdateDeploymentAuthSettings();
 
