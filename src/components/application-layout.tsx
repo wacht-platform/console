@@ -1,6 +1,6 @@
 import { Outlet, useLocation } from "react-router";
 import { Avatar } from "@/components/ui/avatar";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
 	Navbar,
 	NavbarItem,
@@ -103,6 +103,10 @@ export function ApplicationLayout() {
 			</div>
 		);
 	}
+
+	const createNavigationLink = useCallback((pathname: string) => {
+		return `/project/${selectedProject?.id}/deployment/${selectedDeployment?.id}/${pathname}`
+	}, [selectedDeployment, selectedProject])
 
 	return (
 		<SidebarLayout
@@ -244,26 +248,26 @@ export function ApplicationLayout() {
 					<SidebarBody>
 						<SidebarSection>
 							<SidebarHeading>Manage</SidebarHeading>
-							<SidebarItem href="/" current={pathname === "/"}>
+							<SidebarItem href={createNavigationLink("/")} current={pathname === "/"}>
 								<DropdownIcon icon={ViewColumnsIcon} />
 								<SidebarLabel>Overview</SidebarLabel>
 							</SidebarItem>
 							<SidebarItem
-								href="./users"
+								href={createNavigationLink("users")}
 								current={pathname.startsWith("/users")}
 							>
 								<DropdownIcon icon={UserGroupIcon} />
 								<SidebarLabel>Users</SidebarLabel>
 							</SidebarItem>
 							<SidebarItem
-								href="/organizations"
+								href={createNavigationLink("organizations")}
 								current={pathname.startsWith("/organizations")}
 							>
 								<DropdownIcon icon={BuildingOffice2Icon} />
 								<SidebarLabel>Organizations</SidebarLabel>
 							</SidebarItem>
 							<SidebarItem
-								href="/workspaces"
+								href={createNavigationLink("workspaces")}
 								current={pathname.startsWith("/workspaces")}
 							>
 								<DropdownIcon icon={BriefcaseIcon} />
@@ -275,48 +279,48 @@ export function ApplicationLayout() {
 
 						<SidebarSection className="max-lg:hidden">
 							<SidebarHeading>Authentication</SidebarHeading>
-							<SidebarItem href="./auth/schema-factors">
+							<SidebarItem href={createNavigationLink("auth/schema-factors")}>
 								<DropdownIcon icon={LockClosedIcon} />
 								<SidebarLabel>Auth Settings</SidebarLabel>
 							</SidebarItem>
 
-							<SidebarItem href="./auth/sso">
+							<SidebarItem href={createNavigationLink("auth/sso")}>
 								<DropdownIcon icon={KeyIcon} />
 								<SidebarLabel>Configure SSO</SidebarLabel>
 							</SidebarItem>
 
-							<SidebarItem href="./auth/restrictions">
+							<SidebarItem href={createNavigationLink("auth/restrictions")}>
 								<DropdownIcon icon={NoSymbolIcon} />
 								<SidebarLabel>Restrictions</SidebarLabel>
 							</SidebarItem>
 
-							<SidebarItem href="./auth/jwt-templates">
+							<SidebarItem href={createNavigationLink("auth/jwt-templates")}>
 								<DropdownIcon icon={DocumentTextIcon} />
 								<SidebarLabel>JWT Templates</SidebarLabel>
 							</SidebarItem>
 
 							<SidebarHeading className="mt-3">B2B Features</SidebarHeading>
-							<SidebarItem href="./manage-organizations">
+							<SidebarItem href={createNavigationLink("manage-organizations")}>
 								<DropdownIcon icon={BuildingOffice2Icon} />
 								<SidebarLabel>Organizations</SidebarLabel>
 							</SidebarItem>
-							<SidebarItem href="./manage-workspaces">
+							<SidebarItem href={createNavigationLink("manage-workspaces")}>
 								<DropdownIcon icon={BriefcaseIcon} />
 								<SidebarLabel>Workspaces</SidebarLabel>
 							</SidebarItem>
 
 							<SidebarHeading className="mt-3">Customization</SidebarHeading>
-							<SidebarItem href="./portal">
+							<SidebarItem href={createNavigationLink("portal")}>
 								<DropdownIcon icon={SparklesIcon} />
 								<SidebarLabel>UI Settings</SidebarLabel>
 							</SidebarItem>
-							<SidebarItem href="./emails">
+							<SidebarItem href={createNavigationLink("emails")}>
 								<DropdownIcon icon={EnvelopeIcon} />
-								<SidebarLabel>Emails</SidebarLabel>
+								<SidebarLabel>Email Settings</SidebarLabel>
 							</SidebarItem>
-							<SidebarItem href="./sms">
+							<SidebarItem href={createNavigationLink("sms")}>
 								<DropdownIcon icon={DevicePhoneMobileIcon} />
-								<SidebarLabel>SMS</SidebarLabel>
+								<SidebarLabel>SMS Settings</SidebarLabel>
 							</SidebarItem>
 						</SidebarSection>
 					</SidebarBody>

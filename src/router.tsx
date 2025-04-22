@@ -18,6 +18,7 @@ const ManageOrganizationsPage = lazy(
 const ManageWorkspacesPage = lazy(() => import("./pages/manage-workspaces"));
 const PortalPage = lazy(() => import("./pages/portal"));
 const EmailsPage = lazy(() => import("./pages/emails"));
+const EmailTemplateEditor = lazy(() => import("./pages/emails/template-editor"));
 const SMSPage = lazy(() => import("./pages/sms"));
 const ApplicationSettingsPage = lazy(() => import("./pages/settings"));
 const ProjectsPage = lazy(() => import("./pages/projects"));
@@ -163,11 +164,24 @@ export const router = createBrowserRouter([
 			},
 			{
 				path: "emails",
-				element: (
-					<Suspense fallback={<LoadingFallback />}>
-						<EmailsPage />
-					</Suspense>
-				),
+				children: [
+					{
+						index: true,
+						element: (
+							<Suspense fallback={<LoadingFallback />}>
+								<EmailsPage />
+							</Suspense>
+						),
+					},
+					{
+						path: ":templateId",
+						element: (
+							<Suspense fallback={<LoadingFallback />}>
+								<EmailTemplateEditor />
+							</Suspense>
+						),
+					},
+				],
 			},
 			{
 				path: "sms",

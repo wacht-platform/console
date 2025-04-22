@@ -1,7 +1,6 @@
 import { RouterProvider } from "react-router";
 import { router } from "./router";
 import { QueryProvider } from "./lib/providers/query";
-import "./index.css";
 
 function App() {
 	return (

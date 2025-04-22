@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "quill/dist/quill.core.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -26,4 +27,8 @@
 
 *::-webkit-scrollbar-thumb:active {
     background: #6b7280;
+}
+
+.jodit-wysiwyg {
+    padding: 0px !important;
 }

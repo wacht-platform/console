@@ -65,7 +65,7 @@ export function SidebarLayout({
 			</MobileSidebar>
 
 			<main className="flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64">
-				<div className="grow space-y-8 p-6 pt-0 lg:rounded-lg lg:bg-white lg:p-10 lg:pt-0 lg:ring-1 lg:shadow-xs lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10">
+				<div className="grow space-y-5 p-6 pt-0 lg:rounded-lg lg:bg-white lg:p-10 lg:pt-0 lg:ring-1 lg:shadow-xs lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10">
 					<header className="flex items-center">
 						<div className="lg:hidden">
 							<NavbarItem

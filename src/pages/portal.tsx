@@ -1,7 +1,7 @@
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Strong, Text } from "@/components/ui/text";
 import { ArrowTopRightOnSquareIcon, ClipboardIcon } from "@heroicons/react/24/outline";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Divider } from "@/components/ui/divider";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,23 @@ import { useUpdateDeploymentDisplaySettings, DeploymentDisplaySettingsUpdates } 
 import { useUploadImage } from "@/lib/api/hooks/use-upload-image";
 import SavePopup from "@/components/save-popup";
 
-
+// Validation types
+interface ValidationErrors {
+	appName?: string;
+	privacyPolicyUrl?: string;
+	tosPageUrl?: string;
+	afterSignupRedirectUrl?: string;
+	afterSigninRedirectUrl?: string;
+	afterLogoClickUrl?: string;
+	afterCreateOrganizationUrl?: string;
+	primaryColor?: string;
+	backgroundColor?: string;
+	darkModePrimaryColor?: string;
+	darkModeBackgroundColor?: string;
+	signupTermsStatement?: string;
+	afterSignOutOnePageUrl?: string;
+	afterSignOutAllPageUrl?: string;
+}
 
 export default function PortalPage() {
 	const { deploymentSettings } = useDeploymentSettings();
@@ -48,6 +64,10 @@ export default function PortalPage() {
 	const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 	const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
 
+	// Validation state
+	const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+	const [showValidationErrors, setShowValidationErrors] = useState(false);
+
 	const userImageInputRef = useRef<HTMLInputElement>(null);
 	const orgImageInputRef = useRef<HTMLInputElement>(null);
 	const logoImageInputRef = useRef<HTMLInputElement>(null);
@@ -57,9 +77,122 @@ export default function PortalPage() {
 	const darkModePrimaryColorInputRef = useRef<HTMLInputElement>(null);
 	const darkModeBackgroundColorInputRef = useRef<HTMLInputElement>(null);
 
-	const updateField = <T extends unknown>(setter: React.Dispatch<React.SetStateAction<T>>, value: T) => {
+	// Validation functions - memoized for better performance
+	const validateUrl = useMemo(() => {
+		return (url: string): string | undefined => {
+			if (!url) return undefined; // Empty URLs are allowed
+
+			// Check if it's a relative URL starting with /
+			if (url.startsWith('/')) return undefined;
+
+			// Check if it's a valid URL
+			try {
+				new URL(url);
+				return undefined;
+			} catch (e) {
+				return 'Please enter a valid URL (e.g., https://example.com or /path)';
+			}
+		};
+	}, []);
+
+	const validateColor = useMemo(() => {
+		return (color: string): string | undefined => {
+			if (!color) return 'Color is required';
+
+			// Check if it's a valid hex color
+			const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+			if (!hexColorRegex.test(color)) {
+				return 'Please enter a valid hex color (e.g., #1E40AF)';
+			}
+			return undefined;
+		};
+	}, []);
+
+	const validateField = useMemo(() => {
+		return (fieldName: keyof ValidationErrors, value: string): string | undefined => {
+			switch (fieldName) {
+				case 'appName':
+					return value.trim() ? undefined : 'App name is required';
+				case 'privacyPolicyUrl':
+				case 'tosPageUrl':
+				case 'afterSignupRedirectUrl':
+				case 'afterSigninRedirectUrl':
+				case 'afterLogoClickUrl':
+				case 'afterCreateOrganizationUrl':
+				case 'afterSignOutOnePageUrl':
+				case 'afterSignOutAllPageUrl':
+					return validateUrl(value);
+				case 'primaryColor':
+				case 'backgroundColor':
+				case 'darkModePrimaryColor':
+				case 'darkModeBackgroundColor':
+					return validateColor(value);
+				default:
+					return undefined;
+			}
+		};
+	}, [validateUrl, validateColor]);
+
+	// Validate all fields and return true if valid
+	const validateAllFields = useMemo(() => {
+		return (): boolean => {
+			const errors: ValidationErrors = {};
+
+			// Validate all fields
+			errors.appName = validateField('appName', appName);
+			errors.privacyPolicyUrl = validateField('privacyPolicyUrl', privacyPolicyUrl);
+			errors.tosPageUrl = validateField('tosPageUrl', tosPageUrl);
+			errors.afterSignupRedirectUrl = validateField('afterSignupRedirectUrl', afterSignupRedirectUrl);
+			errors.afterSigninRedirectUrl = validateField('afterSigninRedirectUrl', afterSigninRedirectUrl);
+			errors.afterLogoClickUrl = validateField('afterLogoClickUrl', afterLogoClickUrl);
+			errors.afterCreateOrganizationUrl = validateField('afterCreateOrganizationUrl', afterCreateOrganizationUrl);
+			errors.primaryColor = validateField('primaryColor', primaryColor);
+			errors.backgroundColor = validateField('backgroundColor', backgroundColor);
+			errors.darkModePrimaryColor = validateField('darkModePrimaryColor', darkModePrimaryColor);
+			errors.darkModeBackgroundColor = validateField('darkModeBackgroundColor', darkModeBackgroundColor);
+			errors.afterSignOutOnePageUrl = validateField('afterSignOutOnePageUrl', afterSignOutOnePageUrl);
+			errors.afterSignOutAllPageUrl = validateField('afterSignOutAllPageUrl', afterSignOutAllPageUrl);
+
+			// Filter out undefined errors
+			const filteredErrors: ValidationErrors = {};
+			Object.entries(errors).forEach(([key, value]) => {
+				if (value !== undefined) {
+					filteredErrors[key as keyof ValidationErrors] = value;
+				}
+			});
+
+			setValidationErrors(filteredErrors);
+			return Object.keys(filteredErrors).length === 0;
+		};
+	}, [
+		validateField,
+		appName,
+		privacyPolicyUrl,
+		tosPageUrl,
+		afterSignupRedirectUrl,
+		afterSigninRedirectUrl,
+		afterLogoClickUrl,
+		afterCreateOrganizationUrl,
+		primaryColor,
+		backgroundColor,
+		darkModePrimaryColor,
+		darkModeBackgroundColor,
+		afterSignOutOnePageUrl,
+		afterSignOutAllPageUrl
+	]);
+
+	const updateField = <T extends unknown>(setter: React.Dispatch<React.SetStateAction<T>>, value: T, fieldName?: keyof ValidationErrors) => {
 		setter(value);
 		setIsDirty(true);
+
+		// Validate the field if fieldName is provided
+		if (fieldName && typeof value === 'string') {
+			const error = validateField(fieldName, value);
+			setValidationErrors(prev => ({
+				...prev,
+				[fieldName]: error
+			}));
+		}
 	};
 
 	useEffect(() => {
@@ -120,22 +253,42 @@ export default function PortalPage() {
 
 
 
+	const validateImageFile = (file: File): string | undefined => {
+		// Check if it's an image file
+		if (!file.type.startsWith("image/")) {
+			return "Please select an image file.";
+		}
+
+		// Check file size (max 5MB)
+		const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+		if (file.size > maxSize) {
+			return `Image size exceeds 5MB. Please select a smaller image.`;
+		}
+
+		return undefined;
+	};
+
 	const handleUserFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
 		if (!file) return;
 
-		if (!file.type.startsWith("image/")) {
-			alert("Please select an image file.");
+		const validationError = validateImageFile(file);
+		if (validationError) {
+			alert(validationError);
+			if (event.target) {
+				event.target.value = "";
+			}
 			return;
 		}
 
 		setIsUploadingUserImage(true);
+		setIsDirty(true);
 		try {
 			const imageUrl = await uploadImageMutation.mutateAsync({
 				imageType: "user-profile",
 				file
 			});
-			updateField(setDefaultUserProfileImageUrl, imageUrl);
+			setDefaultUserProfileImageUrl(imageUrl);
 		} catch (error) {
 			console.error("Error uploading user image:", error);
 			alert("Failed to upload user image.");
@@ -151,18 +304,23 @@ export default function PortalPage() {
 		const file = event.target.files?.[0];
 		if (!file) return;
 
-		if (!file.type.startsWith("image/")) {
-			alert("Please select an image file.");
+		const validationError = validateImageFile(file);
+		if (validationError) {
+			alert(validationError);
+			if (event.target) {
+				event.target.value = "";
+			}
 			return;
 		}
 
 		setIsUploadingOrgImage(true);
+		setIsDirty(true);
 		try {
 			const imageUrl = await uploadImageMutation.mutateAsync({
 				imageType: "org-profile",
 				file
 			});
-			updateField(setDefaultOrganizationProfileImageUrl, imageUrl);
+			setDefaultOrganizationProfileImageUrl(imageUrl);
 		} catch (error) {
 			console.error("Error uploading organization image:", error);
 			alert("Failed to upload organization image.");
@@ -178,18 +336,23 @@ export default function PortalPage() {
 		const file = event.target.files?.[0];
 		if (!file) return;
 
-		if (!file.type.startsWith("image/")) {
-			alert("Please select an image file.");
+		const validationError = validateImageFile(file);
+		if (validationError) {
+			alert(validationError);
+			if (event.target) {
+				event.target.value = "";
+			}
 			return;
 		}
 
 		setIsUploadingLogo(true);
+		setIsDirty(true);
 		try {
 			const imageUrl = await uploadImageMutation.mutateAsync({
 				imageType: "logo",
 				file
 			});
-			updateField(setLogoImageUrl, imageUrl);
+			setLogoImageUrl(imageUrl);
 		} catch (error) {
 			console.error("Error uploading logo image:", error);
 			alert("Failed to upload logo image.");
@@ -205,18 +368,28 @@ export default function PortalPage() {
 		const file = event.target.files?.[0];
 		if (!file) return;
 
-		if (!file.type.startsWith("image/")) {
-			alert("Please select an image file.");
+		const validationError = validateImageFile(file);
+		if (validationError) {
+			alert(validationError);
+			if (event.target) {
+				event.target.value = "";
+			}
 			return;
 		}
 
+		// Additional validation for favicon - should be small
+		if (file.size > 1024 * 1024) { // 1MB
+			alert("Favicon should be smaller than 1MB for optimal performance.");
+		}
+
 		setIsUploadingFavicon(true);
+		setIsDirty(true);
 		try {
 			const imageUrl = await uploadImageMutation.mutateAsync({
 				imageType: "favicon",
 				file
 			});
-			updateField(setFaviconImageUrl, imageUrl);
+			setFaviconImageUrl(imageUrl);
 		} catch (error) {
 			console.error("Error uploading favicon image:", error);
 			alert("Failed to upload favicon image.");
@@ -229,6 +402,17 @@ export default function PortalPage() {
 	};
 
 	const handleSaveSettings = async () => {
+		// Validate all fields before saving
+		const isValid = validateAllFields();
+		setShowValidationErrors(true);
+
+		if (!isValid) {
+			// Show an alert with validation errors
+			const errorMessages = Object.values(validationErrors).join('\n');
+			alert(`Please fix the following errors before saving:\n${errorMessages}`);
+			return;
+		}
+
 		setIsSaving(true);
 
 		try {
@@ -269,8 +453,10 @@ export default function PortalPage() {
 
 			await updateDisplaySettings.mutateAsync(updates);
 			setIsDirty(false);
+			setShowValidationErrors(false);
 		} catch (error) {
 			console.error('Error saving display settings:', error);
+			alert('Failed to save settings. Please try again.');
 		} finally {
 			setIsSaving(false);
 		}
@@ -301,6 +487,9 @@ export default function PortalPage() {
 			setAfterSignOutOnePageUrl(settings.after_sign_out_one_page_url || "");
 			setAfterSignOutAllPageUrl(settings.after_sign_out_all_page_url || "");
 		}
+		// Reset validation state
+		setValidationErrors({});
+		setShowValidationErrors(false);
 		setIsDirty(false);
 	};
 
@@ -361,13 +550,16 @@ export default function PortalPage() {
 						<Subheading>App Name</Subheading>
 						<Text>The name of your application displayed to users.</Text>
 					</div>
-					<div className="flex justify-end items-center gap-3">
+					<div className="space-y-1">
 						<Input
 							type="text"
 							placeholder="My Awesome App"
 							value={appName}
-							onChange={(e) => updateField(setAppName, e.target.value)}
-							size={29} />
+							onChange={(e) => updateField(setAppName, e.target.value, 'appName')}
+							className={validationErrors.appName && showValidationErrors ? 'border-red-500' : ''} />
+						{validationErrors.appName && showValidationErrors && (
+							<span className="text-red-500 text-sm px-2">Hello</span>
+						)}
 					</div>
 				</section>
 
@@ -377,13 +569,16 @@ export default function PortalPage() {
 						<Subheading>Privacy Policy URL</Subheading>
 						<Text>Link to your application's privacy policy.</Text>
 					</div>
-					<div className="flex justify-end items-center gap-3">
+					<div className="space-y-1">
 						<Input
 							type="text"
 							placeholder="/privacy-policy"
 							value={privacyPolicyUrl}
-							onChange={(e) => updateField(setPrivacyPolicyUrl, e.target.value)}
-							size={29} />
+							onChange={(e) => updateField(setPrivacyPolicyUrl, e.target.value, 'privacyPolicyUrl')}
+							className={validationErrors.privacyPolicyUrl && showValidationErrors ? 'border-red-500' : ''} />
+						{validationErrors.privacyPolicyUrl && showValidationErrors && (
+							<span className="text-red-500 text-sm px-2">{validationErrors.privacyPolicyUrl}</span>
+						)}
 					</div>
 				</section>
 
@@ -393,13 +588,16 @@ export default function PortalPage() {
 						<Subheading>Terms of Service URL</Subheading>
 						<Text>Link to your application's terms of service.</Text>
 					</div>
-					<div className="flex justify-end items-center gap-3">
+					<div className="space-y-1">
 						<Input
 							type="text"
 							placeholder="/terms-of-service"
 							value={tosPageUrl}
-							onChange={(e) => updateField(setTosPageUrl, e.target.value)}
-							size={29} />
+							onChange={(e) => updateField(setTosPageUrl, e.target.value, 'tosPageUrl')}
+							className={validationErrors.tosPageUrl && showValidationErrors ? 'border-red-500' : ''} />
+						{validationErrors.tosPageUrl && showValidationErrors && (
+							<span className="text-red-500 text-sm px-2">{validationErrors.tosPageUrl}</span>
+						)}
 					</div>
 				</section>
 
@@ -472,7 +670,7 @@ export default function PortalPage() {
 							<Text>{item.desc}</Text>
 						</div>
 						<div className="relative flex items-center gap-3">
-							<Input type="text" value={item.demoLink} size={29} readOnly />
+							<Input type="text" value={item.demoLink} className="w-full" readOnly />
 							<div className="flex gap-1">
 								<Tooltip message="Copied!" trigger={copiedIndex === index}>
 									<Button
@@ -514,13 +712,16 @@ export default function PortalPage() {
 						<Subheading>After sign-up fallback</Subheading>
 						<Text>Specify where to send a user if it cannot be determined from the redirect_url query parameter.</Text>
 					</div>
-					<div className="flex justify-end items-center gap-3">
+					<div className="space-y-1">
 						<Input
 							type="text"
 							placeholder="/path"
 							value={afterSignupRedirectUrl}
-							onChange={(e) => updateField(setAfterSignupRedirectUrl, e.target.value)}
-							size={29} />
+							onChange={(e) => updateField(setAfterSignupRedirectUrl, e.target.value, 'afterSignupRedirectUrl')}
+							className={validationErrors.afterSignupRedirectUrl && showValidationErrors ? 'border-red-500' : ''} />
+						{validationErrors.afterSignupRedirectUrl && showValidationErrors && (
+							<span className="text-red-500 text-sm px-2">{validationErrors.afterSignupRedirectUrl}</span>
+						)}
 					</div>
 				</section>
 				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
@@ -528,13 +729,16 @@ export default function PortalPage() {
 						<Subheading>After sign-in fallback</Subheading>
 						<Text>Specify where to send a user if it cannot be determined from the redirect_url query parameter.</Text>
 					</div>
-					<div className="flex justify-end items-center gap-3">
+					<div className="space-y-1">
 						<Input
 							type="text"
 							placeholder="/path"
 							value={afterSigninRedirectUrl}
-							onChange={(e) => updateField(setAfterSigninRedirectUrl, e.target.value)}
-							size={29} />
+							onChange={(e) => updateField(setAfterSigninRedirectUrl, e.target.value, 'afterSigninRedirectUrl')}
+							className={validationErrors.afterSigninRedirectUrl && showValidationErrors ? 'border-red-500' : ''} />
+						{validationErrors.afterSigninRedirectUrl && showValidationErrors && (
+							<span className="text-red-500 text-sm px-2">{validationErrors.afterSigninRedirectUrl}</span>
+						)}
 					</div>
 				</section>
 				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
@@ -542,13 +746,50 @@ export default function PortalPage() {
 						<Subheading>After logo click</Subheading>
 						<Text>Specify where to send a user after they click your application's logo.</Text>
 					</div>
-					<div className="flex justify-end items-center gap-3">
+					<div className="space-y-1">
 						<Input
 							type="text"
 							placeholder="/path"
 							value={afterLogoClickUrl}
-							onChange={(e) => updateField(setAfterLogoClickUrl, e.target.value)}
-							size={29} />
+							onChange={(e) => updateField(setAfterLogoClickUrl, e.target.value, 'afterLogoClickUrl')}
+							className={validationErrors.afterLogoClickUrl && showValidationErrors ? 'border-red-500' : ''} />
+						{validationErrors.afterLogoClickUrl && showValidationErrors && (
+							<span className="text-red-500 text-sm px-2">{validationErrors.afterLogoClickUrl}</span>
+						)}
+					</div>
+				</section>
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+					<div className="space-y-1">
+						<Subheading>After sign-out (one session)</Subheading>
+						<Text>Specify where to send a user after they sign out of the current session.</Text>
+					</div>
+					<div className="space-y-1">
+						<Input
+							type="text"
+							placeholder="/path"
+							value={afterSignOutOnePageUrl}
+							onChange={(e) => updateField(setAfterSignOutOnePageUrl, e.target.value, 'afterSignOutOnePageUrl')}
+							className={validationErrors.afterSignOutOnePageUrl && showValidationErrors ? 'border-red-500' : ''} />
+						{validationErrors.afterSignOutOnePageUrl && showValidationErrors && (
+							<span className="text-red-500 text-sm px-2">{validationErrors.afterSignOutOnePageUrl}</span>
+						)}
+					</div>
+				</section>
+				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+					<div className="space-y-1">
+						<Subheading>After sign-out (all sessions)</Subheading>
+						<Text>Specify where to send a user after they sign out of all sessions.</Text>
+					</div>
+					<div className="space-y-1">
+						<Input
+							type="text"
+							placeholder="/path"
+							value={afterSignOutAllPageUrl}
+							onChange={(e) => updateField(setAfterSignOutAllPageUrl, e.target.value, 'afterSignOutAllPageUrl')}
+							className={validationErrors.afterSignOutAllPageUrl && showValidationErrors ? 'border-red-500' : ''} />
+						{validationErrors.afterSignOutAllPageUrl && showValidationErrors && (
+							<span className="text-red-500 text-sm px-2">{validationErrors.afterSignOutAllPageUrl}</span>
+						)}
 					</div>
 				</section>
 
@@ -571,13 +812,16 @@ export default function PortalPage() {
 						<Subheading>After create organization</Subheading>
 						<Text>Specify where to send a user after they create an organization. (Leave blank to redirect to the host's root.)</Text>
 					</div>
-					<div className="flex justify-end items-center gap-3">
+					<div className="space-y-1">
 						<Input
 							type="text"
 							placeholder="/path"
 							value={afterCreateOrganizationUrl}
-							onChange={(e) => updateField(setAfterCreateOrganizationUrl, e.target.value)}
-							size={29} />
+							onChange={(e) => updateField(setAfterCreateOrganizationUrl, e.target.value, 'afterCreateOrganizationUrl')}
+							className={validationErrors.afterCreateOrganizationUrl && showValidationErrors ? 'border-red-500' : ''} />
+						{validationErrors.afterCreateOrganizationUrl && showValidationErrors && (
+							<span className="text-red-500 text-sm px-2">{validationErrors.afterCreateOrganizationUrl}</span>
+						)}
 					</div>
 				</section>
 				{/* Removed "After leave organization" section */}
@@ -693,13 +937,16 @@ export default function PortalPage() {
 						<Subheading>Sign-up Terms Statement</Subheading>
 						<Text>The text displayed (links to ToS/Privacy Policy are automatic).</Text>
 					</div>
-					<div className="flex justify-end items-center gap-3">
+					<div className="space-y-1">
 						<Input
 							type="text"
 							placeholder="I agree to the terms..."
 							value={signupTermsStatement}
-							onChange={(e) => updateField(setSignupTermsStatement, e.target.value)}
-							size={29} />
+							onChange={(e) => updateField(setSignupTermsStatement, e.target.value, 'signupTermsStatement')}
+							className={validationErrors.signupTermsStatement && showValidationErrors ? 'border-red-500' : ''} />
+						{validationErrors.signupTermsStatement && showValidationErrors && (
+							<span className="text-red-500 text-sm px-2">{validationErrors.signupTermsStatement}</span>
+						)}
 					</div>
 				</section>
 				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
@@ -741,10 +988,19 @@ export default function PortalPage() {
 								ref={primaryColorInputRef}
 								type="color"
 								value={primaryColor}
-								onChange={(e) => updateField(setPrimaryColor, e.target.value)}
+								onChange={(e) => updateField(setPrimaryColor, e.target.value, 'primaryColor')}
 								style={{ display: 'none' }}
 							/>
-							<Input readOnly value={primaryColor} className="font-medium" />
+							<div className="flex flex-col w-full">
+								<Input
+									readOnly
+									value={primaryColor}
+									className={`font-medium ${validationErrors.primaryColor && showValidationErrors ? 'border-red-500' : ''}`}
+								/>
+								{validationErrors.primaryColor && showValidationErrors && (
+									<span className="text-red-500 text-sm mt-1">{validationErrors.primaryColor}</span>
+								)}
+							</div>
 						</div>
 						<div style={{ backgroundColor: primaryColor }} className="h-8 w-full rounded-md"></div>
 					</section>
@@ -761,10 +1017,19 @@ export default function PortalPage() {
 								ref={darkModePrimaryColorInputRef}
 								type="color"
 								value={darkModePrimaryColor}
-								onChange={(e) => updateField(setDarkModePrimaryColor, e.target.value)}
+								onChange={(e) => updateField(setDarkModePrimaryColor, e.target.value, 'darkModePrimaryColor')}
 								style={{ display: 'none' }}
 							/>
-							<Input readOnly value={darkModePrimaryColor} className="font-medium" />
+							<div className="flex flex-col w-full">
+								<Input
+									readOnly
+									value={darkModePrimaryColor}
+									className={`font-medium ${validationErrors.darkModePrimaryColor && showValidationErrors ? 'border-red-500' : ''}`}
+								/>
+								{validationErrors.darkModePrimaryColor && showValidationErrors && (
+									<span className="text-red-500 text-sm mt-1">{validationErrors.darkModePrimaryColor}</span>
+								)}
+							</div>
 						</div>
 						<div style={{ backgroundColor: darkModePrimaryColor }} className="h-8 w-full rounded-md"></div>
 					</section>
@@ -781,10 +1046,19 @@ export default function PortalPage() {
 								ref={backgroundColorInputRef}
 								type="color"
 								value={backgroundColor}
-								onChange={(e) => updateField(setBackgroundColor, e.target.value)}
+								onChange={(e) => updateField(setBackgroundColor, e.target.value, 'backgroundColor')}
 								style={{ display: 'none' }}
 							/>
-							<Input readOnly value={backgroundColor} className="font-medium" />
+							<div className="flex flex-col w-full">
+								<Input
+									readOnly
+									value={backgroundColor}
+									className={`font-medium ${validationErrors.backgroundColor && showValidationErrors ? 'border-red-500' : ''}`}
+								/>
+								{validationErrors.backgroundColor && showValidationErrors && (
+									<span className="text-red-500 text-sm mt-1">{validationErrors.backgroundColor}</span>
+								)}
+							</div>
 						</div>
 						<div style={{ backgroundColor: backgroundColor }} className="h-8 w-full rounded-md"></div>
 					</section>
@@ -801,10 +1075,19 @@ export default function PortalPage() {
 								ref={darkModeBackgroundColorInputRef}
 								type="color"
 								value={darkModeBackgroundColor}
-								onChange={(e) => updateField(setDarkModeBackgroundColor, e.target.value)}
+								onChange={(e) => updateField(setDarkModeBackgroundColor, e.target.value, 'darkModeBackgroundColor')}
 								style={{ display: 'none' }}
 							/>
-							<Input readOnly value={darkModeBackgroundColor} className="font-medium" />
+							<div className="flex flex-col w-full">
+								<Input
+									readOnly
+									value={darkModeBackgroundColor}
+									className={`font-medium ${validationErrors.darkModeBackgroundColor && showValidationErrors ? 'border-red-500' : ''}`}
+								/>
+								{validationErrors.darkModeBackgroundColor && showValidationErrors && (
+									<span className="text-red-500 text-sm mt-1">{validationErrors.darkModeBackgroundColor}</span>
+								)}
+							</div>
 						</div>
 						<div style={{ backgroundColor: darkModeBackgroundColor }} className="h-8 w-full rounded-md"></div>
 					</section>

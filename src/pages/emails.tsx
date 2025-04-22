@@ -1,100 +1,133 @@
-import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
-import { Strong, Text } from "@/components/ui/text";
+import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { Link } from "react-router";
 
-export default function EmailsPage() {
+interface EmailTemplateCardProps {
+	title: string;
+	description: string;
+	route?: string;
+	onClick?: () => void;
+}
 
-	const data = [
-		{
-			id: 1,
-			title: "Workspace Invitation",
-			updatedOn: "Never modified",
-			status: "Default",
-			route: "/emails/workspace-invitation",
-		},
-		{
-			id: 2,
-			title: "Organization Invitation",
-			updatedOn: "Never modified",
-			status: "Default",
-			route: "/emails/organization-invitation",
-		},
-		{
-			id: 3,
-			title: "Waitlisted",
-			updatedOn: "Never modified",
-			status: "Default",
-			route: "/emails/waitlisted",
-		},
-		{
-			id: 4,
-			title: "New Sign Up",
-			updatedOn: "Never modified",
-			status: "Default",
-			route: "/emails/new-sign-up",
-		},
-		{
-			id: 5,
-			title: "New Device Log In",
-			updatedOn: "Never modified",
-			status: "Default",
-			route: "/emails/new-device-log-in",
-		},
-		{
-			id: 6,
-			title: "E-mail OTP",
-			updatedOn: "Never modified",
-			status: "Default",
-			route: "/emails/email-otp",
-		},
-		{
-			id: 7,
-			title: "Magic Link",
-			updatedOn: "Never modified",
-			status: "Default",
-			route: "/emails/magic-link",
-		},
-		{
-			id: 8,
-			title: "Password Reset",
-			updatedOn: "Never modified",
-			status: "Default",
-			route: "/emails/password-reset",
-		},
-		{
-			id: 9,
-			title: "Bad Sign Up Attempt",
-			updatedOn: "Never modified",
-			status: "Default",
-			route: "/emails/bad-sign-up-attempt",
-		},
-		{
-			id: 10,
-			title: "Password Changed",
-			updatedOn: "Never modified",
-			status: "Default",
-			route: "/emails/password-changed",
-		},
-	];
+export function EmailTemplateCard({
+	title,
+	description,
+	route,
+	onClick
+}: EmailTemplateCardProps) {
+	const content = (
+		<div className="flex items-center justify-between py-4">
+			<div className="space-y-1">
+				<h3 className="font-medium text-gray-900">{title}</h3>
+				<p className="text-sm text-gray-500">{description}</p>
+			</div>
+			<ChevronRightIcon className="w-5 h-5 text-gray-400" />
+		</div>
+	);
 
+	if (route) {
+		return (
+			<Link to={route}>
+				{content}
+			</Link>
+		);
+	}
 
 	return (
-		<div className="flex flex-col gap-4">
-			<Heading>E-mails Templates</Heading>
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-				{data.map((item) => (
-					<Link key={item.id} to={item.route}>
-						<div className="p-4 border border-gray-200 rounded-lg bg-white shadow-sm cursor-pointer hover:bg-gray-100 transition">
-							<div className="space-y-2">
-								<Strong>{item.title}</Strong>
-								<Text className="text-gray-500">{item.updatedOn}</Text>
-								<Button outline className="text-xs pointer-events-none">
-									{item.status}
-								</Button>
-							</div>
-						</div>
-					</Link>
+		<div onClick={onClick} className={onClick ? "cursor-pointer" : ""}>
+			{content}
+		</div>
+	);
+}
+
+const emailTemplates = [
+	{
+		id: 0,
+		title: "Organization Invitation",
+		description: "Invite users to join an organization within your application.",
+		route: "organization-invitation",
+	},
+	{
+		id: 1,
+		title: "Workspace Invitation",
+		description: "Send an invitation email to new users to join your application.",
+		route: "workspace-invitation",
+	},
+	{
+		id: 2,
+		title: "Verification code",
+		description: "Send a verification code for authentication or account confirmation.",
+		route: "email-otp",
+	},
+	{
+		id: 3,
+		title: "Reset password code",
+		description: "Send a reset password code to users to reset their password.",
+		route: "password-reset",
+	},
+	{
+		id: 4,
+		title: "Primary email address changed",
+		description: "Notify users when their primary email address has been updated.",
+		route: "email-changed",
+	},
+	{
+		id: 5,
+		title: "Password changed",
+		description: "Confirm to users that their password has been successfully changed.",
+		route: "password-changed",
+	},
+	{
+		id: 6,
+		title: "Password removed",
+		description: "Inform users that their password has been removed from the account.",
+		route: "password-removed",
+	},
+	{
+		id: 7,
+		title: "Sign in from new device",
+		description: "Alert users when someone signs in from a new device.",
+		route: "new-device-log-in",
+	},
+	{
+		id: 8,
+		title: "Magic Link",
+		description: "Send a magic link to users for passwordless authentication.",
+		route: "magic-link",
+	},
+	{
+		id: 9,
+		title: "Waitlist Signup",
+		description: "Notify users they've been added to the waitlist.",
+		route: "waitlisted",
+	},
+	{
+		id: 10,
+		title: "Waitlist Invitation",
+		description: "Invite users from the waitlist to join.",
+		route: "waitlist-invite",
+	},
+	{
+		id: 11,
+		title: "User Invitation",
+		description: "Invite users to join your application (generic).",
+		route: "invite-user",
+	},
+];
+
+export default function EmailsPage() {
+	return (
+		<div className="flex flex-col gap-6">
+			<Heading>Email Templates</Heading>
+
+			<div className="bg-white rounded-lg overflow-hidden">
+				{emailTemplates.map((template) => (
+					<EmailTemplateCard
+						key={template.id}
+						title={template.title}
+						description={template.description}
+						route={template.route}
+					/>
 				))}
 			</div>
 		</div>
