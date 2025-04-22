@@ -7,7 +7,6 @@ import JoditEditor from 'jodit-react';
 import { EmailTemplate } from "@/types/deployment";
 import type { IJodit } from 'jodit/esm/types/jodit';
 import { useEmailTemplate } from "@/lib/api/hooks/use-email-templates";
-import { useProjects } from "@/lib/api/hooks/use-projects";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 
 interface RichTextEditorProps {

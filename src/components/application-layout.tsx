@@ -39,7 +39,6 @@ import {
 	KeyIcon,
 	UserGroupIcon,
 	EnvelopeIcon,
-	DevicePhoneMobileIcon,
 	SparklesIcon,
 	ViewColumnsIcon,
 	BuildingOffice2Icon,
