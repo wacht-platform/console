@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "quill/dist/quill.core.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
