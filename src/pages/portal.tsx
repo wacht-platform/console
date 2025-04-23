@@ -533,18 +533,6 @@ export default function PortalPage() {
 				onCancel={handleResetSettings}
 			/>
 			<div className="mt-8 space-y-10">
-				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
-					<div className="space-y-1 col-span-2">
-						<Subheading>
-							<Strong>Application Details</Strong>
-						</Subheading>
-						<Text>
-							Basic application information and links.
-						</Text>
-					</div>
-				</section>
-
-				{/* Added App Name */}
 				<section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
 					<div className="space-y-1">
 						<Subheading>App Name</Subheading>
