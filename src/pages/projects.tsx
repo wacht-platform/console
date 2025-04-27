@@ -4,7 +4,6 @@ import {
   Dropdown,
   DropdownButton,
   DropdownDivider,
-  DropdownIcon,
   DropdownItem,
   DropdownLabel,
   DropdownMenu,
