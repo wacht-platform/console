@@ -127,7 +127,7 @@ export interface DarkModeSettings {
 	background_color: string;
 }
 
-export interface DeploymentDisplaySettings {
+export interface DeploymentUISettings {
 	id: string;
 	created_at: string | null;
 	updated_at: string | null;
@@ -276,7 +276,7 @@ export interface DeploymentWithSettings {
 	mode: DeploymentMode;
 	mail_from_host: string;
 	auth_settings?: DeploymentAuthSettings;
-	display_settings?: DeploymentDisplaySettings;
+	ui_settings?: DeploymentUISettings;
 	org_settings?: DeploymentOrgSettings;
 	restrictions?: DeploymentRestrictions;
 	jwt_templates?: DeploymentJWTTemplate[];
