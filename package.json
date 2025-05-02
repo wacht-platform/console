@@ -13,7 +13,7 @@
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
     "@monaco-editor/react": "^4.7.0",
-    "@snipextt/wacht": "0.0.1-alpha.14",
+    "@snipextt/wacht": "0.0.1-alpha.16",
     "@tailwindcss/vite": "^4.0.1",
     "@tanstack/react-query": "^5.66.0",
     "axios": "^1.7.9",

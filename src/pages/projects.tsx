@@ -1,34 +1,18 @@
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dropdown,
-  DropdownButton,
-  DropdownDivider,
-  DropdownItem,
-  DropdownLabel,
-  DropdownMenu,
-} from "@/components/ui/dropdown";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import {
-  Navbar,
-  NavbarItem,
-  NavbarLabel,
-  NavbarSpacer,
-} from "@/components/ui/navbar";
+import { Navbar, NavbarSpacer } from "@/components/ui/navbar";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { ProjectWithDeployments } from "@/types/project";
 import { format } from "date-fns";
-import {
-  ChevronDownIcon,
-  Cog8ToothIcon,
-  PlusIcon,
-} from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router";
 import { useProjectStore } from "@/lib/store/project";
 import { CreateProjectDialog } from "@/components/create-project-dialog";
 import { useState } from "react";
-import { UserButton } from "@snipextt/wacht";
+import { UserButton, OrganizationSwitcher } from "@snipextt/wacht";
+import { Tab, SimpleTabs } from "@/components/ui/simple-tabs";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Heading } from "@/components/ui/heading";
 
 export default function ProjectsPage() {
   const { projects, isLoading } = useProjects();
@@ -38,55 +22,93 @@ export default function ProjectsPage() {
     return <div>Loading...</div>;
   }
 
+  const productionDeployments =
+    projects?.filter((project) =>
+      project.deployments.some((deployment) => deployment.mode === "production")
+    ) || [];
+
+  const stagingDeployments =
+    projects?.filter((project) =>
+      project.deployments.some((deployment) => deployment.mode === "staging")
+    ) || [];
+
   return (
-    <div className="mx-auto px-8 pt-20 space-y-8">
-      <Navbar className="fixed top-0 left-0 right-0 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-8 py-3">
-        <Dropdown>
-          <DropdownButton as={NavbarItem}>
-            <Avatar src="/tailwind-logo.svg" />
-            <NavbarLabel>Tailwind Labs</NavbarLabel>
-            <ChevronDownIcon />
-          </DropdownButton>
-          <DropdownMenu className="min-w-64" anchor="bottom start">
-            <DropdownItem href="/teams/1/settings">
-              <Cog8ToothIcon />
-              <DropdownLabel>Settings</DropdownLabel>
-            </DropdownItem>
-            <DropdownDivider />
-            <DropdownItem href="/teams/1">
-              <Avatar slot="icon" src="/tailwind-logo.svg" />
-              <DropdownLabel>Tailwind Labs</DropdownLabel>
-            </DropdownItem>
-            <DropdownItem href="/teams/2">
-              <Avatar
-                slot="icon"
-                initials="WC"
-                className="bg-purple-500 text-white"
-              />
-              <DropdownLabel>Workcation</DropdownLabel>
-            </DropdownItem>
-            <DropdownDivider />
-            <DropdownItem href="/teams/create">
-              <PlusIcon />
-              <DropdownLabel>New team&hellip;</DropdownLabel>
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
+    <div className="mx-auto px-8 pt-24 space-y-4">
+      <Navbar className="fixed z-10 top-0 left-0 right-0 border-b border-slate-200 bg-white px-8 py-3">
+        <OrganizationSwitcher />
         <NavbarSpacer />
-        <UserButton />
+        <UserButton showName={false} />
       </Navbar>
       <div className="flex items-center justify-between">
-        <h1 className="text-lg">Your Projects</h1>
+        <Heading>Your Projects</Heading>
         <Button onClick={() => setCreateProjectDialogOpen(true)}>
-          <PlusIcon />
-          <span>New Project</span>
+          <span>Create Project</span>
         </Button>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {projects?.map((project) => (
-          <ApplicationCard key={project.id} {...project} />
-        ))}
+      <div className="w-full">
+        <SimpleTabs>
+          <Tab label="All Projects">
+            <div>
+              {projects && projects.length > 0 ? (
+                <div className="flex flex-col space-y-2">
+                  {projects.map((project) => (
+                    <ApplicationListItem key={project.id} {...project} />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  title="No projects found"
+                  description="Get started by creating your first project"
+                  actionLabel="Create project"
+                  onAction={() => setCreateProjectDialogOpen(true)}
+                />
+              )}
+            </div>
+          </Tab>
+
+          <Tab label="Production Deployments">
+            <div>
+              {productionDeployments.length > 0 ? (
+                <div className="flex flex-col space-y-2">
+                  {productionDeployments.map((project) => (
+                    <ApplicationListItem
+                      key={project.id}
+                      {...project}
+                      highlightMode="production"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  title="No production deployments"
+                  description="Create a project with a production deployment"
+                />
+              )}
+            </div>
+          </Tab>
+
+          <Tab label="Staging Deployments">
+            <div>
+              {stagingDeployments.length > 0 ? (
+                <div className="flex flex-col space-y-2">
+                  {stagingDeployments.map((project) => (
+                    <ApplicationListItem
+                      key={project.id}
+                      {...project}
+                      highlightMode="staging"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  title="No staging deployments"
+                  description="Create a project with a staging deployment"
+                />
+              )}
+            </div>
+          </Tab>
+        </SimpleTabs>
       </div>
 
       <CreateProjectDialog
@@ -97,56 +119,94 @@ export default function ProjectsPage() {
   );
 }
 
-function ApplicationCard({
+interface ApplicationListItemProps extends ProjectWithDeployments {
+  highlightMode?: "production" | "staging";
+}
+
+function ApplicationListItem({
   name,
   image_url,
   deployments,
   created_at,
   id,
-}: ProjectWithDeployments) {
+  highlightMode,
+}: ApplicationListItemProps) {
   const navigate = useNavigate();
   const { setSelectedProject, setSelectedDeployment, projects } =
     useProjectStore();
 
   const navigateToProject = () => {
-    const productionDeployment =
-      deployments.find((deployment) => deployment.mode === "production") ||
-      deployments[0];
+    // If highlightMode is specified, prioritize that deployment type
+    let targetDeployment = highlightMode
+      ? deployments.find((deployment) => deployment.mode === highlightMode)
+      : deployments.find((deployment) => deployment.mode === "production") ||
+        deployments[0];
+
+    // Fallback if no matching deployment found
+    if (!targetDeployment) {
+      targetDeployment = deployments[0];
+    }
+
     const project = projects?.find((project) => project.id === id);
-    if (project && productionDeployment) {
+    if (project && targetDeployment) {
       setSelectedProject(project);
-      setSelectedDeployment(productionDeployment);
-      navigate(`/project/${id}/deployment/${productionDeployment.id}`);
+      setSelectedDeployment(targetDeployment);
+      navigate(`/project/${id}/deployment/${targetDeployment.id}`);
     }
   };
 
+  // Get badge color based on deployment mode
+  const getBadgeClass = (mode: string) => {
+    if (mode === "production") {
+      return "gap-1 border-green-200 bg-green-50 text-green-700 dark:border-green-900/50 dark:bg-green-950/50 dark:text-green-400";
+    } else if (mode === "staging") {
+      return "gap-1 border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/50 dark:bg-blue-950/50 dark:text-blue-400";
+    }
+    return "gap-1 border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-400";
+  };
+
+  // Find deployments to highlight
+  const productionDeployment = deployments.find((d) => d.mode === "production");
+  const stagingDeployment = deployments.find((d) => d.mode === "staging");
+
+  // Determine which deployment to show in the URL
+  const displayDeployment =
+    highlightMode === "staging" && stagingDeployment
+      ? stagingDeployment
+      : productionDeployment || deployments[0];
+
   return (
-    <Card className="cursor-pointer group overflow-hidden transition-all duration-200 hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-slate-900/50 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-      <CardContent className="px-4 pb-3 mt-2" onClick={navigateToProject}>
-        <div className="flex items-center justify-between">
+    <div
+      onClick={navigateToProject}
+      className="cursor-pointer group flex items-center justify-between py-4 border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors"
+    >
+      <div className="flex items-center gap-4">
+        <Avatar className="w-8 h-8" initials={name.charAt(0)} src={image_url} />
+        <div className="space-y-1">
+          <h3 className="text-sm font-medium text-slate-900 dark:text-white">
+            {name}
+          </h3>
           <div className="flex items-center gap-2">
-            <Avatar
-              className="w-5 h-5"
-              initials={name.charAt(0)}
-              src={image_url}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge className="gap-1 border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-400">
-              {deployments.length} deployment(s)
+            <Badge className={getBadgeClass(displayDeployment.mode)}>
+              https://{displayDeployment.frontend_host}
             </Badge>
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              Created {format(new Date(created_at), "MMM d, yyyy")}
+            </span>
           </div>
         </div>
-        <div className="my-3 space-y-1">
-          <h3 className="text-sm text-slate-900 dark:text-white">{name}</h3>
-          <Badge className="gap-1 border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-400">
-            https://{deployments[0].frontend_host}
-          </Badge>
-        </div>
-      </CardContent>
-      <CardFooter className="border-t border-slate-100 bg-slate-50 pt-3 pb-3 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-400">
-        Created {format(new Date(created_at), "MMM d, yyyy")}
-      </CardFooter>
-    </Card>
+      </div>
+      <div className="flex items-center gap-2">
+        {productionDeployment && (
+          <Badge className={getBadgeClass("production")}>Production</Badge>
+        )}
+        {stagingDeployment && (
+          <Badge className={getBadgeClass("staging")}>Staging</Badge>
+        )}
+        <Badge className="gap-1 border-gray-200 bg-gray-50 text-gray-700">
+          {deployments.length} deployment{deployments.length !== 1 ? "s" : ""}
+        </Badge>
+      </div>
+    </div>
   );
 }

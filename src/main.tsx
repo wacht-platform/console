@@ -6,7 +6,7 @@ import { FrontendDeploymentProvider } from "@snipextt/wacht";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <FrontendDeploymentProvider publicKey="aHR0cHM6Ly9icmlsbGlhbnQtYWN0aXZpdHktMS5iYWNrZW5kLWFwaS5zZXJ2aWNlcw==">
+    <FrontendDeploymentProvider publicKey="aHR0cDovL2xvY2FsaG9zdDozMDAw">
       <App />
     </FrontendDeploymentProvider>
   </StrictMode>

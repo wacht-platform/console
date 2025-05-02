@@ -1049,21 +1049,6 @@ export default function PortalPage() {
           </div>
         </section>
 
-        <Divider className="my-8" soft />
-
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
-          <div className="space-y-1 col-span-2">
-            <Subheading>
-              <Strong>Organization redirects</Strong>
-            </Subheading>
-            <Text>
-              The Account Portal requires a destination to redirect users after
-              key actions. By default, we've set your development host, but you
-              can customize the paths to fit your needs.
-            </Text>
-          </div>
-        </section>
-
         {/* Mapped Organization Redirects */}
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
