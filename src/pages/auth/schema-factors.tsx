@@ -10,12 +10,20 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { Description, Field, FieldGroup, Label } from "@/components/ui/fieldset";
+import {
+  Description,
+  Field,
+  FieldGroup,
+  Label,
+} from "@/components/ui/fieldset";
 import { SwitchField, SwitchGroup } from "@/components/ui/switch";
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import type { DeploymentAuthSettings } from "@/types/deployment";
-import { useAuthSettingsStore, useInitializeAuthSettings } from "@/lib/store/auth-settings-store";
+import {
+  useAuthSettingsStore,
+  useInitializeAuthSettings,
+} from "@/lib/store/auth-settings-store";
 import { useSaveAuthSettings } from "@/lib/api/hooks/use-save-auth-settings";
 import { ListboxLabel } from "@/components/ui/listbox";
 import { ListboxOption } from "@/components/ui/listbox";
@@ -33,13 +41,20 @@ function MultiSessionSettingsDialog({ open, onClose }: DialogProps) {
   const [maxSessionsPerAccount, setMaxSessionsPerAccount] = useState("0");
 
   useEffect(() => {
-    setMaxAccountsPerSession(settings.multi_session_support.max_accounts_per_session.toString());
-    setMaxSessionsPerAccount(settings.multi_session_support.max_sessions_per_account.toString());
+    setMaxAccountsPerSession(
+      settings.multi_session_support.max_accounts_per_session.toString(),
+    );
+    setMaxSessionsPerAccount(
+      settings.multi_session_support.max_sessions_per_account.toString(),
+    );
   }, [settings]);
 
   const handleSubmit = () => {
     // check if the values are valid
-    if (parseInt(maxAccountsPerSession) < 0 || parseInt(maxSessionsPerAccount) < 0) {
+    if (
+      parseInt(maxAccountsPerSession) < 0 ||
+      parseInt(maxSessionsPerAccount) < 0
+    ) {
       return;
     }
 
@@ -49,7 +64,7 @@ function MultiSessionSettingsDialog({ open, onClose }: DialogProps) {
     });
 
     onClose();
-  }
+  };
 
   return (
     <Dialog open={open} onClose={onClose} className="rounded-xl p-6">
@@ -63,7 +78,8 @@ function MultiSessionSettingsDialog({ open, onClose }: DialogProps) {
             <div className="space-y-2">
               <Subheading>Maximum accounts per session</Subheading>
               <Text>
-                Limit the number of accounts that can be active within a single session.
+                Limit the number of accounts that can be active within a single
+                session.
               </Text>
             </div>
             <div className="space-y-4">
@@ -88,7 +104,8 @@ function MultiSessionSettingsDialog({ open, onClose }: DialogProps) {
             <div className="space-y-2">
               <Subheading>Maximum user logins</Subheading>
               <Text>
-                Set the maximum number of active sessions a user can have at the same time.
+                Set the maximum number of active sessions a user can have at the
+                same time.
               </Text>
             </div>
             <div className="space-y-4">
@@ -110,12 +127,14 @@ function MultiSessionSettingsDialog({ open, onClose }: DialogProps) {
           <Divider className="my-8" soft />
         </DialogBody>
         <DialogActions className="flex justify-end gap-4 mt-6">
-          <Button plain onClick={onClose}>Cancel</Button>
+          <Button plain onClick={onClose}>
+            Cancel
+          </Button>
           <Button onClick={handleSubmit}>Submit</Button>
         </DialogActions>
       </>
     </Dialog>
-  )
+  );
 }
 
 function EmailSettingsDialog({ open, onClose }: DialogProps) {
@@ -142,7 +161,9 @@ function EmailSettingsDialog({ open, onClose }: DialogProps) {
             <Switch
               name="email_enabled"
               checked={settings.email_address?.enabled}
-              onChange={(checked) => handleEmailSettingChange('enabled', checked)}
+              onChange={(checked) =>
+                handleEmailSettingChange("enabled", checked)
+              }
             />
           </SwitchField>
 
@@ -155,7 +176,9 @@ function EmailSettingsDialog({ open, onClose }: DialogProps) {
             <Switch
               name="email_required"
               checked={settings.email_address?.required}
-              onChange={(checked) => handleEmailSettingChange('required', checked)}
+              onChange={(checked) =>
+                handleEmailSettingChange("required", checked)
+              }
             />
           </SwitchField>
 
@@ -168,7 +191,9 @@ function EmailSettingsDialog({ open, onClose }: DialogProps) {
             <Switch
               name="email_verify_signup"
               checked={settings.email_address?.verify_signup}
-              onChange={(checked) => handleEmailSettingChange('verify_signup', checked)}
+              onChange={(checked) =>
+                handleEmailSettingChange("verify_signup", checked)
+              }
             />
           </SwitchField>
         </SwitchGroup>
@@ -188,8 +213,15 @@ function EmailSettingsDialog({ open, onClose }: DialogProps) {
               </Description>
               <Switch
                 name="email_verify_link"
-                checked={settings.email_address?.magic_link_verification_allowed}
-                onChange={(checked) => handleEmailSettingChange('magic_link_verification_allowed', checked)}
+                checked={
+                  settings.email_address?.magic_link_verification_allowed
+                }
+                onChange={(checked) =>
+                  handleEmailSettingChange(
+                    "magic_link_verification_allowed",
+                    checked,
+                  )
+                }
               />
             </SwitchField>
             <SwitchField>
@@ -200,7 +232,9 @@ function EmailSettingsDialog({ open, onClose }: DialogProps) {
               <Switch
                 name="email_verify_code"
                 checked={settings.email_address?.otp_verification_allowed}
-                onChange={(checked) => handleEmailSettingChange('otp_verification_allowed', checked)}
+                onChange={(checked) =>
+                  handleEmailSettingChange("otp_verification_allowed", checked)
+                }
               />
             </SwitchField>
           </SwitchGroup>
@@ -236,7 +270,9 @@ function PhoneSettingsDialog({ open, onClose }: DialogProps) {
             <Switch
               name="phone_enabled"
               checked={settings.phone_number?.enabled}
-              onChange={(checked) => handlePhoneSettingChange('enabled', checked)}
+              onChange={(checked) =>
+                handlePhoneSettingChange("enabled", checked)
+              }
             />
           </SwitchField>
 
@@ -249,7 +285,9 @@ function PhoneSettingsDialog({ open, onClose }: DialogProps) {
             <Switch
               name="phone_required"
               checked={settings.phone_number?.required}
-              onChange={(checked) => handlePhoneSettingChange('required', checked)}
+              onChange={(checked) =>
+                handlePhoneSettingChange("required", checked)
+              }
             />
           </SwitchField>
 
@@ -262,7 +300,9 @@ function PhoneSettingsDialog({ open, onClose }: DialogProps) {
             <Switch
               name="phone_verify_signup"
               checked={settings.phone_number?.verify_signup}
-              onChange={(checked) => handlePhoneSettingChange('verify_signup', checked)}
+              onChange={(checked) =>
+                handlePhoneSettingChange("verify_signup", checked)
+              }
             />
           </SwitchField>
         </SwitchGroup>
@@ -284,7 +324,9 @@ function PhoneSettingsDialog({ open, onClose }: DialogProps) {
               <Switch
                 name="phone_sms_verification"
                 checked={settings.phone_number?.sms_verification_allowed}
-                onChange={(checked) => handlePhoneSettingChange('sms_verification_allowed', checked)}
+                onChange={(checked) =>
+                  handlePhoneSettingChange("sms_verification_allowed", checked)
+                }
               />
             </SwitchField>
 
@@ -297,7 +339,12 @@ function PhoneSettingsDialog({ open, onClose }: DialogProps) {
               <Switch
                 name="phone_whatsapp_verification"
                 checked={settings.phone_number?.whatsapp_verification_allowed}
-                onChange={(checked) => handlePhoneSettingChange('whatsapp_verification_allowed', checked)}
+                onChange={(checked) =>
+                  handlePhoneSettingChange(
+                    "whatsapp_verification_allowed",
+                    checked,
+                  )
+                }
               />
             </SwitchField>
           </SwitchGroup>
@@ -319,7 +366,9 @@ function UsernameSettingsDialog({ open, onClose }: DialogProps) {
     updateUsernameSettings(updateData);
   };
 
-  const handleUsernameMinLengthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUsernameMinLengthChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const value = parseInt(e.target.value, 10);
     if (!isNaN(value) && value >= 1 && value <= 64) {
       updateUsernameSettings({ min_length: value });
@@ -328,7 +377,9 @@ function UsernameSettingsDialog({ open, onClose }: DialogProps) {
     }
   };
 
-  const handleUsernameMaxLengthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUsernameMaxLengthChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const value = parseInt(e.target.value, 10);
     if (!isNaN(value) && value >= 1 && value <= 64) {
       updateUsernameSettings({ max_length: value });
@@ -348,7 +399,9 @@ function UsernameSettingsDialog({ open, onClose }: DialogProps) {
           <Switch
             name="username_required"
             checked={settings.username?.required}
-            onChange={(checked) => handleUsernameSettingChange('required', checked)}
+            onChange={(checked) =>
+              handleUsernameSettingChange("required", checked)
+            }
           />
         </SwitchField>
 
@@ -367,7 +420,7 @@ function UsernameSettingsDialog({ open, onClose }: DialogProps) {
               </p>
               <Input
                 type="number"
-                value={settings.username?.min_length ?? ''}
+                value={settings.username?.min_length ?? ""}
                 onChange={handleUsernameMinLengthChange}
                 min={1}
                 max={64}
@@ -387,7 +440,7 @@ function UsernameSettingsDialog({ open, onClose }: DialogProps) {
               </p>
               <Input
                 type="number"
-                value={settings.username?.max_length ?? ''}
+                value={settings.username?.max_length ?? ""}
                 onChange={handleUsernameMaxLengthChange}
                 min={1}
                 max={64}
@@ -414,7 +467,9 @@ function PasswordSettingsDialog({ open, onClose }: DialogProps) {
     updatePasswordSettings(updateData);
   };
 
-  const handlePasswordMinLengthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePasswordMinLengthChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const value = parseInt(e.target.value, 10);
     if (!isNaN(value) && value >= 6 && value <= 128) {
       updatePasswordSettings({ min_length: value });
@@ -436,22 +491,22 @@ function PasswordSettingsDialog({ open, onClose }: DialogProps) {
           <Switch
             name="password_enabled"
             checked={settings.password?.enabled}
-            onChange={(checked) => handlePasswordSettingChange('enabled', checked)}
+            onChange={(checked) =>
+              handlePasswordSettingChange("enabled", checked)
+            }
           />
         </SwitchField>
 
         <Divider soft />
 
         <div className="flex-1 mb-4">
-          <p className="text-sm font-medium">
-            Minimum password length
-          </p>
+          <p className="text-sm font-medium">Minimum password length</p>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">
             Set the minimum required length for passwords
           </p>
           <Input
             type="number"
-            value={settings.password?.min_length ?? ''}
+            value={settings.password?.min_length ?? ""}
             onChange={handlePasswordMinLengthChange}
             min={6}
             max={128}
@@ -466,7 +521,9 @@ function PasswordSettingsDialog({ open, onClose }: DialogProps) {
               <Switch
                 name="password_lowercase"
                 checked={settings.password?.require_lowercase || false}
-                onChange={(checked) => handlePasswordSettingChange('require_lowercase', checked)}
+                onChange={(checked) =>
+                  handlePasswordSettingChange("require_lowercase", checked)
+                }
               />
             </SwitchField>
 
@@ -475,7 +532,9 @@ function PasswordSettingsDialog({ open, onClose }: DialogProps) {
               <Switch
                 name="password_uppercase"
                 checked={settings.password?.require_uppercase || false}
-                onChange={(checked) => handlePasswordSettingChange('require_uppercase', checked)}
+                onChange={(checked) =>
+                  handlePasswordSettingChange("require_uppercase", checked)
+                }
               />
             </SwitchField>
 
@@ -484,7 +543,9 @@ function PasswordSettingsDialog({ open, onClose }: DialogProps) {
               <Switch
                 name="password_number"
                 checked={settings.password?.require_number || false}
-                onChange={(checked) => handlePasswordSettingChange('require_number', checked)}
+                onChange={(checked) =>
+                  handlePasswordSettingChange("require_number", checked)
+                }
               />
             </SwitchField>
 
@@ -493,7 +554,9 @@ function PasswordSettingsDialog({ open, onClose }: DialogProps) {
               <Switch
                 name="password_special"
                 checked={settings.password?.require_special || false}
-                onChange={(checked) => handlePasswordSettingChange('require_special', checked)}
+                onChange={(checked) =>
+                  handlePasswordSettingChange("require_special", checked)
+                }
               />
             </SwitchField>
           </SwitchGroup>
@@ -509,7 +572,10 @@ function PasswordSettingsDialog({ open, onClose }: DialogProps) {
 function FirstNameSettings({ open, onClose }: DialogProps) {
   const { settings, updateFirstNameSettings } = useAuthSettingsStore();
 
-  const handleFirstNameSettingChange = (settingName: string, value: boolean) => {
+  const handleFirstNameSettingChange = (
+    settingName: string,
+    value: boolean,
+  ) => {
     const updateData: { [key: string]: boolean } = {};
     updateData[settingName] = value;
     updateFirstNameSettings(updateData);
@@ -529,7 +595,9 @@ function FirstNameSettings({ open, onClose }: DialogProps) {
             <Switch
               name="first_name_enabled"
               checked={settings.first_name?.enabled}
-              onChange={(checked) => handleFirstNameSettingChange('enabled', checked)}
+              onChange={(checked) =>
+                handleFirstNameSettingChange("enabled", checked)
+              }
             />
           </SwitchField>
 
@@ -541,7 +609,9 @@ function FirstNameSettings({ open, onClose }: DialogProps) {
             <Switch
               name="first_name_required"
               checked={settings.first_name?.required}
-              onChange={(checked) => handleFirstNameSettingChange('required', checked)}
+              onChange={(checked) =>
+                handleFirstNameSettingChange("required", checked)
+              }
             />
           </SwitchField>
         </SwitchGroup>
@@ -574,7 +644,9 @@ function LastNameSettings({ open, onClose }: DialogProps) {
             <Switch
               name="last_name_enabled"
               // Use handler
-              onChange={(checked) => handleLastNameSettingChange('enabled', checked)}
+              onChange={(checked) =>
+                handleLastNameSettingChange("enabled", checked)
+              }
             />
           </SwitchField>
 
@@ -584,7 +656,9 @@ function LastNameSettings({ open, onClose }: DialogProps) {
             <Switch
               name="last_name_required"
               // Use handler
-              onChange={(checked) => handleLastNameSettingChange('required', checked)}
+              onChange={(checked) =>
+                handleLastNameSettingChange("required", checked)
+              }
             />
           </SwitchField>
         </SwitchGroup>
@@ -600,7 +674,10 @@ function EmailLinkSettingsDialog({ open, onClose }: DialogProps) {
   const { settings } = useAuthSettingsStore();
   const { updateMagicLinkSettings } = useAuthSettingsStore();
 
-  const handleMagicLinkSettingChange = (settingName: string, value: boolean) => {
+  const handleMagicLinkSettingChange = (
+    settingName: string,
+    value: boolean,
+  ) => {
     const updateData: { [key: string]: boolean } = {};
     updateData[settingName] = value;
     updateMagicLinkSettings(updateData);
@@ -622,7 +699,9 @@ function EmailLinkSettingsDialog({ open, onClose }: DialogProps) {
             <Switch
               name="email_link_enabled"
               checked={settings.magic_link?.enabled}
-              onChange={(checked) => handleMagicLinkSettingChange('enabled', checked)}
+              onChange={(checked) =>
+                handleMagicLinkSettingChange("enabled", checked)
+              }
             />
           </SwitchField>
 
@@ -635,7 +714,9 @@ function EmailLinkSettingsDialog({ open, onClose }: DialogProps) {
             <Switch
               name="email_link_same_device"
               checked={settings.magic_link?.require_same_device}
-              onChange={(checked) => handleMagicLinkSettingChange('require_same_device', checked)}
+              onChange={(checked) =>
+                handleMagicLinkSettingChange("require_same_device", checked)
+              }
             />
           </SwitchField>
         </SwitchGroup>
@@ -702,7 +783,9 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
   const { settings } = useAuthSettingsStore();
   const { updateSecondFactorPolicy } = useAuthSettingsStore();
 
-  const handlePolicyChange = (policy: DeploymentAuthSettings["second_factor_policy"]) => {
+  const handlePolicyChange = (
+    policy: DeploymentAuthSettings["second_factor_policy"],
+  ) => {
     updateSecondFactorPolicy(policy);
   };
 
@@ -724,7 +807,9 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
                 checked={settings.second_factor_policy === "none"}
                 onChange={() => handlePolicyChange("none")}
               />
-              <label htmlFor="none" className="text-sm font-medium">None</label>
+              <label htmlFor="none" className="text-sm font-medium">
+                None
+              </label>
             </div>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 pl-6 mb-2">
               Don't allow second factors
@@ -738,7 +823,9 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
                 checked={settings.second_factor_policy === "optional"}
                 onChange={() => handlePolicyChange("optional")}
               />
-              <label htmlFor="optional" className="text-sm font-medium">Optional</label>
+              <label htmlFor="optional" className="text-sm font-medium">
+                Optional
+              </label>
             </div>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 pl-6 mb-2">
               Allow users to optionally set up second factors
@@ -752,7 +839,9 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
                 checked={settings.second_factor_policy === "enforced"}
                 onChange={() => handlePolicyChange("enforced")}
               />
-              <label htmlFor="enforced" className="text-sm font-medium">Enforced</label>
+              <label htmlFor="enforced" className="text-sm font-medium">
+                Enforced
+              </label>
             </div>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 pl-6">
               Require users to set up second factors
@@ -777,17 +866,25 @@ export default function SchemaFactorsPage() {
   const [emailLinkSettingsOpen, setEmailLinkSettingsOpen] = useState(false);
   const [passkeySettingsOpen, setPasskeySettingsOpen] = useState(false);
   const [secondFactorPolicyOpen, setSecondFactorPolicyOpen] = useState(false);
-  const [multiSessionSettingsOpen, setMultiSessionSettingsOpen] = useState(false);
-  const [sessionValidityPeriod, setSessionValidityPeriod] = useState('30');
-  const [sessionTokenLifetime, setSessionTokenLifetime] = useState('30');
-  const [sessionInactiveTimeout, setSessionInactiveTimeout] = useState('7');
-  const [sessionValidityUnit, setSessionValidityUnit] = useState<'days' | 'hours' | 'minutes'>('days');
-  const [sessionTokenLifetimeUnit, setSessionTokenLifetimeUnit] = useState<'hours' | 'minutes'>('minutes');
-  const [sessionInactiveTimeoutUnit, setSessionInactiveTimeoutUnit] = useState<'days' | 'hours' | 'minutes'>('days');
+  const [multiSessionSettingsOpen, setMultiSessionSettingsOpen] =
+    useState(false);
+  const [sessionValidityPeriod, setSessionValidityPeriod] = useState("30");
+  const [sessionTokenLifetime, setSessionTokenLifetime] = useState("30");
+  const [sessionInactiveTimeout, setSessionInactiveTimeout] = useState("7");
+  const [sessionValidityUnit, setSessionValidityUnit] = useState<
+    "days" | "hours" | "minutes"
+  >("days");
+  const [sessionTokenLifetimeUnit, setSessionTokenLifetimeUnit] = useState<
+    "hours" | "minutes"
+  >("minutes");
+  const [sessionInactiveTimeoutUnit, setSessionInactiveTimeoutUnit] = useState<
+    "days" | "hours" | "minutes"
+  >("days");
 
   const { isLoading } = useInitializeAuthSettings();
   const { settings } = useAuthSettingsStore();
-  const { isDirty, isSaving, saveSettings, resetSettings } = useSaveAuthSettings();
+  const { isDirty, isSaving, saveSettings, resetSettings } =
+    useSaveAuthSettings();
 
   const {
     updateEmailSettings,
@@ -801,63 +898,63 @@ export default function SchemaFactorsPage() {
     updateMultiSessionSupport,
     updateSessionTokenLifetime,
     updateSessionValidityPeriod,
-    updateSessionInactiveTimeout
+    updateSessionInactiveTimeout,
   } = useAuthSettingsStore();
 
   const handleToggle = (settingType: string, value: boolean) => {
     switch (settingType) {
-      case 'email_enabled':
+      case "email_enabled":
         updateEmailSettings({ enabled: value });
         break;
-      case 'password_enabled':
+      case "password_enabled":
         updatePasswordSettings({ enabled: value });
         break;
-      case 'phone_enabled':
+      case "phone_enabled":
         updatePhoneSettings({ enabled: value });
         break;
-      case 'username_enabled':
+      case "username_enabled":
         updateUsernameSettings({ enabled: value });
         break;
-      case 'first_name_enabled':
+      case "first_name_enabled":
         updateFirstNameSettings({ enabled: value });
         break;
-      case 'last_name_enabled':
+      case "last_name_enabled":
         updateLastNameSettings({ enabled: value });
         break;
-      case 'email_password_enabled':
+      case "email_password_enabled":
         updateAuthFactorsEnabled({ email_password: value });
         break;
-      case 'username_password_enabled':
+      case "username_password_enabled":
         updateAuthFactorsEnabled({ username_password: value });
         break;
-      case 'email_link_enabled':
+      case "email_link_enabled":
         updateAuthFactorsEnabled({ email_magic_link: value });
         break;
-      case 'email_otp_enabled':
+      case "email_otp_enabled":
         updateAuthFactorsEnabled({ email_otp: value });
         break;
-      case 'phone_otp_enabled':
+      case "phone_otp_enabled":
         updateAuthFactorsEnabled({ phone_otp: value });
         break;
-      case 'passkey_enabled':
+      case "passkey_enabled":
         updatePasskeySettings({ enabled: value });
         break;
-      case 'sso_enabled':
+      case "sso_enabled":
         updateAuthFactorsEnabled({ sso: value });
         break;
-      case 'web3_wallet_enabled':
+      case "web3_wallet_enabled":
         updateAuthFactorsEnabled({ web3_wallet: value });
         break;
-      case 'second_factor_authenticator_enabled':
+      case "second_factor_authenticator_enabled":
         updateAuthFactorsEnabled({ authenticator: value });
         break;
-      case 'second_factor_phone_otp_enabled':
+      case "second_factor_phone_otp_enabled":
         updateAuthFactorsEnabled({ phone_otp: value });
         break;
-      case 'second_factor_backup_code_enabled':
+      case "second_factor_backup_code_enabled":
         updateAuthFactorsEnabled({ backup_code: value });
         break;
-      case 'multi_session_support_enabled':
+      case "multi_session_support_enabled":
         updateMultiSessionSupport({ enabled: value });
         break;
       default:
@@ -872,53 +969,66 @@ export default function SchemaFactorsPage() {
     const sessionInactiveTimeout = settings.session_inactive_timeout;
 
     // find closest unit
-    const sessionValidityPeriodUnit = sessionValidityPeriod / 86400 > 1 ? 'days' : sessionValidityPeriod / 3600 > 1 ? 'hours' : 'minutes';
-    const sessionTokenLifetimeUnit = sessionTokenLifetime / (3600) > 1 ? 'hours' : 'minutes';
-    const sessionInactiveTimeoutUnit = sessionInactiveTimeout / 86400 > 1 ? 'days' : sessionInactiveTimeout / 3600 > 1 ? 'hours' : 'minutes';
+    const sessionValidityPeriodUnit =
+      sessionValidityPeriod / 86400 > 1
+        ? "days"
+        : sessionValidityPeriod / 3600 > 1
+          ? "hours"
+          : "minutes";
+    const sessionTokenLifetimeUnit =
+      sessionTokenLifetime / 3600 > 1 ? "hours" : "minutes";
+    const sessionInactiveTimeoutUnit =
+      sessionInactiveTimeout / 86400 > 1
+        ? "days"
+        : sessionInactiveTimeout / 3600 > 1
+          ? "hours"
+          : "minutes";
 
-    if (sessionValidityPeriodUnit === 'days') {
+    if (sessionValidityPeriodUnit === "days") {
       const sessionValidityPeriodInDays = sessionValidityPeriod / 86400;
       setSessionValidityPeriod(sessionValidityPeriodInDays.toString());
-      setSessionValidityUnit('days');
-    } else if (sessionValidityPeriodUnit === 'hours') {
+      setSessionValidityUnit("days");
+    } else if (sessionValidityPeriodUnit === "hours") {
       const sessionValidityPeriodInHours = sessionValidityPeriod / 3600;
       setSessionValidityPeriod(sessionValidityPeriodInHours.toString());
-      setSessionValidityUnit('hours');
+      setSessionValidityUnit("hours");
     } else {
       const sessionValidityPeriodInMinutes = sessionValidityPeriod / 60;
       setSessionValidityPeriod(sessionValidityPeriodInMinutes.toString());
-      setSessionValidityUnit('minutes');
+      setSessionValidityUnit("minutes");
     }
 
-    if (sessionTokenLifetimeUnit === 'hours') {
+    if (sessionTokenLifetimeUnit === "hours") {
       const sessionTokenLifetimeInHours = sessionTokenLifetime / 3600;
       setSessionTokenLifetime(sessionTokenLifetimeInHours.toString());
-      setSessionTokenLifetimeUnit('hours');
+      setSessionTokenLifetimeUnit("hours");
     } else {
       const sessionTokenLifetimeInMinutes = sessionTokenLifetime / 60;
       setSessionTokenLifetime(sessionTokenLifetimeInMinutes.toString());
-      setSessionTokenLifetimeUnit('minutes');
+      setSessionTokenLifetimeUnit("minutes");
     }
 
-    if (sessionInactiveTimeoutUnit === 'days') {
+    if (sessionInactiveTimeoutUnit === "days") {
       const sessionInactiveTimeoutInDays = sessionInactiveTimeout / 86400;
       setSessionInactiveTimeout(sessionInactiveTimeoutInDays.toString());
-      setSessionInactiveTimeoutUnit('days');
-    } else if (sessionInactiveTimeoutUnit === 'hours') {
+      setSessionInactiveTimeoutUnit("days");
+    } else if (sessionInactiveTimeoutUnit === "hours") {
       const sessionInactiveTimeoutInHours = sessionInactiveTimeout / 3600;
       setSessionInactiveTimeout(sessionInactiveTimeoutInHours.toString());
-      setSessionInactiveTimeoutUnit('hours');
+      setSessionInactiveTimeoutUnit("hours");
     } else {
       const sessionInactiveTimeoutInMinutes = sessionInactiveTimeout / 60;
       setSessionInactiveTimeout(sessionInactiveTimeoutInMinutes.toString());
-      setSessionInactiveTimeoutUnit('minutes');
+      setSessionInactiveTimeoutUnit("minutes");
     }
+  }, [settings, isDirty]);
 
-  }, [settings]);
-
-  const handleSessionValidityPeriodChange = (value: string, unit: 'days' | 'hours' | 'minutes') => {
-    if (value === '') {
-      setSessionValidityPeriod('');
+  const handleSessionValidityPeriodChange = (
+    value: string,
+    unit: "days" | "hours" | "minutes",
+  ) => {
+    if (value === "") {
+      setSessionValidityPeriod("");
       setSessionValidityUnit(unit);
       updateSessionValidityPeriod(0);
       return;
@@ -928,13 +1038,17 @@ export default function SchemaFactorsPage() {
     setSessionValidityUnit(unit);
 
     const period = parseInt(value);
-    const valueInSeconds = period * (unit === 'days' ? 86400 : unit === 'hours' ? 3600 : 60);
+    const valueInSeconds =
+      period * (unit === "days" ? 86400 : unit === "hours" ? 3600 : 60);
     updateSessionValidityPeriod(valueInSeconds);
   };
 
-  const handleSessionTokenLifetimeChange = (value: string, unit: 'hours' | 'minutes') => {
-    if (value === '') {
-      setSessionTokenLifetime('');
+  const handleSessionTokenLifetimeChange = (
+    value: string,
+    unit: "hours" | "minutes",
+  ) => {
+    if (value === "") {
+      setSessionTokenLifetime("");
       setSessionTokenLifetimeUnit(unit);
       updateSessionTokenLifetime(0);
       return;
@@ -944,13 +1058,16 @@ export default function SchemaFactorsPage() {
     setSessionTokenLifetimeUnit(unit);
 
     const period = parseInt(value);
-    const valueInSeconds = period * (unit === 'hours' ? 3600 : 60);
+    const valueInSeconds = period * (unit === "hours" ? 3600 : 60);
     updateSessionTokenLifetime(valueInSeconds);
   };
 
-  const handleSessionInactiveTimeoutChange = (value: string, unit: 'days' | 'hours' | 'minutes') => {
-    if (value === '') {
-      setSessionInactiveTimeout('');
+  const handleSessionInactiveTimeoutChange = (
+    value: string,
+    unit: "days" | "hours" | "minutes",
+  ) => {
+    if (value === "") {
+      setSessionInactiveTimeout("");
       setSessionInactiveTimeoutUnit(unit);
       updateSessionInactiveTimeout(0);
       return;
@@ -960,7 +1077,8 @@ export default function SchemaFactorsPage() {
     setSessionInactiveTimeoutUnit(unit);
 
     const period = parseInt(value);
-    const valueInSeconds = period * (unit === 'days' ? 86400 : unit === 'hours' ? 3600 : 60);
+    const valueInSeconds =
+      period * (unit === "days" ? 86400 : unit === "hours" ? 3600 : 60);
     updateSessionInactiveTimeout(valueInSeconds);
   };
 
@@ -1058,7 +1176,9 @@ export default function SchemaFactorsPage() {
                   <Switch
                     name="email_enabled"
                     checked={settings.email_address?.enabled}
-                    onChange={(checked) => handleToggle('email_enabled', checked)}
+                    onChange={(checked) =>
+                      handleToggle("email_enabled", checked)
+                    }
                   />
                 </div>
               </div>
@@ -1077,7 +1197,9 @@ export default function SchemaFactorsPage() {
                   <Switch
                     name="password_enabled"
                     checked={settings.password?.enabled}
-                    onChange={(checked) => handleToggle('password_enabled', checked)}
+                    onChange={(checked) =>
+                      handleToggle("password_enabled", checked)
+                    }
                   />
                 </div>
               </div>
@@ -1096,7 +1218,9 @@ export default function SchemaFactorsPage() {
                   <Switch
                     name="phone_enabled"
                     checked={settings.phone_number?.enabled}
-                    onChange={(checked) => handleToggle('phone_enabled', checked)}
+                    onChange={(checked) =>
+                      handleToggle("phone_enabled", checked)
+                    }
                   />
                 </div>
               </div>
@@ -1115,7 +1239,9 @@ export default function SchemaFactorsPage() {
                   <Switch
                     name="username_enabled"
                     checked={settings.username?.enabled}
-                    onChange={(checked) => handleToggle('username_enabled', checked)}
+                    onChange={(checked) =>
+                      handleToggle("username_enabled", checked)
+                    }
                   />
                 </div>
               </div>
@@ -1134,7 +1260,9 @@ export default function SchemaFactorsPage() {
                   <Switch
                     name="first_name_enabled"
                     checked={settings.first_name?.enabled}
-                    onChange={(checked) => handleToggle('first_name_enabled', checked)}
+                    onChange={(checked) =>
+                      handleToggle("first_name_enabled", checked)
+                    }
                   />
                 </div>
               </div>
@@ -1153,7 +1281,9 @@ export default function SchemaFactorsPage() {
                   <Switch
                     name="last_name_enabled"
                     checked={settings.last_name?.enabled}
-                    onChange={(checked) => handleToggle('last_name_enabled', checked)}
+                    onChange={(checked) =>
+                      handleToggle("last_name_enabled", checked)
+                    }
                   />
                 </div>
               </div>
@@ -1182,7 +1312,9 @@ export default function SchemaFactorsPage() {
                 <Switch
                   name="email_password_enabled"
                   checked={settings.auth_factors_enabled?.email_password}
-                  onChange={(checked) => handleToggle('email_password_enabled', checked)}
+                  onChange={(checked) =>
+                    handleToggle("email_password_enabled", checked)
+                  }
                 />
               </SwitchField>
 
@@ -1194,19 +1326,19 @@ export default function SchemaFactorsPage() {
                 <Switch
                   name="username_password_enabled"
                   checked={settings.auth_factors_enabled?.username_password}
-                  onChange={(checked) => handleToggle('username_password_enabled', checked)}
+                  onChange={(checked) =>
+                    handleToggle("username_password_enabled", checked)
+                  }
                 />
               </SwitchField>
 
               <SwitchField>
                 <Label>SSO</Label>
-                <Description>
-                  Users can sign in with SSO
-                </Description>
+                <Description>Users can sign in with SSO</Description>
                 <Switch
                   name="sso_enabled"
                   checked={settings.auth_factors_enabled?.sso}
-                  onChange={(checked) => handleToggle('sso_enabled', checked)}
+                  onChange={(checked) => handleToggle("sso_enabled", checked)}
                 />
               </SwitchField>
 
@@ -1216,7 +1348,9 @@ export default function SchemaFactorsPage() {
                 <Switch
                   name="web3_wallet_enabled"
                   checked={settings.auth_factors_enabled?.web3_wallet}
-                  onChange={(checked) => handleToggle('web3_wallet_enabled', checked)}
+                  onChange={(checked) =>
+                    handleToggle("web3_wallet_enabled", checked)
+                  }
                 />
               </SwitchField>
 
@@ -1234,7 +1368,9 @@ export default function SchemaFactorsPage() {
                   <Switch
                     name="email_link_enabled"
                     checked={settings.auth_factors_enabled?.email_magic_link}
-                    onChange={(checked) => handleToggle('email_link_enabled', checked)}
+                    onChange={(checked) =>
+                      handleToggle("email_link_enabled", checked)
+                    }
                   />
                 </div>
               </div>
@@ -1247,7 +1383,9 @@ export default function SchemaFactorsPage() {
                 <Switch
                   name="email_otp_enabled"
                   checked={settings.auth_factors_enabled?.email_otp}
-                  onChange={(checked) => handleToggle('email_otp_enabled', checked)}
+                  onChange={(checked) =>
+                    handleToggle("email_otp_enabled", checked)
+                  }
                 />
               </SwitchField>
 
@@ -1259,7 +1397,9 @@ export default function SchemaFactorsPage() {
                 <Switch
                   name="phone_otp_enabled"
                   checked={settings.auth_factors_enabled?.phone_otp}
-                  onChange={(checked) => handleToggle('phone_otp_enabled', checked)}
+                  onChange={(checked) =>
+                    handleToggle("phone_otp_enabled", checked)
+                  }
                 />
               </SwitchField>
 
@@ -1277,7 +1417,9 @@ export default function SchemaFactorsPage() {
                   <Switch
                     name="passkey_enabled"
                     checked={settings.passkey?.enabled}
-                    onChange={(checked) => handleToggle('passkey_enabled', checked)}
+                    onChange={(checked) =>
+                      handleToggle("passkey_enabled", checked)
+                    }
                   />
                 </div>
               </div>
@@ -1309,8 +1451,12 @@ export default function SchemaFactorsPage() {
                 </Description>
                 <Switch
                   name="2fa_authenticator_enabled"
-                  checked={settings.auth_factors_enabled?.authenticator || false}
-                  onChange={(checked) => handleToggle('2fa_authenticator_enabled', checked)}
+                  checked={
+                    settings.auth_factors_enabled?.authenticator || false
+                  }
+                  onChange={(checked) =>
+                    handleToggle("2fa_authenticator_enabled", checked)
+                  }
                 />
               </SwitchField>
 
@@ -1320,7 +1466,9 @@ export default function SchemaFactorsPage() {
                 <Switch
                   name="2fa_backup_code_enabled"
                   checked={settings.auth_factors_enabled?.backup_code}
-                  onChange={(checked) => handleToggle('2fa_backup_code_enabled', checked)}
+                  onChange={(checked) =>
+                    handleToggle("2fa_backup_code_enabled", checked)
+                  }
                 />
               </SwitchField>
             </div>
@@ -1329,9 +1477,7 @@ export default function SchemaFactorsPage() {
           <div className="space-y-6">
             <div className="flex items-start justify-between">
               <div>
-                <h2 className="text-base font-medium">
-                  Session Settings
-                </h2>
+                <h2 className="text-base font-medium">Session Settings</h2>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
                   Configure the settings for user sessions
                 </p>
@@ -1345,16 +1491,37 @@ export default function SchemaFactorsPage() {
                 <div className="space-y-1 col-span-2">
                   <Subheading>Session Validity</Subheading>
                   <Text>
-                    The maximum lifetime of a session, regardless of user activity. After that, the
-                    session will be expired and the user will need to log in again.
+                    The maximum lifetime of a session, regardless of user
+                    activity. After that, the session will be expired and the
+                    user will need to log in again.
                   </Text>
                 </div>
                 <Field className="flex items-center gap-x-4">
                   <FieldGroup>
-                    <Input aria-label="Duration" name="duration" inputClassName="text-right" value={sessionValidityPeriod || ''} onChange={(e) => handleSessionValidityPeriodChange(e.target.value, sessionValidityUnit)} />
+                    <Input
+                      aria-label="Duration"
+                      name="duration"
+                      inputClassName="text-right"
+                      value={sessionValidityPeriod || ""}
+                      onChange={(e) =>
+                        handleSessionValidityPeriodChange(
+                          e.target.value,
+                          sessionValidityUnit,
+                        )
+                      }
+                    />
                   </FieldGroup>
                   <FieldGroup className="flex-1">
-                    <Listbox name="unit" value={sessionValidityUnit} onChange={(value) => handleSessionValidityPeriodChange(sessionValidityPeriod, value)}>
+                    <Listbox
+                      name="unit"
+                      value={sessionValidityUnit}
+                      onChange={(value) =>
+                        handleSessionValidityPeriodChange(
+                          sessionValidityPeriod,
+                          value,
+                        )
+                      }
+                    >
                       <ListboxOption value="minutes">
                         <ListboxLabel>Minutes</ListboxLabel>
                       </ListboxOption>
@@ -1373,15 +1540,33 @@ export default function SchemaFactorsPage() {
                 <div className="space-y-1 col-span-2">
                   <Subheading>Inactivity Timeout</Subheading>
                   <Text>
-                    The maximum period of inactivity after which a session is terminated.
+                    The maximum period of inactivity after which a session is
+                    terminated.
                   </Text>
                 </div>
                 <Field className="flex items-center gap-x-4">
                   <FieldGroup>
-                    <Input aria-label="Duration" inputClassName="text-right" name="duration" value={sessionInactiveTimeout} onChange={(e) => setSessionInactiveTimeout(e.target.value)} />
+                    <Input
+                      aria-label="Duration"
+                      inputClassName="text-right"
+                      name="duration"
+                      value={sessionInactiveTimeout}
+                      onChange={(e) =>
+                        setSessionInactiveTimeout(e.target.value)
+                      }
+                    />
                   </FieldGroup>
                   <FieldGroup className="flex-1">
-                    <Listbox name="unit" value={sessionInactiveTimeoutUnit} onChange={(value) => handleSessionInactiveTimeoutChange(sessionInactiveTimeout, value)}>
+                    <Listbox
+                      name="unit"
+                      value={sessionInactiveTimeoutUnit}
+                      onChange={(value) =>
+                        handleSessionInactiveTimeoutChange(
+                          sessionInactiveTimeout,
+                          value,
+                        )
+                      }
+                    >
                       <ListboxOption value="minutes">
                         <ListboxLabel>Minutes</ListboxLabel>
                       </ListboxOption>
@@ -1400,15 +1585,36 @@ export default function SchemaFactorsPage() {
                 <div className="space-y-1 col-span-2">
                   <Subheading>Token Expiration</Subheading>
                   <Text>
-                    The maximum lifetime of a token. After that, the token will be expired and the token with be revalidated.
+                    The maximum lifetime of a token. After that, the token will
+                    be expired and the token with be revalidated.
                   </Text>
                 </div>
                 <Field className="flex items-center gap-x-4">
                   <FieldGroup>
-                    <Input aria-label="Duration" name="duration" inputClassName="text-right" value={sessionTokenLifetime} onChange={(e) => handleSessionTokenLifetimeChange(e.target.value, sessionTokenLifetimeUnit)} />
+                    <Input
+                      aria-label="Duration"
+                      name="duration"
+                      inputClassName="text-right"
+                      value={sessionTokenLifetime}
+                      onChange={(e) =>
+                        handleSessionTokenLifetimeChange(
+                          e.target.value,
+                          sessionTokenLifetimeUnit,
+                        )
+                      }
+                    />
                   </FieldGroup>
                   <FieldGroup className="flex-1">
-                    <Listbox name="unit" value={sessionTokenLifetimeUnit} onChange={(value) => handleSessionTokenLifetimeChange(sessionTokenLifetime, value)}>
+                    <Listbox
+                      name="unit"
+                      value={sessionTokenLifetimeUnit}
+                      onChange={(value) =>
+                        handleSessionTokenLifetimeChange(
+                          sessionTokenLifetime,
+                          value,
+                        )
+                      }
+                    >
                       <ListboxOption value="minutes">
                         <ListboxLabel>Minutes</ListboxLabel>
                       </ListboxOption>
@@ -1422,20 +1628,29 @@ export default function SchemaFactorsPage() {
 
               <div className="flex items-start justify-between">
                 <div>
-                  <Subheading className="text-sm font-medium">Multi Session Support</Subheading>
+                  <Subheading className="text-sm font-medium">
+                    Multi Session Support
+                  </Subheading>
                   <Text className="text-sm text-zinc-500 dark:text-zinc-400">
-                    Enable multi-session support to allow users to have multiple sessions at the same time.
+                    Enable multi-session support to allow users to have multiple
+                    sessions at the same time.
                   </Text>
                 </div>
                 <div className="flex items-center gap-2 h-[48px]">
-                  <Button plain type="button" onClick={() => setMultiSessionSettingsOpen(true)}>
+                  <Button
+                    plain
+                    type="button"
+                    onClick={() => setMultiSessionSettingsOpen(true)}
+                  >
                     <Cog6ToothIcon />
                   </Button>
 
                   <Switch
                     name="email_enabled"
                     checked={settings.multi_session_support.enabled}
-                    onChange={(checked) => handleToggle('multi_session_support_enabled', checked)}
+                    onChange={(checked) =>
+                      handleToggle("multi_session_support_enabled", checked)
+                    }
                   />
                 </div>
               </div>
@@ -1451,18 +1666,11 @@ export default function SchemaFactorsPage() {
               You have unsaved changes.
             </p>
             <div className="flex gap-3">
-              <Button
-                outline
-                onClick={handleResetSettings}
-                disabled={isSaving}
-              >
+              <Button outline onClick={handleResetSettings} disabled={isSaving}>
                 Discard
               </Button>
-              <Button
-                onClick={handleSaveSettings}
-                disabled={isSaving}
-              >
-                {isSaving ? 'Saving...' : 'Save Changes'}
+              <Button onClick={handleSaveSettings} disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           </div>

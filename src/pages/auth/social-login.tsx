@@ -17,11 +17,25 @@ import GithubIcon from "@/assets/github.svg";
 import GoogleIcon from "@/assets/google.svg";
 import LinkedInIcon from "@/assets/linkedin.svg";
 import MicrosoftIcon from "@/assets/microsoft.svg";
-import { Description, Field, FieldGroup, Label, ErrorMessage } from "@/components/ui/fieldset";
+import {
+  Description,
+  Field,
+  FieldGroup,
+  Label,
+  ErrorMessage,
+} from "@/components/ui/fieldset";
 import { Input } from "@/components/ui/input";
 import { Cog6ToothIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useDeploymentSocialConnections, useUpsertDeploymentSocialConnection } from "@/lib/api/hooks/use-deployment-connections";
-import { DeploymentSocialConnection, DeploymentSocialConnectionUpsert, OauthCredentials, SocialConnectionProvider } from "@/types/deployment";
+import {
+  useDeploymentSocialConnections,
+  useUpsertDeploymentSocialConnection,
+} from "@/lib/api/hooks/use-deployment-connections";
+import {
+  DeploymentSocialConnection,
+  DeploymentSocialConnectionUpsert,
+  OauthCredentials,
+  SocialConnectionProvider,
+} from "@/types/deployment";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { Badge } from "@/components/ui/badge";
 
@@ -55,10 +69,13 @@ function ProviderSettingsDialog({
   const [addedScopes, setAddedScopes] = useState<string[]>([]);
 
   const [clientIdError, setClientIdError] = useState<string | null>(null);
-  const [clientSecretError, setClientSecretError] = useState<string | null>(null);
+  const [clientSecretError, setClientSecretError] = useState<string | null>(
+    null,
+  );
   const [redirectUriError, setRedirectUriError] = useState<string | null>(null);
 
-  const { mutate: upsertConnection, isPending: isSaving } = useUpsertDeploymentSocialConnection();
+  const { mutate: upsertConnection, isPending: isSaving } =
+    useUpsertDeploymentSocialConnection();
 
   useEffect(() => {
     if (open) {
@@ -70,7 +87,11 @@ function ProviderSettingsDialog({
       setClientIdError(null);
       setClientSecretError(null);
       setRedirectUriError(null);
-      const hasExistingCredentials = !!connection?.credentials && !!connection.credentials.client_id && !!connection.credentials.client_secret && !!connection.credentials.redirect_uri;
+      const hasExistingCredentials =
+        !!connection?.credentials &&
+        !!connection.credentials.client_id &&
+        !!connection.credentials.client_secret &&
+        !!connection.credentials.redirect_uri;
       setSignInEnabled(connection?.enabled ?? false);
       setUseCustomCredentials(hasExistingCredentials);
       if (connection?.credentials) {
@@ -91,7 +112,7 @@ function ProviderSettingsDialog({
   };
 
   const handleRemoveScope = (scopeToRemove: string) => {
-    setAddedScopes(addedScopes.filter(scope => scope !== scopeToRemove));
+    setAddedScopes(addedScopes.filter((scope) => scope !== scopeToRemove));
   };
 
   const validateForm = (): boolean => {
@@ -112,7 +133,10 @@ function ProviderSettingsDialog({
       if (!redirectUri.trim()) {
         setRedirectUriError("Redirect URI is required.");
         isValid = false;
-      } else if (!redirectUri.startsWith("http://") && !redirectUri.startsWith("https://")) {
+      } else if (
+        !redirectUri.startsWith("http://") &&
+        !redirectUri.startsWith("https://")
+      ) {
         setRedirectUriError("Redirect URI must start with http:// or https://");
         isValid = false;
       }
@@ -148,11 +172,24 @@ function ProviderSettingsDialog({
 
     upsertConnection(
       { deploymentId, payload },
-      { onSuccess, onError: (error) => { console.error("Save error:", error); } }
+      {
+        onSuccess,
+        onError: (error) => {
+          console.error("Save error:", error);
+        },
+      },
     );
   };
 
-  const isSaveDisabled = isSaving || (useCustomCredentials && (!clientId || !clientSecret || !redirectUri || !!clientIdError || !!clientSecretError || !!redirectUriError));
+  const isSaveDisabled =
+    isSaving ||
+    (useCustomCredentials &&
+      (!clientId ||
+        !clientSecret ||
+        !redirectUri ||
+        !!clientIdError ||
+        !!clientSecretError ||
+        !!redirectUriError));
 
   return (
     <Dialog open={open} onClose={onClose} className="w-full max-w-lg">
@@ -173,7 +210,10 @@ function ProviderSettingsDialog({
                 aria-describedby="enable-signin-description"
               />
             </div>
-            <Description>Allow users to sign up and sign in to your application using this method.</Description>
+            <Description>
+              Allow users to sign up and sign in to your application using this
+              method.
+            </Description>
           </Field>
           <Field className="space-y-2">
             <div className="flex items-center justify-between">
@@ -186,7 +226,10 @@ function ProviderSettingsDialog({
                 aria-describedby="custom-credentials-description"
               />
             </div>
-            <Description>Use your own credentials. If turned off, default shared credentials will be used.</Description>
+            <Description>
+              Use your own credentials. If turned off, default shared
+              credentials will be used.
+            </Description>
           </Field>
         </FieldGroup>
 
@@ -206,7 +249,11 @@ function ProviderSettingsDialog({
                 aria-invalid={!!clientIdError}
                 aria-describedby={clientIdError ? "client-id-error" : undefined}
               />
-              {clientIdError && <ErrorMessage id="client-id-error">{clientIdError}</ErrorMessage>}
+              {clientIdError && (
+                <ErrorMessage id="client-id-error">
+                  {clientIdError}
+                </ErrorMessage>
+              )}
             </Field>
             <Field>
               <Label>Client Secret</Label>
@@ -221,9 +268,15 @@ function ProviderSettingsDialog({
                 disabled={isSaving}
                 required
                 aria-invalid={!!clientSecretError}
-                aria-describedby={clientSecretError ? "client-secret-error" : undefined}
+                aria-describedby={
+                  clientSecretError ? "client-secret-error" : undefined
+                }
               />
-              {clientSecretError && <ErrorMessage id="client-secret-error">{clientSecretError}</ErrorMessage>}
+              {clientSecretError && (
+                <ErrorMessage id="client-secret-error">
+                  {clientSecretError}
+                </ErrorMessage>
+              )}
             </Field>
             <Field>
               <Label>Authorized Redirect URI</Label>
@@ -237,13 +290,22 @@ function ProviderSettingsDialog({
                 disabled={isSaving}
                 required
                 aria-invalid={!!redirectUriError}
-                aria-describedby={redirectUriError ? "redirect-uri-error" : undefined}
+                aria-describedby={
+                  redirectUriError ? "redirect-uri-error" : undefined
+                }
               />
-              {redirectUriError && <ErrorMessage id="redirect-uri-error">{redirectUriError}</ErrorMessage>}
+              {redirectUriError && (
+                <ErrorMessage id="redirect-uri-error">
+                  {redirectUriError}
+                </ErrorMessage>
+              )}
             </Field>
             <Field>
               <Label>Scopes</Label>
-              <p id="scopes-description" className="text-sm text-zinc-500 dark:text-zinc-400">
+              <p
+                id="scopes-description"
+                className="text-sm text-zinc-500 dark:text-zinc-400"
+              >
                 Enter required OAuth scopes one by one.
               </p>
               <div className="flex items-center gap-2 mt-1">
@@ -294,14 +356,46 @@ function ProviderSettingsDialog({
   );
 }
 
-const PROVIDERS: { name: string; icon: string; provider: SocialConnectionProvider }[] = [
-  { name: "Google", icon: GoogleIcon, provider: SocialConnectionProvider.GoogleOauth },
-  { name: "GitHub", icon: GithubIcon, provider: SocialConnectionProvider.GithubOauth },
-  { name: "Facebook", icon: FacebookIcon, provider: SocialConnectionProvider.FacebookOauth },
-  { name: "Apple", icon: AppleIcon, provider: SocialConnectionProvider.AppleOauth },
-  { name: "Microsoft", icon: MicrosoftIcon, provider: SocialConnectionProvider.MicrosoftOauth },
-  { name: "LinkedIn", icon: LinkedInIcon, provider: SocialConnectionProvider.LinkedinOauth },
-  { name: "Discord", icon: DiscordIcon, provider: SocialConnectionProvider.DiscordOauth },
+const PROVIDERS: {
+  name: string;
+  icon: string;
+  provider: SocialConnectionProvider;
+}[] = [
+  {
+    name: "Google",
+    icon: GoogleIcon,
+    provider: SocialConnectionProvider.GoogleOauth,
+  },
+  {
+    name: "GitHub",
+    icon: GithubIcon,
+    provider: SocialConnectionProvider.GithubOauth,
+  },
+  {
+    name: "Facebook",
+    icon: FacebookIcon,
+    provider: SocialConnectionProvider.FacebookOauth,
+  },
+  {
+    name: "Apple",
+    icon: AppleIcon,
+    provider: SocialConnectionProvider.AppleOauth,
+  },
+  {
+    name: "Microsoft",
+    icon: MicrosoftIcon,
+    provider: SocialConnectionProvider.MicrosoftOauth,
+  },
+  {
+    name: "LinkedIn",
+    icon: LinkedInIcon,
+    provider: SocialConnectionProvider.LinkedinOauth,
+  },
+  {
+    name: "Discord",
+    icon: DiscordIcon,
+    provider: SocialConnectionProvider.DiscordOauth,
+  },
 ];
 
 type SelectedProviderInfo = {
@@ -311,23 +405,29 @@ type SelectedProviderInfo = {
 } | null;
 
 export default function SSOConnectionsPage() {
-  const [selectedProviderInfo, setSelectedProviderInfo] = useState<SelectedProviderInfo>(null);
+  const [selectedProviderInfo, setSelectedProviderInfo] =
+    useState<SelectedProviderInfo>(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
-  const { data: socialConnections, isLoading } = useDeploymentSocialConnections();
+  const { data: socialConnections, isLoading } =
+    useDeploymentSocialConnections();
   const { selectedDeployment } = useProjects();
 
   console.log(selectedDeployment?.mode === "production");
 
   const providerConnections = useMemo(() => {
     return PROVIDERS.map((provider) => {
-      const connection = socialConnections?.find((connection) => connection.provider === provider.provider);
+      const connection = socialConnections?.find(
+        (connection) => connection.provider === provider.provider,
+      );
       return { ...provider, connection };
     });
-  }, [socialConnections, PROVIDERS]);
+  }, [socialConnections]);
 
   console.log(providerConnections);
 
-  const handleOpenSettings = (providerInfo: typeof providerConnections[0]) => {
+  const handleOpenSettings = (
+    providerInfo: (typeof providerConnections)[0],
+  ) => {
     setSelectedProviderInfo({
       name: providerInfo.name,
       provider: providerInfo.provider,
@@ -343,14 +443,17 @@ export default function SSOConnectionsPage() {
     }, 100);
   };
 
-  const handleSwitchToggle = (providerInfo: typeof providerConnections[0], checked: boolean) => {
+  const handleSwitchToggle = (
+    providerInfo: (typeof providerConnections)[0],
+    checked: boolean,
+  ) => {
     if (!selectedDeployment) return;
 
     if (checked) {
       handleOpenSettings(providerInfo);
     } else {
       window.alert(
-        `Disabling ${providerInfo.name} requires confirmation or further action. This action is not yet fully implemented.`
+        `Disabling ${providerInfo.name} requires confirmation or further action. This action is not yet fully implemented.`,
       );
     }
   };
@@ -401,16 +504,15 @@ export default function SSOConnectionsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button
-                    plain
-                    onClick={() => handleOpenSettings(provider)}
-                  >
+                  <Button plain onClick={() => handleOpenSettings(provider)}>
                     <Cog6ToothIcon />
                   </Button>
                   <Switch
                     name={`${provider.name.toLowerCase()}_enabled`}
                     checked={provider.connection?.enabled ?? false}
-                    onChange={(checked: boolean) => handleSwitchToggle(provider, checked)}
+                    onChange={(checked: boolean) =>
+                      handleSwitchToggle(provider, checked)
+                    }
                   />
                 </div>
               </div>
@@ -421,4 +523,3 @@ export default function SSOConnectionsPage() {
     </>
   );
 }
-
