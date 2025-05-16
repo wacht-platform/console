@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "../client";
 import { useProjects } from "@/lib/api/hooks/use-projects";
+import { PaginatedResponse, QueryParams } from "@/types/api";
 
 interface UserWithIdentifiers {
   id: string;
@@ -14,30 +15,18 @@ interface UserWithIdentifiers {
   primary_phone_number: string | null;
 }
 
-interface PaginatedResponse<T> {
-  data: T[];
-  has_next: boolean;
-}
-
-interface UsersQueryParams {
-  offset?: number;
-  sort_key?: string;
-  sort_order?: string;
-  limit?: number;
-}
-
 async function fetchUsers(
   deploymentId: string,
-  params: UsersQueryParams,
+  params: QueryParams,
 ): Promise<PaginatedResponse<UserWithIdentifiers>> {
   const { data } = await apiClient.get<PaginatedResponse<UserWithIdentifiers>>(
-    `/deployment/${deploymentId}/users`,
+    `/deployments/${deploymentId}/users`,
     { params },
   );
   return data;
 }
 
-export function useUsers(params: UsersQueryParams = {}) {
+export function useDeploymentUsers(params: QueryParams = {}) {
   const { selectedDeployment } = useProjects();
 
   return useQuery({
