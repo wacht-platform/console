@@ -13,21 +13,25 @@ const OAuthApplicationsPage = lazy(() => import("./pages/auth/oauth"));
 const Web3AuthPage = lazy(() => import("./pages/auth/web3"));
 const RestrictionsPage = lazy(() => import("./pages/auth/restrictions"));
 const ManageOrganizationsPage = lazy(
-  () => import("./pages/manage-organizations")
+  () => import("./pages/manage-organizations"),
 );
 const ManageWorkspacesPage = lazy(() => import("./pages/manage-workspaces"));
 const PortalPage = lazy(() => import("./pages/portal"));
 const EmailsPage = lazy(() => import("./pages/emails"));
 const EmailTemplateEditor = lazy(
-  () => import("./pages/emails/template-editor")
+  () => import("./pages/emails/template-editor"),
 );
 const SMSPage = lazy(() => import("./pages/sms"));
 const ApplicationSettingsPage = lazy(() => import("./pages/settings"));
 const ProjectsPage = lazy(() => import("./pages/projects"));
 const JWTTemplatesPage = lazy(() => import("./pages/auth/jwt-templates"));
 const JWTTemplateCreateUpdatePage = lazy(
-  () => import("./pages/auth/jwt-template-create-update")
+  () => import("./pages/auth/jwt-template-create-update"),
 );
+// AI Agents pages
+const CreateAgentsPage = lazy(() => import("./pages/ai-agents/create-agents"));
+const WorkflowsPage = lazy(() => import("./pages/ai-agents/workflows"));
+const ConfigureMCPPage = lazy(() => import("./pages/ai-agents/configure-mcp"));
 
 export const router = createBrowserRouter([
   {
@@ -137,6 +141,35 @@ export const router = createBrowserRouter([
                 ),
               },
             ],
+          },
+        ],
+      },
+      {
+        path: "ai-agents",
+        children: [
+          {
+            path: "create",
+            element: (
+              <Suspense fallback={<LoadingFallback />}>
+                <CreateAgentsPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "workflows",
+            element: (
+              <Suspense fallback={<LoadingFallback />}>
+                <WorkflowsPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "configure-mcp",
+            element: (
+              <Suspense fallback={<LoadingFallback />}>
+                <ConfigureMCPPage />
+              </Suspense>
+            ),
           },
         ],
       },

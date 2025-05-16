@@ -35,6 +35,9 @@ import {
   BriefcaseIcon,
   NoSymbolIcon,
   DocumentTextIcon,
+  FireIcon,
+  ServerStackIcon,
+  CodeBracketSquareIcon,
 } from "@heroicons/react/24/outline";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { capitalize } from "@/lib/capitalize";
@@ -202,6 +205,27 @@ export function ApplicationLayout() {
               >
                 <DropdownIcon icon={BriefcaseIcon} />
                 <SidebarLabel>Workspaces</SidebarLabel>
+              </SidebarItem>
+            </SidebarSection>
+
+            <SidebarDivider />
+
+            <SidebarSection className="max-lg:hidden">
+              <SidebarHeading>AI Agents</SidebarHeading>
+
+              <SidebarItem href={createNavigationLink("ai-agents/create")}>
+                <DropdownIcon icon={CodeBracketSquareIcon} />
+                <SidebarLabel>Create Agents</SidebarLabel>
+              </SidebarItem>
+
+              <SidebarItem href={createNavigationLink("ai-agents/workflows")}>
+                <DropdownIcon icon={FireIcon} />
+                <SidebarLabel>Workflows</SidebarLabel>
+              </SidebarItem>
+
+              <SidebarItem href={createNavigationLink("ai-agents/configure-mcp")}>
+                <DropdownIcon icon={ServerStackIcon} />
+                <SidebarLabel>Configure MCP</SidebarLabel>
               </SidebarItem>
             </SidebarSection>
 
