@@ -31,7 +31,9 @@ const JWTTemplateCreateUpdatePage = lazy(
 // AI Agents pages
 const CreateAgentsPage = lazy(() => import("./pages/ai-agents/create-agents"));
 const WorkflowsPage = lazy(() => import("./pages/ai-agents/workflows"));
-const ConfigureMCPPage = lazy(() => import("./pages/ai-agents/configure-mcp"));
+const CreateWorkflowPage = lazy(
+  () => import("./pages/ai-agents/create-workflow"),
+);
 
 export const router = createBrowserRouter([
   {
@@ -145,10 +147,10 @@ export const router = createBrowserRouter([
         ],
       },
       {
-        path: "ai-agents",
+        path: "llms",
         children: [
           {
-            path: "create",
+            path: "ai-agents",
             element: (
               <Suspense fallback={<LoadingFallback />}>
                 <CreateAgentsPage />
@@ -164,10 +166,10 @@ export const router = createBrowserRouter([
             ),
           },
           {
-            path: "configure-mcp",
+            path: "workflows/create-workflow",
             element: (
               <Suspense fallback={<LoadingFallback />}>
-                <ConfigureMCPPage />
+                <CreateWorkflowPage />
               </Suspense>
             ),
           },

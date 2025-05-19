@@ -3,6 +3,7 @@ import {
   PlusIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router";
 import { Heading } from "../../components/ui/heading";
 import { Button } from "../../components/ui/button";
 import { Input, InputGroup } from "../../components/ui/input";
@@ -61,6 +62,12 @@ const workflows: Workflow[] = [
 ];
 
 export default function WorkflowsPage() {
+  const navigate = useNavigate();
+
+  const handleCreateWorkflow = () => {
+    navigate("./create-workflow");
+  };
+
   return (
     <div>
       <div className="flex flex-col gap-2 mb-2">
@@ -76,7 +83,7 @@ export default function WorkflowsPage() {
             </InputGroup>
           </div>
         </div>
-        <Button>
+        <Button onClick={handleCreateWorkflow}>
           <PlusIcon className="mr-2 h-4 w-4" />
           Create Workflow
         </Button>
@@ -111,7 +118,14 @@ export default function WorkflowsPage() {
                 <TableCell>{workflow.agentsCount} agents</TableCell>
                 <TableCell>
                   <div className="flex gap-2">
-                    <Button outline>Edit</Button>
+                    <Button
+                      outline
+                      onClick={() =>
+                        navigate(`/ai-agents/create-workflow?id=${workflow.id}`)
+                      }
+                    >
+                      Edit
+                    </Button>
                     <Button outline className="text-red-600 hover:bg-red-50">
                       Delete
                     </Button>

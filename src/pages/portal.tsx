@@ -107,8 +107,8 @@ export default function PortalPage() {
       // Check if it's a valid URL
       try {
         new URL(url);
-        return undefined;
-      } catch (e) {
+        return undefined; // Return undefined if URL is valid
+      } catch {
         return "Please enter a valid URL (e.g., https://example.com or /path)";
       }
     };
@@ -233,7 +233,7 @@ export default function PortalPage() {
     afterSignOutAllPageUrl,
   ]);
 
-  const updateField = <T extends unknown>(
+  const updateField = <T,>(
     setter: React.Dispatch<React.SetStateAction<T>>,
     value: T,
     fieldName?: keyof ValidationErrors

@@ -4,19 +4,19 @@
 
 /* Tab animations */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .tab-content-animation {
-  animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: opacity, transform;
+    animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: opacity, transform;
 }
 
 * {
@@ -45,6 +45,11 @@
     background: #6b7280;
 }
 
-.jodit-wysiwyg {
-    padding: 0px !important;
+.react-flow__handle {
+    width: 12px !important;
+    height: 12px !important;
+}
+
+.react-flow__node {
+    min-width: 350px;
 }

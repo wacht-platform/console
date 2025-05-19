@@ -38,7 +38,7 @@ type TabData = {
 };
 
 // Optimized TabItem component
-export const TabItem = memo(function TabItem(_: TabItemProps) {
+export const TabItem = memo(function TabItem() {
   // This component doesn't render anything directly
   // It's just a data container for the Tabs component
   return null;
@@ -56,8 +56,8 @@ export function Tabs({
   const [selectedIndex, setSelectedIndex] = useState(defaultIndex);
 
   // Extract tab data from children once
-  const tabData = useMemo(() => {
-    const tabs: TabData[] = [];
+    const tabData = useMemo<TabData[]>(() => {
+      const tabs: TabData[] = [];
 
     Children.forEach(children, (child, index) => {
       if (isValidElement(child) && child.type === TabItem) {

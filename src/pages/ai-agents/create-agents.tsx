@@ -14,7 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
-import { Badge } from "../../components/ui/badge";
 
 interface Agent {
   id: string;
@@ -31,27 +30,6 @@ const agents: Agent[] = [
     description: "Handles customer inquiries and support tickets",
     status: "active",
     lastModified: "2023-09-15",
-  },
-  {
-    id: "agent-2",
-    name: "Data Analysis Agent",
-    description: "Processes and analyzes data from multiple sources",
-    status: "active",
-    lastModified: "2023-09-10",
-  },
-  {
-    id: "agent-3",
-    name: "Content Generator",
-    description: "Creates marketing content based on product information",
-    status: "draft",
-    lastModified: "2023-09-05",
-  },
-  {
-    id: "agent-4",
-    name: "Code Review Agent",
-    description: "Reviews code for bugs and security issues",
-    status: "inactive",
-    lastModified: "2023-08-28",
   },
 ];
 
@@ -83,7 +61,6 @@ export default function CreateAgentsPage() {
             <TableRow>
               <TableHeader>Name</TableHeader>
               <TableHeader>Description</TableHeader>
-              <TableHeader>Status</TableHeader>
               <TableHeader>Last Modified</TableHeader>
               <TableHeader className="w-[100px]">Actions</TableHeader>
             </TableRow>
@@ -100,9 +77,6 @@ export default function CreateAgentsPage() {
                   </div>
                 </TableCell>
                 <TableCell>{agent.description}</TableCell>
-                <TableCell>
-                  <Badge>{agent.status}</Badge>
-                </TableCell>
                 <TableCell>{agent.lastModified}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">
