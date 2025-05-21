@@ -6,8 +6,8 @@ import { DeploymentProvider } from "@snipextt/wacht";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <DeploymentProvider publicKey="aHR0cDovL2xvY2FsaG9zdDozMDAw">
+    <DeploymentProvider publicKey="aHR0cHM6Ly9kaW13aXR0ZWQtYXhpcy0xLmJhY2tlbmQtYXBpLnNlcnZpY2Vz">
       <App />
     </DeploymentProvider>
-  </StrictMode>,
+  </StrictMode>
 );
