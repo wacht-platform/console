@@ -9,5 +9,5 @@ createRoot(document.getElementById("root")!).render(
     <DeploymentProvider publicKey="aHR0cHM6Ly9kaW13aXR0ZWQtYXhpcy0xLmJhY2tlbmQtYXBpLnNlcnZpY2Vz">
       <App />
     </DeploymentProvider>
-  </StrictMode>
+  </StrictMode>,
 );
