@@ -13,6 +13,7 @@ import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 // Interface for the Tabs component
 export interface TabsProps {
   defaultIndex?: number;
+  selectedIndex?: number;
   variant?: "pills" | "underline" | "contained" | "minimal";
   size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
@@ -38,7 +39,10 @@ type TabData = {
 };
 
 // Optimized TabItem component
-export const TabItem = memo(function TabItem() {
+export const TabItem = memo(function TabItem(
+  // Using props without destructuring to avoid unused variable warnings
+  _props: TabItemProps
+) {
   // This component doesn't render anything directly
   // It's just a data container for the Tabs component
   return null;
@@ -47,17 +51,23 @@ export const TabItem = memo(function TabItem() {
 // Optimized Tabs component
 export function Tabs({
   defaultIndex = 0,
+  selectedIndex,
   variant = "pills",
   size = "md",
   fullWidth = false,
   onChange,
   children,
 }: TabsProps) {
-  const [selectedIndex, setSelectedIndex] = useState(defaultIndex);
+  const [internalSelectedIndex, setInternalSelectedIndex] =
+    useState(defaultIndex);
+
+  // Use selectedIndex from props if provided, otherwise use internal state
+  const actualSelectedIndex =
+    selectedIndex !== undefined ? selectedIndex : internalSelectedIndex;
 
   // Extract tab data from children once
-    const tabData = useMemo<TabData[]>(() => {
-      const tabs: TabData[] = [];
+  const tabData = useMemo<TabData[]>(() => {
+    const tabs: TabData[] = [];
 
     Children.forEach(children, (child, index) => {
       if (isValidElement(child) && child.type === TabItem) {
@@ -83,10 +93,13 @@ export function Tabs({
   // Memoize the handler to prevent unnecessary re-renders
   const handleChange = useCallback(
     (index: number) => {
-      setSelectedIndex(index);
+      // Only update internal state if not in controlled mode
+      if (selectedIndex === undefined) {
+        setInternalSelectedIndex(index);
+      }
       onChange?.(index);
     },
-    [onChange]
+    [onChange, selectedIndex]
   );
 
   // Memoize style classes
@@ -182,7 +195,7 @@ export function Tabs({
   if (tabData.length === 0) return null;
 
   return (
-    <TabGroup selectedIndex={selectedIndex} onChange={handleChange}>
+    <TabGroup selectedIndex={actualSelectedIndex} onChange={handleChange}>
       <TabList
         className={`flex ${containerClasses} ${fullWidth ? "w-full" : ""}`}
       >

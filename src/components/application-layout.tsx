@@ -60,7 +60,7 @@ export function ApplicationLayout() {
     (pathname: string) => {
       return `/project/${selectedProject?.id}/deployment/${selectedDeployment?.id}/${pathname}`;
     },
-    [selectedDeployment, selectedProject],
+    [selectedDeployment, selectedProject]
   );
 
   if (isLoading) {
@@ -197,13 +197,6 @@ export function ApplicationLayout() {
               >
                 <DropdownIcon icon={BuildingOffice2Icon} />
                 <SidebarLabel>Organizations</SidebarLabel>
-              </SidebarItem>
-              <SidebarItem
-                href={createNavigationLink("workspaces")}
-                current={pathname.startsWith("/workspaces")}
-              >
-                <DropdownIcon icon={BriefcaseIcon} />
-                <SidebarLabel>Workspaces</SidebarLabel>
               </SidebarItem>
             </SidebarSection>
 

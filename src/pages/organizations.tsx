@@ -16,14 +16,18 @@ import { format } from "date-fns";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { useDeploymentOrganizations } from "@/lib/api/hooks/use-deployment-organizations";
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
+import { useNavigate } from "react-router";
+import { CreateOrganizationModal } from "@/components/organizations/CreateOrganizationModal";
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
 
 export default function OrganizationsPage() {
+  const navigate = useNavigate();
   const [sortKey, setSortKey] = useState<string>("created_at");
   const [sortOrder, setSortOrder] = useState<string>("desc");
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_OPTIONS[0]);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const { data: organizations, isLoading } = useDeploymentOrganizations();
 
   const data = {
@@ -49,6 +53,11 @@ export default function OrganizationsPage() {
 
   return (
     <div>
+      <CreateOrganizationModal
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+      />
+
       <div className="flex flex-col gap-2 mb-2">
         <Heading>Organizations</Heading>
       </div>
@@ -82,7 +91,9 @@ export default function OrganizationsPage() {
             </div>
           </div>
         </div>
-        <Button>Create Organization</Button>
+        <Button onClick={() => setCreateModalOpen(true)}>
+          Create Organization
+        </Button>
       </div>
 
       <div className="mt-6">
@@ -109,7 +120,11 @@ export default function OrganizationsPage() {
               </TableRow>
             ) : (
               data?.data.map((org) => (
-                <TableRow key={org.id}>
+                <TableRow
+                  key={org.id}
+                  className="cursor-pointer hover:bg-gray-50"
+                  onClick={() => navigate(`../organization/${org.id}`)}
+                >
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <span>{org.name}</span>

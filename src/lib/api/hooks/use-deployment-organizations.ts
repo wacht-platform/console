@@ -16,11 +16,11 @@ interface Organization {
 
 async function fetchOrganizations(
   deploymentId: string,
-  params: QueryParams,
+  params: QueryParams
 ): Promise<PaginatedResponse<Organization>> {
   const { data } = await apiClient.get<PaginatedResponse<Organization>>(
     `/deployments/${deploymentId}/organizations`,
-    { params },
+    { params }
   );
   return data;
 }

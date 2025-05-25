@@ -5,34 +5,36 @@ import { LoadingFallback } from "@/components/loading-fallback";
 
 const OverviewPage = lazy(() => import("./pages/overview"));
 const UsersPage = lazy(() => import("./pages/users"));
+const UserDetailsPage = lazy(() => import("./pages/user/[id]"));
 const OrganizationsPage = lazy(() => import("./pages/organizations"));
-const WorkspacesPage = lazy(() => import("./pages/workspaces"));
+const OrganizationDetailsPage = lazy(() => import("./pages/organization/[id]"));
+const WorkspaceDetailsPage = lazy(() => import("./pages/workspace/[id]"));
 const SchemaFactorsPage = lazy(() => import("./pages/auth/schema-factors"));
 const SSOConnectionsPage = lazy(() => import("./pages/auth/social-login"));
 const OAuthApplicationsPage = lazy(() => import("./pages/auth/oauth"));
 const Web3AuthPage = lazy(() => import("./pages/auth/web3"));
 const RestrictionsPage = lazy(() => import("./pages/auth/restrictions"));
 const ManageOrganizationsPage = lazy(
-  () => import("./pages/manage-organizations"),
+  () => import("./pages/manage-organizations")
 );
 const ManageWorkspacesPage = lazy(() => import("./pages/manage-workspaces"));
 const PortalPage = lazy(() => import("./pages/portal"));
 const EmailsPage = lazy(() => import("./pages/emails"));
 const EmailTemplateEditor = lazy(
-  () => import("./pages/emails/template-editor"),
+  () => import("./pages/emails/template-editor")
 );
 const SMSPage = lazy(() => import("./pages/sms"));
 const ApplicationSettingsPage = lazy(() => import("./pages/settings"));
 const ProjectsPage = lazy(() => import("./pages/projects"));
 const JWTTemplatesPage = lazy(() => import("./pages/auth/jwt-templates"));
 const JWTTemplateCreateUpdatePage = lazy(
-  () => import("./pages/auth/jwt-template-create-update"),
+  () => import("./pages/auth/jwt-template-create-update")
 );
 // AI Agents pages
 const CreateAgentsPage = lazy(() => import("./pages/ai-agents/create-agents"));
 const WorkflowsPage = lazy(() => import("./pages/ai-agents/workflows"));
 const CreateWorkflowPage = lazy(
-  () => import("./pages/ai-agents/create-workflow"),
+  () => import("./pages/ai-agents/create-workflow")
 );
 
 export const router = createBrowserRouter([
@@ -57,6 +59,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: "user/:id",
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <UserDetailsPage />
+          </Suspense>
+        ),
+      },
+      {
         path: "organizations",
         element: (
           <Suspense fallback={<LoadingFallback />}>
@@ -65,10 +75,18 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "workspaces",
+        path: "organization/:id",
         element: (
           <Suspense fallback={<LoadingFallback />}>
-            <WorkspacesPage />
+            <OrganizationDetailsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "workspace/:id",
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <WorkspaceDetailsPage />
           </Suspense>
         ),
       },

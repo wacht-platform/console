@@ -2,34 +2,54 @@ import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "../client";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { PaginatedResponse, QueryParams } from "@/types/api";
-
-interface UserWithIdentifiers {
-  id: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
-  first_name: string;
-  last_name: string;
-  username: string | null;
-  primary_email_address: string | null;
-  primary_phone_number: string | null;
-}
+import {
+  UserWithIdentifiers,
+  DeploymentInvitation,
+  DeploymentWaitlistUser,
+} from "@/types/user";
 
 async function fetchUsers(
   deploymentId: string,
-  params: QueryParams,
+  params: QueryParams
 ): Promise<PaginatedResponse<UserWithIdentifiers>> {
   const { data } = await apiClient.get<PaginatedResponse<UserWithIdentifiers>>(
     `/deployments/${deploymentId}/users`,
-    { params },
+    { params }
   );
   return data;
 }
 
-export function useDeploymentUsers(params: QueryParams = {}) {
+async function fetchInvitedUsers(
+  deploymentId: string,
+  params: QueryParams
+): Promise<PaginatedResponse<DeploymentInvitation>> {
+  const { data } = await apiClient.get<PaginatedResponse<DeploymentInvitation>>(
+    `/deployments/${deploymentId}/invited-users`,
+    { params }
+  );
+  return data;
+}
+
+async function fetchUserWaitlist(
+  deploymentId: string,
+  params: QueryParams
+): Promise<PaginatedResponse<DeploymentWaitlistUser>> {
+  const { data } = await apiClient.get<
+    PaginatedResponse<DeploymentWaitlistUser>
+  >(`/deployments/${deploymentId}/user-waitlist`, { params });
+  return data;
+}
+
+type ExtendedHookParams = QueryParams & {
+  enabled: boolean;
+};
+
+export function useDeploymentUsers(
+  params: ExtendedHookParams = { enabled: true }
+) {
   const { selectedDeployment } = useProjects();
 
-  return useQuery({
+  return useQuery<PaginatedResponse<UserWithIdentifiers>, Error>({
     queryKey: ["users", selectedDeployment?.id, params],
     queryFn: () => {
       if (!selectedDeployment?.id) {
@@ -37,6 +57,34 @@ export function useDeploymentUsers(params: QueryParams = {}) {
       }
       return fetchUsers(selectedDeployment.id.toString(), params);
     },
-    enabled: !!selectedDeployment?.id,
+    enabled: !!selectedDeployment?.id && params.enabled,
+  });
+}
+
+export function useDeploymentInvitedUsers(params: ExtendedHookParams) {
+  const { selectedDeployment } = useProjects();
+  return useQuery<PaginatedResponse<DeploymentInvitation>, Error>({
+    queryKey: ["invited-users", selectedDeployment?.id, params],
+    queryFn: () => {
+      if (!selectedDeployment?.id) {
+        throw new Error("No deployment selected");
+      }
+      return fetchInvitedUsers(selectedDeployment.id.toString(), params);
+    },
+    enabled: !!selectedDeployment?.id && params.enabled,
+  });
+}
+
+export function useDeploymentWaitlist(params: ExtendedHookParams) {
+  const { selectedDeployment } = useProjects();
+  return useQuery<PaginatedResponse<DeploymentWaitlistUser>, Error>({
+    queryKey: ["user-waitlist", selectedDeployment?.id, params],
+    queryFn: () => {
+      if (!selectedDeployment?.id) {
+        throw new Error("No deployment selected");
+      }
+      return fetchUserWaitlist(selectedDeployment.id.toString(), params);
+    },
+    enabled: !!selectedDeployment?.id && params.enabled,
   });
 }

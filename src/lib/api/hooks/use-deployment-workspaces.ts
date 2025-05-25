@@ -3,7 +3,7 @@ import { apiClient } from "../client";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { PaginatedResponse, QueryParams } from "@/types/api";
 
-interface Organization {
+interface WorkspaceWithOrgName {
   id: string;
   created_at: string;
   updated_at: string;
@@ -12,15 +12,15 @@ interface Organization {
   image_url: string;
   description: string;
   member_count: number;
+  organization_name: string;
 }
-
 async function fetchWorkspaces(
   deploymentId: string,
-  params: QueryParams,
-): Promise<PaginatedResponse<Organization>> {
-  const { data } = await apiClient.get<PaginatedResponse<Organization>>(
+  params: QueryParams
+): Promise<PaginatedResponse<WorkspaceWithOrgName>> {
+  const { data } = await apiClient.get<PaginatedResponse<WorkspaceWithOrgName>>(
     `/deployments/${deploymentId}/workspaces`,
-    { params },
+    { params }
   );
   return data;
 }
