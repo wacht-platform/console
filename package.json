@@ -13,7 +13,7 @@
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
     "@monaco-editor/react": "^4.7.0",
-    "@snipextt/wacht": "link:/Users/snipextt/code/wacht/wacht-frontend/react-component-lib",
+    "@snipextt/wacht": "0.0.1-alpha.17",
     "@tailwindcss/vite": "^4.0.1",
     "@tanstack/react-query": "^5.66.0",
     "@xyflow/react": "^12.6.4",
