@@ -10,6 +10,9 @@ import {
 	TableHeader,
 	TableRow,
 } from "../components/ui/table";
+import { DnsVerificationPanel } from "../components/dns-verification-panel";
+import { useProjects } from "../lib/api/hooks/use-projects";
+import { useVerifyDnsRecords } from "../lib/api/hooks/use-dns-verification";
 
 interface User {
 	name: string;
@@ -41,9 +44,60 @@ const recentSignups: User[] = [
 ];
 
 export default function OverviewPage() {
+	const { selectedDeployment } = useProjects();
+	const { mutate: verifyDnsRecords, isPending: isVerifying } =
+		useVerifyDnsRecords();
+
+	const handleVerifyDns = () => {
+		if (selectedDeployment?.id) {
+			verifyDnsRecords({ deploymentId: selectedDeployment.id });
+		}
+	};
+
+	// Check if we need to show DNS verification
+	const shouldShowDnsVerification = () => {
+		if (selectedDeployment?.mode !== "production") return false;
+
+		const domainRecords = [
+			...(selectedDeployment.domain_verification_records
+				?.cloudflare_verification || []),
+			...(selectedDeployment.domain_verification_records
+				?.custom_hostname_verification || []),
+		];
+
+		const emailRecords = [
+			...(selectedDeployment.email_verification_records?.ses_verification ||
+				[]),
+			...(selectedDeployment.email_verification_records
+				?.mail_from_verification || []),
+			...(selectedDeployment.email_verification_records?.dkim_records || []),
+		];
+
+		const allRecords = [...domainRecords, ...emailRecords];
+
+		// Show if there are records and any are not verified
+		return (
+			allRecords.length > 0 && allRecords.some((record) => !record.verified)
+		);
+	};
+
 	return (
 		<div>
 			<Heading>Good afternoon, Saurav</Heading>
+
+			{/* DNS Verification Section - Show when pending */}
+			{shouldShowDnsVerification() && (
+				<div className="mt-8">
+					<DnsVerificationPanel
+						domainRecords={selectedDeployment?.domain_verification_records}
+						emailRecords={selectedDeployment?.email_verification_records}
+						onVerify={handleVerifyDns}
+						isVerifying={isVerifying}
+						compact={true}
+					/>
+				</div>
+			)}
+
 			<div className="mt-8 flex items-end justify-between">
 				<Subheading>Overview</Subheading>
 				<div>

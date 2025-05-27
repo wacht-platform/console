@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-	FireIcon,
+	WrenchScrewdriverIcon,
 	PlusIcon,
 	MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
@@ -16,36 +16,55 @@ import {
 	TableRow,
 } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
-import { CreateWorkflowDialog } from "../../components/ai-agents/create-workflow-dialog";
+import { CreateToolDialog } from "../../components/ai-agents/create-tool-dialog";
 
-interface Workflow {
+interface Tool {
 	id: string;
 	name: string;
 	description: string;
+	type: "api" | "function" | "database" | "external";
 	status: "active" | "inactive" | "draft";
-	agentsCount: number;
-	lastRun: string;
+	lastModified: string;
+	usageCount: number;
 }
 
-const workflows: Workflow[] = [];
+const tools: Tool[] = [];
 
-export default function WorkflowsPage() {
+const getTypeColor = (type: Tool["type"]) => {
+	switch (type) {
+		case "api":
+			return "bg-blue-100 text-blue-800";
+		case "function":
+			return "bg-green-100 text-green-800";
+		case "database":
+			return "bg-purple-100 text-purple-800";
+		case "external":
+			return "bg-orange-100 text-orange-800";
+		default:
+			return "bg-gray-100 text-gray-800";
+	}
+};
+
+export default function ToolsPage() {
 	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-	const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null);
+	const [editingTool, setEditingTool] = useState<Tool | null>(null);
 
-	const handleCreateWorkflow = () => {
+	const handleCreateTool = () => {
 		setIsCreateDialogOpen(true);
 	};
 
-	const handleEditWorkflow = (workflow: Workflow) => {
-		setEditingWorkflow(workflow);
+	const handleEditTool = (tool: Tool) => {
+		setEditingTool(tool);
 		setIsCreateDialogOpen(true);
 	};
 
 	return (
 		<div>
 			<div className="flex flex-col gap-2 mb-2">
-				<Heading>AI Workflows</Heading>
+				<Heading>AI Tools</Heading>
+				<p className="text-sm text-gray-600">
+					Manage tools that can be used by AI agents and workflows
+				</p>
 			</div>
 
 			<div className="flex flex-wrap items-center justify-between gap-4">
@@ -53,30 +72,30 @@ export default function WorkflowsPage() {
 					<div className="mt-4 flex max-w-md gap-2">
 						<InputGroup className="w-64">
 							<MagnifyingGlassIcon className="size-4" />
-							<Input name="search" placeholder="Search workflows..." />
+							<Input name="search" placeholder="Search tools..." />
 						</InputGroup>
 					</div>
 				</div>
-				<Button onClick={handleCreateWorkflow}>
+				<Button onClick={handleCreateTool}>
 					<PlusIcon className="mr-2 h-4 w-4" />
-					Create Workflow
+					Create Tool
 				</Button>
 			</div>
 
 			<div className="mt-6">
-				{workflows.length === 0 ? (
+				{tools.length === 0 ? (
 					<div className="text-center py-12">
-						<FireIcon className="mx-auto h-12 w-12 text-gray-400" />
+						<WrenchScrewdriverIcon className="mx-auto h-12 w-12 text-gray-400" />
 						<h3 className="mt-2 text-sm font-semibold text-gray-900">
-							No workflows
+							No tools
 						</h3>
 						<p className="mt-1 text-sm text-gray-500">
-							Get started by creating your first AI workflow.
+							Get started by creating your first AI tool.
 						</p>
 						<div className="mt-6">
-							<Button onClick={handleCreateWorkflow}>
+							<Button onClick={handleCreateTool}>
 								<PlusIcon className="mr-2 h-4 w-4" />
-								Create Workflow
+								Create Tool
 							</Button>
 						</div>
 					</div>
@@ -86,33 +105,36 @@ export default function WorkflowsPage() {
 							<TableRow>
 								<TableHeader>Name</TableHeader>
 								<TableHeader>Description</TableHeader>
+								<TableHeader>Type</TableHeader>
 								<TableHeader>Status</TableHeader>
-								<TableHeader>Agents</TableHeader>
+								<TableHeader>Usage</TableHeader>
 								<TableHeader className="w-[150px]">Actions</TableHeader>
 							</TableRow>
 						</TableHead>
 						<TableBody>
-							{workflows.map((workflow) => (
-								<TableRow key={workflow.id}>
+							{tools.map((tool) => (
+								<TableRow key={tool.id}>
 									<TableCell>
 										<div className="flex items-center gap-3">
-											<div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 text-orange-600">
-												<FireIcon className="h-4 w-4" />
+											<div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+												<WrenchScrewdriverIcon className="h-4 w-4" />
 											</div>
-											<span className="font-medium">{workflow.name}</span>
+											<span className="font-medium">{tool.name}</span>
 										</div>
 									</TableCell>
-									<TableCell>{workflow.description}</TableCell>
+									<TableCell>{tool.description}</TableCell>
 									<TableCell>
-										<Badge>{workflow.status}</Badge>
+										<Badge className={getTypeColor(tool.type)}>
+											{tool.type}
+										</Badge>
 									</TableCell>
-									<TableCell>{workflow.agentsCount} agents</TableCell>
+									<TableCell>
+										<Badge>{tool.status}</Badge>
+									</TableCell>
+									<TableCell>{tool.usageCount} uses</TableCell>
 									<TableCell>
 										<div className="flex gap-2">
-											<Button
-												outline
-												onClick={() => handleEditWorkflow(workflow)}
-											>
+											<Button outline onClick={() => handleEditTool(tool)}>
 												Edit
 											</Button>
 											<Button outline className="text-red-600 hover:bg-red-50">
@@ -127,13 +149,13 @@ export default function WorkflowsPage() {
 				)}
 			</div>
 
-			<CreateWorkflowDialog
+			<CreateToolDialog
 				open={isCreateDialogOpen}
 				onClose={() => {
 					setIsCreateDialogOpen(false);
-					setEditingWorkflow(null);
+					setEditingTool(null);
 				}}
-				workflow={editingWorkflow}
+				tool={editingTool}
 			/>
 		</div>
 	);

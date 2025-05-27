@@ -38,15 +38,20 @@ import {
 	DocumentTextIcon,
 	FireIcon,
 	CodeBracketSquareIcon,
+	WrenchScrewdriverIcon,
+	BookOpenIcon,
 } from "@heroicons/react/24/outline";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { capitalize } from "@/lib/capitalize";
 import { CreateProjectDialog } from "./create-project-dialog";
+import { CreateProductionDeploymentDialog } from "./create-production-deployment-dialog";
 import { OrganizationSwitcher, UserButton } from "@snipextt/wacht";
 
 export function ApplicationLayout() {
 	const { pathname } = useLocation();
 	const [isCreateProjectDialogOpen, setIsCreateProjectDialogOpen] =
+		useState(false);
+	const [isCreateProductionDialogOpen, setIsCreateProductionDialogOpen] =
 		useState(false);
 	const {
 		projects,
@@ -108,7 +113,7 @@ export function ApplicationLayout() {
 									onClick={() => setIsCreateProjectDialogOpen(true)}
 								>
 									<DropdownIcon icon={PlusIcon} />
-									<DropdownLabel>New project...</DropdownLabel>
+									<DropdownLabel>New project</DropdownLabel>
 								</DropdownItem>
 							</DropdownMenu>
 						</Dropdown>
@@ -149,9 +154,11 @@ export function ApplicationLayout() {
 											</DropdownItem>
 										))}
 										<DropdownDivider />
-										<DropdownItem href="#">
+										<DropdownItem
+											onClick={() => setIsCreateProductionDialogOpen(true)}
+										>
 											<DropdownIcon icon={PlusIcon} />
-											<DropdownLabel>New deployment...</DropdownLabel>
+											<DropdownLabel>Production deployment</DropdownLabel>
 										</DropdownItem>
 									</DropdownMenu>
 								</Dropdown>
@@ -203,12 +210,22 @@ export function ApplicationLayout() {
 
 							<SidebarItem href={createNavigationLink("llms/ai-agents")}>
 								<DropdownIcon icon={CodeBracketSquareIcon} />
-								<SidebarLabel>Create Agents</SidebarLabel>
+								<SidebarLabel>AI Agents</SidebarLabel>
 							</SidebarItem>
 
 							<SidebarItem href={createNavigationLink("llms/workflows")}>
 								<DropdownIcon icon={FireIcon} />
 								<SidebarLabel>Workflows</SidebarLabel>
+							</SidebarItem>
+
+							<SidebarItem href={createNavigationLink("llms/tools")}>
+								<DropdownIcon icon={WrenchScrewdriverIcon} />
+								<SidebarLabel>Tools</SidebarLabel>
+							</SidebarItem>
+
+							<SidebarItem href={createNavigationLink("llms/knowledge-base")}>
+								<DropdownIcon icon={BookOpenIcon} />
+								<SidebarLabel>Knowledge Base</SidebarLabel>
 							</SidebarItem>
 						</SidebarSection>
 
@@ -265,6 +282,13 @@ export function ApplicationLayout() {
 				open={isCreateProjectDialogOpen}
 				onClose={() => setIsCreateProjectDialogOpen(false)}
 			/>
+			{selectedProject && (
+				<CreateProductionDeploymentDialog
+					open={isCreateProductionDialogOpen}
+					onClose={() => setIsCreateProductionDialogOpen(false)}
+					projectId={selectedProject.id}
+				/>
+			)}
 		</SidebarLayout>
 	);
 }
