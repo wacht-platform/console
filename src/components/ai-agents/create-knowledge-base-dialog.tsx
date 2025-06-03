@@ -14,22 +14,14 @@ import {
 	CloudArrowUpIcon,
 	DocumentTextIcon,
 } from "@heroicons/react/24/outline";
-
-interface KnowledgeBaseDocument {
-	id: string;
-	title: string;
-	description: string;
-	type: "pdf" | "markdown";
-	size: string;
-	uploadedAt: string;
-	status: "processing" | "ready" | "error";
-	usageCount: number;
-}
+import { useUploadDocument, type KnowledgeBaseDocument } from "../../lib/api/hooks/use-knowledge-bases";
 
 interface CreateKnowledgeBaseDialogProps {
 	open: boolean;
 	onClose: () => void;
 	document?: KnowledgeBaseDocument | null;
+	deploymentId: string;
+	knowledgeBaseId: string;
 }
 
 interface KnowledgeBaseFormData {
@@ -42,6 +34,8 @@ export function CreateKnowledgeBaseDialog({
 	open,
 	onClose,
 	document,
+	deploymentId,
+	knowledgeBaseId,
 }: CreateKnowledgeBaseDialogProps) {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [formData, setFormData] = useState<KnowledgeBaseFormData>({
@@ -51,13 +45,14 @@ export function CreateKnowledgeBaseDialog({
 	});
 	const [dragActive, setDragActive] = useState(false);
 
+	const uploadMutation = useUploadDocument(deploymentId, knowledgeBaseId);
 	const isEditing = !!document;
 
 	useEffect(() => {
 		if (document) {
 			setFormData({
 				title: document.title,
-				description: document.description,
+				description: document.description || "",
 				file: null, // Can't pre-populate file input
 			});
 		} else {
@@ -69,14 +64,34 @@ export function CreateKnowledgeBaseDialog({
 		}
 	}, [document]);
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		// TODO: Implement knowledge base document upload/update logic
-		console.log(
-			isEditing ? "Updating document:" : "Uploading document:",
-			formData,
-		);
-		onClose();
+
+		if (!formData.file && !isEditing) {
+			return; // File is required for new uploads
+		}
+
+		try {
+			if (isEditing) {
+				// TODO: Implement document update logic
+				console.log("Updating document:", formData);
+			} else {
+				// Upload new document
+				const uploadFormData = new FormData();
+				uploadFormData.append("title", formData.title);
+				if (formData.description) {
+					uploadFormData.append("description", formData.description);
+				}
+				if (formData.file) {
+					uploadFormData.append("file", formData.file);
+				}
+
+				await uploadMutation.mutateAsync(uploadFormData);
+			}
+			onClose();
+		} catch (error) {
+			console.error("Error uploading document:", error);
+		}
 	};
 
 	const handleFileSelect = (file: File) => {
@@ -246,8 +261,16 @@ export function CreateKnowledgeBaseDialog({
 					<Button outline onClick={onClose}>
 						Cancel
 					</Button>
-					<Button type="submit" disabled={!isEditing && !formData.file}>
-						{isEditing ? "Update Document" : "Upload Document"}
+					<Button
+						type="submit"
+						disabled={(!isEditing && !formData.file) || uploadMutation.isPending}
+					>
+						{uploadMutation.isPending
+							? "Uploading..."
+							: isEditing
+								? "Update Document"
+								: "Upload Document"
+						}
 					</Button>
 				</DialogActions>
 			</form>
