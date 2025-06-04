@@ -34,7 +34,7 @@ export function CreateKnowledgeBaseDialog({
 	open,
 	onClose,
 	document,
-	deploymentId,
+	deploymentId: _deploymentId,
 	knowledgeBaseId,
 }: CreateKnowledgeBaseDialogProps) {
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,7 +45,7 @@ export function CreateKnowledgeBaseDialog({
 	});
 	const [dragActive, setDragActive] = useState(false);
 
-	const uploadMutation = useUploadDocument(deploymentId, knowledgeBaseId);
+	const uploadMutation = useUploadDocument(knowledgeBaseId);
 	const isEditing = !!document;
 
 	useEffect(() => {
@@ -185,11 +185,10 @@ export function CreateKnowledgeBaseDialog({
 							<Field>
 								<Label>{isEditing ? "Replace File (Optional)" : "File"}</Label>
 								<div
-									className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-										dragActive
+									className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${dragActive
 											? "border-blue-400 bg-blue-50"
 											: "border-gray-300 hover:border-gray-400"
-									}`}
+										}`}
 									onDragEnter={handleDrag}
 									onDragLeave={handleDrag}
 									onDragOver={handleDrag}

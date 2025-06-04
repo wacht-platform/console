@@ -45,7 +45,7 @@ function App() {
 			<DeploymentInitializing>
 				<LoadingFallback
 					variant="detailed"
-					message="Initializing deployment..."
+					message="Initializing deployment"
 				/>
 			</DeploymentInitializing>
 		</div>

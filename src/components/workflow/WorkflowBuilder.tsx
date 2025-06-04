@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, type DragEvent } from "react";
+import { useState, useRef, useCallback, useEffect, type DragEvent } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -14,6 +14,16 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { Field, FieldGroup, Fieldset, Label } from "@/components/ui/fieldset";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Divider } from "@/components/ui/divider";
+import type {
+  WorkflowFormData,
+  WorkflowNode as WorkflowNodeType,
+  WorkflowEdge as WorkflowEdgeType
+} from "@/types/workflow";
+import { useCreateWorkflow, useUpdateWorkflow } from "@/lib/api/hooks/use-workflows";
 
 import TriggerNode from "./nodes/TriggerNode";
 import SearchKnowledgebaseNode from "./nodes/SearchKnowledgebaseNode";
@@ -25,10 +35,7 @@ import NodeEditModal from "./modals/NodeEditModal";
 
 import { DnDProvider } from "../../contexts/DnDContext";
 import { useDnD } from "@/hooks/useDnD";
-import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
 import { Subheading } from "../ui/heading";
-import { Divider } from "../ui/divider";
 
 const Sidebar = () => {
   const [, setType] = useDnD();
@@ -102,7 +109,13 @@ const nodeTypes = {
   "trigger-new-workflow": TriggerNode,
 };
 
-const DnDFlow = () => {
+interface WorkflowBuilderProps {
+  workflowId?: string;
+  initialWorkflow?: WorkflowFormData;
+  onSave?: (workflow: WorkflowFormData) => void;
+}
+
+const DnDFlow = ({ workflowId, initialWorkflow, onSave }: WorkflowBuilderProps) => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -113,6 +126,61 @@ const DnDFlow = () => {
   const [selectedNode, setSelectedNode] = useState<Node<BaseNodeData> | null>(
     null,
   );
+
+  // Workflow form state
+  const [workflowData, setWorkflowData] = useState<WorkflowFormData>({
+    name: initialWorkflow?.name || "Untitled Workflow",
+    description: initialWorkflow?.description || "",
+    configuration: initialWorkflow?.configuration || {
+      timeout_seconds: 300,
+      max_retries: 3,
+      retry_delay_seconds: 5,
+      enable_logging: true,
+      enable_metrics: true,
+      variables: {},
+    },
+    workflow_definition: initialWorkflow?.workflow_definition || {
+      nodes: [],
+      edges: [],
+      version: "1.0.0",
+    },
+  });
+
+  // API hooks
+  const createWorkflowMutation = useCreateWorkflow();
+  const updateWorkflowMutation = useUpdateWorkflow();
+
+  // Update workflow definition when nodes/edges change
+  useEffect(() => {
+    const workflowNodes: WorkflowNodeType[] = nodes.map(node => ({
+      id: node.id,
+      node_type: { type: "Trigger", config: { trigger_type: "manual" } } as any, // TODO: Map properly
+      position: { x: node.position.x, y: node.position.y },
+      data: {
+        label: (node.data.label as string) || "",
+        description: (node.data.description as string) || "",
+        enabled: true,
+        config: (node.data.config as Record<string, unknown>) || {},
+      },
+    }));
+
+    const workflowEdges: WorkflowEdgeType[] = edges.map(edge => ({
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      source_handle: edge.sourceHandle || undefined,
+      target_handle: edge.targetHandle || undefined,
+    }));
+
+    setWorkflowData(prev => ({
+      ...prev,
+      workflow_definition: {
+        ...prev.workflow_definition,
+        nodes: workflowNodes,
+        edges: workflowEdges,
+      },
+    }));
+  }, [nodes, edges]);
 
   const onConnect: OnConnect = useCallback(
     (params) => {
@@ -263,7 +331,7 @@ const DnDFlow = () => {
     setSelectedNode(null);
   }, []);
 
-  const onSave = useCallback(
+  const onSaveNode = useCallback(
     (nodeId: string, data: Record<string, unknown>) => {
       setNodes((nds) =>
         nds.map((node) => {
@@ -278,6 +346,35 @@ const DnDFlow = () => {
     [setNodes, closeModal],
   );
 
+  const handleSaveWorkflow = useCallback(async () => {
+    try {
+      if (workflowId) {
+        await updateWorkflowMutation.mutateAsync({
+          workflowId,
+          workflow: {
+            name: workflowData.name,
+            description: workflowData.description,
+            configuration: workflowData.configuration,
+            workflow_definition: workflowData.workflow_definition,
+          },
+        });
+      } else {
+        await createWorkflowMutation.mutateAsync({
+          name: workflowData.name,
+          description: workflowData.description,
+          configuration: workflowData.configuration,
+          workflow_definition: workflowData.workflow_definition,
+        });
+      }
+
+      if (onSave) {
+        onSave(workflowData);
+      }
+    } catch (error) {
+      console.error("Failed to save workflow:", error);
+    }
+  }, [workflowId, workflowData, updateWorkflowMutation, createWorkflowMutation, onSave]);
+
   return (
     <div className="flex h-[calc(100vh-200px)] w-full">
       <aside className="w-75 border-r border-gray-200 pr-4 flex flex-col gap-8 overflow-y-auto flex-shrink-0">
@@ -285,15 +382,37 @@ const DnDFlow = () => {
           <FieldGroup>
             <Field>
               <Label>Name</Label>
-              <Input name="name" />
+              <Input
+                name="name"
+                value={workflowData.name}
+                onChange={(e) => setWorkflowData(prev => ({ ...prev, name: e.target.value }))}
+              />
             </Field>
           </FieldGroup>
 
           <FieldGroup>
             <Field>
               <Label>Description</Label>
-              <Textarea name="description" />
+              <Textarea
+                name="description"
+                value={workflowData.description}
+                onChange={(e) => setWorkflowData(prev => ({ ...prev, description: e.target.value }))}
+              />
             </Field>
+          </FieldGroup>
+
+          <FieldGroup>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleSaveWorkflow}
+                disabled={createWorkflowMutation.isPending || updateWorkflowMutation.isPending}
+              >
+                {createWorkflowMutation.isPending || updateWorkflowMutation.isPending
+                  ? "Saving..."
+                  : workflowId ? "Update Workflow" : "Save Workflow"
+                }
+              </Button>
+            </div>
           </FieldGroup>
         </Fieldset>
 
@@ -332,17 +451,17 @@ const DnDFlow = () => {
         isOpen={isModalOpen}
         onClose={closeModal}
         node={selectedNode}
-        onSave={onSave}
+        onSave={onSaveNode}
       />
     </div>
   );
 };
 
-export default function WorkflowBuilder() {
+export default function WorkflowBuilder(props: WorkflowBuilderProps) {
   return (
     <ReactFlowProvider>
       <DnDProvider>
-        <DnDFlow />
+        <DnDFlow {...props} />
       </DnDProvider>
     </ReactFlowProvider>
   );

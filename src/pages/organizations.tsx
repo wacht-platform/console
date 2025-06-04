@@ -33,7 +33,7 @@ export default function OrganizationsPage() {
 
 	const data = {
 		data: organizations?.data || [],
-		has_next: organizations?.has_next,
+		has_next: organizations?.has_more,
 	};
 
 	const hasNextPage = data?.has_next ?? false;

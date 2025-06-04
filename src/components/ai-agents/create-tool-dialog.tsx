@@ -11,52 +11,41 @@ import {
 	DialogDescription,
 	DialogTitle,
 } from "../ui/dialog";
-
-interface Tool {
-	id: string;
-	name: string;
-	description: string;
-	type: "api" | "function" | "database" | "external";
-	status: "active" | "inactive" | "draft";
-	lastModified: string;
-	usageCount: number;
-}
+import type {
+	AiTool,
+	AiToolType,
+	ToolFormData,
+	ApiToolConfiguration,
+	KnowledgeBaseToolConfiguration,
+	HttpMethod,
+} from "../../types/ai-tool";
+import type { DeploymentJWTTemplate } from "../../types/deployment";
 
 interface CreateToolDialogProps {
 	open: boolean;
 	onClose: () => void;
-	tool?: Tool | null;
-}
-
-interface ToolFormData {
-	name: string;
-	description: string;
-	type: "api" | "function" | "database" | "external";
-	configuration: {
-		endpoint?: string;
-		method?: string;
-		headers?: Record<string, string>;
-		parameters?: Array<{
-			name: string;
-			type: string;
-			required: boolean;
-			description: string;
-		}>;
-		code?: string;
-		query?: string;
-	};
+	tool?: AiTool | null;
+	jwtTemplates?: DeploymentJWTTemplate[];
 }
 
 export function CreateToolDialog({
 	open,
 	onClose,
 	tool,
+	jwtTemplates = [],
 }: CreateToolDialogProps) {
 	const [formData, setFormData] = useState<ToolFormData>({
 		name: "",
 		description: "",
 		type: "api",
-		configuration: {},
+		configuration: {
+			type: "Api",
+			endpoint: "",
+			method: "GET",
+			headers: [],
+			query_parameters: [],
+			body_parameters: [],
+		} as ApiToolConfiguration,
 	});
 
 	const isEditing = !!tool;
@@ -65,16 +54,23 @@ export function CreateToolDialog({
 		if (tool) {
 			setFormData({
 				name: tool.name,
-				description: tool.description,
-				type: tool.type,
-				configuration: {}, // TODO: Load actual configuration
+				description: tool.description || "",
+				type: tool.tool_type,
+				configuration: tool.configuration,
 			});
 		} else {
 			setFormData({
 				name: "",
 				description: "",
 				type: "api",
-				configuration: {},
+				configuration: {
+					type: "Api",
+					endpoint: "",
+					method: "GET",
+					headers: [],
+					query_parameters: [],
+					body_parameters: [],
+				} as ApiToolConfiguration,
 			});
 		}
 	}, [tool]);
@@ -89,18 +85,19 @@ export function CreateToolDialog({
 	const renderConfigurationFields = () => {
 		switch (formData.type) {
 			case "api":
+				const apiConfig = formData.configuration as ApiToolConfiguration;
 				return (
 					<div className="space-y-4">
 						<Field>
 							<Label>API Endpoint</Label>
 							<Input
 								placeholder="https://api.example.com/endpoint"
-								value={formData.configuration.endpoint || ""}
+								value={apiConfig.endpoint}
 								onChange={(e) =>
 									setFormData({
 										...formData,
 										configuration: {
-											...formData.configuration,
+											...apiConfig,
 											endpoint: e.target.value,
 										},
 									})
@@ -110,13 +107,13 @@ export function CreateToolDialog({
 						<Field>
 							<Label>HTTP Method</Label>
 							<Select
-								value={formData.configuration.method || "GET"}
+								value={apiConfig.method}
 								onChange={(e) =>
 									setFormData({
 										...formData,
 										configuration: {
-											...formData.configuration,
-											method: e.target.value,
+											...apiConfig,
+											method: e.target.value as HttpMethod,
 										},
 									})
 								}
@@ -128,71 +125,149 @@ export function CreateToolDialog({
 								<option value="PATCH">PATCH</option>
 							</Select>
 						</Field>
+
+						{/* Authorization Section */}
+						<Field>
+							<Label>Authorization</Label>
+							<div className="space-y-2">
+								<label className="flex items-center space-x-2">
+									<input
+										type="checkbox"
+										checked={apiConfig.authorization?.authorize_as_user || false}
+										onChange={(e) =>
+											setFormData({
+												...formData,
+												configuration: {
+													...apiConfig,
+													authorization: {
+														...apiConfig.authorization,
+														authorize_as_user: e.target.checked,
+														jwt_template_id: apiConfig.authorization?.jwt_template_id,
+														custom_headers: apiConfig.authorization?.custom_headers || [],
+													},
+												},
+											})
+										}
+									/>
+									<span>Authorize as user</span>
+								</label>
+
+								{apiConfig.authorization?.authorize_as_user && (
+									<Field>
+										<Label>JWT Template</Label>
+										<Select
+											value={apiConfig.authorization?.jwt_template_id || ""}
+											onChange={(e) =>
+												setFormData({
+													...formData,
+													configuration: {
+														...apiConfig,
+														authorization: {
+															...apiConfig.authorization!,
+															jwt_template_id: e.target.value || undefined,
+														},
+													},
+												})
+											}
+										>
+											<option value="">Select JWT Template</option>
+											{jwtTemplates.map((template) => (
+												<option key={template.id} value={template.id}>
+													{template.name}
+												</option>
+											))}
+										</Select>
+									</Field>
+								)}
+							</div>
+						</Field>
 					</div>
 				);
-			case "function":
+			case "knowledge_base":
+				const kbConfig = formData.configuration as KnowledgeBaseToolConfiguration;
 				return (
-					<Field>
-						<Label>Function Code</Label>
-						<Textarea
-							rows={8}
-							placeholder="// Write your function code here
-function myTool(input) {
-  // Your logic here
-  return result;
-}"
-							value={formData.configuration.code || ""}
-							onChange={(e) =>
-								setFormData({
-									...formData,
-									configuration: {
-										...formData.configuration,
-										code: e.target.value,
-									},
-								})
-							}
-						/>
-					</Field>
-				);
-			case "database":
-				return (
-					<Field>
-						<Label>SQL Query Template</Label>
-						<Textarea
-							rows={4}
-							placeholder="SELECT * FROM users WHERE id = {{user_id}}"
-							value={formData.configuration.query || ""}
-							onChange={(e) =>
-								setFormData({
-									...formData,
-									configuration: {
-										...formData.configuration,
-										query: e.target.value,
-									},
-								})
-							}
-						/>
-					</Field>
-				);
-			case "external":
-				return (
-					<Field>
-						<Label>External Service Configuration</Label>
-						<Textarea
-							rows={4}
-							placeholder="Configure external service connection details..."
-							value={formData.configuration.endpoint || ""}
-							onChange={(e) =>
-								setFormData({
-									...formData,
-									configuration: {
-										...formData.configuration,
-										endpoint: e.target.value,
-									},
-								})
-							}
-						/>
-					</Field>
+					<div className="space-y-4">
+						<Field>
+							<Label>Knowledge Base ID</Label>
+							<Input
+								placeholder="Enter knowledge base ID"
+								value={kbConfig.knowledge_base_id}
+								onChange={(e) =>
+									setFormData({
+										...formData,
+										configuration: {
+											...kbConfig,
+											knowledge_base_id: e.target.value,
+										},
+									})
+								}
+							/>
+						</Field>
+						<Field>
+							<Label>Max Results</Label>
+							<Input
+								type="number"
+								placeholder="10"
+								value={kbConfig.search_settings.max_results || ""}
+								onChange={(e) =>
+									setFormData({
+										...formData,
+										configuration: {
+											...kbConfig,
+											search_settings: {
+												...kbConfig.search_settings,
+												max_results: e.target.value ? parseInt(e.target.value) : undefined,
+											},
+										},
+									})
+								}
+							/>
+						</Field>
+						<Field>
+							<Label>Similarity Threshold</Label>
+							<Input
+								type="number"
+								step="0.1"
+								min="0"
+								max="1"
+								placeholder="0.7"
+								value={kbConfig.search_settings.similarity_threshold || ""}
+								onChange={(e) =>
+									setFormData({
+										...formData,
+										configuration: {
+											...kbConfig,
+											search_settings: {
+												...kbConfig.search_settings,
+												similarity_threshold: e.target.value ? parseFloat(e.target.value) : undefined,
+											},
+										},
+									})
+								}
+							/>
+						</Field>
+						<Field>
+							<label className="flex items-center space-x-2">
+								<input
+									type="checkbox"
+									checked={kbConfig.search_settings.include_metadata}
+									onChange={(e) =>
+										setFormData({
+											...formData,
+											configuration: {
+												...kbConfig,
+												search_settings: {
+													...kbConfig.search_settings,
+													include_metadata: e.target.checked,
+												},
+											},
+										})
+									}
+								/>
+								<span>Include metadata in results</span>
+							</label>
+						</Field>
+					</div>
 				);
 			default:
 				return null;
@@ -239,18 +314,36 @@ function myTool(input) {
 								<Label>Tool Type</Label>
 								<Select
 									value={formData.type}
-									onChange={(e) =>
+									onChange={(e) => {
+										const newType = e.target.value as AiToolType;
+										const newConfiguration = newType === "api"
+											? {
+												type: "Api" as const,
+												endpoint: "",
+												method: "GET" as HttpMethod,
+												headers: [],
+												query_parameters: [],
+												body_parameters: [],
+											} as ApiToolConfiguration
+											: {
+												type: "KnowledgeBase" as const,
+												knowledge_base_id: "",
+												search_settings: {
+													max_results: 10,
+													similarity_threshold: 0.7,
+													include_metadata: true,
+												},
+											} as KnowledgeBaseToolConfiguration;
+
 										setFormData({
 											...formData,
-											type: e.target.value as ToolFormData["type"],
-											configuration: {}, // Reset configuration when type changes
-										})
-									}
+											type: newType,
+											configuration: newConfiguration,
+										});
+									}}
 								>
 									<option value="api">API Call</option>
-									<option value="function">Custom Function</option>
-									<option value="database">Database Query</option>
-									<option value="external">External Service</option>
+									<option value="knowledge_base">Knowledge Base Search</option>
 								</Select>
 							</Field>
 

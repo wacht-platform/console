@@ -28,7 +28,7 @@ export default function WorkspacesPage() {
 	const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_OPTIONS[0]);
 	const { data, isLoading } = useDeploymentWorkspaces();
 
-	const hasNextPage = data?.has_next ?? false;
+	const hasNextPage = data?.has_more ?? false;
 	const hasPrevPage = page > 1;
 
 	const handleSortChange = (value: string) => {

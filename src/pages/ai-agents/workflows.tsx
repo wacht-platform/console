@@ -1,8 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import {
 	FireIcon,
 	PlusIcon,
 	MagnifyingGlassIcon,
+	PlayIcon,
+	PencilIcon,
+	TrashIcon,
 } from "@heroicons/react/24/outline";
 import { Heading } from "../../components/ui/heading";
 import { Button } from "../../components/ui/button";
@@ -16,30 +20,50 @@ import {
 	TableRow,
 } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
-import { CreateWorkflowDialog } from "../../components/ai-agents/create-workflow-dialog";
+import { useWorkflows, useDeleteWorkflow, useExecuteWorkflow } from "../../lib/api/hooks/use-workflows";
 
-interface Workflow {
-	id: string;
-	name: string;
-	description: string;
-	status: "active" | "inactive" | "draft";
-	agentsCount: number;
-	lastRun: string;
-}
 
-const workflows: Workflow[] = [];
+
 
 export default function WorkflowsPage() {
-	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-	const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null);
+	const navigate = useNavigate();
+	const [searchTerm, setSearchTerm] = useState("");
+
+	// API hooks
+	const { data, isLoading, error } = useWorkflows({
+		search: searchTerm || undefined,
+	});
+	const workflows = data?.workflows || [];
+	const deleteWorkflowMutation = useDeleteWorkflow();
+	const executeWorkflowMutation = useExecuteWorkflow();
 
 	const handleCreateWorkflow = () => {
-		setIsCreateDialogOpen(true);
+		navigate("./create-workflow");
 	};
 
-	const handleEditWorkflow = (workflow: Workflow) => {
-		setEditingWorkflow(workflow);
-		setIsCreateDialogOpen(true);
+	const handleEditWorkflow = (workflowId: string) => {
+		navigate(`./edit/${workflowId}`);
+	};
+
+	const handleDeleteWorkflow = async (workflowId: string) => {
+		if (confirm("Are you sure you want to delete this workflow?")) {
+			try {
+				await deleteWorkflowMutation.mutateAsync(workflowId);
+			} catch (error) {
+				console.error("Failed to delete workflow:", error);
+			}
+		}
+	};
+
+	const handleExecuteWorkflow = async (workflowId: string) => {
+		try {
+			await executeWorkflowMutation.mutateAsync({
+				workflowId,
+				request: { trigger_data: {} },
+			});
+		} catch (error) {
+			console.error("Failed to execute workflow:", error);
+		}
 	};
 
 	return (
@@ -53,7 +77,12 @@ export default function WorkflowsPage() {
 					<div className="mt-4 flex max-w-md gap-2">
 						<InputGroup className="w-64">
 							<MagnifyingGlassIcon className="size-4" />
-							<Input name="search" placeholder="Search workflows..." />
+							<Input
+								name="search"
+								placeholder="Search workflows..."
+								value={searchTerm}
+								onChange={(e) => setSearchTerm(e.target.value)}
+							/>
 						</InputGroup>
 					</div>
 				</div>
@@ -64,7 +93,15 @@ export default function WorkflowsPage() {
 			</div>
 
 			<div className="mt-6">
-				{workflows.length === 0 ? (
+				{isLoading ? (
+					<div className="text-center py-12">
+						<div className="text-sm text-gray-500">Loading workflows...</div>
+					</div>
+				) : error ? (
+					<div className="text-center py-12">
+						<div className="text-sm text-red-500">Failed to load workflows</div>
+					</div>
+				) : workflows.length === 0 ? (
 					<div className="text-center py-12">
 						<FireIcon className="mx-auto h-12 w-12 text-gray-400" />
 						<h3 className="mt-2 text-sm font-semibold text-gray-900">
@@ -87,8 +124,8 @@ export default function WorkflowsPage() {
 								<TableHeader>Name</TableHeader>
 								<TableHeader>Description</TableHeader>
 								<TableHeader>Status</TableHeader>
-								<TableHeader>Agents</TableHeader>
-								<TableHeader className="w-[150px]">Actions</TableHeader>
+								<TableHeader>Executions</TableHeader>
+								<TableHeader className="w-[200px]">Actions</TableHeader>
 							</TableRow>
 						</TableHead>
 						<TableBody>
@@ -102,21 +139,36 @@ export default function WorkflowsPage() {
 											<span className="font-medium">{workflow.name}</span>
 										</div>
 									</TableCell>
-									<TableCell>{workflow.description}</TableCell>
+									<TableCell>{workflow.description || "No description"}</TableCell>
 									<TableCell>
-										<Badge>{workflow.status}</Badge>
+										<Badge className="bg-blue-100 text-blue-800">
+											Active
+										</Badge>
 									</TableCell>
-									<TableCell>{workflow.agentsCount} agents</TableCell>
+									<TableCell>{workflow.executions_count} executions</TableCell>
 									<TableCell>
 										<div className="flex gap-2">
 											<Button
 												outline
-												onClick={() => handleEditWorkflow(workflow)}
+
+												onClick={() => handleExecuteWorkflow(workflow.id)}
+												disabled={executeWorkflowMutation.isPending}
 											>
-												Edit
+												<PlayIcon className="h-4 w-4" />
 											</Button>
-											<Button outline className="text-red-600 hover:bg-red-50">
-												Delete
+											<Button
+												outline
+												onClick={() => handleEditWorkflow(workflow.id)}
+											>
+												<PencilIcon className="h-4 w-4" />
+											</Button>
+											<Button
+												outline
+												className="text-red-600 hover:bg-red-50"
+												onClick={() => handleDeleteWorkflow(workflow.id)}
+												disabled={deleteWorkflowMutation.isPending}
+											>
+												<TrashIcon className="h-4 w-4" />
 											</Button>
 										</div>
 									</TableCell>
@@ -127,14 +179,6 @@ export default function WorkflowsPage() {
 				)}
 			</div>
 
-			<CreateWorkflowDialog
-				open={isCreateDialogOpen}
-				onClose={() => {
-					setIsCreateDialogOpen(false);
-					setEditingWorkflow(null);
-				}}
-				workflow={editingWorkflow}
-			/>
 		</div>
 	);
 }

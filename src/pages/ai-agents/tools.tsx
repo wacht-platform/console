@@ -3,6 +3,8 @@ import {
 	WrenchScrewdriverIcon,
 	PlusIcon,
 	MagnifyingGlassIcon,
+	PencilIcon,
+	TrashIcon,
 } from "@heroicons/react/24/outline";
 import { Heading } from "../../components/ui/heading";
 import { Button } from "../../components/ui/button";
@@ -17,29 +19,15 @@ import {
 } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
 import { CreateToolDialog } from "../../components/ai-agents/create-tool-dialog";
+import { useTools, useDeleteTool } from "../../lib/api/hooks/use-tools";
+import type { AiTool } from "@/types/ai-tool";
 
-interface Tool {
-	id: string;
-	name: string;
-	description: string;
-	type: "api" | "function" | "database" | "external";
-	status: "active" | "inactive" | "draft";
-	lastModified: string;
-	usageCount: number;
-}
-
-const tools: Tool[] = [];
-
-const getTypeColor = (type: Tool["type"]) => {
+const getTypeColor = (type: string) => {
 	switch (type) {
 		case "api":
 			return "bg-blue-100 text-blue-800";
-		case "function":
+		case "knowledge_base":
 			return "bg-green-100 text-green-800";
-		case "database":
-			return "bg-purple-100 text-purple-800";
-		case "external":
-			return "bg-orange-100 text-orange-800";
 		default:
 			return "bg-gray-100 text-gray-800";
 	}
@@ -47,15 +35,34 @@ const getTypeColor = (type: Tool["type"]) => {
 
 export default function ToolsPage() {
 	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-	const [editingTool, setEditingTool] = useState<Tool | null>(null);
+	const [editingTool, setEditingTool] = useState<AiTool | null>(null);
+	const [searchTerm, setSearchTerm] = useState("");
+
+	// API hooks
+	const { data, isLoading, error } = useTools({
+		search: searchTerm || undefined,
+	});
+	const tools = data?.tools || [];
+	const deleteToolMutation = useDeleteTool();
 
 	const handleCreateTool = () => {
+		setEditingTool(null);
 		setIsCreateDialogOpen(true);
 	};
 
-	const handleEditTool = (tool: Tool) => {
+	const handleEditTool = (tool: AiTool) => {
 		setEditingTool(tool);
 		setIsCreateDialogOpen(true);
+	};
+
+	const handleDeleteTool = async (toolId: string) => {
+		if (confirm("Are you sure you want to delete this tool?")) {
+			try {
+				await deleteToolMutation.mutateAsync(toolId);
+			} catch (error) {
+				console.error("Failed to delete tool:", error);
+			}
+		}
 	};
 
 	return (
@@ -72,7 +79,12 @@ export default function ToolsPage() {
 					<div className="mt-4 flex max-w-md gap-2">
 						<InputGroup className="w-64">
 							<MagnifyingGlassIcon className="size-4" />
-							<Input name="search" placeholder="Search tools..." />
+							<Input
+								name="search"
+								placeholder="Search tools..."
+								value={searchTerm}
+								onChange={(e) => setSearchTerm(e.target.value)}
+							/>
 						</InputGroup>
 					</div>
 				</div>
@@ -83,7 +95,16 @@ export default function ToolsPage() {
 			</div>
 
 			<div className="mt-6">
-				{tools.length === 0 ? (
+				{isLoading ? (
+					<div className="text-center py-12">
+						<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+						<p className="mt-2 text-sm text-gray-500">Loading tools...</p>
+					</div>
+				) : error ? (
+					<div className="text-center py-12">
+						<p className="text-red-600">Error loading tools: {error.message}</p>
+					</div>
+				) : tools.length === 0 ? (
 					<div className="text-center py-12">
 						<WrenchScrewdriverIcon className="mx-auto h-12 w-12 text-gray-400" />
 						<h3 className="mt-2 text-sm font-semibold text-gray-900">
@@ -107,7 +128,6 @@ export default function ToolsPage() {
 								<TableHeader>Description</TableHeader>
 								<TableHeader>Type</TableHeader>
 								<TableHeader>Status</TableHeader>
-								<TableHeader>Usage</TableHeader>
 								<TableHeader className="w-[150px]">Actions</TableHeader>
 							</TableRow>
 						</TableHead>
@@ -124,21 +144,25 @@ export default function ToolsPage() {
 									</TableCell>
 									<TableCell>{tool.description}</TableCell>
 									<TableCell>
-										<Badge className={getTypeColor(tool.type)}>
-											{tool.type}
+										<Badge className={getTypeColor(tool.tool_type)}>
+											{tool.tool_type === "api" ? "API Call" : "Knowledge Base"}
 										</Badge>
 									</TableCell>
 									<TableCell>
-										<Badge>{tool.status}</Badge>
+										<Badge className="bg-green-100 text-green-800">Active</Badge>
 									</TableCell>
-									<TableCell>{tool.usageCount} uses</TableCell>
 									<TableCell>
 										<div className="flex gap-2">
 											<Button outline onClick={() => handleEditTool(tool)}>
-												Edit
+												<PencilIcon className="h-4 w-4" />
 											</Button>
-											<Button outline className="text-red-600 hover:bg-red-50">
-												Delete
+											<Button
+												outline
+												className="text-red-600 hover:bg-red-50"
+												onClick={() => handleDeleteTool(tool.id)}
+												disabled={deleteToolMutation.isPending}
+											>
+												<TrashIcon className="h-4 w-4" />
 											</Button>
 										</div>
 									</TableCell>

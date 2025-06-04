@@ -12,16 +12,7 @@ import {
 	DialogTitle,
 } from "../ui/dialog";
 
-interface Agent {
-	id: string;
-	name: string;
-	description: string;
-	status: "active" | "inactive" | "draft";
-	lastModified: string;
-	toolsCount: number;
-	workflowsCount: number;
-	knowledgeBasesCount: number;
-}
+import type { Agent } from "../../lib/api/hooks/use-agents";
 
 interface CreateAgentDialogProps {
 	open: boolean;
@@ -58,8 +49,8 @@ export function CreateAgentDialog({
 		if (agent) {
 			setFormData({
 				name: agent.name,
-				description: agent.description,
-				status: agent.status,
+				description: agent.description || "",
+				status: "active",
 				toolIds: [], // TODO: Load actual relationships
 				workflowIds: [],
 				knowledgeBaseIds: [],

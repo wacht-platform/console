@@ -1,6 +1,6 @@
 export interface PaginatedResponse<T> {
   data: T[];
-  has_next: boolean;
+  has_more: boolean;
 }
 
 export interface QueryParams {

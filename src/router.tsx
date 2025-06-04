@@ -197,6 +197,14 @@ export const router = createBrowserRouter([
 						),
 					},
 					{
+						path: "workflows/edit/:workflowId",
+						element: (
+							<Suspense fallback={<LoadingFallback />}>
+								<CreateWorkflowPage />
+							</Suspense>
+						),
+					},
+					{
 						path: "tools",
 						element: (
 							<Suspense fallback={<LoadingFallback />}>

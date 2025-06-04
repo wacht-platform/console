@@ -78,9 +78,9 @@ export default function UsersPage() {
 		activeUsersLoading || invitedUsersLoading || waitlistUsersLoading;
 
 	const hasNextPage =
-		(selectedTabKey === "Active" && (activeUsers?.has_next ?? false)) ||
-		(selectedTabKey === "Invited" && (invitedUsers?.has_next ?? false)) ||
-		(selectedTabKey === "Waitlist" && (waitlistUsers?.has_next ?? false));
+		(selectedTabKey === "Active" && (activeUsers?.has_more ?? false)) ||
+		(selectedTabKey === "Invited" && (invitedUsers?.has_more ?? false)) ||
+		(selectedTabKey === "Waitlist" && (waitlistUsers?.has_more ?? false));
 
 	const hasPrevPage = page > 1;
 

@@ -1,5 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
+import { useProjects } from "@/lib/api/hooks/use-projects";
 
 export interface KnowledgeBase {
   id: string;
@@ -142,100 +143,108 @@ async function uploadDocument(
 }
 
 export function useKnowledgeBases(
-  deploymentId: string,
   params?: {
     limit?: number;
     offset?: number;
     search?: string;
   }
 ) {
+  const { selectedDeployment } = useProjects();
+
   return useQuery({
-    queryKey: ["knowledge-bases", deploymentId, params],
-    queryFn: () => fetchKnowledgeBases(deploymentId, params),
-    enabled: !!deploymentId,
+    queryKey: ["knowledge-bases", selectedDeployment?.id, params],
+    queryFn: () => fetchKnowledgeBases(selectedDeployment!.id, params),
+    enabled: !!selectedDeployment?.id,
   });
 }
 
-export function useKnowledgeBase(deploymentId: string, knowledgeBaseId: string) {
+export function useKnowledgeBase(knowledgeBaseId: string) {
+  const { selectedDeployment } = useProjects();
+
   return useQuery({
-    queryKey: ["knowledge-base", deploymentId, knowledgeBaseId],
-    queryFn: () => fetchKnowledgeBase(deploymentId, knowledgeBaseId),
-    enabled: !!deploymentId && !!knowledgeBaseId,
+    queryKey: ["knowledge-base", selectedDeployment?.id, knowledgeBaseId],
+    queryFn: () => fetchKnowledgeBase(selectedDeployment!.id, knowledgeBaseId),
+    enabled: !!selectedDeployment?.id && !!knowledgeBaseId,
   });
 }
 
-export function useCreateKnowledgeBase(deploymentId: string) {
+export function useCreateKnowledgeBase() {
+  const { selectedDeployment } = useProjects();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (request: CreateKnowledgeBaseRequest) =>
-      createKnowledgeBase(deploymentId, request),
+      createKnowledgeBase(selectedDeployment!.id, request),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["knowledge-bases", deploymentId],
+        queryKey: ["knowledge-bases", selectedDeployment!.id],
       });
     },
   });
 }
 
-export function useUpdateKnowledgeBase(deploymentId: string, knowledgeBaseId: string) {
+export function useUpdateKnowledgeBase(knowledgeBaseId: string) {
+  const { selectedDeployment } = useProjects();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (request: UpdateKnowledgeBaseRequest) =>
-      updateKnowledgeBase(deploymentId, knowledgeBaseId, request),
+      updateKnowledgeBase(selectedDeployment!.id, knowledgeBaseId, request),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["knowledge-bases", deploymentId],
+        queryKey: ["knowledge-bases", selectedDeployment!.id],
       });
       queryClient.invalidateQueries({
-        queryKey: ["knowledge-base", deploymentId, knowledgeBaseId],
+        queryKey: ["knowledge-base", selectedDeployment!.id, knowledgeBaseId],
       });
     },
   });
 }
 
-export function useDeleteKnowledgeBase(deploymentId: string) {
+export function useDeleteKnowledgeBase() {
+  const { selectedDeployment } = useProjects();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (knowledgeBaseId: string) =>
-      deleteKnowledgeBase(deploymentId, knowledgeBaseId),
+      deleteKnowledgeBase(selectedDeployment!.id, knowledgeBaseId),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["knowledge-bases", deploymentId],
+        queryKey: ["knowledge-bases", selectedDeployment!.id],
       });
     },
   });
 }
 
 export function useKnowledgeBaseDocuments(
-  deploymentId: string,
   knowledgeBaseId: string,
   params?: {
     limit?: number;
     offset?: number;
   }
 ) {
+  const { selectedDeployment } = useProjects();
+
   return useQuery({
-    queryKey: ["knowledge-base-documents", deploymentId, knowledgeBaseId, params],
-    queryFn: () => fetchKnowledgeBaseDocuments(deploymentId, knowledgeBaseId, params),
-    enabled: !!deploymentId && !!knowledgeBaseId,
+    queryKey: ["knowledge-base-documents", selectedDeployment?.id, knowledgeBaseId, params],
+    queryFn: () => fetchKnowledgeBaseDocuments(selectedDeployment!.id, knowledgeBaseId, params),
+    enabled: !!selectedDeployment?.id && !!knowledgeBaseId,
   });
 }
 
-export function useUploadDocument(deploymentId: string, knowledgeBaseId: string) {
+export function useUploadDocument(knowledgeBaseId: string) {
+  const { selectedDeployment } = useProjects();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (formData: FormData) =>
-      uploadDocument(deploymentId, knowledgeBaseId, formData),
+      uploadDocument(selectedDeployment!.id, knowledgeBaseId, formData),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["knowledge-base-documents", deploymentId, knowledgeBaseId],
+        queryKey: ["knowledge-base-documents", selectedDeployment!.id, knowledgeBaseId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["knowledge-base", deploymentId, knowledgeBaseId],
+        queryKey: ["knowledge-base", selectedDeployment!.id, knowledgeBaseId],
       });
     },
   });

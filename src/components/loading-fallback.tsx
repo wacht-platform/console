@@ -45,35 +45,12 @@ export const LoadingFallback = ({
 						transition={{ delay: 0.4, duration: 0.5 }}
 						className="text-center"
 					>
-						<h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-2">
+						<h3 className="text-lg text-zinc-700 dark:text-white mb-2">
 							{message}
 						</h3>
 						<p className="text-sm text-zinc-500 dark:text-zinc-400">
 							Please wait while we prepare your workspace
 						</p>
-					</motion.div>
-
-					<motion.div
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						transition={{ delay: 0.6, duration: 0.5 }}
-						className="flex space-x-1"
-					>
-						{[0, 1, 2].map((i) => (
-							<motion.div
-								key={i}
-								className="w-2 h-2 bg-blue-500 rounded-full"
-								animate={{
-									scale: [1, 1.2, 1],
-									opacity: [0.5, 1, 0.5],
-								}}
-								transition={{
-									duration: 1.5,
-									repeat: Number.POSITIVE_INFINITY,
-									delay: i * 0.2,
-								}}
-							/>
-						))}
 					</motion.div>
 				</motion.div>
 			</div>
