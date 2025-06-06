@@ -8,9 +8,8 @@ interface LoadingFallbackProps {
 }
 
 export const LoadingFallback = ({
-	message = "Loading...",
 	variant = "default",
-	size = "md",
+	size = "sm",
 }: LoadingFallbackProps) => {
 	if (variant === "minimal") {
 		return (
@@ -38,20 +37,6 @@ export const LoadingFallback = ({
 						<div className="absolute inset-0 rounded-full bg-blue-500/20 blur-xl animate-pulse" />
 						<Spinner size="xl" variant="ring" color="primary" />
 					</motion.div>
-
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.4, duration: 0.5 }}
-						className="text-center"
-					>
-						<h3 className="text-lg text-zinc-700 dark:text-white mb-2">
-							{message}
-						</h3>
-						<p className="text-sm text-zinc-500 dark:text-zinc-400">
-							Please wait while we prepare your workspace
-						</p>
-					</motion.div>
 				</motion.div>
 			</div>
 		);
@@ -71,9 +56,6 @@ export const LoadingFallback = ({
 					variant="dots"
 					color="primary"
 				/>
-				<p className="text-xs text-zinc-600 dark:text-zinc-400 loading-dots">
-					{message}
-				</p>
 			</motion.div>
 		</div>
 	);

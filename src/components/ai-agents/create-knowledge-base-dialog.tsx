@@ -14,7 +14,7 @@ import {
 	CloudArrowUpIcon,
 	DocumentTextIcon,
 } from "@heroicons/react/24/outline";
-import { useUploadDocument, type KnowledgeBaseDocument } from "../../lib/api/hooks/use-knowledge-bases";
+import { useUploadDocument, useUploadUrl, type KnowledgeBaseDocument } from "../../lib/api/hooks/use-knowledge-bases";
 
 interface CreateKnowledgeBaseDialogProps {
 	open: boolean;
@@ -27,8 +27,11 @@ interface CreateKnowledgeBaseDialogProps {
 interface KnowledgeBaseFormData {
 	title: string;
 	description: string;
-	file: File | null;
+	files: File[];
+	urls: string[];
 }
+
+type UploadMode = 'files' | 'urls';
 
 export function CreateKnowledgeBaseDialog({
 	open,
@@ -41,11 +44,15 @@ export function CreateKnowledgeBaseDialog({
 	const [formData, setFormData] = useState<KnowledgeBaseFormData>({
 		title: "",
 		description: "",
-		file: null,
+		files: [],
+		urls: [],
 	});
 	const [dragActive, setDragActive] = useState(false);
+	const [uploadMode, setUploadMode] = useState<UploadMode>('files');
 
-	const uploadMutation = useUploadDocument(knowledgeBaseId);
+
+	const uploadDocumentMutation = useUploadDocument(knowledgeBaseId);
+	const uploadUrlMutation = useUploadUrl(knowledgeBaseId);
 	const isEditing = !!document;
 
 	useEffect(() => {
@@ -53,22 +60,29 @@ export function CreateKnowledgeBaseDialog({
 			setFormData({
 				title: document.title,
 				description: document.description || "",
-				file: null, // Can't pre-populate file input
+				files: [], // Can't pre-populate file input
+				urls: [],
 			});
 		} else {
 			setFormData({
 				title: "",
 				description: "",
-				file: null,
+				files: [],
+				urls: [],
 			});
 		}
+		setUploadMode('files');
 	}, [document]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
-		if (!formData.file && !isEditing) {
-			return; // File is required for new uploads
+		if (uploadMode === 'files' && formData.files.length === 0 && !isEditing) {
+			return; // Files are required for new uploads
+		}
+
+		if (uploadMode === 'urls' && formData.urls.length === 0 && !isEditing) {
+			return; // URLs are required for new uploads
 		}
 
 		try {
@@ -76,39 +90,58 @@ export function CreateKnowledgeBaseDialog({
 				// TODO: Implement document update logic
 				console.log("Updating document:", formData);
 			} else {
-				// Upload new document
-				const uploadFormData = new FormData();
-				uploadFormData.append("title", formData.title);
-				if (formData.description) {
-					uploadFormData.append("description", formData.description);
-				}
-				if (formData.file) {
-					uploadFormData.append("file", formData.file);
-				}
+				if (uploadMode === 'files') {
+					// Upload multiple files
+					for (const file of formData.files) {
+						const uploadFormData = new FormData();
+						uploadFormData.append("title", formData.title || file.name.replace(/\.[^/.]+$/, ""));
+						if (formData.description) {
+							uploadFormData.append("description", formData.description);
+						}
+						uploadFormData.append("file", file);
 
-				await uploadMutation.mutateAsync(uploadFormData);
+						await uploadDocumentMutation.mutateAsync(uploadFormData);
+					}
+				} else {
+					// Upload multiple URLs
+					for (const url of formData.urls) {
+						const urlTitle = formData.title || new URL(url).pathname.split('/').pop() || 'Webpage';
+						await uploadUrlMutation.mutateAsync({
+							title: urlTitle,
+							description: formData.description,
+							url: url,
+						});
+					}
+				}
 			}
 			onClose();
 		} catch (error) {
-			console.error("Error uploading document:", error);
+			console.error("Error uploading:", error);
 		}
 	};
 
-	const handleFileSelect = (file: File) => {
-		setFormData({ ...formData, file });
-		if (!formData.title && file.name) {
-			// Auto-populate title from filename
-			const nameWithoutExtension = file.name.replace(/\.[^/.]+$/, "");
-			setFormData((prev) => ({ ...prev, title: nameWithoutExtension, file }));
+	const handleFileSelect = (files: FileList) => {
+		const newFiles = Array.from(files);
+		setFormData(prev => ({
+			...prev,
+			files: [...prev.files, ...newFiles]
+		}));
+
+		// Auto-populate title from first filename if empty
+		if (!formData.title && newFiles.length > 0) {
+			const nameWithoutExtension = newFiles[0].name.replace(/\.[^/.]+$/, "");
+			setFormData(prev => ({ ...prev, title: nameWithoutExtension }));
 		}
 	};
 
 	const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0];
-		if (file) {
-			handleFileSelect(file);
+		const files = e.target.files;
+		if (files && files.length > 0) {
+			handleFileSelect(files);
 		}
 	};
+
+
 
 	const handleDrag = (e: React.DragEvent) => {
 		e.preventDefault();
@@ -125,22 +158,13 @@ export function CreateKnowledgeBaseDialog({
 		e.stopPropagation();
 		setDragActive(false);
 
-		const file = e.dataTransfer.files?.[0];
-		if (
-			file &&
-			(file.type === "application/pdf" || file.name.endsWith(".md"))
-		) {
-			handleFileSelect(file);
+		const files = e.dataTransfer.files;
+		if (files && files.length > 0) {
+			handleFileSelect(files);
 		}
 	};
 
-	const formatFileSize = (bytes: number) => {
-		if (bytes === 0) return "0 Bytes";
-		const k = 1024;
-		const sizes = ["Bytes", "KB", "MB", "GB"];
-		const i = Math.floor(Math.log(bytes) / Math.log(k));
-		return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
-	};
+
 
 	return (
 		<Dialog open={open} onClose={onClose} size="2xl">
@@ -194,31 +218,30 @@ export function CreateKnowledgeBaseDialog({
 									onDragOver={handleDrag}
 									onDrop={handleDrop}
 								>
-									{formData.file ? (
+									{formData.files.length > 0 ? (
 										<div className="space-y-3">
 											<div className="flex items-center justify-center">
 												<DocumentTextIcon className="h-10 w-10 text-green-500" />
 											</div>
 											<div>
 												<p className="font-medium text-gray-900">
-													{formData.file.name}
+													{formData.files.length} file(s) selected
 												</p>
 												<p className="text-sm text-gray-500">
-													{formatFileSize(formData.file.size)} •{" "}
-													{formData.file.type || "Unknown type"}
+													Ready to upload
 												</p>
 											</div>
 											<Button
 												type="button"
 												outline
 												onClick={() => {
-													setFormData({ ...formData, file: null });
+													setFormData({ ...formData, files: [] });
 													if (fileInputRef.current) {
 														fileInputRef.current.value = "";
 													}
 												}}
 											>
-												Remove File
+												Clear Files
 											</Button>
 										</div>
 									) : (
@@ -247,7 +270,8 @@ export function CreateKnowledgeBaseDialog({
 										ref={fileInputRef}
 										type="file"
 										className="hidden"
-										accept=".pdf,.md,.markdown"
+										accept=".pdf,.md,.markdown,.html,.htm,.txt,.json"
+										multiple
 										onChange={handleFileInputChange}
 									/>
 								</div>
@@ -262,9 +286,9 @@ export function CreateKnowledgeBaseDialog({
 					</Button>
 					<Button
 						type="submit"
-						disabled={(!isEditing && !formData.file) || uploadMutation.isPending}
+						disabled={(!isEditing && formData.files.length === 0) || uploadDocumentMutation.isPending}
 					>
-						{uploadMutation.isPending
+						{uploadDocumentMutation.isPending
 							? "Uploading..."
 							: isEditing
 								? "Update Document"

@@ -44,7 +44,7 @@ export interface EventConfig {
 }
 
 export interface TriggerNodeConfig {
-  trigger_type: TriggerType;
+  condition?: string; // Condition expression for automatic triggering
   scheduled_at?: string; // ISO date string for future scheduling
   webhook_config?: WebhookConfig;
   event_config?: EventConfig;
@@ -55,12 +55,27 @@ export type ActionType =
   | "knowledge_base_search"
   | "trigger_workflow";
 
+export interface SchemaField {
+  name: string;
+  type: string;
+  required: boolean;
+  description?: string;
+}
+
 export interface ApiActionConfig {
   endpoint: string;
   method: string;
   headers: Record<string, string>;
   body?: string;
   timeout_seconds?: number;
+  request_body_schema?: SchemaField[];
+  url_params_schema?: SchemaField[];
+  query_params_schema?: SchemaField[];
+  authorization?: {
+    authorize_as_user: boolean;
+    jwt_template_id?: string;
+    custom_headers: Array<{ name: string; value: string; required: boolean; description?: string }>;
+  };
 }
 
 export interface KnowledgeBaseActionConfig {
@@ -72,9 +87,6 @@ export interface KnowledgeBaseActionConfig {
 
 export interface TriggerWorkflowActionConfig {
   target_workflow_id: string;
-  input_mapping: Record<string, string>;
-  wait_for_completion: boolean;
-  timeout_seconds?: number;
 }
 
 export interface ActionNodeConfig {
@@ -89,7 +101,7 @@ export type ConditionEvaluationType = "javascript" | "json_path" | "simple";
 
 export interface ConditionNodeConfig {
   condition_type: ConditionEvaluationType;
-  expression: string;
+  condition: string; // Changed from expression to condition for consistency
   true_path?: string;
   false_path?: string;
 }
@@ -103,11 +115,43 @@ export interface TransformNodeConfig {
   output_mapping: Record<string, string>;
 }
 
-export type WorkflowNodeType = 
+export interface ErrorHandlerNodeConfig {
+  enable_retry?: boolean; // Simplified retry configuration
+  max_retries?: number;
+  retry_delay_seconds?: number;
+  log_errors?: boolean;
+  custom_error_message?: string;
+  contained_nodes?: string[]; // IDs of nodes contained within this try/catch
+}
+
+export interface LLMCallNodeConfig {
+  prompt_template: string;
+  response_format?: "text" | "json";
+  json_schema?: SchemaField[]; // JSON schema when response_format is "json"
+}
+
+export interface SwitchCase {
+  case_value: string;
+  case_label?: string;
+}
+
+export interface SwitchNodeConfig {
+  switch_variable: string;
+  comparison_type: "equals" | "contains" | "starts_with" | "ends_with" | "regex";
+  cases: SwitchCase[];
+  default_case?: boolean;
+  case_sensitive?: boolean;
+  number_of_cases?: number;
+}
+
+export type WorkflowNodeType =
   | { type: "Trigger"; config: TriggerNodeConfig }
   | { type: "Action"; config: ActionNodeConfig }
   | { type: "Condition"; config: ConditionNodeConfig }
-  | { type: "Transform"; config: TransformNodeConfig };
+  | { type: "Transform"; config: TransformNodeConfig }
+  | { type: "ErrorHandler"; config: ErrorHandlerNodeConfig }
+  | { type: "LLMCall"; config: LLMCallNodeConfig }
+  | { type: "Switch"; config: SwitchNodeConfig };
 
 export interface WorkflowNodeData {
   label: string;

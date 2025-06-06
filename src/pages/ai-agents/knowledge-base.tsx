@@ -25,17 +25,18 @@ import {
 	DropdownLabel,
 	DropdownMenu,
 } from "../../components/ui/dropdown";
-import { CreateKnowledgeBaseDialog } from "../../components/ai-agents/create-knowledge-base-dialog";
+import { EnhancedUploadDialog } from "../../components/ai-agents/enhanced-upload-dialog";
 import { CreateKnowledgeBaseFormDialog } from "../../components/ai-agents/create-knowledge-base-form-dialog";
 import {
 	useKnowledgeBases,
 	useKnowledgeBaseDocuments,
 	useDeleteKnowledgeBase,
+	useDeleteDocument,
 	useCreateKnowledgeBase,
 	type KnowledgeBase,
 	type KnowledgeBaseDocument
 } from "../../lib/api/hooks/use-knowledge-bases";
-import { useProjectStore } from "../../lib/store/project";
+
 
 // Helper function to format file sizes
 function formatFileSize(bytes: number): string {
@@ -69,12 +70,10 @@ const getFileTypeLabel = (fileType: string) => {
 export default function KnowledgeBasePage() {
 	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 	const [isCreateKnowledgeBaseDialogOpen, setIsCreateKnowledgeBaseDialogOpen] = useState(false);
-	const [editingDocument, setEditingDocument] =
-		useState<KnowledgeBaseDocument | null>(null);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [selectedKnowledgeBase, setSelectedKnowledgeBase] = useState<KnowledgeBase | null>(null);
-
-	const { selectedDeployment } = useProjectStore();
+	const [documentsPage, setDocumentsPage] = useState(0);
+	const [documentsLimit] = useState(20);
 
 	// Fetch available knowledge bases
 	const {
@@ -90,17 +89,30 @@ export default function KnowledgeBasePage() {
 		setSelectedKnowledgeBase(knowledgeBases[0]);
 	}
 
+	// Reset pagination when knowledge base changes
+	const handleKnowledgeBaseChange = (kb: KnowledgeBase) => {
+		setSelectedKnowledgeBase(kb);
+		setDocumentsPage(0);
+	};
+
 	// Fetch documents for the selected knowledge base
 	const {
-		data: documents = [],
+		data: documentsResponse,
 		isLoading: isLoadingDocuments,
 		error: documentsError,
 	} = useKnowledgeBaseDocuments(
 		selectedKnowledgeBase?.id || "",
-		{ limit: 50 }
+		{
+			limit: documentsLimit,
+			offset: documentsPage * documentsLimit
+		}
 	);
 
-	const deleteDocumentMutation = useDeleteKnowledgeBase();
+	const documents = documentsResponse?.documents || [];
+	const hasMoreDocuments = documentsResponse?.hasMore || false;
+
+	const deleteKnowledgeBaseMutation = useDeleteKnowledgeBase();
+	const deleteDocumentMutation = useDeleteDocument(selectedKnowledgeBase?.id || "");
 	const createKnowledgeBaseMutation = useCreateKnowledgeBase();
 
 	const handleCreateDocument = () => {
@@ -108,8 +120,8 @@ export default function KnowledgeBasePage() {
 	};
 
 	const handleEditDocument = (doc: KnowledgeBaseDocument) => {
-		setEditingDocument(doc);
-		setIsCreateDialogOpen(true);
+		// TODO: Implement document editing
+		console.log("Edit document:", doc);
 	};
 
 	const handleDeleteDocument = async (documentId: string) => {
@@ -118,6 +130,20 @@ export default function KnowledgeBasePage() {
 				await deleteDocumentMutation.mutateAsync(documentId);
 			} catch (error) {
 				console.error("Error deleting document:", error);
+			}
+		}
+	};
+
+	const handleDeleteKnowledgeBase = async (knowledgeBaseId: string) => {
+		if (confirm("Are you sure you want to delete this knowledge base? This will also delete all documents in it.")) {
+			try {
+				await deleteKnowledgeBaseMutation.mutateAsync(knowledgeBaseId);
+				// Reset selected knowledge base if it was deleted
+				if (selectedKnowledgeBase?.id === knowledgeBaseId) {
+					setSelectedKnowledgeBase(null);
+				}
+			} catch (error) {
+				console.error("Error deleting knowledge base:", error);
 			}
 		}
 	};
@@ -205,60 +231,79 @@ export default function KnowledgeBasePage() {
 			</div>
 
 			{/* Knowledge Base Selector */}
-			<div className="mb-4">
-				<div className="flex items-center gap-4">
-					<div className="flex items-center gap-2">
-						<span className="text-sm font-medium text-gray-700">Knowledge Base:</span>
-						<Dropdown>
-							<DropdownButton outline>
-								{selectedKnowledgeBase?.name || "Select Knowledge Base"}
-								<ChevronDownIcon className="ml-2 h-4 w-4" />
-							</DropdownButton>
-							<DropdownMenu>
-								{knowledgeBases.map((kb) => (
-									<DropdownItem
-										key={kb.id}
-										onClick={() => setSelectedKnowledgeBase(kb)}
-									>
-										<DropdownLabel>{kb.name}</DropdownLabel>
-									</DropdownItem>
-								))}
-								<DropdownItem onClick={() => setIsCreateKnowledgeBaseDialogOpen(true)}>
-									<DropdownLabel>+ Create New Knowledge Base</DropdownLabel>
-								</DropdownItem>
-							</DropdownMenu>
-						</Dropdown>
+			<div className="mb-6">
+				<div className="bg-white rounded-lg border border-gray-200 p-4">
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-4">
+							<div className="flex items-center gap-2">
+								<span className="text-sm font-medium text-gray-700">Knowledge Base:</span>
+								<Dropdown>
+									<DropdownButton outline>
+										{selectedKnowledgeBase?.name || "Select Knowledge Base"}
+										<ChevronDownIcon className="ml-2 h-4 w-4" />
+									</DropdownButton>
+									<DropdownMenu>
+										{knowledgeBases.map((kb) => (
+											<DropdownItem
+												key={kb.id}
+												onClick={() => handleKnowledgeBaseChange(kb)}
+											>
+												<DropdownLabel>{kb.name}</DropdownLabel>
+											</DropdownItem>
+										))}
+										<DropdownItem onClick={() => setIsCreateKnowledgeBaseDialogOpen(true)}>
+											<DropdownLabel>+ Create New Knowledge Base</DropdownLabel>
+										</DropdownItem>
+									</DropdownMenu>
+								</Dropdown>
+							</div>
+							{selectedKnowledgeBase && (
+								<div className="text-sm text-gray-500">
+									{selectedKnowledgeBase.documents_count} documents • {formatFileSize(selectedKnowledgeBase.total_size)}
+								</div>
+							)}
+						</div>
+						{selectedKnowledgeBase && (
+							<div className="flex gap-2">
+								<Button
+									onClick={handleCreateDocument}
+									disabled={!selectedKnowledgeBase}
+								>
+									<PlusIcon className="mr-2 h-4 w-4" />
+									Upload Document
+								</Button>
+								<Button
+									outline
+									className="text-red-600 hover:bg-red-50"
+									onClick={() => handleDeleteKnowledgeBase(selectedKnowledgeBase.id)}
+									disabled={deleteKnowledgeBaseMutation.isPending}
+								>
+									Delete Knowledge Base
+								</Button>
+							</div>
+						)}
 					</div>
-					{selectedKnowledgeBase && (
-						<div className="text-sm text-gray-500">
-							{selectedKnowledgeBase.documents_count} documents • {formatFileSize(selectedKnowledgeBase.total_size)}
+					{selectedKnowledgeBase?.description && (
+						<div className="mt-2 text-sm text-gray-600">
+							{selectedKnowledgeBase.description}
 						</div>
 					)}
 				</div>
 			</div>
 
-			<div className="flex flex-wrap items-center justify-between gap-4">
-				<div className="sm:flex-1">
-					<div className="mt-4 flex max-w-md gap-2">
-						<InputGroup className="w-64">
-							<MagnifyingGlassIcon className="size-4" />
-							<Input
-								name="search"
-								placeholder="Search documents..."
-								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
-							/>
-						</InputGroup>
-					</div>
+			{selectedKnowledgeBase && (
+				<div className="mb-4">
+					<InputGroup className="max-w-md">
+						<MagnifyingGlassIcon className="size-4" />
+						<Input
+							name="search"
+							placeholder="Search documents..."
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+						/>
+					</InputGroup>
 				</div>
-				<Button
-					onClick={handleCreateDocument}
-					disabled={!selectedKnowledgeBase}
-				>
-					<PlusIcon className="mr-2 h-4 w-4" />
-					Upload Document
-				</Button>
-			</div>
+			)}
 
 			<div className="mt-6">
 				{!selectedKnowledgeBase ? (
@@ -307,7 +352,6 @@ export default function KnowledgeBasePage() {
 								<TableHeader>Description</TableHeader>
 								<TableHeader>Type</TableHeader>
 								<TableHeader>Size</TableHeader>
-								<TableHeader>Usage</TableHeader>
 								<TableHeader className="w-[150px]">Actions</TableHeader>
 							</TableRow>
 						</TableHead>
@@ -325,17 +369,33 @@ export default function KnowledgeBasePage() {
 												<div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
 													{getTypeIcon(doc.file_type)}
 												</div>
-												<span className="font-medium">{doc.title}</span>
+												<div className="flex flex-col">
+													<span className="font-medium">{doc.title}</span>
+													<span className="text-xs text-gray-500">{doc.file_name}</span>
+												</div>
 											</div>
 										</TableCell>
-										<TableCell>{doc.description || "No description"}</TableCell>
+										<TableCell>
+											<div className="max-w-xs">
+												<p className="text-sm text-gray-900 truncate">
+													{doc.description || "No description"}
+												</p>
+											</div>
+										</TableCell>
 										<TableCell>
 											<Badge className="bg-blue-100 text-blue-800">
 												{getFileTypeLabel(doc.file_type)}
 											</Badge>
 										</TableCell>
-										<TableCell>{formatFileSize(doc.file_size)}</TableCell>
-										<TableCell>{doc.usage_count} uses</TableCell>
+										<TableCell>
+											<div className="text-sm">
+												<div>{formatFileSize(doc.file_size)}</div>
+												<div className="text-xs text-gray-500">
+													{new Date(doc.created_at).toLocaleDateString()}
+												</div>
+											</div>
+										</TableCell>
+
 										<TableCell>
 											<div className="flex gap-2">
 												<Button outline onClick={() => handleEditDocument(doc)}>
@@ -356,17 +416,39 @@ export default function KnowledgeBasePage() {
 						</TableBody>
 					</Table>
 				)}
+
+				{/* Pagination Controls */}
+				{documents.length > 0 && (
+					<div className="mt-6 flex items-center justify-between">
+						<div className="text-sm text-gray-700">
+							Showing {documentsPage * documentsLimit + 1} to{" "}
+							{Math.min((documentsPage + 1) * documentsLimit, documentsPage * documentsLimit + documents.length)} of{" "}
+							{documentsPage * documentsLimit + documents.length}{hasMoreDocuments ? "+" : ""} documents
+						</div>
+						<div className="flex gap-2">
+							<Button
+								outline
+								onClick={() => setDocumentsPage(Math.max(0, documentsPage - 1))}
+								disabled={documentsPage === 0}
+							>
+								Previous
+							</Button>
+							<Button
+								outline
+								onClick={() => setDocumentsPage(documentsPage + 1)}
+								disabled={!hasMoreDocuments}
+							>
+								Next
+							</Button>
+						</div>
+					</div>
+				)}
 			</div>
 
 			{/* Upload Document Dialog */}
-			<CreateKnowledgeBaseDialog
+			<EnhancedUploadDialog
 				open={isCreateDialogOpen}
-				onClose={() => {
-					setIsCreateDialogOpen(false);
-					setEditingDocument(null);
-				}}
-				document={editingDocument}
-				deploymentId={selectedDeployment?.id || ""}
+				onClose={() => setIsCreateDialogOpen(false)}
 				knowledgeBaseId={selectedKnowledgeBase?.id || ""}
 			/>
 

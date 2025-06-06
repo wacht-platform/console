@@ -11,6 +11,8 @@ import {
 	DialogDescription,
 	DialogTitle,
 } from "../ui/dialog";
+import { useCreateTool, useUpdateTool } from "../../lib/api/hooks/use-tools";
+import { useKnowledgeBases } from "../../lib/api/hooks/use-knowledge-bases";
 import type {
 	AiTool,
 	AiToolType,
@@ -18,6 +20,8 @@ import type {
 	ApiToolConfiguration,
 	KnowledgeBaseToolConfiguration,
 	HttpMethod,
+	CreateToolRequest,
+	UpdateToolRequest,
 } from "../../types/ai-tool";
 import type { DeploymentJWTTemplate } from "../../types/deployment";
 
@@ -34,6 +38,10 @@ export function CreateToolDialog({
 	tool,
 	jwtTemplates = [],
 }: CreateToolDialogProps) {
+	// API hooks
+	const createToolMutation = useCreateTool();
+	const updateToolMutation = useUpdateTool();
+	const { data: knowledgeBasesData } = useKnowledgeBases();
 	const [formData, setFormData] = useState<ToolFormData>({
 		name: "",
 		description: "",
@@ -75,11 +83,34 @@ export function CreateToolDialog({
 		}
 	}, [tool]);
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		// TODO: Implement tool creation/update logic
-		console.log(isEditing ? "Updating tool:" : "Creating tool:", formData);
-		onClose();
+
+		try {
+			if (isEditing && tool) {
+				const updateRequest: UpdateToolRequest = {
+					name: formData.name,
+					description: formData.description || undefined,
+					tool_type: formData.type,
+					configuration: formData.configuration,
+				};
+				await updateToolMutation.mutateAsync({
+					toolId: tool.id,
+					tool: updateRequest,
+				});
+			} else {
+				const createRequest: CreateToolRequest = {
+					name: formData.name,
+					description: formData.description || undefined,
+					tool_type: formData.type,
+					configuration: formData.configuration,
+				};
+				await createToolMutation.mutateAsync(createRequest);
+			}
+			onClose();
+		} catch (error) {
+			console.error("Failed to save tool:", error);
+		}
 	};
 
 	const renderConfigurationFields = () => {
@@ -185,12 +216,12 @@ export function CreateToolDialog({
 				);
 			case "knowledge_base":
 				const kbConfig = formData.configuration as KnowledgeBaseToolConfiguration;
+				const knowledgeBases = knowledgeBasesData?.knowledgeBases || [];
 				return (
 					<div className="space-y-4">
 						<Field>
-							<Label>Knowledge Base ID</Label>
-							<Input
-								placeholder="Enter knowledge base ID"
+							<Label>Knowledge Base</Label>
+							<Select
 								value={kbConfig.knowledge_base_id}
 								onChange={(e) =>
 									setFormData({
@@ -201,7 +232,14 @@ export function CreateToolDialog({
 										},
 									})
 								}
-							/>
+							>
+								<option value="">Select a knowledge base</option>
+								{knowledgeBases.map((kb) => (
+									<option key={kb.id} value={kb.id}>
+										{kb.name}
+									</option>
+								))}
+							</Select>
 						</Field>
 						<Field>
 							<Label>Max Results</Label>
@@ -356,8 +394,14 @@ export function CreateToolDialog({
 					<Button outline onClick={onClose}>
 						Cancel
 					</Button>
-					<Button type="submit">
-						{isEditing ? "Update Tool" : "Create Tool"}
+					<Button
+						type="submit"
+						disabled={createToolMutation.isPending || updateToolMutation.isPending}
+					>
+						{createToolMutation.isPending || updateToolMutation.isPending
+							? (isEditing ? "Updating..." : "Creating...")
+							: (isEditing ? "Update Tool" : "Create Tool")
+						}
 					</Button>
 				</DialogActions>
 			</form>

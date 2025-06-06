@@ -2,7 +2,7 @@ import { Handle, Position } from "@xyflow/react";
 import type { BaseNodeData } from "../../../types/NodeTypes";
 
 export interface TriggerNodeData extends BaseNodeData {
-  triggerPhrase?: string;
+  condition?: string;
   description?: string;
   outputNode?: boolean;
 }
@@ -26,10 +26,16 @@ const TriggerNode = ({ data }: { data: TriggerNodeData }) => {
         </div>
       )}
 
-      {data.triggerPhrase && (
+      {data.condition && (
         <div className="text-xs bg-blue-100 p-2 rounded border border-blue-200">
-          <span className="font-medium">Trigger phrase:</span>{" "}
-          {data.triggerPhrase}
+          <span className="font-medium">Condition:</span>{" "}
+          {data.condition}
+        </div>
+      )}
+
+      {!data.condition && (
+        <div className="text-xs bg-gray-100 p-2 rounded border border-gray-200 text-gray-600">
+          Manual trigger
         </div>
       )}
 

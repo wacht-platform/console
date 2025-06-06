@@ -26,7 +26,6 @@ export interface KnowledgeBaseDocument {
   file_url: string;
   knowledge_base_id: string;
   processing_metadata?: Record<string, any>;
-  usage_count: number;
 }
 
 export interface CreateKnowledgeBaseRequest {
@@ -43,6 +42,11 @@ export interface UpdateKnowledgeBaseRequest {
 
 export interface KnowledgeBasesResponse {
   data: KnowledgeBase[];
+  has_more: boolean;
+}
+
+export interface DocumentsResponse {
+  data: KnowledgeBaseDocument[];
   has_more: boolean;
 }
 
@@ -107,6 +111,16 @@ async function deleteKnowledgeBase(
   );
 }
 
+async function deleteDocument(
+  deploymentId: string,
+  knowledgeBaseId: string,
+  documentId: string
+): Promise<void> {
+  await apiClient.delete(
+    `/deployment/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}/documents/${documentId}`
+  );
+}
+
 async function fetchKnowledgeBaseDocuments(
   deploymentId: string,
   knowledgeBaseId: string,
@@ -114,12 +128,12 @@ async function fetchKnowledgeBaseDocuments(
     limit?: number;
     offset?: number;
   }
-): Promise<KnowledgeBaseDocument[]> {
+): Promise<DocumentsResponse> {
   const searchParams = new URLSearchParams();
   if (params?.limit) searchParams.set("limit", params.limit.toString());
   if (params?.offset) searchParams.set("offset", params.offset.toString());
 
-  const { data } = await apiClient.get<KnowledgeBaseDocument[]>(
+  const { data } = await apiClient.get<DocumentsResponse>(
     `/deployment/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}/documents?${searchParams.toString()}`
   );
   return data;
@@ -138,6 +152,18 @@ async function uploadDocument(
         "Content-Type": "multipart/form-data",
       },
     }
+  );
+  return data;
+}
+
+async function uploadUrl(
+  deploymentId: string,
+  knowledgeBaseId: string,
+  request: { title: string; description?: string; url: string }
+): Promise<KnowledgeBaseDocument> {
+  const { data } = await apiClient.post<KnowledgeBaseDocument>(
+    `/deployment/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}/documents/url`,
+    request
   );
   return data;
 }
@@ -216,6 +242,27 @@ export function useDeleteKnowledgeBase() {
   });
 }
 
+export function useDeleteDocument(knowledgeBaseId: string) {
+  const { selectedDeployment } = useProjects();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (documentId: string) =>
+      deleteDocument(selectedDeployment!.id, knowledgeBaseId, documentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["knowledge-base-documents", selectedDeployment!.id, knowledgeBaseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["knowledge-base", selectedDeployment!.id, knowledgeBaseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["knowledge-bases", selectedDeployment!.id],
+      });
+    },
+  });
+}
+
 export function useKnowledgeBaseDocuments(
   knowledgeBaseId: string,
   params?: {
@@ -229,6 +276,10 @@ export function useKnowledgeBaseDocuments(
     queryKey: ["knowledge-base-documents", selectedDeployment?.id, knowledgeBaseId, params],
     queryFn: () => fetchKnowledgeBaseDocuments(selectedDeployment!.id, knowledgeBaseId, params),
     enabled: !!selectedDeployment?.id && !!knowledgeBaseId,
+    select: (data) => ({
+      documents: data.data,
+      hasMore: data.has_more,
+    }),
   });
 }
 
@@ -239,6 +290,24 @@ export function useUploadDocument(knowledgeBaseId: string) {
   return useMutation({
     mutationFn: (formData: FormData) =>
       uploadDocument(selectedDeployment!.id, knowledgeBaseId, formData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["knowledge-base-documents", selectedDeployment!.id, knowledgeBaseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["knowledge-base", selectedDeployment!.id, knowledgeBaseId],
+      });
+    },
+  });
+}
+
+export function useUploadUrl(knowledgeBaseId: string) {
+  const { selectedDeployment } = useProjects();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (request: { title: string; description?: string; url: string }) =>
+      uploadUrl(selectedDeployment!.id, knowledgeBaseId, request),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["knowledge-base-documents", selectedDeployment!.id, knowledgeBaseId],

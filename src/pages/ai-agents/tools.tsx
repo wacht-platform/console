@@ -5,6 +5,8 @@ import {
 	MagnifyingGlassIcon,
 	PencilIcon,
 	TrashIcon,
+	GlobeAltIcon,
+	BookOpenIcon,
 } from "@heroicons/react/24/outline";
 import { Heading } from "../../components/ui/heading";
 import { Button } from "../../components/ui/button";
@@ -19,8 +21,8 @@ import {
 } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
 import { CreateToolDialog } from "../../components/ai-agents/create-tool-dialog";
-import { useTools, useDeleteTool } from "../../lib/api/hooks/use-tools";
-import type { AiTool } from "@/types/ai-tool";
+import { useTools, useDeleteTool, useCreateTool, useUpdateTool } from "../../lib/api/hooks/use-tools";
+import type { AiTool, CreateToolRequest, UpdateToolRequest } from "@/types/ai-tool";
 
 const getTypeColor = (type: string) => {
 	switch (type) {

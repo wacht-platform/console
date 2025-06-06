@@ -363,7 +363,7 @@ export const NodeConfigPanel: React.FC<ConfigPanelProps> = ({
 
   return (
     <div className="w-80 border-l border-gray-200 h-full overflow-y-auto bg-white">
-      <div className="p-4 border-b flex justify-between items-center">
+      <div className="p-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Badge className={`${selectedNode?.type === 'trigger' ? 'bg-orange-100 text-orange-600' : 
             selectedNode?.type === 'condition' ? 'bg-blue-100 text-blue-600' : 
