@@ -8,6 +8,7 @@ import {
 	DocumentDuplicateIcon,
 	ArrowPathIcon,
 	ChevronRightIcon,
+	ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { Link } from "react-router";
 import {
@@ -47,7 +48,7 @@ function DnsRecordRow({ record }: { record: DnsRecord }) {
 
 	const getStatusBadge = () => {
 		if (record.verified) {
-			return <Badge color="green">Verified</Badge>;
+			return <Badge color="green">Configured</Badge>;
 		}
 		if (record.verification_attempted_at) {
 			return <Badge color="red">Failed</Badge>;
@@ -57,37 +58,55 @@ function DnsRecordRow({ record }: { record: DnsRecord }) {
 
 	return (
 		<TableRow>
-			<TableCell className="font-mono text-sm">{record.name}</TableCell>
-			<TableCell>
+			<TableCell className="font-mono text-sm w-[20%] min-w-[120px] max-w-0">
+				<div className="truncate" title={record.name}>
+					{record.name}
+				</div>
+			</TableCell>
+			<TableCell className="w-[10%] min-w-[60px]">
 				<Badge color="zinc">{record.record_type}</Badge>
 			</TableCell>
-			<TableCell className="max-w-xs">
-				<div className="flex items-center space-x-2">
-					<code className="text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded truncate">
-						{record.value}
-					</code>
+			<TableCell className="w-[45%] min-w-[200px] max-w-0">
+				<div className="flex items-center space-x-2 min-w-0">
 					<Button
 						outline
 						onClick={() => copyToClipboard(record.value)}
-						className="p-1 h-8 w-8"
+						className="p-1 h-6 w-6 flex-shrink-0"
+						title="Copy to clipboard"
 					>
-						<DocumentDuplicateIcon className="h-4 w-4" />
+						<DocumentDuplicateIcon className="h-3 w-3" />
 					</Button>
+					<div className="min-w-0 flex-1">
+						<code
+							className="text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded block truncate w-full"
+							title={record.value}
+						>
+							{record.value}
+						</code>
+					</div>
 				</div>
 				{copied && <Text className="text-xs text-green-600 mt-1">Copied!</Text>}
 			</TableCell>
-			<TableCell>
-				<div className="flex items-center space-x-2">
+			<TableCell className="w-[15%] min-w-[100px]">
+				<div className="flex items-center space-x-1">
 					{getStatusIcon()}
 					{getStatusBadge()}
 				</div>
 			</TableCell>
-			<TableCell className="text-sm text-gray-500">
-				{record.last_verified_at
-					? new Date(record.last_verified_at).toLocaleString()
-					: record.verification_attempted_at
-						? new Date(record.verification_attempted_at).toLocaleString()
-						: "Not attempted"}
+			<TableCell className="text-sm text-gray-500 w-[10%] min-w-[80px] max-w-0">
+				<div className="truncate" title={
+					record.last_verified_at
+						? new Date(record.last_verified_at).toLocaleString()
+						: record.verification_attempted_at
+							? new Date(record.verification_attempted_at).toLocaleString()
+							: "Never"
+				}>
+					{record.last_verified_at
+						? new Date(record.last_verified_at).toLocaleDateString()
+						: record.verification_attempted_at
+							? new Date(record.verification_attempted_at).toLocaleDateString()
+							: "Never"}
+				</div>
 			</TableCell>
 		</TableRow>
 	);
@@ -113,22 +132,26 @@ function DnsRecordSection({
 				<Text className="text-sm text-gray-500">{description}</Text>
 			</div>
 
-			<Table>
-				<TableHeader>
-					<TableRow>
-						<TableHead>Name</TableHead>
-						<TableHead>Type</TableHead>
-						<TableHead>Value</TableHead>
-						<TableHead>Status</TableHead>
-						<TableHead>Last Checked</TableHead>
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{records.map((record, index) => (
-						<DnsRecordRow key={`${record.name}-${index}`} record={record} />
-					))}
-				</TableBody>
-			</Table>
+			<div className="w-full max-w-full overflow-hidden">
+				<div className="overflow-x-auto">
+					<Table className="table-fixed w-full min-w-full">
+						<TableHead>
+							<TableRow>
+								<TableHeader className="w-[20%] min-w-[120px]">Name</TableHeader>
+								<TableHeader className="w-[10%] min-w-[60px]">Type</TableHeader>
+								<TableHeader className="w-[45%] min-w-[200px]">Value</TableHeader>
+								<TableHeader className="w-[15%] min-w-[100px]">Status</TableHeader>
+								<TableHeader className="w-[10%] min-w-[80px]">Last Checked</TableHeader>
+							</TableRow>
+						</TableHead>
+						<TableBody>
+							{records.map((record, index) => (
+								<DnsRecordRow key={`${record.name}-${index}`} record={record} />
+							))}
+						</TableBody>
+					</Table>
+				</div>
+			</div>
 		</div>
 	);
 }
@@ -136,6 +159,7 @@ function DnsRecordSection({
 interface DnsVerificationPanelCompactProps {
 	domainRecords?: DomainVerificationRecords;
 	emailRecords?: EmailVerificationRecords;
+	verificationStatus?: string;
 	onVerify?: () => void;
 	isVerifying?: boolean;
 	compact?: boolean;
@@ -144,6 +168,7 @@ interface DnsVerificationPanelCompactProps {
 export function DnsVerificationPanel({
 	domainRecords,
 	emailRecords,
+	verificationStatus,
 	onVerify,
 	isVerifying = false,
 	compact = false,
@@ -154,19 +179,48 @@ export function DnsVerificationPanel({
 	];
 
 	const allEmailRecords = [
-		...(emailRecords?.ses_verification || []),
-		...(emailRecords?.mail_from_verification || []),
 		...(emailRecords?.dkim_records || []),
+		...(emailRecords?.return_path_records || []),
 	];
-
-	const domainVerified = allDomainRecords.every((record) => record.verified);
-	const emailVerified = allEmailRecords.every((record) => record.verified);
-	const allVerified = domainVerified && emailVerified;
 
 	const totalRecords = allDomainRecords.length + allEmailRecords.length;
 	const verifiedRecords = [...allDomainRecords, ...allEmailRecords].filter(
 		(r) => r.verified,
 	).length;
+
+	const getVerificationStatusBadge = () => {
+		switch (verificationStatus) {
+			case "verified":
+				return (
+					<Badge color="green" className="text-sm">
+						<CheckCircleIcon className="h-4 w-4 mr-1" />
+						Configured
+					</Badge>
+				);
+			case "in_progress":
+				return (
+					<Badge color="yellow" className="text-sm">
+						<ClockIcon className="h-4 w-4 mr-1" />
+						In Progress
+					</Badge>
+				);
+			case "failed":
+				return (
+					<Badge color="red" className="text-sm">
+						<ExclamationTriangleIcon className="h-4 w-4 mr-1" />
+						Failed
+					</Badge>
+				);
+			case "pending":
+			default:
+				return (
+					<Badge color="zinc" className="text-sm">
+						<ClockIcon className="h-4 w-4 mr-1" />
+						Pending
+					</Badge>
+				);
+		}
+	};
 
 	if (compact) {
 		return (
@@ -177,14 +231,14 @@ export function DnsVerificationPanel({
 							<ClockIcon className="h-6 w-6 text-yellow-600" />
 						</div>
 						<div>
-							<Heading className="text-lg">DNS Verification Required</Heading>
+							<Heading className="text-lg">DNS Configuration Required</Heading>
 							<Text className="text-sm text-gray-600 dark:text-gray-300 mt-1">
 								Your production deployment requires DNS configuration to be
 								fully functional.
 							</Text>
 							<div className="mt-2 flex items-center space-x-3">
 								<Badge color="yellow" className="text-sm">
-									{verifiedRecords} of {totalRecords} records verified
+									{verifiedRecords} of {totalRecords} records configured
 								</Badge>
 								<Link
 									to="dns-verification"
@@ -204,7 +258,7 @@ export function DnsVerificationPanel({
 						<ArrowPathIcon
 							className={`h-4 w-4 ${isVerifying ? "animate-spin" : ""}`}
 						/>
-						<span>{isVerifying ? "Verifying..." : "Verify Records"}</span>
+						<span>{isVerifying ? "Checking..." : "Check Records"}</span>
 					</Button>
 				</div>
 			</div>
@@ -215,18 +269,18 @@ export function DnsVerificationPanel({
 		<div className="space-y-8">
 			<div className="flex items-center justify-between">
 				<div>
-					<Heading>DNS Verification</Heading>
+					<Heading>DNS Configuration</Heading>
 					<Text className="text-sm text-gray-500 mt-1">
-						Configure these DNS records to verify your domain and enable email
-						delivery
+						Configure these DNS records to enable your domain and email
+						functionality
 					</Text>
 				</div>
 
 				<div className="flex items-center space-x-4">
-					{allVerified && (
-						<Badge color="green" className="text-sm">
-							<CheckCircleIcon className="h-4 w-4 mr-1" />
-							All Records Verified
+					{getVerificationStatusBadge()}
+					{verificationStatus !== "verified" && (
+						<Badge color="zinc" className="text-sm">
+							{verifiedRecords} of {totalRecords} records configured
 						</Badge>
 					)}
 
@@ -238,23 +292,23 @@ export function DnsVerificationPanel({
 						<ArrowPathIcon
 							className={`h-4 w-4 ${isVerifying ? "animate-spin" : ""}`}
 						/>
-						<span>{isVerifying ? "Verifying..." : "Verify Records"}</span>
+						<span>{isVerifying ? "Checking..." : "Check Records"}</span>
 					</Button>
 				</div>
 			</div>
 
 			{allDomainRecords.length > 0 && (
 				<DnsRecordSection
-					title="Domain Verification Records"
-					description="Add these DNS records to verify ownership of your domain"
+					title="Domain Configuration Records"
+					description="Add these DNS records to enable your custom domain"
 					records={allDomainRecords}
 				/>
 			)}
 
 			{allEmailRecords.length > 0 && (
 				<DnsRecordSection
-					title="Email Verification Records"
-					description="Add these DNS records to enable email delivery through AWS SES"
+					title="Email Configuration Records"
+					description="Add these DNS records to enable email delivery functionality"
 					records={allEmailRecords}
 				/>
 			)}
@@ -263,7 +317,7 @@ export function DnsVerificationPanel({
 				<div className="text-center py-12">
 					<Text className="text-gray-500">
 						No DNS records found. Create a production deployment to generate
-						verification records.
+						configuration records.
 					</Text>
 				</div>
 			)}

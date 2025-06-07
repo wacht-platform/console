@@ -1,6 +1,6 @@
-import { Outlet, useLocation } from "react-router";
+import { Outlet, useLocation, useNavigate, useParams } from "react-router";
 import { Avatar } from "@/components/ui/avatar";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { Navbar, NavbarSection, NavbarSpacer } from "@/components/ui/navbar";
 import { LoadingFallback } from "./loading-fallback";
 import {
@@ -26,6 +26,7 @@ import {
 import {
 	ChevronDownIcon,
 	PlusIcon,
+	TrashIcon,
 	LockClosedIcon,
 	KeyIcon,
 	UserGroupIcon,
@@ -45,13 +46,19 @@ import { useProjects } from "@/lib/api/hooks/use-projects";
 import { capitalize } from "@/lib/capitalize";
 import { CreateProjectDialog } from "./create-project-dialog";
 import { CreateProductionDeploymentDialog } from "./create-production-deployment-dialog";
+import { DeleteDeploymentDialog } from "./delete-deployment-dialog";
 import { OrganizationSwitcher, UserButton } from "@snipextt/wacht";
+import { setNavigationFunction } from "@/lib/store/project";
 
 export function ApplicationLayout() {
 	const { pathname } = useLocation();
+	const navigate = useNavigate();
+	const { projectId, deploymentId } = useParams();
 	const [isCreateProjectDialogOpen, setIsCreateProjectDialogOpen] =
 		useState(false);
 	const [isCreateProductionDialogOpen, setIsCreateProductionDialogOpen] =
+		useState(false);
+	const [isDeleteDeploymentDialogOpen, setIsDeleteDeploymentDialogOpen] =
 		useState(false);
 	const {
 		projects,
@@ -60,7 +67,20 @@ export function ApplicationLayout() {
 		selectedDeployment,
 		setSelectedProject,
 		setSelectedDeployment,
+		initializeFromUrl,
 	} = useProjects();
+
+	// Initialize navigation function for the store
+	useEffect(() => {
+		setNavigationFunction(navigate);
+	}, [navigate]);
+
+	// Sync store with URL parameters when they change
+	useEffect(() => {
+		if (projects && projectId && deploymentId) {
+			initializeFromUrl(projectId, deploymentId);
+		}
+	}, [projects, projectId, deploymentId, initializeFromUrl]);
 
 	const createNavigationLink = useCallback(
 		(pathname: string) => {
@@ -95,8 +115,7 @@ export function ApplicationLayout() {
 									<DropdownItem
 										key={project.id}
 										onClick={() => {
-											setSelectedProject(project);
-											setSelectedDeployment(project.deployments[0]);
+											setSelectedProject(project, true);
 										}}
 									>
 										<Avatar
@@ -135,7 +154,7 @@ export function ApplicationLayout() {
 										{selectedProject.deployments.map((deployment) => (
 											<DropdownItem
 												key={deployment.id}
-												onClick={() => setSelectedDeployment(deployment)}
+												onClick={() => setSelectedDeployment(deployment, true)}
 												className="flex items-center gap-2"
 											>
 												<div
@@ -160,6 +179,15 @@ export function ApplicationLayout() {
 											<DropdownIcon icon={PlusIcon} />
 											<DropdownLabel>Production deployment</DropdownLabel>
 										</DropdownItem>
+										{selectedProject.deployments.length > 1 && selectedDeployment && (
+											<DropdownItem
+												onClick={() => setIsDeleteDeploymentDialogOpen(true)}
+												className="text-red-600 dark:text-red-400"
+											>
+												<DropdownIcon icon={TrashIcon} />
+												<DropdownLabel>Delete {selectedDeployment.mode} deployment</DropdownLabel>
+											</DropdownItem>
+										)}
 									</DropdownMenu>
 								</Dropdown>
 							</>
@@ -286,6 +314,14 @@ export function ApplicationLayout() {
 				<CreateProductionDeploymentDialog
 					open={isCreateProductionDialogOpen}
 					onClose={() => setIsCreateProductionDialogOpen(false)}
+					projectId={selectedProject.id}
+				/>
+			)}
+			{selectedProject && selectedDeployment && (
+				<DeleteDeploymentDialog
+					open={isDeleteDeploymentDialogOpen}
+					onClose={() => setIsDeleteDeploymentDialogOpen(false)}
+					deployment={selectedDeployment}
 					projectId={selectedProject.id}
 				/>
 			)}

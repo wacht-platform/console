@@ -202,7 +202,6 @@ export interface AiWorkflow {
 
 export interface AiWorkflowWithDetails extends AiWorkflow {
   agents_count: number;
-  executions_count: number;
   last_execution_at?: string;
 }
 

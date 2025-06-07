@@ -41,11 +41,11 @@ export default function DnsVerificationPage() {
 			<div className="flex items-center justify-center min-h-screen">
 				<div className="text-center">
 					<Text className="text-gray-500 mb-2">
-						DNS verification is only available for production deployments.
+						DNS configuration is only available for production deployments.
 					</Text>
 					<Text className="text-sm text-gray-400">
 						Create a production deployment to configure custom domain
-						verification.
+						functionality.
 					</Text>
 				</div>
 			</div>
@@ -53,13 +53,12 @@ export default function DnsVerificationPage() {
 	}
 
 	return (
-		<div className="p-6">
 			<DnsVerificationPanel
 				domainRecords={selectedDeployment.domain_verification_records}
 				emailRecords={selectedDeployment.email_verification_records}
+				verificationStatus={selectedDeployment.verification_status}
 				onVerify={handleVerify}
 				isVerifying={isVerifying}
 			/>
-		</div>
 	);
 }

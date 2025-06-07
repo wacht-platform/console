@@ -13,6 +13,7 @@ async function fetchProjects(): Promise<ProjectWithDeployments[]> {
 }
 
 export function useProjects() {
+	const queryClient = useQueryClient();
 	const {
 		projects,
 		isLoading: storeIsLoading,
@@ -21,12 +22,12 @@ export function useProjects() {
 		setSelectedProject,
 		setSelectedDeployment,
 		setProjects,
+		initializeFromUrl,
 	} = useProjectStore();
 
 	const {
 		data: queryProjects,
 		isLoading: queryIsLoading,
-		refetch,
 	} = useQuery({
 		queryKey: ["projects"],
 		queryFn: fetchProjects,
@@ -43,28 +44,42 @@ export function useProjects() {
 		async (data: FormData) => {
 			try {
 				const response = await apiClient.post("/project", data);
-				refetch();
+				queryClient.invalidateQueries({ queryKey: ["projects"] });
 				return response.data;
 			} catch (error) {
 				console.error("Error creating project:", error);
 				throw error;
 			}
 		},
-		[refetch],
+		[queryClient],
 	);
 
 	const deleteProject = useCallback(
 		async (projectId: string) => {
 			try {
 				const response = await apiClient.delete(`/project/${projectId}`);
-				refetch();
+				queryClient.invalidateQueries({ queryKey: ["projects"] });
 				return response.data;
 			} catch (error) {
 				console.error("Error deleting project:", error);
 				throw error;
 			}
 		},
-		[refetch],
+		[queryClient],
+	);
+
+	const deleteDeployment = useCallback(
+		async (projectId: string, deploymentId: string) => {
+			try {
+				const response = await apiClient.delete(`/project/${projectId}/deployment/${deploymentId}`);
+				queryClient.invalidateQueries({ queryKey: ["projects"] });
+				return response.data;
+			} catch (error) {
+				console.error("Error deleting deployment:", error);
+				throw error;
+			}
+		},
+		[queryClient],
 	);
 
 	const isLoading = storeIsLoading || queryIsLoading;
@@ -78,6 +93,8 @@ export function useProjects() {
 		setSelectedDeployment,
 		createProject,
 		deleteProject,
+		deleteDeployment,
+		initializeFromUrl,
 	};
 }
 
@@ -109,7 +126,6 @@ export function useCreateProductionDeployment() {
 			setIsLoading(true);
 			try {
 				const deployment = await createProductionDeployment(request);
-				// Invalidate projects query to refetch updated data
 				queryClient.invalidateQueries({ queryKey: ["projects"] });
 				return deployment;
 			} catch (error) {

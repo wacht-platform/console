@@ -124,7 +124,6 @@ export default function WorkflowsPage() {
 								<TableHeader>Name</TableHeader>
 								<TableHeader>Description</TableHeader>
 								<TableHeader>Status</TableHeader>
-								<TableHeader>Executions</TableHeader>
 								<TableHeader className="w-[200px]">Actions</TableHeader>
 							</TableRow>
 						</TableHead>
@@ -145,7 +144,6 @@ export default function WorkflowsPage() {
 											Active
 										</Badge>
 									</TableCell>
-									<TableCell>{workflow.executions_count} executions</TableCell>
 									<TableCell>
 										<div className="flex gap-2">
 											<Button

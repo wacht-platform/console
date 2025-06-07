@@ -216,7 +216,7 @@ export function CreateToolDialog({
 				);
 			case "knowledge_base":
 				const kbConfig = formData.configuration as KnowledgeBaseToolConfiguration;
-				const knowledgeBases = knowledgeBasesData?.knowledgeBases || [];
+				const knowledgeBases = knowledgeBasesData?.data || [];
 				return (
 					<div className="space-y-4">
 						<Field>

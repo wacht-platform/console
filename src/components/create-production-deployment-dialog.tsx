@@ -60,11 +60,44 @@ export function CreateProductionDeploymentDialog({
 		}
 	};
 
+	const [validationError, setValidationError] = useState<string>("");
+
+	const validateDomain = (domain: string): string | null => {
+		const trimmedDomain = domain.trim();
+
+		if (!trimmedDomain) {
+			return "Please enter a custom domain";
+		}
+
+		// Check for invalid characters
+		if (trimmedDomain.includes("://") || trimmedDomain.includes("/") ||
+			trimmedDomain.includes("?") || trimmedDomain.includes("#")) {
+			return "Domain should not include protocol (http/https) or path";
+		}
+
+		// Basic domain format validation
+		const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+		if (!domainRegex.test(trimmedDomain)) {
+			return "Please enter a valid domain name (e.g., example.com)";
+		}
+
+		// Check minimum domain structure
+		const parts = trimmedDomain.split(".");
+		if (parts.length < 2) {
+			return "Domain must have at least two parts (e.g., example.com)";
+		}
+
+		return null;
+	};
+
 	const handleCreate = async () => {
-		if (!customDomain.trim()) {
-			alert("Please enter a custom domain");
+		const validationErr = validateDomain(customDomain);
+		if (validationErr) {
+			setValidationError(validationErr);
 			return;
 		}
+
+		setValidationError("");
 
 		try {
 			await createProductionDeployment({
@@ -75,9 +108,18 @@ export function CreateProductionDeploymentDialog({
 			onClose();
 			setCustomDomain("");
 			setSelectedMethods(["email"]);
-		} catch (error) {
+		} catch (error: any) {
 			console.error("Failed to create production deployment:", error);
-			alert("Failed to create production deployment. Please try again.");
+
+			// Extract error message from response
+			let errorMessage = "Failed to create production deployment. Please try again.";
+			if (error?.response?.data?.message) {
+				errorMessage = error.response.data.message;
+			} else if (error?.message) {
+				errorMessage = error.message;
+			}
+
+			setValidationError(errorMessage);
 		}
 	};
 
@@ -97,15 +139,27 @@ export function CreateProductionDeploymentDialog({
 					<Field>
 						<Label className="font-normal">Custom Domain</Label>
 						<Text className="text-sm text-zinc-500 dark:text-zinc-400">
-							Enter your custom domain
+							Enter your custom domain (e.g., example.com)
 						</Text>
 						<Input
 							type="text"
 							placeholder="example.com"
-							className="mt-2 bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white placeholder-zinc-500"
+							className={`mt-2 bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white placeholder-zinc-500 ${
+								validationError ? "border-red-500 dark:border-red-500" : ""
+							}`}
 							value={customDomain}
-							onChange={(e) => setCustomDomain(e.target.value)}
+							onChange={(e) => {
+								setCustomDomain(e.target.value);
+								if (validationError) {
+									setValidationError("");
+								}
+							}}
 						/>
+						{validationError && (
+							<Text className="text-sm text-red-600 dark:text-red-400 mt-1">
+								{validationError}
+							</Text>
+						)}
 					</Field>
 
 					<div className="space-y-4">

@@ -1,5 +1,7 @@
 export type DeploymentMode = "production" | "staging";
 
+export type VerificationStatus = "pending" | "in_progress" | "verified" | "failed";
+
 export type FirstFactor =
 	| "email_password"
 	| "username_password"
@@ -299,9 +301,8 @@ export interface DomainVerificationRecords {
 }
 
 export interface EmailVerificationRecords {
-	ses_verification: DnsRecord[];
-	mail_from_verification: DnsRecord[];
 	dkim_records: DnsRecord[];
+	return_path_records: DnsRecord[];
 }
 
 export interface Deployment {
@@ -313,6 +314,7 @@ export interface Deployment {
 	mail_from_host: string;
 	updated_at: string;
 	created_at: string;
+	verification_status?: VerificationStatus;
 	domain_verification_records?: DomainVerificationRecords;
 	email_verification_records?: EmailVerificationRecords;
 }
