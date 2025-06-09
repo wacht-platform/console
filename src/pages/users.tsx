@@ -104,9 +104,13 @@ export default function UsersPage() {
 	const approveWaitlistMutation = useApproveWaitlistUser();
 
 	const handleApproveWaitlist = (waitlistUser: DeploymentWaitlistUser) => {
+		const displayName = waitlistUser.first_name && waitlistUser.last_name
+			? `${waitlistUser.first_name} ${waitlistUser.last_name}`
+			: waitlistUser.email_address;
+
 		if (
 			confirm(
-				`Are you sure you want to approve ${waitlistUser.first_name} ${waitlistUser.last_name}?`,
+				`Are you sure you want to approve ${displayName}?`,
 			)
 		) {
 			approveWaitlistMutation.mutate(waitlistUser.id);
@@ -308,9 +312,17 @@ export default function UsersPage() {
 										<div className="flex items-center gap-3">
 											<Avatar
 												className="size-5"
-												initials={`${waitlistUser.first_name[0]}${waitlistUser.last_name[0]}`}
+												initials={
+													waitlistUser.first_name && waitlistUser.last_name
+														? `${waitlistUser.first_name[0]}${waitlistUser.last_name[0]}`
+														: waitlistUser.email_address[0].toUpperCase()
+												}
 											/>
-											<span>{`${waitlistUser.first_name} ${waitlistUser.last_name}`}</span>
+											<span>
+												{waitlistUser.first_name && waitlistUser.last_name
+													? `${waitlistUser.first_name} ${waitlistUser.last_name}`
+													: waitlistUser.email_address}
+											</span>
 										</div>
 									</TableCell>
 									<TableCell>{waitlistUser.email_address}</TableCell>

@@ -19,11 +19,7 @@ interface InviteUserRequest {
   expiry_days?: number;
 }
 
-interface AddToWaitlistRequest {
-  first_name: string;
-  last_name: string;
-  email_address: string;
-}
+
 
 async function createUser(deploymentId: string, data: CreateUserRequest) {
   const response = await apiClient.post(
@@ -36,14 +32,6 @@ async function createUser(deploymentId: string, data: CreateUserRequest) {
 async function inviteUser(deploymentId: string, data: InviteUserRequest) {
   const response = await apiClient.post(
     `/deployments/${deploymentId}/invited-users`,
-    data
-  );
-  return response.data.data;
-}
-
-async function addToWaitlist(deploymentId: string, data: AddToWaitlistRequest) {
-  const response = await apiClient.post(
-    `/deployments/${deploymentId}/user-waitlist`,
     data
   );
   return response.data.data;
@@ -87,27 +75,6 @@ export function useInviteUser() {
     },
     onError: () => {
       toast.error("Failed to invite user. Please try again.");
-    },
-  });
-}
-
-export function useAddToWaitlist() {
-  const queryClient = useQueryClient();
-  const { selectedDeployment } = useProjects();
-
-  return useMutation({
-    mutationFn: (data: AddToWaitlistRequest) => {
-      if (!selectedDeployment?.id) {
-        throw new Error("No deployment selected");
-      }
-      return addToWaitlist(selectedDeployment.id.toString(), data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-waitlist"] });
-      toast.success("User added to waitlist successfully!");
-    },
-    onError: () => {
-      toast.error("Failed to add user to waitlist. Please try again.");
     },
   });
 }

@@ -6,104 +6,182 @@ import { Switch } from "@/components/ui/switch";
 import { Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
 import { TrashIcon } from "@heroicons/react/24/outline";
-import { RadioGroup, Radio, RadioField } from '@/components/ui/radio'
-import { Description, Field, FieldGroup, Fieldset, Label, Legend } from "@/components/ui/fieldset";
+import { RadioGroup, Radio, RadioField } from "@/components/ui/radio";
+import {
+  Description,
+  Field,
+  FieldGroup,
+  Fieldset,
+  Label,
+  Legend,
+} from "@/components/ui/fieldset";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 import { useUpdateDeploymentRestrictions } from "@/lib/api/hooks/use-deployment-restrictions";
-import type { DeploymentRestrictions, DeploymentRestrictionsSignUpMode } from "@/types/deployment";
+import {
+  type DeploymentRestrictions,
+  DeploymentRestrictionsSignUpMode,
+} from "@/types/deployment";
 
 export default function RestrictionsPage() {
-  const [initialRestrictions, setInitialRestrictions] = useState<DeploymentRestrictions | null>(null);
+  const [initialRestrictions, setInitialRestrictions] =
+    useState<DeploymentRestrictions | null>(null);
   const [isDirty, setIsDirty] = useState(false);
 
   const setDirty = useCallback(() => setIsDirty(true), []);
 
   const [bannedKeywords, _setBannedKeywords] = useState<string[]>([]);
-  const setBannedKeywords = useCallback((value: React.SetStateAction<string[]>) => {
-    _setBannedKeywords(prev => typeof value === 'function' ? value(prev) : value);
-    setDirty();
-  }, [setDirty]);
+  const setBannedKeywords = useCallback(
+    (value: React.SetStateAction<string[]>) => {
+      _setBannedKeywords((prev) =>
+        typeof value === "function" ? value(prev) : value
+      );
+      setDirty();
+    },
+    [setDirty]
+  );
 
-  const [newKeyword, setNewKeyword] = useState('');
+  const [newKeyword, setNewKeyword] = useState("");
 
   const [selectedCountries, _setSelectedCountries] = useState<string[]>([]);
-  const setSelectedCountries = useCallback((value: React.SetStateAction<string[]>) => {
-    _setSelectedCountries(prev => typeof value === 'function' ? value(prev) : value);
-    setDirty();
-  }, [setDirty]);
+  const setSelectedCountries = useCallback(
+    (value: React.SetStateAction<string[]>) => {
+      _setSelectedCountries((prev) =>
+        typeof value === "function" ? value(prev) : value
+      );
+      setDirty();
+    },
+    [setDirty]
+  );
 
   const [allowlistedEmails, _setAllowlistedEmails] = useState<string[]>([]);
-  const setAllowlistedEmails = useCallback((value: React.SetStateAction<string[]>) => {
-    _setAllowlistedEmails(prev => typeof value === 'function' ? value(prev) : value);
-    setDirty();
-  }, [setDirty]);
+  const setAllowlistedEmails = useCallback(
+    (value: React.SetStateAction<string[]>) => {
+      _setAllowlistedEmails((prev) =>
+        typeof value === "function" ? value(prev) : value
+      );
+      setDirty();
+    },
+    [setDirty]
+  );
 
-  const [newEmail, setNewEmail] = useState('');
+  const [newEmail, setNewEmail] = useState("");
 
   const [blocklistedEmails, _setBlocklistedEmails] = useState<string[]>([]);
-  const setBlocklistedEmails = useCallback((value: React.SetStateAction<string[]>) => {
-    _setBlocklistedEmails(prev => typeof value === 'function' ? value(prev) : value);
-    setDirty();
-  }, [setDirty]);
-
-  const [newBlockedEmail, setNewBlockedEmail] = useState('');
-
-  const [signUpMode, _setSignUpMode] = useState<DeploymentRestrictionsSignUpMode>(
-    'public' as DeploymentRestrictionsSignUpMode
+  const setBlocklistedEmails = useCallback(
+    (value: React.SetStateAction<string[]>) => {
+      _setBlocklistedEmails((prev) =>
+        typeof value === "function" ? value(prev) : value
+      );
+      setDirty();
+    },
+    [setDirty]
   );
-  const setSignUpMode = useCallback((value: React.SetStateAction<DeploymentRestrictionsSignUpMode>) => {
-    _setSignUpMode(prev => typeof value === 'function' ? value(prev) : value);
-    setDirty();
-  }, [setDirty]);
 
+  const [newBlockedEmail, setNewBlockedEmail] = useState("");
+
+  const [signUpMode, _setSignUpMode] =
+    useState<DeploymentRestrictionsSignUpMode>(
+      "public" as DeploymentRestrictionsSignUpMode
+    );
+  const setSignUpMode = useCallback(
+    (value: React.SetStateAction<DeploymentRestrictionsSignUpMode>) => {
+      _setSignUpMode((prev) =>
+        typeof value === "function" ? value(prev) : value
+      );
+      setDirty();
+    },
+    [setDirty]
+  );
 
   const [isAllowlistEnabled, _setIsAllowlistEnabled] = useState(false);
-  const setIsAllowlistEnabled = useCallback((value: React.SetStateAction<boolean>) => {
-    _setIsAllowlistEnabled(prev => typeof value === 'function' ? value(prev) : value);
-    setDirty();
-  }, [setDirty]);
+  const setIsAllowlistEnabled = useCallback(
+    (value: React.SetStateAction<boolean>) => {
+      _setIsAllowlistEnabled((prev) =>
+        typeof value === "function" ? value(prev) : value
+      );
+      setDirty();
+    },
+    [setDirty]
+  );
 
   const [isBlocklistEnabled, _setIsBlocklistEnabled] = useState(false);
-  const setIsBlocklistEnabled = useCallback((value: React.SetStateAction<boolean>) => {
-    _setIsBlocklistEnabled(prev => typeof value === 'function' ? value(prev) : value);
-    setDirty();
-  }, [setDirty]);
+  const setIsBlocklistEnabled = useCallback(
+    (value: React.SetStateAction<boolean>) => {
+      _setIsBlocklistEnabled((prev) =>
+        typeof value === "function" ? value(prev) : value
+      );
+      setDirty();
+    },
+    [setDirty]
+  );
 
   const [blockSubaddresses, _setBlockSubaddresses] = useState(false);
-  const setBlockSubaddresses = useCallback((value: React.SetStateAction<boolean>) => {
-    _setBlockSubaddresses(prev => typeof value === 'function' ? value(prev) : value);
-    setDirty();
-  }, [setDirty]);
-
+  const setBlockSubaddresses = useCallback(
+    (value: React.SetStateAction<boolean>) => {
+      _setBlockSubaddresses((prev) =>
+        typeof value === "function" ? value(prev) : value
+      );
+      setDirty();
+    },
+    [setDirty]
+  );
 
   const [blockDisposableEmails, _setBlockDisposableEmails] = useState(false);
-  const setBlockDisposableEmails = useCallback((value: React.SetStateAction<boolean>) => {
-    _setBlockDisposableEmails(prev => typeof value === 'function' ? value(prev) : value);
-    setDirty();
-  }, [setDirty]);
+  const setBlockDisposableEmails = useCallback(
+    (value: React.SetStateAction<boolean>) => {
+      _setBlockDisposableEmails((prev) =>
+        typeof value === "function" ? value(prev) : value
+      );
+      setDirty();
+    },
+    [setDirty]
+  );
 
   const [enableVoipRestriction, _setEnableVoipRestriction] = useState(false);
-  const setEnableVoipRestriction = useCallback((value: React.SetStateAction<boolean>) => {
-    _setEnableVoipRestriction(prev => typeof value === 'function' ? value(prev) : value);
-    setDirty();
-  }, [setDirty]);
+  const setEnableVoipRestriction = useCallback(
+    (value: React.SetStateAction<boolean>) => {
+      _setEnableVoipRestriction((prev) =>
+        typeof value === "function" ? value(prev) : value
+      );
+      setDirty();
+    },
+    [setDirty]
+  );
 
-  const [isCountryRestrictionEnabled, _setIsCountryRestrictionEnabled] = useState(false);
-  const setIsCountryRestrictionEnabled = useCallback((value: React.SetStateAction<boolean>) => {
-    _setIsCountryRestrictionEnabled(prev => typeof value === 'function' ? value(prev) : value);
-    if ((typeof value === 'function' ? value(false) : value) === false) {
-      _setSelectedCountries([]);
-    }
-    setDirty();
-  }, [setDirty]);
+  const [waitlistCollectNames, _setWaitlistCollectNames] = useState(true);
+  const setWaitlistCollectNames = useCallback(
+    (value: React.SetStateAction<boolean>) => {
+      _setWaitlistCollectNames((prev) =>
+        typeof value === "function" ? value(prev) : value
+      );
+      setDirty();
+    },
+    [setDirty]
+  );
 
+  const [isCountryRestrictionEnabled, _setIsCountryRestrictionEnabled] =
+    useState(false);
+  const setIsCountryRestrictionEnabled = useCallback(
+    (value: React.SetStateAction<boolean>) => {
+      _setIsCountryRestrictionEnabled((prev) =>
+        typeof value === "function" ? value(prev) : value
+      );
+      if ((typeof value === "function" ? value(false) : value) === false) {
+        _setSelectedCountries([]);
+      }
+      setDirty();
+    },
+    [setDirty]
+  );
 
-  const { deploymentSettings, isLoading: isLoadingSettings } = useCurrentDeployemnt();
-  const { mutate: updateRestrictions, isLoading: isUpdatingRestrictions } = useUpdateDeploymentRestrictions();
+  const { deploymentSettings, isLoading: isLoadingSettings } =
+    useCurrentDeployemnt();
+  const { mutate: updateRestrictions, isLoading: isUpdatingRestrictions } =
+    useUpdateDeploymentRestrictions();
 
   const setFormState = (restrictions: DeploymentRestrictions | null) => {
     if (!restrictions) return;
-    _setSignUpMode(restrictions.sign_up_mode || 'public');
+    _setSignUpMode(restrictions.sign_up_mode || "public");
     _setIsAllowlistEnabled(restrictions.allowlist_enabled ?? false);
     _setAllowlistedEmails(restrictions.allowlisted_resources?.sort() ?? []);
     _setIsBlocklistEnabled(restrictions.blocklist_enabled ?? false);
@@ -111,23 +189,36 @@ export default function RestrictionsPage() {
     _setBlockSubaddresses(restrictions.block_subaddresses ?? false);
     _setBlockDisposableEmails(restrictions.block_disposable_emails ?? false);
     _setEnableVoipRestriction(restrictions.block_voip_numbers ?? false);
+    _setWaitlistCollectNames(restrictions.waitlist_collect_names ?? true);
     _setBannedKeywords(restrictions.banned_keywords?.sort() ?? []);
-    _setSelectedCountries(restrictions.country_restrictions?.country_codes?.sort() ?? []);
-    _setIsCountryRestrictionEnabled(restrictions.country_restrictions?.enabled ?? false);
+    _setSelectedCountries(
+      restrictions.country_restrictions?.country_codes?.sort() ?? []
+    );
+    _setIsCountryRestrictionEnabled(
+      restrictions.country_restrictions?.enabled ?? false
+    );
   };
-
 
   useEffect(() => {
     if (deploymentSettings?.restrictions) {
       const restrictions = deploymentSettings.restrictions;
       const normalizedRestrictions = {
         ...restrictions,
-        allowlisted_resources: [...(restrictions.allowlisted_resources ?? [])].sort(),
-        blocklisted_resources: [...(restrictions.blocklisted_resources ?? [])].sort(),
+        allowlisted_resources: [
+          ...(restrictions.allowlisted_resources ?? []),
+        ].sort(),
+        blocklisted_resources: [
+          ...(restrictions.blocklisted_resources ?? []),
+        ].sort(),
         banned_keywords: [...(restrictions.banned_keywords ?? [])].sort(),
         country_restrictions: {
-          ...(restrictions.country_restrictions ?? { enabled: false, country_codes: [] }),
-          country_codes: [...(restrictions.country_restrictions?.country_codes ?? [])].sort(),
+          ...(restrictions.country_restrictions ?? {
+            enabled: false,
+            country_codes: [],
+          }),
+          country_codes: [
+            ...(restrictions.country_restrictions?.country_codes ?? []),
+          ].sort(),
         },
       };
       setInitialRestrictions(normalizedRestrictions);
@@ -139,7 +230,9 @@ export default function RestrictionsPage() {
   const addKeyword = (keyword: string) => {
     const trimmedKeyword = keyword.trim();
     if (trimmedKeyword) {
-      setBannedKeywords(prev => prev.includes(trimmedKeyword) ? prev : [...prev, trimmedKeyword]);
+      setBannedKeywords((prev) =>
+        prev.includes(trimmedKeyword) ? prev : [...prev, trimmedKeyword]
+      );
     }
     setNewKeyword("");
   };
@@ -147,7 +240,10 @@ export default function RestrictionsPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (value.includes(",")) {
-      const keywords = value.split(",").map((k) => k.trim()).filter((k) => k);
+      const keywords = value
+        .split(",")
+        .map((k) => k.trim())
+        .filter((k) => k);
       keywords.forEach(addKeyword);
     } else {
       setNewKeyword(value);
@@ -161,13 +257,14 @@ export default function RestrictionsPage() {
     }
   };
 
-
   const addEmailToAllowlist = (email: string) => {
     const trimmedEmail = email.trim();
     if (trimmedEmail) {
-      setAllowlistedEmails(prev => prev.includes(trimmedEmail) ? prev : [...prev, trimmedEmail]);
+      setAllowlistedEmails((prev) =>
+        prev.includes(trimmedEmail) ? prev : [...prev, trimmedEmail]
+      );
     }
-    setNewEmail('');
+    setNewEmail("");
   };
 
   const handleEmailInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -175,44 +272,48 @@ export default function RestrictionsPage() {
   };
 
   const handleEmailKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       addEmailToAllowlist(newEmail);
     }
   };
 
   const removeEmailFromAllowlist = (email: string) => {
-    setAllowlistedEmails(prev => prev.filter(e => e !== email));
+    setAllowlistedEmails((prev) => prev.filter((e) => e !== email));
   };
-
 
   const addEmailToBlocklist = (email: string) => {
     const trimmedEmail = email.trim();
     if (trimmedEmail) {
-      setBlocklistedEmails(prev => prev.includes(trimmedEmail) ? prev : [...prev, trimmedEmail]);
+      setBlocklistedEmails((prev) =>
+        prev.includes(trimmedEmail) ? prev : [...prev, trimmedEmail]
+      );
     }
-    setNewBlockedEmail('');
+    setNewBlockedEmail("");
   };
 
-  const handleBlockedEmailInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBlockedEmailInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setNewBlockedEmail(e.target.value);
   };
 
-  const handleBlockedEmailKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+  const handleBlockedEmailKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === "Enter") {
       e.preventDefault();
       addEmailToBlocklist(newBlockedEmail);
     }
   };
 
   const removeEmailFromBlocklist = (email: string) => {
-    setBlocklistedEmails(prev => prev.filter(e => e !== email));
+    setBlocklistedEmails((prev) => prev.filter((e) => e !== email));
   };
 
   const removeKeyword = (keyword: string) => {
-    setBannedKeywords(prev => prev.filter(k => k !== keyword));
+    setBannedKeywords((prev) => prev.filter((k) => k !== keyword));
   };
-
 
   const handleSave = () => {
     const payload: Partial<DeploymentRestrictions> = {
@@ -224,6 +325,7 @@ export default function RestrictionsPage() {
       block_subaddresses: blockSubaddresses,
       block_disposable_emails: blockDisposableEmails,
       block_voip_numbers: enableVoipRestriction,
+      waitlist_collect_names: waitlistCollectNames,
       banned_keywords: bannedKeywords,
       country_restrictions: {
         enabled: isCountryRestrictionEnabled,
@@ -237,7 +339,7 @@ export default function RestrictionsPage() {
       },
       onError: (error) => {
         console.error("Failed to update restrictions:", error);
-      }
+      },
     });
   };
 
@@ -254,7 +356,7 @@ export default function RestrictionsPage() {
 
   const handleSignUpModeChange = (value: string) => {
     setSignUpMode(value as DeploymentRestrictionsSignUpMode);
-  }
+  };
 
   return (
     <>
@@ -269,31 +371,77 @@ export default function RestrictionsPage() {
             <Legend>Sign-up mode</Legend>
             <Text>Choose the sign up mode for your application.</Text>
             <FieldGroup>
-              <RadioGroup value={signUpMode} onChange={handleSignUpModeChange} className="space-y-4">
+              <RadioGroup
+                value={signUpMode}
+                onChange={handleSignUpModeChange}
+                className="space-y-4"
+              >
                 <Field>
                   <RadioField>
                     <Radio value="public" />
                     <Label>Public</Label>
-                    <Description>Anyone can sign up to your application.</Description>
+                    <Description>
+                      Anyone can sign up to your application.
+                    </Description>
                   </RadioField>
                 </Field>
                 <Field>
                   <RadioField>
                     <Radio value="restricted" />
                     <Label>Restricted</Label>
-                    <Description>Sign ups are disabled, and users can only access your application if they are invited, created manually, or authenticated through an enterprise SSO connection.</Description>
+                    <Description>
+                      Sign ups are disabled, and users can only access your
+                      application if they are invited, created manually, or
+                      authenticated through an enterprise SSO connection.
+                    </Description>
                   </RadioField>
                 </Field>
                 <Field>
                   <RadioField>
                     <Radio value="waitlist" />
                     <Label>Waitlist</Label>
-                    <Description>Sign ups are disabled, but people can join a waitlist.</Description>
+                    <Description>
+                      Sign ups are disabled, but people can join a waitlist.
+                    </Description>
                   </RadioField>
                 </Field>
               </RadioGroup>
             </FieldGroup>
           </Fieldset>
+
+          {signUpMode === DeploymentRestrictionsSignUpMode.Waitlist && (
+            <>
+              <Divider soft />
+              <section className="space-y-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <Subheading>Waitlist Settings</Subheading>
+                    <Text>
+                      Configure how information is collected from waitlist
+                      users.
+                    </Text>
+                  </div>
+                </div>
+                <Field>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <Label>Collect first name and last name</Label>
+                      <Description>
+                        When enabled, users joining the waitlist will be
+                        required to provide their first and last name in
+                        addition to their email address.
+                      </Description>
+                    </div>
+                    <Switch
+                      checked={waitlistCollectNames}
+                      onChange={setWaitlistCollectNames}
+                      className="ml-auto flex-shrink-0"
+                    />
+                  </div>
+                </Field>
+              </section>
+            </>
+          )}
 
           <Divider soft />
 
@@ -301,17 +449,26 @@ export default function RestrictionsPage() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <Subheading>Allowlist</Subheading>
-                <Text>Restrict sign-ups and sign-ins to accounts with pre-approved identifiers.</Text>
+                <Text>
+                  Restrict sign-ups and sign-ins to accounts with pre-approved
+                  identifiers.
+                </Text>
               </div>
               <div className="flex items-center gap-2">
-                <Switch checked={isAllowlistEnabled} onChange={setIsAllowlistEnabled} />
+                <Switch
+                  checked={isAllowlistEnabled}
+                  onChange={setIsAllowlistEnabled}
+                />
               </div>
             </div>
             {isAllowlistEnabled && (
               <FieldGroup className="border-t border-zinc-950/10 pt-4 dark:border-white/10 space-y-4">
                 <Field>
                   <Label>Identifiers</Label>
-                  <Description>Enter a domain, email address, phone number, or Web3 wallet address to add it to the allowlist.</Description>
+                  <Description>
+                    Enter a domain, email address, phone number, or Web3 wallet
+                    address to add it to the allowlist.
+                  </Description>
                 </Field>
                 <Field>
                   <div className="flex items-center gap-2">
@@ -323,7 +480,9 @@ export default function RestrictionsPage() {
                       onChange={handleEmailInputChange}
                       onKeyDown={handleEmailKeyDown}
                     />
-                    <Button plain onClick={() => addEmailToAllowlist(newEmail)}>Add</Button>
+                    <Button plain onClick={() => addEmailToAllowlist(newEmail)}>
+                      Add
+                    </Button>
                   </div>
                 </Field>
 
@@ -350,7 +509,8 @@ export default function RestrictionsPage() {
                 )}
                 <Field>
                   <Description>
-                    ⓘ When enabled, only identifiers on the allowlist will be able to sign in or sign up.
+                    ⓘ When enabled, only identifiers on the allowlist will be
+                    able to sign in or sign up.
                   </Description>
                 </Field>
               </FieldGroup>
@@ -366,14 +526,20 @@ export default function RestrictionsPage() {
                 <Text>Block accounts with certain identifiers.</Text>
               </div>
               <div className="flex items-center gap-2">
-                <Switch checked={isBlocklistEnabled} onChange={setIsBlocklistEnabled} />
+                <Switch
+                  checked={isBlocklistEnabled}
+                  onChange={setIsBlocklistEnabled}
+                />
               </div>
             </div>
             {isBlocklistEnabled && (
               <FieldGroup className="border-t border-zinc-950/10 pt-4 dark:border-white/10 space-y-4">
                 <Field>
                   <Label>Identifiers</Label>
-                  <Description>Enter a domain, email address, phone number, or Web3 wallet address to add it to the blocklist.</Description>
+                  <Description>
+                    Enter a domain, email address, phone number, or Web3 wallet
+                    address to add it to the blocklist.
+                  </Description>
                 </Field>
                 <Field>
                   <div className="flex items-center gap-2">
@@ -385,7 +551,12 @@ export default function RestrictionsPage() {
                       onChange={handleBlockedEmailInputChange}
                       onKeyDown={handleBlockedEmailKeyDown}
                     />
-                    <Button plain onClick={() => addEmailToBlocklist(newBlockedEmail)}>Add</Button>
+                    <Button
+                      plain
+                      onClick={() => addEmailToBlocklist(newBlockedEmail)}
+                    >
+                      Add
+                    </Button>
                   </div>
                 </Field>
 
@@ -425,19 +596,34 @@ export default function RestrictionsPage() {
                   <div>
                     <Label>Block email subaddresses</Label>
                     <Description>
-                      Prevent email addresses containing the characters +, =, or # from signing up or being added to existing accounts.                     </Description>
+                      Prevent email addresses containing the characters +, =, or
+                      # from signing up or being added to existing accounts.{" "}
+                    </Description>
                   </div>
-                  <Switch checked={blockSubaddresses} onChange={setBlockSubaddresses} className="ml-auto flex-shrink-0" />
+                  <Switch
+                    checked={blockSubaddresses}
+                    onChange={setBlockSubaddresses}
+                    className="ml-auto flex-shrink-0"
+                  />
                 </div>
               </Field>
 
               <Field>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <Label>Block sign-ups that use disposable email addresses</Label>
-                    <Description>If enabled, all sign-up attempts using an email address from a disposable email domain will be rejected.</Description>
+                    <Label>
+                      Block sign-ups that use disposable email addresses
+                    </Label>
+                    <Description>
+                      If enabled, all sign-up attempts using an email address
+                      from a disposable email domain will be rejected.
+                    </Description>
                   </div>
-                  <Switch checked={blockDisposableEmails} onChange={setBlockDisposableEmails} className="ml-auto flex-shrink-0" />
+                  <Switch
+                    checked={blockDisposableEmails}
+                    onChange={setBlockDisposableEmails}
+                    className="ml-auto flex-shrink-0"
+                  />
                 </div>
               </Field>
             </FieldGroup>
@@ -454,7 +640,11 @@ export default function RestrictionsPage() {
                     Select countries to block sign-in and sign-up attempts.
                   </Description>
                 </div>
-                <Switch checked={isCountryRestrictionEnabled} onChange={setIsCountryRestrictionEnabled} id="country-restriction-toggle" />
+                <Switch
+                  checked={isCountryRestrictionEnabled}
+                  onChange={setIsCountryRestrictionEnabled}
+                  id="country-restriction-toggle"
+                />
               </div>
             </Field>
             {isCountryRestrictionEnabled && (
@@ -485,7 +675,13 @@ export default function RestrictionsPage() {
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
                   />
-                  <Button plain onClick={() => addKeyword(newKeyword)} className="ml-2 flex-shrink-0">Add</Button>
+                  <Button
+                    plain
+                    onClick={() => addKeyword(newKeyword)}
+                    className="ml-2 flex-shrink-0"
+                  >
+                    Add
+                  </Button>
                 </div>
 
                 {bannedKeywords.length > 0 && (
@@ -518,11 +714,17 @@ export default function RestrictionsPage() {
           <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
             <Field>
               <Subheading>VOIP/ Virtual Number Restrictions</Subheading>
-              <Text>Block specific number series associated with VOIP or virtual numbers.</Text>
+              <Text>
+                Block specific number series associated with VOIP or virtual
+                numbers.
+              </Text>
             </Field>
             <Field>
               <div className="flex justify-end items-center">
-                <Switch checked={enableVoipRestriction} onChange={setEnableVoipRestriction} />
+                <Switch
+                  checked={enableVoipRestriction}
+                  onChange={setEnableVoipRestriction}
+                />
               </div>
             </Field>
           </section>
@@ -543,11 +745,8 @@ export default function RestrictionsPage() {
               >
                 Discard
               </Button>
-              <Button
-                onClick={handleSave}
-                disabled={isUpdatingRestrictions}
-              >
-                {isUpdatingRestrictions ? 'Saving...' : 'Save Changes'}
+              <Button onClick={handleSave} disabled={isUpdatingRestrictions}>
+                {isUpdatingRestrictions ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           </div>
@@ -840,36 +1039,40 @@ interface CountryBanSelectorProps {
   onCountriesChange: (value: React.SetStateAction<string[]>) => void;
 }
 
-export function CountryBanSelector({ selectedCountries, onCountriesChange }: CountryBanSelectorProps) {
+export function CountryBanSelector({
+  selectedCountries,
+  onCountriesChange,
+}: CountryBanSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredCountries = COUNTRIES.filter(country =>
+  const filteredCountries = COUNTRIES.filter((country) =>
     country.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleCountryToggle = (code: string) => {
-    onCountriesChange(prev =>
-      prev.includes(code)
-        ? prev.filter(c => c !== code)
-        : [...prev, code]
+    onCountriesChange((prev) =>
+      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
     );
   };
 
   const removeCountry = (code: string) => {
-    onCountriesChange(prev => prev.filter(c => c !== code));
+    onCountriesChange((prev) => prev.filter((c) => c !== code));
   };
 
   return (
@@ -882,7 +1085,11 @@ export function CountryBanSelector({ selectedCountries, onCountriesChange }: Cou
           <input
             type="text"
             className="w-full bg-transparent focus:outline-none placeholder:text-zinc-500 dark:placeholder:text-zinc-400"
-            placeholder={selectedCountries.length > 0 ? `${selectedCountries.length} countries selected` : "Search countries..."}
+            placeholder={
+              selectedCountries.length > 0
+                ? `${selectedCountries.length} countries selected`
+                : "Search countries..."
+            }
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -898,11 +1105,14 @@ export function CountryBanSelector({ selectedCountries, onCountriesChange }: Cou
           <div
             id="country-listbox"
             role="listbox"
-            className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto dark:bg-zinc-800 dark:border-zinc-700">
+            className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto dark:bg-zinc-800 dark:border-zinc-700"
+          >
             {filteredCountries.length === 0 ? (
-              <div className="px-4 py-2 text-sm text-gray-500 dark:text-zinc-400">No countries found</div>
+              <div className="px-4 py-2 text-sm text-gray-500 dark:text-zinc-400">
+                No countries found
+              </div>
             ) : (
-              filteredCountries.map(country => (
+              filteredCountries.map((country) => (
                 <button
                   key={country.code}
                   role="option"
@@ -912,15 +1122,28 @@ export function CountryBanSelector({ selectedCountries, onCountriesChange }: Cou
                     handleCountryToggle(country.code);
                   }}
                   className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-zinc-700 flex items-center justify-between
-                    ${selectedCountries.includes(country.code) ? 'bg-indigo-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' : 'text-gray-700 dark:text-zinc-200'}`}
+                    ${
+                      selectedCountries.includes(country.code)
+                        ? "bg-indigo-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
+                        : "text-gray-700 dark:text-zinc-200"
+                    }`}
                 >
                   <div className="flex items-center gap-2">
                     <span>{country.flag}</span>
                     <span>{country.name}</span>
                   </div>
                   {selectedCountries.includes(country.code) && (
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4 text-blue-600 dark:text-blue-500">
-                      <path fillRule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.35 2.35 4.493-6.74a.75.75 0 0 1 1.04-.208Z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 16 16"
+                      fill="currentColor"
+                      className="w-4 h-4 text-blue-600 dark:text-blue-500"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.35 2.35 4.493-6.74a.75.75 0 0 1 1.04-.208Z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   )}
                 </button>
@@ -930,8 +1153,8 @@ export function CountryBanSelector({ selectedCountries, onCountriesChange }: Cou
         )}
       </div>
       <div className="mt-2 flex flex-wrap gap-2">
-        {selectedCountries.map(code => {
-          const country = COUNTRIES.find(c => c.code === code);
+        {selectedCountries.map((code) => {
+          const country = COUNTRIES.find((c) => c.code === code);
           return (
             <span
               key={code}

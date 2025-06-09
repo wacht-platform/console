@@ -191,6 +191,7 @@ export interface DeploymentRestrictions {
 	allowlisted_resources: string[];
 	blocklisted_resources: string[];
 	sign_up_mode: DeploymentRestrictionsSignUpMode;
+	waitlist_collect_names: boolean;
 }
 
 export interface CountryRestrictions {

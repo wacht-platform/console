@@ -27,8 +27,8 @@ export interface DeploymentWaitlistUser {
 	updated_at: string;
 	deployment_id: string;
 	email_address: string;
-	first_name: string;
-	last_name: string;
+	first_name: string | null;
+	last_name: string | null;
 }
 
 export enum VerificationStrategy {
