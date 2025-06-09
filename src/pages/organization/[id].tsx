@@ -43,7 +43,7 @@ const convertToSimpleRoles = (
 	return roles.map((role) => ({
 		id: role.id,
 		name: role.name,
-		permissions: role.permissions.map((p) => ({ permission: p })),
+		permissions: role.permissions,
 		is_deployment_level: role.is_deployment_level,
 	}));
 };

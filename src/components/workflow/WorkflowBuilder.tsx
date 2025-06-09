@@ -20,7 +20,13 @@ import type {
   WorkflowEdge as WorkflowEdgeType,
   WebhookConfig,
   EventConfig,
-  SchemaField
+  SchemaField,
+  ActionType,
+  ApiActionConfig,
+  KnowledgeBaseActionConfig,
+  TriggerWorkflowActionConfig,
+  ConditionEvaluationType,
+  SwitchCase
 } from "@/types/workflow";
 
 
@@ -217,18 +223,18 @@ const DnDFlow = ({
         node_type: {
           type: "Trigger",
           config: {
-            condition: nodeData.condition || "",
-            scheduled_at: nodeData.scheduled_at,
+            condition: (nodeData.condition as string) || "",
+            scheduled_at: nodeData.scheduled_at as string | undefined,
             webhook_config: nodeData.webhook_config as WebhookConfig | undefined,
             event_config: nodeData.event_config as EventConfig | undefined,
           }
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
-          label: nodeData.label || "",
-          description: nodeData.description || "",
+          label: (nodeData.label as string) || "",
+          description: (nodeData.description as string) || "",
           enabled: true,
-          config: nodeData.config || {},
+          config: (nodeData.config as Record<string, unknown>) || {},
         },
       };
     } else if (node.type === "rest-api" || node.type === "search-knowledgebase" || node.type === "trigger-new-workflow") {
@@ -237,19 +243,19 @@ const DnDFlow = ({
         node_type: {
           type: "Action",
           config: {
-            action_type: nodeData.action_type,
-            tool_id: nodeData.tool_id,
-            api_config: nodeData.api_config,
-            knowledge_base_config: nodeData.knowledge_base_config,
-            trigger_workflow_config: nodeData.trigger_workflow_config,
+            action_type: nodeData.action_type as ActionType,
+            tool_id: nodeData.tool_id as string | undefined,
+            api_config: nodeData.api_config as ApiActionConfig | undefined,
+            knowledge_base_config: nodeData.knowledge_base_config as KnowledgeBaseActionConfig | undefined,
+            trigger_workflow_config: nodeData.trigger_workflow_config as TriggerWorkflowActionConfig | undefined,
           }
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
-          label: nodeData.label || "",
-          description: nodeData.description || "",
+          label: (nodeData.label as string) || "",
+          description: (nodeData.description as string) || "",
           enabled: true,
-          config: nodeData.config || {},
+          config: (nodeData.config as Record<string, unknown>) || {},
         },
       };
     } else if (node.type === "conditional") {
@@ -258,18 +264,18 @@ const DnDFlow = ({
         node_type: {
           type: "Condition",
           config: {
-            condition_type: nodeData.condition_type || "simple",
-            condition: nodeData.condition || "",
+            condition_type: (nodeData.condition_type as ConditionEvaluationType) || "simple",
+            condition: (nodeData.condition as string) || "",
             true_path: nodeData.true_path as string | undefined,
             false_path: nodeData.false_path as string | undefined,
           }
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
-          label: nodeData.label || "",
-          description: nodeData.description || "",
+          label: (nodeData.label as string) || "",
+          description: (nodeData.description as string) || "",
           enabled: true,
-          config: nodeData.config || {},
+          config: (nodeData.config as Record<string, unknown>) || {},
         },
       };
     } else if (node.type === "try-catch") {
@@ -278,20 +284,20 @@ const DnDFlow = ({
         node_type: {
           type: "ErrorHandler",
           config: {
-            enable_retry: nodeData.enable_retry || false,
-            max_retries: nodeData.max_retries || 3,
-            retry_delay_seconds: nodeData.retry_delay_seconds || 5,
+            enable_retry: (nodeData.enable_retry as boolean) || false,
+            max_retries: (nodeData.max_retries as number) || 3,
+            retry_delay_seconds: (nodeData.retry_delay_seconds as number) || 5,
             log_errors: nodeData.log_errors !== false,
-            custom_error_message: nodeData.custom_error_message,
+            custom_error_message: nodeData.custom_error_message as string | undefined,
             contained_nodes: (nodeData.contained_nodes as string[]) || [],
           }
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
-          label: nodeData.label || "",
-          description: nodeData.description || "",
+          label: (nodeData.label as string) || "",
+          description: (nodeData.description as string) || "",
           enabled: true,
-          config: nodeData.config || {},
+          config: (nodeData.config as Record<string, unknown>) || {},
         },
       };
     } else if (node.type === "llm-call") {
@@ -300,17 +306,17 @@ const DnDFlow = ({
         node_type: {
           type: "LLMCall",
           config: {
-            prompt_template: nodeData.prompt_template || "",
-            response_format: nodeData.response_format || "text",
+            prompt_template: (nodeData.prompt_template as string) || "",
+            response_format: (nodeData.response_format as "text" | "json") || "text",
             json_schema: (nodeData.json_schema as SchemaField[]) || [],
           }
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
-          label: nodeData.label || "",
-          description: nodeData.description || "",
+          label: (nodeData.label as string) || "",
+          description: (nodeData.description as string) || "",
           enabled: true,
-          config: nodeData.config || {},
+          config: (nodeData.config as Record<string, unknown>) || {},
         },
       };
     } else if (node.type === "switch-case") {
@@ -319,20 +325,20 @@ const DnDFlow = ({
         node_type: {
           type: "Switch",
           config: {
-            switch_variable: nodeData.switch_variable || "",
-            comparison_type: nodeData.comparison_type || "equals",
-            cases: nodeData.cases || [],
+            switch_variable: (nodeData.switch_variable as string) || "",
+            comparison_type: (nodeData.comparison_type as "equals" | "contains" | "starts_with" | "ends_with" | "regex") || "equals",
+            cases: (nodeData.cases as SwitchCase[]) || [],
             default_case: nodeData.default_case !== false,
             case_sensitive: nodeData.case_sensitive !== false,
-            number_of_cases: nodeData.number_of_cases || 2,
+            number_of_cases: (nodeData.number_of_cases as number) || 2,
           }
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
-          label: nodeData.label || "",
-          description: nodeData.description || "",
+          label: (nodeData.label as string) || "",
+          description: (nodeData.description as string) || "",
           enabled: true,
-          config: nodeData.config || {},
+          config: (nodeData.config as Record<string, unknown>) || {},
         },
       };
     } else {
@@ -342,19 +348,19 @@ const DnDFlow = ({
         node_type: {
           type: "Action",
           config: {
-            action_type: nodeData.action_type || "api_call",
-            tool_id: nodeData.tool_id,
-            api_config: nodeData.api_config,
-            knowledge_base_config: nodeData.knowledge_base_config,
-            trigger_workflow_config: nodeData.trigger_workflow_config,
+            action_type: (nodeData.action_type as ActionType) || "api_call",
+            tool_id: nodeData.tool_id as string | undefined,
+            api_config: nodeData.api_config as ApiActionConfig | undefined,
+            knowledge_base_config: nodeData.knowledge_base_config as KnowledgeBaseActionConfig | undefined,
+            trigger_workflow_config: nodeData.trigger_workflow_config as TriggerWorkflowActionConfig | undefined,
           }
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
-          label: nodeData.label || "",
-          description: nodeData.description || "",
+          label: (nodeData.label as string) || "",
+          description: (nodeData.description as string) || "",
           enabled: true,
-          config: nodeData.config || {},
+          config: (nodeData.config as Record<string, unknown>) || {},
         },
       };
     }

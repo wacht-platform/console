@@ -10,6 +10,14 @@ export interface OrganizationRole {
   is_deployment_level: boolean;
 }
 
+// Simplified role type for UI components
+export interface OrganizationRoleSimple {
+  id: string;
+  name: string;
+  permissions: string[];
+  is_deployment_level: boolean;
+}
+
 
 
 // Organization Member Types

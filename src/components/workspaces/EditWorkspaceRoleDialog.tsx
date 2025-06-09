@@ -116,7 +116,7 @@ export function EditWorkspaceRoleDialog({
       </DialogBody>
 
       <DialogActions>
-        <Button variant="outline" onClick={onClose}>
+        <Button outline onClick={onClose}>
           Cancel
         </Button>
         <Button
