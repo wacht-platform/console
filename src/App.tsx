@@ -12,6 +12,7 @@ import {
 import { LoadingFallback } from "./components/loading-fallback";
 import { useEffect } from "react";
 import { apiClient } from "./lib/api/client";
+import { Toaster } from 'sonner';
 
 function SignedInRoutes() {
 	const { getToken } = useSession();
@@ -48,6 +49,7 @@ function App() {
 					message="Initializing deployment"
 				/>
 			</DeploymentInitializing>
+			<Toaster />
 		</div>
 	);
 }

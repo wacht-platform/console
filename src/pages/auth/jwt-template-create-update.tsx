@@ -19,6 +19,7 @@ import { useDeploymentJWTTemplates } from "@/lib/api/hooks/use-deployment-jwt-te
 import { Button } from "@/components/ui/button";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { Spinner } from "@/components/ui/spinner";
+import { toast } from 'sonner';
 
 export default function JWTTemplateCreateUpdatePage() {
   const { templateId } = useParams();
@@ -172,15 +173,17 @@ export default function JWTTemplateCreateUpdatePage() {
         } as DeploymentJWTTemplate;
 
         await updateJWTTemplate(templateWithId);
+        toast.success("JWT template updated successfully!");
         navigate("../");
       } else {
         await createJWTTemplate(finalFormData as DeploymentJWTTemplate);
+        toast.success("JWT template created successfully!");
         navigate("../");
       }
     } catch (error) {
-      setValidationError(
-        `Failed to ${isEditMode ? "update" : "create"} JWT template`,
-      );
+      const errorMessage = `Failed to ${isEditMode ? "update" : "create"} JWT template`;
+      setValidationError(errorMessage);
+      toast.error(errorMessage);
       console.error(error);
     }
   };
@@ -188,8 +191,14 @@ export default function JWTTemplateCreateUpdatePage() {
   async function deleteTemplate() {
     if (!templateId) return;
 
-    await deleteJWTTemplate(templateId);
-    navigate("../");
+    try {
+      await deleteJWTTemplate(templateId);
+      toast.success("JWT template deleted successfully!");
+      navigate("../");
+    } catch (error) {
+      toast.error("Failed to delete JWT template");
+      console.error(error);
+    }
   }
 
   return (
@@ -354,6 +363,7 @@ export default function JWTTemplateCreateUpdatePage() {
                     navigator.clipboard.writeText(
                       selectedDeployment?.backend_host || "",
                     );
+                    toast.success("Issuer copied to clipboard!");
                   }}
                 >
                   Copy
@@ -375,6 +385,7 @@ export default function JWTTemplateCreateUpdatePage() {
                     navigator.clipboard.writeText(
                       `https://${selectedDeployment?.backend_host}/.well-known/jwks.json`,
                     );
+                    toast.success("JWKS endpoint copied to clipboard!");
                   }}
                 >
                   Copy

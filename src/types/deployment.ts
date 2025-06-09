@@ -264,6 +264,8 @@ export interface DeploymentB2bSettings {
 	default_workspace_member_role: DeploymentWorkspaceRole;
 	default_org_creator_role: DeploymentOrganizationRole;
 	default_org_member_role: DeploymentOrganizationRole;
+	workspace_permissions?: string[];
+	organization_permissions?: string[];
 }
 
 export interface DeploymentWithSettings {

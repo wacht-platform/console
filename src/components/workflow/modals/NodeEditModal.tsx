@@ -7,6 +7,7 @@ import type {
   ApiActionConfig,
   KnowledgeBaseActionConfig,
   TriggerWorkflowActionConfig,
+  PlatformEventActionConfig,
   SchemaField
 } from "../../../types/workflow";
 import type { AuthorizationConfiguration } from "../../../types/ai-tool";
@@ -45,6 +46,7 @@ interface NodeFormData {
   api_config?: ApiActionConfig;
   knowledge_base_config?: KnowledgeBaseActionConfig;
   trigger_workflow_config?: TriggerWorkflowActionConfig;
+  platform_event_config?: PlatformEventActionConfig;
   // Try/Catch fields
   enable_retry?: boolean;
   max_retries?: number;
@@ -123,6 +125,7 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
         api_config: node.data.api_config as ApiActionConfig,
         knowledge_base_config: node.data.knowledge_base_config as KnowledgeBaseActionConfig,
         trigger_workflow_config: node.data.trigger_workflow_config as TriggerWorkflowActionConfig,
+        platform_event_config: node.data.platform_event_config as PlatformEventActionConfig,
         // Try/Catch fields
         enable_retry: node.data.enable_retry as boolean,
         max_retries: node.data.max_retries as number,
@@ -243,6 +246,7 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                   formData.action_type === "api_call" ? "API Call" :
                   formData.action_type === "knowledge_base_search" ? "Knowledge Base Search" :
                   formData.action_type === "trigger_workflow" ? "Trigger Workflow" :
+                  formData.action_type === "platform_event" ? "Platform Event" :
                   formData.action_type
                 }
               </div>
@@ -671,6 +675,22 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                   placeholder="10"
                 />
               </Field>
+              <Field>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.knowledge_base_config.sort_by_relevance !== false}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      knowledge_base_config: {
+                        ...formData.knowledge_base_config!,
+                        sort_by_relevance: e.target.checked
+                      }
+                    })}
+                  />
+                  <span>Sort results by relevance</span>
+                </label>
+              </Field>
             </div>
           )}
 
@@ -699,6 +719,55 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                     </option>
                   ))}
                 </Select>
+              </Field>
+            </div>
+          )}
+
+          {/* Platform Event Configuration */}
+          {formData.node_type === "action" && formData.action_type === "platform_event" && formData.platform_event_config && (
+            <div className="space-y-4">
+              <h4 className="font-medium">Platform Event Configuration</h4>
+              <div className="text-xs text-gray-600 bg-purple-50 p-3 rounded">
+                <strong>Note:</strong> This action will emit a platform event that can be consumed by other systems or workflows.
+              </div>
+              <Field>
+                <Label htmlFor="event_label">Event Label:</Label>
+                <Input
+                  id="event_label"
+                  name="event_label"
+                  type="text"
+                  value={formData.platform_event_config.event_label}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    platform_event_config: { ...formData.platform_event_config!, event_label: e.target.value }
+                  })}
+                  placeholder="user_action, system_alert, data_updated"
+                />
+              </Field>
+
+              <Field>
+                <Label htmlFor="event_data">Event Data (Optional JSON):</Label>
+                <Textarea
+                  id="event_data"
+                  name="event_data"
+                  value={formData.platform_event_config.event_data ? JSON.stringify(formData.platform_event_config.event_data, null, 2) : ""}
+                  onChange={(e) => {
+                    try {
+                      const parsed = e.target.value ? JSON.parse(e.target.value) : undefined;
+                      setFormData({
+                        ...formData,
+                        platform_event_config: {
+                          ...formData.platform_event_config!,
+                          event_data: parsed
+                        }
+                      });
+                    } catch {
+                      // Invalid JSON, keep the string value for now
+                    }
+                  }}
+                  placeholder='{"key": "value", "additional": "data"}'
+                  className="h-20 font-mono text-sm"
+                />
               </Field>
             </div>
           )}

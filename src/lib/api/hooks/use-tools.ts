@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../client";
 import { useProjects } from "./use-projects";
+import { toast } from 'sonner';
 import type { PaginatedResponse } from "@/types/api";
 import type { AiTool, AiToolConfiguration, AiToolType } from "@/types/ai-tool";
 
@@ -110,6 +111,10 @@ export function useCreateTool() {
       queryClient.invalidateQueries({
         queryKey: ["tools", selectedDeployment!.id],
       });
+      toast.success("Tool created successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to create tool. Please try again.");
     },
   });
 }
@@ -128,6 +133,10 @@ export function useUpdateTool() {
       queryClient.invalidateQueries({
         queryKey: ["tool", selectedDeployment!.id, toolId],
       });
+      toast.success("Tool updated successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to update tool. Please try again.");
     },
   });
 }
@@ -143,6 +152,10 @@ export function useDeleteTool() {
       queryClient.invalidateQueries({
         queryKey: ["tools", selectedDeployment!.id],
       });
+      toast.success("Tool deleted successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to delete tool. Please try again.");
     },
   });
 }

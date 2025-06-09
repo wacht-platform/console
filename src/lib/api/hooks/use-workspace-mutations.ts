@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../client";
 import { useProjects } from "./use-projects";
+import { toast } from 'sonner';
 
 interface CreateWorkspaceRequest {
 	name: string;
@@ -9,6 +10,8 @@ interface CreateWorkspaceRequest {
 	public_metadata?: Record<string, unknown>;
 	private_metadata?: Record<string, unknown>;
 }
+
+
 
 interface Workspace {
 	id: string;
@@ -34,6 +37,27 @@ async function createWorkspace(
 	return response.data.data;
 }
 
+async function updateWorkspace(
+	deploymentId: string,
+	workspaceId: string,
+	data: FormData,
+): Promise<Workspace> {
+	const response = await apiClient.patch(
+		`/deployments/${deploymentId}/workspaces/${workspaceId}`,
+		data
+	);
+	return response.data.data;
+}
+
+async function deleteWorkspace(
+	deploymentId: string,
+	workspaceId: string,
+): Promise<void> {
+	await apiClient.delete(
+		`/deployments/${deploymentId}/workspaces/${workspaceId}`,
+	);
+}
+
 export function useCreateWorkspace(organizationId: string) {
 	const queryClient = useQueryClient();
 	const { selectedDeployment } = useProjects();
@@ -52,6 +76,70 @@ export function useCreateWorkspace(organizationId: string) {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["workspaces"] });
 			queryClient.invalidateQueries({ queryKey: ["organization-details"] });
+			toast.success("Workspace created successfully!");
+		},
+		onError: () => {
+			toast.error("Failed to create workspace. Please try again.");
+		},
+	});
+}
+
+export function useUpdateWorkspace() {
+	const queryClient = useQueryClient();
+	const { selectedDeployment } = useProjects();
+
+	return useMutation({
+		mutationFn: ({
+			workspaceId,
+			data,
+		}: {
+			workspaceId: string;
+			data: FormData;
+		}) => {
+			if (!selectedDeployment?.id) {
+				throw new Error("No deployment selected");
+			}
+			return updateWorkspace(
+				selectedDeployment.id.toString(),
+				workspaceId,
+				data,
+			);
+		},
+		onSuccess: (_, { workspaceId }) => {
+			queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+			queryClient.invalidateQueries({ queryKey: ["organization-details"] });
+			queryClient.invalidateQueries({
+				queryKey: ["workspace-details", selectedDeployment?.id, workspaceId],
+			});
+			toast.success("Workspace updated successfully!");
+		},
+		onError: () => {
+			toast.error("Failed to update workspace. Please try again.");
+		},
+	});
+}
+
+export function useDeleteWorkspace() {
+	const queryClient = useQueryClient();
+	const { selectedDeployment } = useProjects();
+
+	return useMutation({
+		mutationFn: (workspaceId: string) => {
+			if (!selectedDeployment?.id) {
+				throw new Error("No deployment selected");
+			}
+			return deleteWorkspace(
+				selectedDeployment.id.toString(),
+				workspaceId,
+			);
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+			queryClient.invalidateQueries({ queryKey: ["organization-details"] });
+			toast.success("Workspace deleted successfully!");
+		},
+		onError: () => {
+			toast.error("Failed to delete workspace. Please try again.");
 		},
 	});
 }

@@ -28,6 +28,10 @@ const getTypeColor = (type: string) => {
 			return "bg-blue-100 text-blue-800";
 		case "knowledge_base":
 			return "bg-green-100 text-green-800";
+		case "platform_event":
+			return "bg-purple-100 text-purple-800";
+		case "platform_function":
+			return "bg-orange-100 text-orange-800";
 		default:
 			return "bg-gray-100 text-gray-800";
 	}
@@ -74,25 +78,27 @@ export default function ToolsPage() {
 				</p>
 			</div>
 
-			<div className="flex flex-wrap items-center justify-between gap-4">
-				<div className="sm:flex-1">
-					<div className="mt-4 flex max-w-md gap-2">
-						<InputGroup className="w-64">
-							<MagnifyingGlassIcon className="size-4" />
-							<Input
-								name="search"
-								placeholder="Search tools..."
-								value={searchTerm}
-								onChange={(e) => setSearchTerm(e.target.value)}
-							/>
-						</InputGroup>
+			{!isLoading && !error && tools.length > 0 && (
+				<div className="flex flex-wrap items-center justify-between gap-4">
+					<div className="sm:flex-1">
+						<div className="mt-4 flex max-w-md gap-2">
+							<InputGroup className="w-64">
+								<MagnifyingGlassIcon className="size-4" />
+								<Input
+									name="search"
+									placeholder="Search tools..."
+									value={searchTerm}
+									onChange={(e) => setSearchTerm(e.target.value)}
+								/>
+							</InputGroup>
+						</div>
 					</div>
+					<Button onClick={handleCreateTool}>
+						<PlusIcon className="mr-2 h-4 w-4" />
+						Create Tool
+					</Button>
 				</div>
-				<Button onClick={handleCreateTool}>
-					<PlusIcon className="mr-2 h-4 w-4" />
-					Create Tool
-				</Button>
-			</div>
+			)}
 
 			<div className="mt-6">
 				{isLoading ? (
@@ -127,7 +133,6 @@ export default function ToolsPage() {
 								<TableHeader>Name</TableHeader>
 								<TableHeader>Description</TableHeader>
 								<TableHeader>Type</TableHeader>
-								<TableHeader>Status</TableHeader>
 								<TableHeader className="w-[150px]">Actions</TableHeader>
 							</TableRow>
 						</TableHead>
@@ -145,11 +150,12 @@ export default function ToolsPage() {
 									<TableCell>{tool.description}</TableCell>
 									<TableCell>
 										<Badge className={getTypeColor(tool.tool_type)}>
-											{tool.tool_type === "api" ? "API Call" : "Knowledge Base"}
+											{tool.tool_type === "api" ? "API Call" :
+											 tool.tool_type === "knowledge_base" ? "Knowledge Base" :
+											 tool.tool_type === "platform_event" ? "Platform Event" :
+											 tool.tool_type === "platform_function" ? "Platform Function" :
+											 "Unknown"}
 										</Badge>
-									</TableCell>
-									<TableCell>
-										<Badge className="bg-green-100 text-green-800">Active</Badge>
 									</TableCell>
 									<TableCell>
 										<div className="flex gap-2">
@@ -179,7 +185,7 @@ export default function ToolsPage() {
 					setIsCreateDialogOpen(false);
 					setEditingTool(null);
 				}}
-				tool={editingTool}
+				tool={editingTool || undefined}
 			/>
 		</div>
 	);

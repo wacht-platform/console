@@ -18,7 +18,7 @@ interface WorkflowHeaderProps {
   isSaving: boolean;
   validationErrors: ValidationError[];
   fieldErrors: Record<string, string>;
-  onFieldChange: (fieldName: string, value: any) => void;
+  onFieldChange: (fieldName: string, value: unknown) => void;
 }
 
 export default function WorkflowHeader({

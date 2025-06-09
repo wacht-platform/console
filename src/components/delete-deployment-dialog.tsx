@@ -7,6 +7,7 @@ import { Text } from "@/components/ui/text";
 import { useDeleteDeployment } from "@/lib/api/hooks/use-delete-deployment";
 import type { Deployment } from "@/types/deployment";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { toast } from 'sonner';
 
 interface DeleteDeploymentDialogProps {
   open: boolean;
@@ -38,10 +39,12 @@ export function DeleteDeploymentDialog({
         projectId,
         deploymentId: deployment.id,
       });
+      toast.success(`${deployment.mode} deployment deleted successfully`);
       onClose();
       setConfirmationText("");
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation
+      toast.error(`Failed to delete ${deployment.mode} deployment`);
     }
   };
 

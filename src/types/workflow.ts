@@ -53,7 +53,8 @@ export interface TriggerNodeConfig {
 export type ActionType =
   | "api_call"
   | "knowledge_base_search"
-  | "trigger_workflow";
+  | "trigger_workflow"
+  | "platform_event";
 
 export interface SchemaField {
   name: string;
@@ -83,10 +84,16 @@ export interface KnowledgeBaseActionConfig {
   query: string;
   max_results?: number;
   similarity_threshold?: number;
+  sort_by_relevance?: boolean;
 }
 
 export interface TriggerWorkflowActionConfig {
   target_workflow_id: string;
+}
+
+export interface PlatformEventActionConfig {
+  event_label: string;
+  event_data?: Record<string, unknown>;
 }
 
 export interface ActionNodeConfig {
@@ -95,6 +102,7 @@ export interface ActionNodeConfig {
   api_config?: ApiActionConfig;
   knowledge_base_config?: KnowledgeBaseActionConfig;
   trigger_workflow_config?: TriggerWorkflowActionConfig;
+  platform_event_config?: PlatformEventActionConfig;
 }
 
 export type ConditionEvaluationType = "javascript" | "json_path" | "simple";

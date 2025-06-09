@@ -1,4 +1,4 @@
-export type AiToolType = "api" | "knowledge_base";
+export type AiToolType = "api" | "knowledge_base" | "platform_event" | "platform_function";
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
@@ -11,6 +11,13 @@ export interface ParameterValueType {
 export interface HttpParameter {
   name: string;
   value_type: ParameterValueType;
+  required: boolean;
+  description?: string;
+}
+
+export interface SchemaField {
+  name: string;
+  field_type: string;
   required: boolean;
   description?: string;
 }
@@ -29,12 +36,17 @@ export interface ApiToolConfiguration {
   query_parameters: HttpParameter[];
   body_parameters: HttpParameter[];
   authorization?: AuthorizationConfiguration;
+  request_body_schema?: SchemaField[];
+  url_params_schema?: SchemaField[];
+  query_params_schema?: SchemaField[];
+  timeout_seconds?: number;
 }
 
 export interface KnowledgeBaseSearchSettings {
   max_results?: number;
   similarity_threshold?: number;
   include_metadata: boolean;
+  sort_by_relevance: boolean;
 }
 
 export interface KnowledgeBaseToolConfiguration {
@@ -43,7 +55,22 @@ export interface KnowledgeBaseToolConfiguration {
   search_settings: KnowledgeBaseSearchSettings;
 }
 
-export type AiToolConfiguration = ApiToolConfiguration | KnowledgeBaseToolConfiguration;
+export interface PlatformEventToolConfiguration {
+  type: "PlatformEvent";
+  event_label: string;
+  event_data?: Record<string, unknown>;
+}
+
+export interface PlatformFunctionToolConfiguration {
+  type: "PlatformFunction";
+  function_name: string;
+  function_description?: string;
+  input_schema?: SchemaField[];
+  output_schema?: SchemaField[];
+  is_overridable: boolean;
+}
+
+export type AiToolConfiguration = ApiToolConfiguration | KnowledgeBaseToolConfiguration | PlatformEventToolConfiguration | PlatformFunctionToolConfiguration;
 
 export interface AiTool {
   id: string;
@@ -56,7 +83,7 @@ export interface AiTool {
   configuration: AiToolConfiguration;
 }
 
-export interface AiToolWithDetails extends AiTool {}
+export type AiToolWithDetails = AiTool;
 
 // Form data interfaces for the frontend
 export interface ToolFormData {

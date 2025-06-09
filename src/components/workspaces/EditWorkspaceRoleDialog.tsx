@@ -1,6 +1,5 @@
-import React, { useState } from "react";
-import { useCreateOrganizationRole } from "@/lib/api/hooks/use-organization-mutations";
-import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
+import React, { useState, useEffect } from "react";
+import { useUpdateWorkspaceRole } from "@/lib/api/hooks/use-workspace-role-mutations";
 import {
   Dialog,
   DialogTitle,
@@ -11,37 +10,50 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, Label } from "@/components/ui/fieldset";
 import { MultiSelect } from "@/components/ui/multi-select";
+import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
+import { WorkspaceRole } from "@/types/organization";
 
-interface CreateRoleDialogProps {
+interface EditWorkspaceRoleDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  organizationId: string;
+  workspaceId: string;
+  role: WorkspaceRole;
 }
 
-export function CreateRoleDialog({
+export function EditWorkspaceRoleDialog({
   isOpen,
   onClose,
-  organizationId,
-}: CreateRoleDialogProps) {
+  workspaceId,
+  role,
+}: EditWorkspaceRoleDialogProps) {
   const [formData, setFormData] = useState({
     name: "",
     permissions: [] as string[],
   });
 
-  const createRole = useCreateOrganizationRole();
+  const updateRole = useUpdateWorkspaceRole();
   const { deploymentSettings } = useCurrentDeployemnt();
 
   // Get available permissions from deployment B2B settings
   const availablePermissions = React.useMemo(() => {
-    const orgPermissions = deploymentSettings?.b2b_settings?.organization_permissions || [];
+    const workspacePermissions = deploymentSettings?.b2b_settings?.workspace_permissions || [];
 
     // Convert to options format - just show the permission string as-is
-    return orgPermissions.map(permission => ({
+    return workspacePermissions.map(permission => ({
       id: permission,
       name: permission,
       description: permission,
     }));
   }, [deploymentSettings]);
+
+  useEffect(() => {
+    if (role) {
+      setFormData({
+        name: role.name,
+        permissions: role.permissions,
+      });
+    }
+  }, [role]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,25 +63,30 @@ export function CreateRoleDialog({
     }
 
     try {
-      await createRole.mutateAsync({
-        organizationId,
+      await updateRole.mutateAsync({
+        workspaceId,
+        roleId: role.id,
         data: {
-          name: formData.name.trim(),
-          permissions: formData.permissions,
+          name:
+            formData.name.trim() !== role.name
+              ? formData.name.trim()
+              : undefined,
+          permissions:
+            JSON.stringify(formData.permissions) !==
+            JSON.stringify(role.permissions)
+              ? formData.permissions
+              : undefined,
         },
       });
       onClose();
-      setFormData({ name: "", permissions: [] });
     } catch (error) {
-      console.error("Failed to create role:", error);
+      console.error("Failed to update role:", error);
     }
   };
 
-
-
   return (
     <Dialog open={isOpen} onClose={onClose}>
-      <DialogTitle>Create Organization Role</DialogTitle>
+      <DialogTitle>Edit Workspace Role</DialogTitle>
 
       <DialogBody>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -99,20 +116,14 @@ export function CreateRoleDialog({
       </DialogBody>
 
       <DialogActions>
-        <Button
-          type="button"
-          outline
-          onClick={onClose}
-          disabled={createRole.isPending}
-        >
+        <Button variant="outline" onClick={onClose}>
           Cancel
         </Button>
         <Button
-          type="submit"
           onClick={handleSubmit}
-          disabled={createRole.isPending || !formData.name.trim()}
+          disabled={!formData.name.trim() || updateRole.isPending}
         >
-          {createRole.isPending ? "Creating..." : "Create Role"}
+          {updateRole.isPending ? "Updating..." : "Update Role"}
         </Button>
       </DialogActions>
     </Dialog>

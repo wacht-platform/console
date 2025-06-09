@@ -1,4 +1,5 @@
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { Avatar } from "@/components/ui/avatar";
 import { Heading } from "../components/ui/heading";
 import { Input, InputGroup } from "../components/ui/input";
 import { Select } from "../components/ui/select";
@@ -112,6 +113,12 @@ export default function WorkspacesPage() {
 								>
 									<TableCell>
 										<div className="flex items-center gap-3">
+											<Avatar
+												className="size-8"
+												src={workspace.image_url}
+												initials={workspace.name.substring(0, 2).toUpperCase()}
+												alt={`${workspace.name} logo`}
+											/>
 											<span>{workspace.name}</span>
 										</div>
 									</TableCell>

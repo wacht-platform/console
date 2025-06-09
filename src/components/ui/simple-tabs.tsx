@@ -33,7 +33,7 @@ export const SimpleTabs: React.FC<TabsProps> = ({
         {tabs.map((tab, index) => (
           <button
             key={index}
-            className={`px-6 py-2.5 font-medium text-sm relative ${
+            className={`px-4 py-2.5 text-xs relative ${
               activeTab === index
                 ? "text-blue-600"
                 : "text-gray-500 hover:text-gray-700"

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../client";
 import { useProjects } from "./use-projects";
+import { toast } from 'sonner';
 
 interface CreateUserRequest {
   first_name: string;
@@ -61,6 +62,10 @@ export function useCreateUser() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("User created successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to create user. Please try again.");
     },
   });
 }
@@ -78,6 +83,10 @@ export function useInviteUser() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invited-users"] });
+      toast.success("User invited successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to invite user. Please try again.");
     },
   });
 }
@@ -95,6 +104,10 @@ export function useAddToWaitlist() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-waitlist"] });
+      toast.success("User added to waitlist successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to add user to waitlist. Please try again.");
     },
   });
 }

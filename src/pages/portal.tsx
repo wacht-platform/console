@@ -18,6 +18,7 @@ import {
 } from "@/lib/api/hooks/use-update-deployment-display-settings";
 import { useUploadImage } from "@/lib/api/hooks/use-upload-image";
 import SavePopup from "@/components/save-popup";
+import { toast } from 'sonner';
 
 // Validation types
 interface ValidationErrors {
@@ -371,7 +372,7 @@ export default function PortalPage() {
 
     const validationError = validateImageFile(file);
     if (validationError) {
-      alert(validationError);
+      toast.error(validationError);
       if (event.target) {
         event.target.value = "";
       }
@@ -380,15 +381,23 @@ export default function PortalPage() {
 
     setIsUploadingUserImage(true);
     setIsDirty(true);
+
+    const uploadPromise = uploadImageMutation.mutateAsync({
+      imageType: "user-profile",
+      file,
+    });
+
+    toast.promise(uploadPromise, {
+      loading: 'Uploading user profile image...',
+      success: 'User profile image uploaded successfully!',
+      error: 'Failed to upload user image.',
+    });
+
     try {
-      const imageUrl = await uploadImageMutation.mutateAsync({
-        imageType: "user-profile",
-        file,
-      });
+      const imageUrl = await uploadPromise;
       setDefaultUserProfileImageUrl(imageUrl);
     } catch (error) {
       console.error("Error uploading user image:", error);
-      alert("Failed to upload user image.");
     } finally {
       setIsUploadingUserImage(false);
       if (event.target) {
@@ -405,7 +414,7 @@ export default function PortalPage() {
 
     const validationError = validateImageFile(file);
     if (validationError) {
-      alert(validationError);
+      toast.error(validationError);
       if (event.target) {
         event.target.value = "";
       }
@@ -414,15 +423,23 @@ export default function PortalPage() {
 
     setIsUploadingOrgImage(true);
     setIsDirty(true);
+
+    const uploadPromise = uploadImageMutation.mutateAsync({
+      imageType: "org-profile",
+      file,
+    });
+
+    toast.promise(uploadPromise, {
+      loading: 'Uploading organization profile image...',
+      success: 'Organization profile image uploaded successfully!',
+      error: 'Failed to upload organization image.',
+    });
+
     try {
-      const imageUrl = await uploadImageMutation.mutateAsync({
-        imageType: "org-profile",
-        file,
-      });
+      const imageUrl = await uploadPromise;
       setDefaultOrganizationProfileImageUrl(imageUrl);
     } catch (error) {
       console.error("Error uploading organization image:", error);
-      alert("Failed to upload organization image.");
     } finally {
       setIsUploadingOrgImage(false);
       if (event.target) {
@@ -439,7 +456,7 @@ export default function PortalPage() {
 
     const validationError = validateImageFile(file);
     if (validationError) {
-      alert(validationError);
+      toast.error(validationError);
       if (event.target) {
         event.target.value = "";
       }
@@ -448,15 +465,23 @@ export default function PortalPage() {
 
     setIsUploadingLogo(true);
     setIsDirty(true);
+
+    const uploadPromise = uploadImageMutation.mutateAsync({
+      imageType: "logo",
+      file,
+    });
+
+    toast.promise(uploadPromise, {
+      loading: 'Uploading logo image...',
+      success: 'Logo image uploaded successfully!',
+      error: 'Failed to upload logo image.',
+    });
+
     try {
-      const imageUrl = await uploadImageMutation.mutateAsync({
-        imageType: "logo",
-        file,
-      });
+      const imageUrl = await uploadPromise;
       setLogoImageUrl(imageUrl);
     } catch (error) {
       console.error("Error uploading logo image:", error);
-      alert("Failed to upload logo image.");
     } finally {
       setIsUploadingLogo(false);
       if (event.target) {
@@ -473,7 +498,7 @@ export default function PortalPage() {
 
     const validationError = validateImageFile(file);
     if (validationError) {
-      alert(validationError);
+      toast.error(validationError);
       if (event.target) {
         event.target.value = "";
       }
@@ -483,20 +508,28 @@ export default function PortalPage() {
     // Additional validation for favicon - should be small
     if (file.size > 1024 * 1024) {
       // 1MB
-      alert("Favicon should be smaller than 1MB for optimal performance.");
+      toast.warning("Favicon should be smaller than 1MB for optimal performance.");
     }
 
     setIsUploadingFavicon(true);
     setIsDirty(true);
+
+    const uploadPromise = uploadImageMutation.mutateAsync({
+      imageType: "favicon",
+      file,
+    });
+
+    toast.promise(uploadPromise, {
+      loading: 'Uploading favicon image...',
+      success: 'Favicon image uploaded successfully!',
+      error: 'Failed to upload favicon image.',
+    });
+
     try {
-      const imageUrl = await uploadImageMutation.mutateAsync({
-        imageType: "favicon",
-        file,
-      });
+      const imageUrl = await uploadPromise;
       setFaviconImageUrl(imageUrl);
     } catch (error) {
       console.error("Error uploading favicon image:", error);
-      alert("Failed to upload favicon image.");
     } finally {
       setIsUploadingFavicon(false);
       if (event.target) {
@@ -511,9 +544,9 @@ export default function PortalPage() {
     setShowValidationErrors(true);
 
     if (!isValid) {
-      // Show an alert with validation errors
-      const errorMessages = Object.values(validationErrors).join("\n");
-      alert(`Please fix the following errors before saving:\n${errorMessages}`);
+      // Show a toast with validation errors
+      const errorMessages = Object.values(validationErrors).join(", ");
+      toast.error(`Please fix the following errors before saving: ${errorMessages}`);
       return;
     }
 
@@ -565,9 +598,10 @@ export default function PortalPage() {
       await updateDisplaySettings.mutateAsync(updates);
       setIsDirty(false);
       setShowValidationErrors(false);
+      toast.success("Settings saved successfully!");
     } catch (error) {
       console.error("Error saving display settings:", error);
-      alert("Failed to save settings. Please try again.");
+      toast.error("Failed to save settings. Please try again.");
     } finally {
       setIsSaving(false);
     }

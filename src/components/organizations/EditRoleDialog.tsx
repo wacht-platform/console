@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useUpdateOrganizationRole } from "@/lib/api/hooks/use-organization-mutations";
+import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 import {
   Dialog,
   DialogTitle,
@@ -8,8 +9,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/fieldset";
-import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
+import { Field, Label } from "@/components/ui/fieldset";
+import { MultiSelect } from "@/components/ui/multi-select";
 
 interface EditRoleDialogProps {
   isOpen: boolean;
@@ -18,30 +19,9 @@ interface EditRoleDialogProps {
   role: {
     id: string;
     name: string;
-    permissions: Array<{ permission: string }>;
+    permissions: Array<string>;
   };
 }
-
-const AVAILABLE_PERMISSIONS = [
-  { id: "read", name: "Read", description: "View organization data" },
-  {
-    id: "write",
-    name: "Write",
-    description: "Create and edit organization data",
-  },
-  { id: "delete", name: "Delete", description: "Delete organization data" },
-  {
-    id: "manage_members",
-    name: "Manage Members",
-    description: "Add and remove organization members",
-  },
-  {
-    id: "manage_roles",
-    name: "Manage Roles",
-    description: "Create and edit organization roles",
-  },
-  { id: "admin", name: "Admin", description: "Full administrative access" },
-];
 
 export function EditRoleDialog({
   isOpen,
@@ -55,12 +35,25 @@ export function EditRoleDialog({
   });
 
   const updateRole = useUpdateOrganizationRole();
+  const { deploymentSettings } = useCurrentDeployemnt();
+
+  // Get available permissions from deployment B2B settings
+  const availablePermissions = React.useMemo(() => {
+    const orgPermissions = deploymentSettings?.b2b_settings?.organization_permissions || [];
+
+    // Convert to options format - just show the permission string as-is
+    return orgPermissions.map(permission => ({
+      id: permission,
+      name: permission,
+      description: permission,
+    }));
+  }, [deploymentSettings]);
 
   useEffect(() => {
     if (role) {
       setFormData({
         name: role.name,
-        permissions: role.permissions.map((p) => p.permission),
+        permissions: role.permissions,
       });
     }
   }, [role]);
@@ -83,7 +76,7 @@ export function EditRoleDialog({
               : undefined,
           permissions:
             JSON.stringify(formData.permissions) !==
-            JSON.stringify(role.permissions.map((p) => p.permission))
+            JSON.stringify(role.permissions.map((p) => p))
               ? formData.permissions
               : undefined,
         },
@@ -94,14 +87,7 @@ export function EditRoleDialog({
     }
   };
 
-  const handlePermissionToggle = (permissionId: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      permissions: prev.permissions.includes(permissionId)
-        ? prev.permissions.filter((id) => id !== permissionId)
-        : [...prev.permissions, permissionId],
-    }));
-  };
+
 
   return (
     <Dialog open={isOpen} onClose={onClose}>
@@ -110,7 +96,7 @@ export function EditRoleDialog({
       <DialogBody>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
-            <div>
+            <Field>
               <Label htmlFor="name">Role Name</Label>
               <Input
                 id="name"
@@ -121,29 +107,15 @@ export function EditRoleDialog({
                 placeholder="Enter role name"
                 required
               />
-            </div>
+            </Field>
 
-            <div>
-              <Label>Permissions</Label>
-              <div className="space-y-3 mt-2">
-                {AVAILABLE_PERMISSIONS.map((permission) => (
-                  <CheckboxField key={permission.id}>
-                    <Checkbox
-                      checked={formData.permissions.includes(permission.id)}
-                      onChange={() => handlePermissionToggle(permission.id)}
-                    />
-                    <div className="flex-1">
-                      <Label className="text-sm font-medium">
-                        {permission.name}
-                      </Label>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {permission.description}
-                      </div>
-                    </div>
-                  </CheckboxField>
-                ))}
-              </div>
-            </div>
+            <MultiSelect
+              label="Permissions"
+              options={availablePermissions}
+              selectedValues={formData.permissions}
+              onChange={(permissions) => setFormData(prev => ({ ...prev, permissions }))}
+              placeholder="Select permissions for this role..."
+            />
           </div>
         </form>
       </DialogBody>

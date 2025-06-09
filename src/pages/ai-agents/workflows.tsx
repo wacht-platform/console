@@ -72,25 +72,27 @@ export default function WorkflowsPage() {
 				<Heading>AI Workflows</Heading>
 			</div>
 
-			<div className="flex flex-wrap items-center justify-between gap-4">
-				<div className="sm:flex-1">
-					<div className="mt-4 flex max-w-md gap-2">
-						<InputGroup className="w-64">
-							<MagnifyingGlassIcon className="size-4" />
-							<Input
-								name="search"
-								placeholder="Search workflows..."
-								value={searchTerm}
-								onChange={(e) => setSearchTerm(e.target.value)}
-							/>
-						</InputGroup>
+			{!isLoading && !error && workflows.length > 0 && (
+				<div className="flex flex-wrap items-center justify-between gap-4">
+					<div className="sm:flex-1">
+						<div className="mt-4 flex max-w-md gap-2">
+							<InputGroup className="w-64">
+								<MagnifyingGlassIcon className="size-4" />
+								<Input
+									name="search"
+									placeholder="Search workflows..."
+									value={searchTerm}
+									onChange={(e) => setSearchTerm(e.target.value)}
+								/>
+							</InputGroup>
+						</div>
 					</div>
+					<Button onClick={handleCreateWorkflow}>
+						<PlusIcon className="mr-2 h-4 w-4" />
+						Create Workflow
+					</Button>
 				</div>
-				<Button onClick={handleCreateWorkflow}>
-					<PlusIcon className="mr-2 h-4 w-4" />
-					Create Workflow
-				</Button>
-			</div>
+			)}
 
 			<div className="mt-6">
 				{isLoading ? (

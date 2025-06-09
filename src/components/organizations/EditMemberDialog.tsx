@@ -7,8 +7,7 @@ import {
 	DialogActions,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/fieldset";
-import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
+import { MultiSelect } from "@/components/ui/multi-select";
 
 import type {
 	OrganizationMemberDetails,
@@ -57,13 +56,7 @@ export function EditMemberDialog({
 		}
 	};
 
-	const handleRoleToggle = (roleId: string) => {
-		setSelectedRoles((prev) =>
-			prev.includes(roleId)
-				? prev.filter((id) => id !== roleId)
-				: [...prev, roleId],
-		);
-	};
+
 
 	return (
 		<Dialog open={isOpen} onClose={onClose}>
@@ -81,26 +74,26 @@ export function EditMemberDialog({
 					</div>
 
 					<form onSubmit={handleSubmit} className="space-y-6">
-						<div>
-							<Label>Assign Roles</Label>
-							<div className="space-y-2 mt-2">
-								{availableRoles.map((role) => (
-									<CheckboxField key={role.id}>
-										<Checkbox
-											checked={selectedRoles.includes(role.id)}
-											onChange={() => handleRoleToggle(role.id)}
-										/>
-										<Label className="text-sm">{role.name}</Label>
-									</CheckboxField>
-								))}
+						{availableRoles.length > 0 ? (
+							<MultiSelect
+								label="Assign Roles"
+								options={availableRoles.map(role => ({
+									id: role.id,
+									name: role.is_deployment_level ? `${role.name} (Default)` : role.name,
+									description: role.is_deployment_level
+										? `Default deployment role • ${role.permissions.length} permission${role.permissions.length !== 1 ? 's' : ''}`
+										: `${role.permissions.length} permission${role.permissions.length !== 1 ? 's' : ''}`
+								}))}
+								selectedValues={selectedRoles}
+								onChange={setSelectedRoles}
+								placeholder="Select roles to assign..."
+							/>
+						) : (
+							<div className="text-sm text-gray-500 mt-2">
+								No roles available. Create roles first to assign them to
+								members.
 							</div>
-							{availableRoles.length === 0 && (
-								<div className="text-sm text-gray-500 mt-2">
-									No roles available. Create roles first to assign them to
-									members.
-								</div>
-							)}
-						</div>
+						)}
 					</form>
 				</div>
 			</DialogBody>

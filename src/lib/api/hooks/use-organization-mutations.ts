@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../client";
 import { useProjects } from "./use-projects";
+import { toast } from 'sonner';
 import type {
 	Organization,
 	OrganizationMemberDetails,
@@ -88,7 +89,7 @@ async function createOrganizationRole(
 		`/deployments/${deploymentId}/organizations/${organizationId}/roles`,
 		data,
 	);
-	return response.data.data;
+	return response.data;
 }
 
 async function updateOrganizationRole(
@@ -101,7 +102,7 @@ async function updateOrganizationRole(
 		`/deployments/${deploymentId}/organizations/${organizationId}/roles/${roleId}`,
 		data,
 	);
-	return response.data.data;
+	return response.data;
 }
 
 async function deleteOrganizationRole(
@@ -127,6 +128,10 @@ export function useCreateOrganization() {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["organizations"] });
+			toast.success("Organization created successfully!");
+		},
+		onError: () => {
+			toast.error("Failed to create organization. Please try again.");
 		},
 	});
 }
@@ -161,6 +166,10 @@ export function useUpdateOrganization() {
 					organizationId,
 				],
 			});
+			toast.success("Organization updated successfully!");
+		},
+		onError: () => {
+			toast.error("Failed to update organization. Please try again.");
 		},
 	});
 }
@@ -316,6 +325,11 @@ export function useCreateOrganizationRole() {
 					organizationId,
 				],
 			});
+			toast.success("Organization role created successfully");
+		},
+		onError: (error: unknown) => {
+			const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to create organization role";
+			toast.error(message);
 		},
 	});
 }
@@ -352,6 +366,11 @@ export function useUpdateOrganizationRole() {
 					organizationId,
 				],
 			});
+			toast.success("Organization role updated successfully");
+		},
+		onError: (error: unknown) => {
+			const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to update organization role";
+			toast.error(message);
 		},
 	});
 }

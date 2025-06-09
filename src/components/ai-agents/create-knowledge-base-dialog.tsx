@@ -15,12 +15,12 @@ import {
 	DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import { useUploadDocument, useUploadUrl, type KnowledgeBaseDocument } from "../../lib/api/hooks/use-knowledge-bases";
+import { toast } from 'sonner';
 
 interface CreateKnowledgeBaseDialogProps {
 	open: boolean;
 	onClose: () => void;
 	document?: KnowledgeBaseDocument | null;
-	deploymentId: string;
 	knowledgeBaseId: string;
 }
 
@@ -37,7 +37,6 @@ export function CreateKnowledgeBaseDialog({
 	open,
 	onClose,
 	document,
-	deploymentId: _deploymentId,
 	knowledgeBaseId,
 }: CreateKnowledgeBaseDialogProps) {
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -114,9 +113,11 @@ export function CreateKnowledgeBaseDialog({
 					}
 				}
 			}
+			toast.success(`Successfully uploaded ${uploadMode === 'files' ? formData.files.length + ' file(s)' : formData.urls.length + ' URL(s)'}`);
 			onClose();
 		} catch (error) {
 			console.error("Error uploading:", error);
+			toast.error("Failed to upload documents. Please try again.");
 		}
 	};
 

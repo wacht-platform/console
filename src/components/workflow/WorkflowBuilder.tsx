@@ -17,13 +17,17 @@ import "@xyflow/react/dist/style.css";
 import type {
   WorkflowFormData,
   WorkflowNode as WorkflowNodeType,
-  WorkflowEdge as WorkflowEdgeType
+  WorkflowEdge as WorkflowEdgeType,
+  WebhookConfig,
+  EventConfig,
+  SchemaField
 } from "@/types/workflow";
 
 
 import TriggerNode from "./nodes/TriggerNode";
 import SearchKnowledgebaseNode from "./nodes/SearchKnowledgebaseNode";
 import ApiCallNode from "./nodes/ApiCallNode";
+import PlatformEventNode from "./nodes/PlatformEventNode";
 import type { BaseNodeData } from "../../types/NodeTypes";
 import StopWorkflowNode from "./nodes/StopWorkflowNode";
 import ConditionalNode from "./nodes/ConditionalNode";
@@ -98,6 +102,13 @@ const Sidebar = () => {
         Trigger New Workflow
       </div>
       <div
+        className="dndnode action platform-event p-3 border border-purple-400 rounded-md cursor-grab text-center text-sm font-medium bg-purple-100 text-purple-800"
+        onDragStart={(event) => onDragStart(event, "platform-event")}
+        draggable
+      >
+        Platform Event
+      </div>
+      <div
         className="dndnode action stop p-3 border border-red-400 rounded-md cursor-grab text-center text-sm font-medium bg-red-100 text-red-800"
         onDragStart={(event) => onDragStart(event, "stop-workflow")}
         draggable
@@ -124,6 +135,7 @@ const nodeTypes = {
   trigger: TriggerNode,
   "search-knowledgebase": SearchKnowledgebaseNode,
   "rest-api": ApiCallNode,
+  "platform-event": PlatformEventNode,
   "stop-workflow": StopWorkflowNode,
   conditional: ConditionalNode,
   "trigger-new-workflow": TriggerNode,
@@ -196,7 +208,7 @@ const DnDFlow = ({
 
   // Helper function to map React Flow node to WorkflowNode
   const mapReactFlowNodeToWorkflowNode = (node: Node): WorkflowNodeType => {
-    const nodeData = node.data as any;
+    const nodeData = node.data as Record<string, unknown>;
 
     // Map based on node type
     if (node.type === "trigger") {
@@ -207,9 +219,9 @@ const DnDFlow = ({
           config: {
             condition: nodeData.condition || "",
             scheduled_at: nodeData.scheduled_at,
-            webhook_config: nodeData.webhook_config,
-            event_config: nodeData.event_config,
-          } as any
+            webhook_config: nodeData.webhook_config as WebhookConfig | undefined,
+            event_config: nodeData.event_config as EventConfig | undefined,
+          }
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
@@ -248,9 +260,9 @@ const DnDFlow = ({
           config: {
             condition_type: nodeData.condition_type || "simple",
             condition: nodeData.condition || "",
-            true_path: nodeData.true_path,
-            false_path: nodeData.false_path,
-          } as any
+            true_path: nodeData.true_path as string | undefined,
+            false_path: nodeData.false_path as string | undefined,
+          }
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
@@ -271,8 +283,8 @@ const DnDFlow = ({
             retry_delay_seconds: nodeData.retry_delay_seconds || 5,
             log_errors: nodeData.log_errors !== false,
             custom_error_message: nodeData.custom_error_message,
-            contained_nodes: nodeData.contained_nodes || [],
-          } as any
+            contained_nodes: (nodeData.contained_nodes as string[]) || [],
+          }
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
@@ -290,8 +302,8 @@ const DnDFlow = ({
           config: {
             prompt_template: nodeData.prompt_template || "",
             response_format: nodeData.response_format || "text",
-            json_schema: nodeData.json_schema || "",
-          } as any
+            json_schema: (nodeData.json_schema as SchemaField[]) || [],
+          }
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
@@ -457,7 +469,7 @@ const DnDFlow = ({
       }
 
       if (sourceNode?.type === "switch-case") {
-        const sourceData = sourceNode.data as any;
+        const sourceData = sourceNode.data as Record<string, unknown>;
 
         let edgeLabel = "Default";
         if (params.sourceHandle?.startsWith("case-")) {
@@ -465,7 +477,7 @@ const DnDFlow = ({
           edgeLabel = `Case ${caseIndex + 1}`;
 
           // Use case data if available
-          const cases = sourceData.cases || [];
+          const cases = (sourceData.cases as Array<{ case_label?: string; case_value?: string }>) || [];
           if (cases[caseIndex]) {
             edgeLabel = cases[caseIndex].case_label || cases[caseIndex].case_value || edgeLabel;
           }
@@ -561,23 +573,25 @@ const DnDFlow = ({
           ? "Search Knowledgebase"
           : type === "rest-api"
             ? "Rest API"
-            : type === "stop-workflow"
-              ? "Stop Workflow"
-              : type === "skip-step"
-                ? "Skip Step"
-                : type === "conditional"
-                  ? "Conditional Branching"
-                  : type === "trigger"
-                    ? "Workflow Trigger"
-                    : type === "trigger-new-workflow"
-                      ? "Trigger New Workflow"
-                      : type === "try-catch"
-                        ? "Try/Catch"
-                        : type === "llm-call"
-                          ? "LLM Call"
-                          : type === "switch-case"
-                            ? "Switch/Case"
-                            : `${type} node`;
+            : type === "platform-event"
+              ? "Platform Event"
+              : type === "stop-workflow"
+                ? "Stop Workflow"
+                : type === "skip-step"
+                  ? "Skip Step"
+                  : type === "conditional"
+                    ? "Conditional Branching"
+                    : type === "trigger"
+                      ? "Workflow Trigger"
+                      : type === "trigger-new-workflow"
+                        ? "Trigger New Workflow"
+                        : type === "try-catch"
+                          ? "Try/Catch"
+                          : type === "llm-call"
+                            ? "LLM Call"
+                            : type === "switch-case"
+                              ? "Switch/Case"
+                              : `${type} node`;
 
       const newNode: Node<BaseNodeData> = {
         id: getId(),
@@ -606,6 +620,13 @@ const DnDFlow = ({
           query: "",
           max_results: 10,
           similarity_threshold: 0.7,
+          sort_by_relevance: true,
+        };
+      } else if (type === "platform-event") {
+        (newNode.data as unknown as Record<string, unknown>).action_type = "platform_event";
+        (newNode.data as unknown as Record<string, unknown>).platform_event_config = {
+          event_label: "",
+          event_data: undefined,
         };
       } else if (type === "trigger-new-workflow") {
         (newNode.data as unknown as Record<string, unknown>).action_type = "trigger_workflow";
@@ -698,7 +719,7 @@ const DnDFlow = ({
             }
           });
 
-          const currentContainedNodes = (node.data as any).contained_nodes || [];
+          const currentContainedNodes = ((node.data as Record<string, unknown>).contained_nodes as string[]) || [];
           const sortedNew = containedNodeIds.sort();
           const sortedCurrent = currentContainedNodes.sort();
 

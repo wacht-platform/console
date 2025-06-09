@@ -18,6 +18,7 @@ import {
 	PlusIcon,
 } from "@heroicons/react/24/outline";
 import { useUploadDocument, useUploadUrl } from "../../lib/api/hooks/use-knowledge-bases";
+import { toast } from 'sonner';
 
 interface EnhancedUploadDialogProps {
 	open: boolean;
@@ -80,7 +81,7 @@ export function EnhancedUploadDialog({
 			return;
 		}
 
-		try {
+		const uploadPromise = async () => {
 			if (uploadMode === 'files') {
 				// Upload multiple files
 				for (const file of formData.files) {
@@ -104,6 +105,16 @@ export function EnhancedUploadDialog({
 					});
 				}
 			}
+		};
+
+		toast.promise(uploadPromise(), {
+			loading: `Uploading ${uploadMode === 'files' ? formData.files.length + ' file(s)' : formData.urls.length + ' URL(s)'}...`,
+			success: `Successfully uploaded ${uploadMode === 'files' ? formData.files.length + ' file(s)' : formData.urls.length + ' URL(s)'}!`,
+			error: 'Failed to upload documents. Please try again.',
+		});
+
+		try {
+			await uploadPromise();
 			handleClose();
 		} catch (error) {
 			console.error("Error uploading:", error);

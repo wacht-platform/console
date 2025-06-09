@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Field, Label, ErrorMessage } from "@/components/ui/fieldset";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { useCreateWorkspace } from "@/lib/api/hooks/use-workspace-mutations";
+import { toast } from 'sonner';
 
 interface CreateWorkspaceModalProps {
   isOpen: boolean;
@@ -26,6 +28,7 @@ export function CreateWorkspaceModal({
 }: CreateWorkspaceModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [imageUrl, setImageUrl] = useState<string>("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const createWorkspaceMutation = useCreateWorkspace(organizationId);
@@ -52,19 +55,23 @@ export function CreateWorkspaceModal({
       await createWorkspaceMutation.mutateAsync({
         name: name.trim(),
         description: description.trim() || undefined,
+        image_url: imageUrl || undefined,
       });
 
       // Reset form and close modal on success
+      toast.success("Workspace created successfully!");
       resetForm();
       onClose();
     } catch (error) {
       console.error("Error creating workspace:", error);
+      toast.error("Failed to create workspace. Please try again.");
     }
   };
 
   const resetForm = () => {
     setName("");
     setDescription("");
+    setImageUrl("");
     setErrors({});
   };
 
@@ -78,6 +85,14 @@ export function CreateWorkspaceModal({
       <DialogTitle>Create Workspace</DialogTitle>
       <DialogBody>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <ImageUpload
+            label="Workspace logo"
+            imageType="org-profile"
+            variant="avatar"
+            onImageUploaded={setImageUrl}
+            onImageRemoved={() => setImageUrl("")}
+          />
+
           <Field>
             <Label>Organization</Label>
             <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-700">

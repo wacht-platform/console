@@ -5,6 +5,7 @@ export interface UserWithIdentifiers {
 	first_name: string;
 	last_name: string;
 	username: string | null;
+	profile_picture_url: string;
 	primary_email_address: string | null;
 	primary_phone_number: string | null;
 }
@@ -96,6 +97,7 @@ export interface UserDetails {
 	first_name: string;
 	last_name: string;
 	username: string | null;
+	profile_picture_url: string;
 	schema_version: SchemaVersion;
 	disabled: boolean;
 	second_factor_policy: SecondFactorPolicy;

@@ -59,7 +59,7 @@ export default function CreateWorkflowPage() {
 	};
 
 	// Field validation handler
-	const handleFieldChange = useCallback((fieldName: string, value: any) => {
+	const handleFieldChange = useCallback((fieldName: string, value: unknown) => {
 		const error = validateField(fieldName, value);
 		setFieldErrors(prev => ({
 			...prev,

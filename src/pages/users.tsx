@@ -1,4 +1,4 @@
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { MagnifyingGlassIcon, UserGroupIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { Heading } from "@/components/ui/heading";
 import { Input, InputGroup } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -84,6 +84,15 @@ export default function UsersPage() {
 
 	const hasPrevPage = page > 1;
 
+	// Helper function to check if current tab has any users
+	const hasUsersInCurrentTab = () => {
+		if (isLoading) return false;
+		if (selectedTabKey === "Active") return (activeUsers?.data.length ?? 0) > 0;
+		if (selectedTabKey === "Invited") return (invitedUsers?.data.length ?? 0) > 0;
+		if (selectedTabKey === "Waitlist") return (waitlistUsers?.data.length ?? 0) > 0;
+		return false;
+	};
+
 	const handleCreateUser = () => {
 		if (selectedTabKey === "Active") {
 			setCreateUserModalOpen(true);
@@ -141,55 +150,57 @@ export default function UsersPage() {
 				<Heading>Users</Heading>
 				<NavigationTabs tabs={tabs} onChange={onTabChange} />
 			</div>
-			<div className="flex flex-wrap items-center justify-between gap-4">
-				<div className="sm:flex-1">
-					<div className="mt-4 flex max-w-md gap-2">
-						<div className="flex-1">
-							<InputGroup className="w-64">
-								<MagnifyingGlassIcon className="size-4" />
-								<Input name="search" placeholder="Search users&hellip;" />
-							</InputGroup>
-						</div>
-						<div className="flex-1">
-							<Listbox
-								onChange={(value) => handleSortChange(value)}
-								value={`${sortKey}-${sortOrder}`}
-							>
-								<ListboxOption value="created_at-asc">
-									<ListboxLabel>Sort by date (newest)</ListboxLabel>
-								</ListboxOption>
-								<ListboxOption value="created_at-desc">
-									<ListboxLabel>Sort by date (oldest)</ListboxLabel>
-								</ListboxOption>
-								<ListboxOption value="username-asc">
-									<ListboxLabel>Sort by username (A-Z)</ListboxLabel>
-								</ListboxOption>
-								<ListboxOption value="username-desc">
-									<ListboxLabel>Sort by username (Z-A)</ListboxLabel>
-								</ListboxOption>
-								<ListboxOption value="email-asc">
-									<ListboxLabel>Sort by email (A-Z)</ListboxLabel>
-								</ListboxOption>
-								<ListboxOption value="email-desc">
-									<ListboxLabel>Sort by email (Z-A)</ListboxLabel>
-								</ListboxOption>
-								<ListboxOption value="phone_number-asc">
-									<ListboxLabel>Sort by phone (A-Z)</ListboxLabel>
-								</ListboxOption>
-								<ListboxOption value="phone_number-desc">
-									<ListboxLabel>Sort by phone (Z-A)</ListboxLabel>
-								</ListboxOption>
-							</Listbox>
+			{hasUsersInCurrentTab() && (
+				<div className="flex flex-wrap items-center justify-between gap-4">
+					<div className="sm:flex-1">
+						<div className="mt-4 flex max-w-md gap-2">
+							<div className="flex-1">
+								<InputGroup className="w-64">
+									<MagnifyingGlassIcon className="size-4" />
+									<Input name="search" placeholder="Search users&hellip;" />
+								</InputGroup>
+							</div>
+							<div className="flex-1">
+								<Listbox
+									onChange={(value) => handleSortChange(value)}
+									value={`${sortKey}-${sortOrder}`}
+								>
+									<ListboxOption value="created_at-asc">
+										<ListboxLabel>Sort by date (newest)</ListboxLabel>
+									</ListboxOption>
+									<ListboxOption value="created_at-desc">
+										<ListboxLabel>Sort by date (oldest)</ListboxLabel>
+									</ListboxOption>
+									<ListboxOption value="username-asc">
+										<ListboxLabel>Sort by username (A-Z)</ListboxLabel>
+									</ListboxOption>
+									<ListboxOption value="username-desc">
+										<ListboxLabel>Sort by username (Z-A)</ListboxLabel>
+									</ListboxOption>
+									<ListboxOption value="email-asc">
+										<ListboxLabel>Sort by email (A-Z)</ListboxLabel>
+									</ListboxOption>
+									<ListboxOption value="email-desc">
+										<ListboxLabel>Sort by email (Z-A)</ListboxLabel>
+									</ListboxOption>
+									<ListboxOption value="phone_number-asc">
+										<ListboxLabel>Sort by phone (A-Z)</ListboxLabel>
+									</ListboxOption>
+									<ListboxOption value="phone_number-desc">
+										<ListboxLabel>Sort by phone (Z-A)</ListboxLabel>
+									</ListboxOption>
+								</Listbox>
+							</div>
 						</div>
 					</div>
+					{selectedTabKey !== "Waitlist" && (
+						<Button onClick={handleCreateUser}>
+							{selectedTabKey === "Active" && "Create User"}
+							{selectedTabKey === "Invited" && "Invite User"}
+						</Button>
+					)}
 				</div>
-				{selectedTabKey !== "Waitlist" && (
-					<Button onClick={handleCreateUser}>
-						{selectedTabKey === "Active" && "Create User"}
-						{selectedTabKey === "Invited" && "Invite User"}
-					</Button>
-				)}
-			</div>
+			)}
 
 			<div className="mt-6">
 				<Table>
@@ -227,25 +238,13 @@ export default function UsersPage() {
 							/>
 						) : selectedTabKey === "Active" &&
 							activeUsers?.data.length === 0 ? (
-							<TableRow>
-								<TableCell colSpan={6} className="text-center">
-									No active users found
-								</TableCell>
-							</TableRow>
+							null
 						) : selectedTabKey === "Invited" &&
 							invitedUsers?.data.length === 0 ? (
-							<TableRow>
-								<TableCell colSpan={6} className="text-center">
-									No invited users found
-								</TableCell>
-							</TableRow>
+							null
 						) : selectedTabKey === "Waitlist" &&
 							waitlistUsers?.data.length === 0 ? (
-							<TableRow>
-								<TableCell colSpan={6} className="text-center">
-									No users in waitlist
-								</TableCell>
-							</TableRow>
+							null
 						) : selectedTabKey === "Active" ? (
 							activeUsers?.data.map((user) => (
 								<TableRow
@@ -257,6 +256,7 @@ export default function UsersPage() {
 										<div className="flex items-center gap-3">
 											<Avatar
 												className="size-5"
+												src={user.profile_picture_url || undefined}
 												initials={`${user.first_name[0]}${user.last_name[0]}`}
 											/>
 											<span>{`${user.first_name} ${user.last_name}`}</span>
@@ -330,6 +330,32 @@ export default function UsersPage() {
 						)}
 					</TableBody>
 				</Table>
+
+				{/* Empty States */}
+				{!isLoading && !hasUsersInCurrentTab() && (
+					<div className="text-center py-12">
+						<UserGroupIcon className="mx-auto h-12 w-12 text-gray-400" />
+						<h3 className="mt-2 text-sm font-semibold text-gray-900">
+							{selectedTabKey === "Active" && "No active users"}
+							{selectedTabKey === "Invited" && "No invited users"}
+							{selectedTabKey === "Waitlist" && "No users in waitlist"}
+						</h3>
+						<p className="mt-1 text-sm text-gray-500">
+							{selectedTabKey === "Active" && "Get started by creating your first user."}
+							{selectedTabKey === "Invited" && "Get started by inviting your first user."}
+							{selectedTabKey === "Waitlist" && "No users have joined the waitlist yet."}
+						</p>
+						{selectedTabKey !== "Waitlist" && (
+							<div className="mt-6">
+								<Button onClick={handleCreateUser}>
+									<PlusIcon className="mr-2 h-4 w-4" />
+									{selectedTabKey === "Active" && "Create User"}
+									{selectedTabKey === "Invited" && "Invite User"}
+								</Button>
+							</div>
+						)}
+					</div>
+				)}
 
 				{!isLoading &&
 					((selectedTabKey === "Active" &&

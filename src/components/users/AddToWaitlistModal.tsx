@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Field, Label, ErrorMessage } from "@/components/ui/fieldset";
 import { Input } from "@/components/ui/input";
 import { useAddToWaitlist } from "@/lib/api/hooks/use-deployment-user-mutations";
+import { toast } from 'sonner';
 
 interface AddToWaitlistModalProps {
   isOpen: boolean;
@@ -62,10 +63,12 @@ export function AddToWaitlistModal({
       });
 
       // Reset form and close modal on success
+      toast.success("User added to waitlist successfully!");
       resetForm();
       onClose();
     } catch (error) {
       console.error("Error adding user to waitlist:", error);
+      toast.error("Failed to add user to waitlist. Please try again.");
     }
   };
 

@@ -443,10 +443,10 @@ export function validateWorkflow(data: WorkflowFormData): WorkflowValidationResu
 /**
  * Validates a single field and returns error message if invalid
  */
-export function validateField(fieldName: string, value: any): string | undefined {
+export function validateField(fieldName: string, value: unknown): string | undefined {
   switch (fieldName) {
     case "name":
-      if (!value || !value.trim()) {
+      if (!value || typeof value !== 'string' || !value.trim()) {
         return "Workflow name is required";
       }
       if (value.trim().length > WORKFLOW_NAME_MAX_LENGTH) {
@@ -455,7 +455,7 @@ export function validateField(fieldName: string, value: any): string | undefined
       break;
 
     case "description":
-      if (value && value.length > DESCRIPTION_MAX_LENGTH) {
+      if (value && typeof value === 'string' && value.length > DESCRIPTION_MAX_LENGTH) {
         return `Description must be no more than ${DESCRIPTION_MAX_LENGTH} characters long`;
       }
       break;

@@ -8,8 +8,9 @@ import {
 	useRemoveOrganizationMember,
 	useDeleteOrganizationRole,
 } from "@/lib/api/hooks/use-organization-mutations";
+import { useDeleteWorkspace } from "@/lib/api/hooks/use-workspace-mutations";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { Avatar } from "@/components/ui/avatar";
 import { SimpleTabs, Tab } from "@/components/ui/simple-tabs";
 import Editor from "@monaco-editor/react";
@@ -21,16 +22,17 @@ import { CreateRoleDialog } from "@/components/organizations/CreateRoleDialog";
 import { EditRoleDialog } from "@/components/organizations/EditRoleDialog";
 import { DeleteConfirmationDialog } from "@/components/organizations/DeleteConfirmationDialog";
 import { LoadingFallback } from "@/components/loading-fallback";
+import { EmptyState } from "@/components/ui/empty-state";
 import type {
 	OrganizationMemberDetails,
 	OrganizationRole,
 	OrganizationRoleSimple,
+	Workspace,
 } from "@/types/organization";
 
 import {
 	PencilIcon,
 	TrashIcon,
-	PlusIcon,
 	UsersIcon,
 } from "@heroicons/react/24/outline";
 
@@ -41,7 +43,8 @@ const convertToSimpleRoles = (
 	return roles.map((role) => ({
 		id: role.id,
 		name: role.name,
-		permissions: role.permissions.map((p) => p.permission),
+		permissions: role.permissions.map((p) => ({ permission: p })),
+		is_deployment_level: role.is_deployment_level,
 	}));
 };
 
@@ -87,11 +90,16 @@ export default function OrganizationDetailsPage() {
 	);
 	const [deleteRoleModalOpen, setDeleteRoleModalOpen] = useState(false);
 
+	// Workspace management modal states
+	const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
+	const [deleteWorkspaceModalOpen, setDeleteWorkspaceModalOpen] = useState(false);
+
 	// Mutations
 	const updateOrganization = useUpdateOrganization();
 	const deleteOrganization = useDeleteOrganization();
 	const removeMember = useRemoveOrganizationMember();
 	const deleteRole = useDeleteOrganizationRole();
+	const deleteWorkspace = useDeleteWorkspace();
 
 	// Initialize metadata when organization data loads
 	useEffect(() => {
@@ -109,9 +117,7 @@ export default function OrganizationDetailsPage() {
 		}
 	}, [organization]);
 
-	const handleBack = () => {
-		navigate("/organizations");
-	};
+
 
 	if (isLoading) {
 		return (
@@ -130,9 +136,6 @@ export default function OrganizationDetailsPage() {
 					<p className="text-red-500">
 						{error.message || "Failed to load organization details"}
 					</p>
-					<Button onClick={handleBack} className="mt-4">
-						Back to Organizations
-					</Button>
 				</div>
 			</div>
 		);
@@ -143,9 +146,6 @@ export default function OrganizationDetailsPage() {
 			<div className="flex items-center justify-center min-h-screen">
 				<div className="text-center">
 					<p>Organization not found</p>
-					<Button onClick={handleBack} className="mt-4">
-						Back to Organizations
-					</Button>
 				</div>
 			</div>
 		);
@@ -201,7 +201,7 @@ export default function OrganizationDetailsPage() {
 	const handleDeleteOrganization = async () => {
 		try {
 			await deleteOrganization.mutateAsync(organization.id);
-			navigate("/organizations");
+			navigate("../organizations");
 		} catch (error) {
 			console.error("Failed to delete organization:", error);
 		}
@@ -259,6 +259,24 @@ export default function OrganizationDetailsPage() {
 		}
 	};
 
+	// Workspace handlers
+	const handleDeleteWorkspace = (workspace: Workspace) => {
+		setSelectedWorkspace(workspace);
+		setDeleteWorkspaceModalOpen(true);
+	};
+
+	const handleConfirmDeleteWorkspace = async () => {
+		if (!selectedWorkspace) return;
+
+		try {
+			await deleteWorkspace.mutateAsync(selectedWorkspace.id);
+			setDeleteWorkspaceModalOpen(false);
+			setSelectedWorkspace(null);
+		} catch (error) {
+			console.error("Failed to delete workspace:", error);
+		}
+	};
+
 	return (
 		<div className="container mx-auto">
 			<CreateWorkspaceModal
@@ -268,186 +286,231 @@ export default function OrganizationDetailsPage() {
 				organizationName={organization.name}
 			/>
 
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-				{/* Organization profile card */}
-				<Card className="lg:col-span-1 shadow-sm border-0 overflow-hidden">
-					<CardHeader className="pb-0">
-						<CardTitle>Organization Profile</CardTitle>
-					</CardHeader>
-					<CardContent className="pt-6 flex flex-col items-center text-center">
-						<Avatar
-							className="h-24 w-24 mb-4"
-							initials={organization.name.substring(0, 2).toUpperCase()}
-						/>
-						<h2 className="text-xl font-bold mb-1">{organization.name}</h2>
-						<p className="text-sm text-gray-500 mb-2">
-							{organization.description}
-						</p>
-						<p className="text-sm text-gray-500 mb-6">
-							Created{" "}
-							{format(new Date(organization.created_at), "MMMM d, yyyy")}
-						</p>
-
-						<div className="flex gap-2 w-full">
-							<Button
-								outline
-								className="flex-1 flex items-center justify-center gap-1 text-sm py-2"
-								onClick={() => setEditOrganizationModalOpen(true)}
-							>
-								<PencilIcon className="h-4 w-4" />
-								Edit Organization
-							</Button>
-							<Button
-								outline
-								className="flex-1 flex items-center justify-center gap-1 text-sm py-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
-								onClick={() => setDeleteOrganizationModalOpen(true)}
-							>
-								<TrashIcon className="h-4 w-4" />
-								Delete
-							</Button>
-						</div>
-					</CardContent>
-				</Card>
-
-				{/* Organization information card */}
-				<Card className="lg:col-span-2 shadow-sm border-0 overflow-hidden">
-					<CardHeader>
-						<CardTitle>Organization Information</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-y-6">
-							<div>
-								<p className="text-sm font-medium text-gray-500 mb-1">
-									Organization ID
-								</p>
-								<p className="font-mono text-sm">{organization.id}</p>
-							</div>
-							<div>
-								<p className="text-sm font-medium text-gray-500 mb-1">
-									Member Count
-								</p>
-								<p className="text-sm">{organization.member_count}</p>
-							</div>
-							<div>
-								<p className="text-sm font-medium text-gray-500 mb-1">
-									Created At
-								</p>
-								<p className="text-sm">
-									{format(
-										new Date(organization.created_at),
-										"MMM d, yyyy, h:mm:ss a",
-									)}
-								</p>
-							</div>
-							<div>
-								<p className="text-sm font-medium text-gray-500 mb-1">
-									Last Updated
-								</p>
-								<p className="text-sm">
-									{format(
-										new Date(organization.updated_at),
-										"MMM d, yyyy, h:mm:ss a",
-									)}
-								</p>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
+			{/* Header */}
+			<div className="flex justify-between items-center mb-6">
+				<div className="flex items-center gap-4">
+					<div>
+						<h1 className="text-lg text-gray-900">
+							{organization.name}
+						</h1>
+						<p className="text-sm text-gray-500">Organization ID: {organization.id}</p>
+					</div>
+				</div>
+				<div className="flex items-center gap-3">
+					<Button
+						outline
+						className="p-2"
+						onClick={() => setEditOrganizationModalOpen(true)}
+					>
+						<PencilIcon className="h-4 w-4" />
+						<span className="sr-only">Edit Organization</span>
+					</Button>
+					<Button
+						color="red"
+						className="p-2"
+						onClick={() => setDeleteOrganizationModalOpen(true)}
+					>
+						<TrashIcon className="h-4 w-4" />
+						<span className="sr-only">Delete Organization</span>
+					</Button>
+				</div>
 			</div>
 
-			{/* Tabs */}
-			<Card className="shadow-sm border-0 overflow-hidden">
-				<div className="p-0">
-					<SimpleTabs defaultTab={0}>
-						<Tab label="Overview">
-							<div className="p-6 space-y-4">
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-									<div>
-										<h3 className="text-sm font-medium text-gray-500 mb-1">
-											Total Members
-										</h3>
-										<p className="text-base">{organization.member_count}</p>
-									</div>
-									<div>
-										<h3 className="text-sm font-medium text-gray-500 mb-1">
-											Total Roles
-										</h3>
-										<p className="text-base">{organization.roles.length}</p>
-									</div>
+			{/* Main Content Grid */}
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+				{/* Profile Sidebar */}
+				<div className="lg:col-span-1 lg:border-r lg:border-gray-200 lg:pr-8">
+					<div className="bg-white rounded-lg py-6">
+						{/* Avatar */}
+						<div className="flex flex-col items-center mb-6">
+							<Avatar
+								className="h-24 w-24 mb-4"
+								src={organization.image_url}
+								initials={organization.name.substring(0, 2).toUpperCase()}
+								alt={`${organization.name} logo`}
+							/>
+							<h2 className="text-lg text-gray-900 text-center mb-2">
+								{organization.name}
+							</h2>
+							{organization.description && (
+								<p className="text-sm text-gray-500 mb-2 text-center">
+									{organization.description}
+								</p>
+							)}
+							<p className="text-sm text-gray-500 mb-6">
+								Created {format(new Date(organization.created_at), "MMM d, yyyy")}
+							</p>
+
+							{/* Quick Stats */}
+							<div className="w-full space-y-3 mb-6">
+								<div className="flex justify-between items-center py-2 border-b border-gray-100">
+									<span className="text-sm text-gray-600">Members</span>
+									<span className="text-sm text-gray-900">
+										{organization.member_count}
+									</span>
+								</div>
+								<div className="flex justify-between items-center py-2 border-b border-gray-100">
+									<span className="text-sm text-gray-600">Roles</span>
+									<span className="text-sm text-gray-900">
+										{organization.roles?.length || 0}
+									</span>
+								</div>
+								<div className="flex justify-between items-center py-2">
+									<span className="text-sm text-gray-600">Workspaces</span>
+									<span className="text-sm text-gray-900">
+										{organization.workspaces?.length || 0}
+									</span>
 								</div>
 							</div>
-						</Tab>
+						</div>
+					</div>
+				</div>
+
+				{/* Main Content Area */}
+				<div className="lg:col-span-2">
+					{/* Organization Details */}
+					<div className="mb-8">
+						<h2 className="text-base text-gray-900 mb-4">
+							Organization Details
+						</h2>
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+							<div className="space-y-1">
+								<p className="text-xs text-gray-500">
+									Organization ID
+								</p>
+								<p className="text-sm text-gray-900 font-mono">{organization.id}</p>
+							</div>
+							<div className="space-y-1">
+								<p className="text-xs text-gray-500">
+									Member Count
+								</p>
+								<p className="text-sm text-gray-900">{organization.member_count}</p>
+							</div>
+							<div className="space-y-1">
+								<p className="text-xs text-gray-500">Created</p>
+								<p className="text-sm text-gray-900">
+									{format(new Date(organization.created_at), "MMM d, yyyy")}
+								</p>
+							</div>
+							<div className="space-y-1">
+								<p className="text-xs text-gray-500">
+									Last Updated
+								</p>
+								<p className="text-sm text-gray-900">
+									{format(new Date(organization.updated_at), "MMM d, yyyy")}
+								</p>
+							</div>
+							<div className="space-y-1">
+								<p className="text-xs text-gray-500">
+									Total Roles
+								</p>
+								<p className="text-sm text-gray-900">{organization.roles?.length || 0}</p>
+							</div>
+							<div className="space-y-1">
+								<p className="text-xs text-gray-500">
+									Total Workspaces
+								</p>
+								<p className="text-sm text-gray-900">{organization.workspaces?.length || 0}</p>
+							</div>
+						</div>
+					</div>
+
+					{/* Tabs */}
+					<div>
+						<SimpleTabs defaultTab={0}>
+							<Tab label="Overview">
+								<div className="px-4 py-6">
+									<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+										<div className="space-y-2">
+											<h3 className="text-xs text-gray-500">
+												Total Members
+											</h3>
+											<p className="text-base text-gray-900">
+												{organization.member_count}
+											</p>
+										</div>
+										<div className="space-y-2">
+											<h3 className="text-xs text-gray-500">
+												Total Roles
+											</h3>
+											<p className="text-base text-gray-900">
+												{organization.roles?.length || 0}
+											</p>
+										</div>
+										<div className="space-y-2">
+											<h3 className="text-xs text-gray-500">
+												Total Workspaces
+											</h3>
+											<p className="text-base text-gray-900">
+												{organization.workspaces?.length || 0}
+											</p>
+										</div>
+									</div>
+								</div>
+							</Tab>
 
 						<Tab label="Members">
-							<div className="p-6">
-								<div className="flex justify-between items-center mb-4">
-									<h3 className="text-lg font-medium">Organization Members</h3>
-									<Button
-										outline
-										className="flex items-center gap-1 text-sm py-2"
-										onClick={() => setAddMemberModalOpen(true)}
-									>
-										<PlusIcon className="h-4 w-4" />
-										Add Member
-									</Button>
+							<div className="px-4 py-6">
+								<div className="flex justify-between items-center mb-6">
+									<h3 className="text-base text-gray-900">Organization Members</h3>
+									{organization.members && organization.members.length > 0 && (
+										<Button
+											onClick={() => setAddMemberModalOpen(true)}
+										>
+											Add Member
+										</Button>
+									)}
 								</div>
 
 								{!organization.members || organization.members.length === 0 ? (
-									<div className="text-center py-12">
-										<div className="h-12 w-12 mx-auto mb-4 text-gray-400">
-											<UsersIcon />
-										</div>
-										<p className="text-gray-500 mb-4">No members added yet</p>
-										<Button outline onClick={() => setAddMemberModalOpen(true)}>
-											Add Member
-										</Button>
-									</div>
+									<EmptyState
+										title="No members added yet"
+										description="Get started by adding your first organization member."
+										actionLabel="Add Member"
+										onAction={() => setAddMemberModalOpen(true)}
+										icon={<UsersIcon />}
+									/>
 								) : (
-									<div className="space-y-4">
+									<div className="divide-y divide-gray-200">
 										{organization.members.map((member) => (
 											<div
 												key={member.id}
-												className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0"
+												className="py-4 first:pt-0 last:pb-0"
 											>
-												<div className="flex-1">
-													<div className="flex items-center gap-3 mb-2">
-														<span className="font-medium text-gray-900">
-															{member.first_name} {member.last_name}
-														</span>
-														{member.username && (
-															<span className="text-sm text-gray-500">
-																@{member.username}
+												<div className="flex items-center justify-between">
+													<div className="flex-1">
+														<div className="flex items-center gap-3 mb-1">
+															<span className="text-sm text-gray-900">
+																{member.first_name} {member.last_name}
 															</span>
-														)}
+															{member.username && (
+																<span className="text-xs text-gray-500">
+																	@{member.username}
+																</span>
+															)}
+														</div>
+														<div className="text-xs text-gray-500">
+															{member.primary_email_address}
+														</div>
 													</div>
-													<div className="text-sm text-gray-500">
-														{member.primary_email_address}
-														{member.primary_phone_number && (
-															<span> • {member.primary_phone_number}</span>
-														)}
+													<div className="flex items-center gap-2">
+														<button
+															type="button"
+															className="p-2 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+															onClick={() => handleEditMember(member)}
+														>
+															<PencilIcon className="h-4 w-4" />
+															<span className="sr-only">Edit</span>
+														</button>
+														<button
+															type="button"
+															className="p-2 rounded-md hover:bg-gray-100 text-gray-400 hover:text-red-600"
+															onClick={() => handleDeleteMember(member)}
+														>
+															<TrashIcon className="h-4 w-4" />
+															<span className="sr-only">Remove</span>
+														</button>
 													</div>
-													<div className="text-sm text-gray-500">
-														Joined{" "}
-														{format(new Date(member.created_at), "MMM d, yyyy")}
-													</div>
-												</div>
-												<div className="flex items-center gap-2">
-													<button
-														type="button"
-														className="p-2 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600"
-														onClick={() => handleEditMember(member)}
-													>
-														<PencilIcon className="h-4 w-4" />
-														<span className="sr-only">Edit</span>
-													</button>
-													<button
-														type="button"
-														className="p-2 rounded-md hover:bg-gray-100 text-gray-400 hover:text-red-600"
-														onClick={() => handleDeleteMember(member)}
-													>
-														<TrashIcon className="h-4 w-4" />
-														<span className="sr-only">Remove</span>
-													</button>
 												</div>
 											</div>
 										))}
@@ -457,65 +520,86 @@ export default function OrganizationDetailsPage() {
 						</Tab>
 
 						<Tab label="Roles">
-							<div className="p-6">
-								<div className="flex justify-between items-center mb-4">
-									<h3 className="text-lg font-medium">Organization Roles</h3>
-									<Button
-										outline
-										className="flex items-center gap-1 text-sm py-2"
-										onClick={() => setCreateRoleModalOpen(true)}
-									>
-										<PlusIcon className="h-4 w-4" />
-										Create Role
-									</Button>
-								</div>
-
-								{!organization.roles || organization.roles.length === 0 ? (
-									<div className="text-center py-12">
-										<p className="text-gray-500 mb-4">
-											No custom roles created yet
-										</p>
+							<div className="px-4 py-6">
+								<div className="flex justify-between items-center mb-6">
+									<h3 className="text-base text-gray-900">Organization Roles</h3>
+									{organization.roles && organization.roles.length > 0 && (
 										<Button
-											outline
 											onClick={() => setCreateRoleModalOpen(true)}
 										>
 											Create Role
 										</Button>
-									</div>
+									)}
+								</div>
+
+								{!organization.roles || organization.roles.length === 0 ? (
+									<EmptyState
+										title="No custom roles created yet"
+										description="Create custom roles to manage permissions within your organization."
+										actionLabel="Create Role"
+										onAction={() => setCreateRoleModalOpen(true)}
+										icon={
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												fill="none"
+												viewBox="0 0 24 24"
+												strokeWidth={1.5}
+												stroke="currentColor"
+											>
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
+												/>
+											</svg>
+										}
+									/>
 								) : (
-									<div className="space-y-4">
+									<div className="divide-y divide-gray-200">
 										{organization.roles.map((role) => (
 											<div
 												key={role.id}
-												className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0"
+												className="py-4 first:pt-0 last:pb-0"
 											>
-												<div className="flex-1">
-													<div className="flex items-center gap-3 mb-2">
-														<span className="font-medium text-gray-900">
-															{role.name}
-														</span>
+												<div className="flex items-center justify-between">
+													<div className="flex-1">
+														<div className="flex items-center gap-3 mb-2">
+															<span className="text-sm text-gray-900">
+																{role.name}
+															</span>
+															{role.is_deployment_level && (
+																<span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+																	Default
+																</span>
+															)}
+														</div>
+														<div className="text-xs text-gray-500">
+															{role.permissions.length} permissions
+															{role.is_deployment_level && " • Cannot be edited or deleted"}
+														</div>
 													</div>
-													<div className="text-sm text-gray-500">
-														{role.permissions.length} permissions
+													<div className="flex items-center gap-2">
+														{!role.is_deployment_level && (
+															<>
+																<button
+																	type="button"
+																	className="p-2 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+																	onClick={() => handleEditRole(role)}
+																>
+																	<PencilIcon className="h-4 w-4" />
+																	<span className="sr-only">Edit</span>
+																</button>
+																<button
+																	type="button"
+																	className="p-2 rounded-md hover:bg-gray-100 text-gray-400 hover:text-red-600"
+																	onClick={() => handleDeleteRole(role)}
+																>
+																	<TrashIcon className="h-4 w-4" />
+																	<span className="sr-only">Delete</span>
+																</button>
+															</>
+														)}
 													</div>
-												</div>
-												<div className="flex items-center gap-2">
-													<button
-														type="button"
-														className="p-2 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600"
-														onClick={() => handleEditRole(role)}
-													>
-														<PencilIcon className="h-4 w-4" />
-														<span className="sr-only">Edit</span>
-													</button>
-													<button
-														type="button"
-														className="p-2 rounded-md hover:bg-gray-100 text-gray-400 hover:text-red-600"
-														onClick={() => handleDeleteRole(role)}
-													>
-														<TrashIcon className="h-4 w-4" />
-														<span className="sr-only">Delete</span>
-													</button>
 												</div>
 											</div>
 										))}
@@ -525,95 +609,105 @@ export default function OrganizationDetailsPage() {
 						</Tab>
 
 						<Tab label="Workspaces">
-							<div className="p-6">
-								<div className="flex justify-between items-center mb-4">
-									<h3 className="text-lg font-medium">
+							<div className="px-4 py-6">
+								<div className="flex justify-between items-center mb-6">
+									<h3 className="text-base text-gray-900">
 										Organization Workspaces
 									</h3>
-									<Button
-										outline
-										className="flex items-center gap-1 text-sm py-2"
-										onClick={() => setCreateWorkspaceModalOpen(true)}
-									>
-										<PlusIcon className="h-4 w-4" />
-										Create Workspace
-									</Button>
-								</div>
-
-								{!organization.workspaces ||
-								organization.workspaces.length === 0 ? (
-									<div className="text-center py-12">
-										<p className="text-gray-500 mb-4">
-											No workspaces created yet
-										</p>
+									{organization.workspaces && organization.workspaces.length > 0 && (
 										<Button
-											outline
 											onClick={() => setCreateWorkspaceModalOpen(true)}
 										>
 											Create Workspace
 										</Button>
-									</div>
-								) : (
-									<div className="space-y-4">
-										{organization.workspaces.map((workspace) => (
-											<button
-												key={workspace.id}
-												className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 rounded-lg px-4"
-												onClick={() => navigate(`../workspace/${workspace.id}`)}
-												onKeyDown={(e) => {
-													if (e.key === "Enter" || e.key === " ") {
-														e.preventDefault();
-														navigate(`../workspace/${workspace.id}`);
-													}
-												}}
-												tabIndex={0}
-												type="button"
-												aria-label={`Navigate to ${workspace.name} workspace`}
+									)}
+								</div>
+
+								{!organization.workspaces ||
+								organization.workspaces.length === 0 ? (
+									<EmptyState
+										title="No workspaces created yet"
+										description="Create workspaces to organize your projects and teams."
+										actionLabel="Create Workspace"
+										onAction={() => setCreateWorkspaceModalOpen(true)}
+										icon={
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												fill="none"
+												viewBox="0 0 24 24"
+												strokeWidth={1.5}
+												stroke="currentColor"
 											>
-												<div className="flex-1">
-													<div className="flex items-center gap-3 mb-2">
-														<span className="font-medium text-gray-900">
-															{workspace.name}
-														</span>
-													</div>
-													{workspace.description && (
-														<div className="text-sm text-gray-500 mb-2">
-															{workspace.description}
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													d="M2.25 21h19.5m-18-18v18m2.25-18v18m13.5-18v18m2.25-18v18M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.75m-3.75 3.75h.75m-3.75 3.75h.75m-3.75 3.75H21m-3.75-18v18"
+												/>
+											</svg>
+										}
+									/>
+								) : (
+									<div className="divide-y divide-gray-200">
+										{organization.workspaces.map((workspace) => (
+											<div
+												key={workspace.id}
+												className="py-4 first:pt-0 last:pb-0"
+											>
+												<div className="flex items-center justify-between">
+													<button
+														className="flex-1 text-left"
+														onClick={() => navigate(`../workspace/${workspace.id}`)}
+														onKeyDown={(e) => {
+															if (e.key === "Enter" || e.key === " ") {
+																e.preventDefault();
+																navigate(`../workspace/${workspace.id}`);
+															}
+														}}
+														tabIndex={0}
+														type="button"
+														aria-label={`Navigate to ${workspace.name} workspace`}
+													>
+														<div className="flex items-center gap-3">
+															<Avatar
+																className="size-8"
+																src={workspace.image_url}
+																initials={workspace.name.substring(0, 2).toUpperCase()}
+																alt={`${workspace.name} logo`}
+															/>
+															<div className="flex items-center gap-2">
+																<span className="text-sm text-gray-900">
+																	{workspace.name}
+																</span>
+																<span className="text-xs text-gray-500">
+																	• {workspace.member_count} members
+																</span>
+															</div>
 														</div>
-													)}
-													<div className="text-sm text-gray-500">
-														{workspace.member_count} members • Created{" "}
-														{format(
-															new Date(workspace.created_at),
-															"MMM d, yyyy",
-														)}
+													</button>
+													<div className="flex items-center gap-2">
+														<button
+															type="button"
+															className="p-2 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+															onClick={(e) => {
+																e.stopPropagation();
+																// TODO: Add edit workspace functionality
+															}}
+														>
+															<PencilIcon className="h-4 w-4" />
+														</button>
+														<button
+															type="button"
+															className="p-2 rounded-md hover:bg-gray-100 text-gray-400 hover:text-red-600"
+															onClick={(e) => {
+																e.stopPropagation();
+																handleDeleteWorkspace(workspace);
+															}}
+														>
+															<TrashIcon className="h-4 w-4" />
+														</button>
 													</div>
 												</div>
-												<div className="flex items-center gap-2">
-													<button
-														type="button"
-														className="p-2 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600"
-														onClick={(e) => {
-															e.stopPropagation();
-															// TODO: Add edit workspace functionality
-														}}
-													>
-														<PencilIcon className="h-4 w-4" />
-														<span className="sr-only">Edit</span>
-													</button>
-													<button
-														type="button"
-														className="p-2 rounded-md hover:bg-gray-100 text-gray-400 hover:text-red-600"
-														onClick={(e) => {
-															e.stopPropagation();
-															// TODO: Add delete workspace functionality
-														}}
-													>
-														<TrashIcon className="h-4 w-4" />
-														<span className="sr-only">Delete</span>
-													</button>
-												</div>
-											</button>
+											</div>
 										))}
 									</div>
 								)}
@@ -621,31 +715,27 @@ export default function OrganizationDetailsPage() {
 						</Tab>
 
 						<Tab label="Metadata">
-							<div className="p-6 space-y-8">
+							<div className="px-4 py-6 space-y-8">
 								{/* Public Metadata */}
 								<div>
 									<div className="flex justify-between items-center mb-4">
-										<h3 className="text-lg font-medium">Public Metadata</h3>
+										<h3 className="text-base text-gray-900">Public Metadata</h3>
 										{!isEditingPublicMetadata ? (
 											<Button
 												outline
-												className="flex items-center gap-1 text-sm py-2"
 												onClick={() => setIsEditingPublicMetadata(true)}
 											>
-												<PencilIcon className="h-4 w-4" />
 												Edit
 											</Button>
 										) : (
 											<div className="flex gap-2">
 												<Button
 													outline
-													className="text-sm py-2"
 													onClick={handleCancelPublicMetadata}
 												>
 													Cancel
 												</Button>
 												<Button
-													className="text-sm py-2"
 													onClick={handleSavePublicMetadata}
 												>
 													Save
@@ -686,27 +776,23 @@ export default function OrganizationDetailsPage() {
 								{/* Private Metadata */}
 								<div>
 									<div className="flex justify-between items-center mb-4">
-										<h3 className="text-lg font-medium">Private Metadata</h3>
+										<h3 className="text-base text-gray-900">Private Metadata</h3>
 										{!isEditingPrivateMetadata ? (
 											<Button
 												outline
-												className="flex items-center gap-1 text-sm py-2"
 												onClick={() => setIsEditingPrivateMetadata(true)}
 											>
-												<PencilIcon className="h-4 w-4" />
 												Edit
 											</Button>
 										) : (
 											<div className="flex gap-2">
 												<Button
 													outline
-													className="text-sm py-2"
 													onClick={handleCancelPrivateMetadata}
 												>
 													Cancel
 												</Button>
 												<Button
-													className="text-sm py-2"
 													onClick={handleSavePrivateMetadata}
 												>
 													Save
@@ -747,8 +833,8 @@ export default function OrganizationDetailsPage() {
 						</Tab>
 					</SimpleTabs>
 				</div>
-			</Card>
-
+			</div>
+		</div>
 			{/* All Modals */}
 			<EditOrganizationDialog
 				isOpen={editOrganizationModalOpen}
@@ -816,6 +902,16 @@ export default function OrganizationDetailsPage() {
 				description={`Are you sure you want to delete the "${selectedRole?.name}" role? This action cannot be undone.`}
 				confirmText="Delete Role"
 				isLoading={deleteRole.isPending}
+			/>
+
+			<DeleteConfirmationDialog
+				isOpen={deleteWorkspaceModalOpen}
+				onClose={() => setDeleteWorkspaceModalOpen(false)}
+				onConfirm={handleConfirmDeleteWorkspace}
+				title="Delete Workspace"
+				description={`Are you sure you want to delete the "${selectedWorkspace?.name}" workspace? This action cannot be undone and will remove all associated data including members and roles.`}
+				confirmText="Delete Workspace"
+				isLoading={deleteWorkspace.isPending}
 			/>
 		</div>
 	);

@@ -5,6 +5,8 @@ import {
 	MagnifyingGlassIcon,
 	DocumentTextIcon,
 	ChevronDownIcon,
+	PencilIcon,
+	TrashIcon,
 } from "@heroicons/react/24/outline";
 import { Heading } from "../../components/ui/heading";
 import { Button } from "../../components/ui/button";
@@ -399,7 +401,7 @@ export default function KnowledgeBasePage() {
 										<TableCell>
 											<div className="flex gap-2">
 												<Button outline onClick={() => handleEditDocument(doc)}>
-													Edit
+													<PencilIcon className="h-4 w-4" />
 												</Button>
 												<Button
 													outline
@@ -407,7 +409,7 @@ export default function KnowledgeBasePage() {
 													onClick={() => handleDeleteDocument(doc.id)}
 													disabled={deleteDocumentMutation.isPending}
 												>
-													Delete
+													<TrashIcon className="h-4 w-4" />
 												</Button>
 											</div>
 										</TableCell>

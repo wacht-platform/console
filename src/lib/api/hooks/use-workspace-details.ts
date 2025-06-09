@@ -1,14 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "../client";
 import { useProjects } from "@/lib/api/hooks/use-projects";
-
-interface WorkspaceRole {
-	id: string;
-	created_at: string;
-	updated_at: string;
-	name: string;
-	permissions: string[];
-}
+import { WorkspaceRole } from "@/types/organization";
 
 interface WorkspaceMemberDetails {
 	id: string;

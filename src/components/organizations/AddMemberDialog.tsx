@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/fieldset";
-import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
+import { Field, Label } from "@/components/ui/fieldset";
+import { MultiSelect } from "@/components/ui/multi-select";
 import type { OrganizationRoleSimple } from "@/types/organization";
 
 interface AddMemberDialogProps {
@@ -60,13 +60,7 @@ export function AddMemberDialog({
 		}
 	};
 
-	const handleRoleToggle = (roleId: string) => {
-		setSelectedRoles((prev) =>
-			prev.includes(roleId)
-				? prev.filter((id) => id !== roleId)
-				: [...prev, roleId],
-		);
-	};
+
 
 	const filteredUsers =
 		users?.data?.filter(
@@ -85,7 +79,7 @@ export function AddMemberDialog({
 			<DialogBody>
 				<form onSubmit={handleSubmit} className="space-y-6">
 					<div className="space-y-4">
-						<div>
+						<Field>
 							<Label htmlFor="search">Search Users</Label>
 							<Input
 								id="search"
@@ -93,7 +87,7 @@ export function AddMemberDialog({
 								onChange={(e) => setSearchTerm(e.target.value)}
 								placeholder="Search by name or email"
 							/>
-						</div>
+						</Field>
 
 						{searchTerm && (
 							<div className="max-h-48 overflow-y-auto border rounded-md">
@@ -140,20 +134,19 @@ export function AddMemberDialog({
 						)}
 
 						{availableRoles.length > 0 && (
-							<div>
-								<Label>Assign Roles</Label>
-								<div className="space-y-2 mt-2">
-									{availableRoles.map((role) => (
-										<CheckboxField key={role.id}>
-											<Checkbox
-												checked={selectedRoles.includes(role.id)}
-												onChange={() => handleRoleToggle(role.id)}
-											/>
-											<Label className="text-sm">{role.name}</Label>
-										</CheckboxField>
-									))}
-								</div>
-							</div>
+							<MultiSelect
+								label="Assign Roles"
+								options={availableRoles.map(role => ({
+									id: role.id,
+									name: role.is_deployment_level ? `${role.name} (Default)` : role.name,
+									description: role.is_deployment_level
+										? `Default deployment role • ${role.permissions.length} permission${role.permissions.length !== 1 ? 's' : ''}`
+										: `${role.permissions.length} permission${role.permissions.length !== 1 ? 's' : ''}`
+								}))}
+								selectedValues={selectedRoles}
+								onChange={setSelectedRoles}
+								placeholder="Select roles to assign..."
+							/>
 						)}
 					</div>
 				</form>

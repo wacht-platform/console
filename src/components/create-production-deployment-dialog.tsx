@@ -19,6 +19,7 @@ import { Field } from "@/components/ui/fieldset";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "./ui/button";
 import { useCreateProductionDeployment } from "@/lib/api/hooks/use-projects";
+import { toast } from 'sonner';
 
 type AuthMethod =
 	| "email"
@@ -105,20 +106,26 @@ export function CreateProductionDeploymentDialog({
 				customDomain: customDomain.trim(),
 				authMethods: selectedMethods,
 			});
+			toast.success("Production deployment created successfully!");
 			onClose();
 			setCustomDomain("");
 			setSelectedMethods(["email"]);
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error("Failed to create production deployment:", error);
 
 			// Extract error message from response
 			let errorMessage = "Failed to create production deployment. Please try again.";
-			if (error?.response?.data?.message) {
-				errorMessage = error.response.data.message;
-			} else if (error?.message) {
-				errorMessage = error.message;
+			if (error && typeof error === 'object' && 'response' in error) {
+				const responseError = error as { response?: { data?: { message?: string } } };
+				if (responseError.response?.data?.message) {
+					errorMessage = responseError.response.data.message;
+				}
+			} else if (error && typeof error === 'object' && 'message' in error) {
+				const messageError = error as { message: string };
+				errorMessage = messageError.message;
 			}
 
+			toast.error(errorMessage);
 			setValidationError(errorMessage);
 		}
 	};

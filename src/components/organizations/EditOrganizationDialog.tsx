@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useUpdateOrganization } from "@/lib/api/hooks/use-organization-mutations";
+import { useState, useEffect, useRef } from "react";
 import {
 	Dialog,
 	DialogTitle,
@@ -9,7 +8,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/fieldset";
+import { Field, Label } from "@/components/ui/fieldset";
+import { PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { toast } from 'sonner';
+import { apiClient } from "@/lib/api/client";
+import { useProjects } from "@/lib/api/hooks/use-projects";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface EditOrganizationDialogProps {
 	isOpen: boolean;
@@ -29,50 +33,110 @@ export function EditOrganizationDialog({
 	onClose,
 	organization,
 }: EditOrganizationDialogProps) {
-	const [formData, setFormData] = useState({
-		name: "",
-		description: "",
-		image_url: "",
-	});
+	const [name, setName] = useState("");
+	const [description, setDescription] = useState("");
+	const [selectedImage, setSelectedImage] = useState<File | null>(null);
+	const [imagePreview, setImagePreview] = useState<string | null>(null);
+	const fileInputRef = useRef<HTMLInputElement>(null);
 
-	const updateOrganization = useUpdateOrganization();
+	const { selectedDeployment } = useProjects();
+	const queryClient = useQueryClient();
+
+	// Update organization mutation using multipart form data
+	const updateOrganizationMutation = useMutation({
+		mutationFn: async (formData: FormData) => {
+			if (!selectedDeployment) {
+				throw new Error("No deployment selected");
+			}
+
+			const response = await apiClient.patch(
+				`/deployments/${selectedDeployment.id}/organizations/${organization.id}`,
+				formData
+			);
+			return response.data;
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["organizations", selectedDeployment?.id],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["organization", organization.id],
+			});
+		},
+	});
 
 	useEffect(() => {
 		if (organization) {
-			setFormData({
-				name: organization.name,
-				description: organization.description,
-				image_url: organization.image_url,
-			});
+			setName(organization.name);
+			setDescription(organization.description || "");
+			setImagePreview(organization.image_url || null);
+			setSelectedImage(null);
 		}
 	}, [organization]);
+
+	const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (!file) return;
+
+		// Validate file type
+		if (!file.type.startsWith('image/')) {
+			toast.error('Please select a valid image file');
+			return;
+		}
+
+		// Validate file size (2MB max)
+		if (file.size > 2 * 1024 * 1024) {
+			toast.error('Image size must be less than 2MB');
+			return;
+		}
+
+		setSelectedImage(file);
+
+		// Create preview URL
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			setImagePreview(e.target?.result as string);
+		};
+		reader.readAsDataURL(file);
+	};
+
+	const handleRemoveImage = () => {
+		setSelectedImage(null);
+		setImagePreview(null);
+		if (fileInputRef.current) {
+			fileInputRef.current.value = '';
+		}
+	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
+		if (!name.trim()) {
+			toast.error("Organization name is required");
+			return;
+		}
+
 		try {
-			await updateOrganization.mutateAsync({
-				organizationId: organization.id,
-				data: {
-					name: formData.name !== organization.name ? formData.name : undefined,
-					description:
-						formData.description !== organization.description
-							? formData.description
-							: undefined,
-					image_url:
-						formData.image_url !== organization.image_url
-							? formData.image_url
-							: undefined,
-				},
-			});
+			const formData = new FormData();
+
+			// Only append fields that have changed
+			if (name.trim() !== organization.name) {
+				formData.append('name', name.trim());
+			}
+			if (description.trim() !== (organization.description || "")) {
+				formData.append('description', description.trim());
+			}
+			if (selectedImage) {
+				formData.append('organization_image', selectedImage);
+			}
+
+			await updateOrganizationMutation.mutateAsync(formData);
+			toast.success("Organization updated successfully!");
 			onClose();
 		} catch (error) {
 			console.error("Failed to update organization:", error);
+			toast.error("Failed to update organization. Please try again.");
 		}
-	};
-
-	const handleChange = (field: string, value: string) => {
-		setFormData((prev) => ({ ...prev, [field]: value }));
 	};
 
 	return (
@@ -82,38 +146,87 @@ export function EditOrganizationDialog({
 			<DialogBody>
 				<form onSubmit={handleSubmit} className="space-y-6">
 					<div className="space-y-4">
-						<div>
+						{/* Organization Image Upload */}
+						<Field>
+							<Label>Organization Logo (optional)</Label>
+							<div className="flex items-center space-x-4">
+								{/* Avatar Preview */}
+								<div
+									className="relative w-20 h-20 rounded-full border-2 border-dashed border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100 transition-all duration-200 cursor-pointer overflow-hidden"
+									onClick={() => fileInputRef.current?.click()}
+								>
+									{imagePreview ? (
+										<>
+											<img
+												src={imagePreview}
+												alt="Organization logo preview"
+												className="w-full h-full object-cover"
+											/>
+											<button
+												type="button"
+												onClick={(e) => {
+													e.stopPropagation();
+													handleRemoveImage();
+												}}
+												className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm"
+											>
+												<XMarkIcon className="w-3 h-3" />
+											</button>
+										</>
+									) : (
+										<div className="flex items-center justify-center h-full">
+											<PhotoIcon className="w-6 h-6 text-gray-400" />
+										</div>
+									)}
+								</div>
+
+								{/* Upload Button and Info */}
+								<div className="flex-1">
+									<Button
+										type="button"
+										outline
+										onClick={() => fileInputRef.current?.click()}
+										className="text-sm mb-2"
+									>
+										{imagePreview ? "Change Logo" : "Upload Logo"}
+									</Button>
+									<p className="text-xs text-gray-500">
+										Recommended: Square PNG or JPG, max 2MB
+									</p>
+								</div>
+
+								{/* Hidden File Input */}
+								<input
+									ref={fileInputRef}
+									type="file"
+									accept="image/*"
+									onChange={handleImageSelect}
+									className="hidden"
+								/>
+							</div>
+						</Field>
+
+						<Field>
 							<Label htmlFor="name">Organization Name</Label>
 							<Input
 								id="name"
-								value={formData.name}
-								onChange={(e) => handleChange("name", e.target.value)}
+								value={name}
+								onChange={(e) => setName(e.target.value)}
 								placeholder="Enter organization name"
 								required
 							/>
-						</div>
+						</Field>
 
-						<div>
+						<Field>
 							<Label htmlFor="description">Description</Label>
 							<Textarea
 								id="description"
-								value={formData.description}
-								onChange={(e) => handleChange("description", e.target.value)}
+								value={description}
+								onChange={(e) => setDescription(e.target.value)}
 								placeholder="Enter organization description"
 								rows={3}
 							/>
-						</div>
-
-						<div>
-							<Label htmlFor="image_url">Logo URL</Label>
-							<Input
-								id="image_url"
-								value={formData.image_url}
-								onChange={(e) => handleChange("image_url", e.target.value)}
-								placeholder="Enter logo URL"
-								type="url"
-							/>
-						</div>
+						</Field>
 					</div>
 				</form>
 			</DialogBody>
@@ -123,16 +236,16 @@ export function EditOrganizationDialog({
 					type="button"
 					outline
 					onClick={onClose}
-					disabled={updateOrganization.isPending}
+					disabled={updateOrganizationMutation.isPending}
 				>
 					Cancel
 				</Button>
 				<Button
 					type="submit"
 					onClick={handleSubmit}
-					disabled={updateOrganization.isPending}
+					disabled={updateOrganizationMutation.isPending}
 				>
-					{updateOrganization.isPending ? "Updating..." : "Update Organization"}
+					{updateOrganizationMutation.isPending ? "Updating..." : "Update Organization"}
 				</Button>
 			</DialogActions>
 		</Dialog>

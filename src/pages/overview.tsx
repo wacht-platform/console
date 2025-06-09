@@ -65,14 +65,14 @@ export default function OverviewPage() {
 
 	// Analytics data hooks
 	const { data: stats, isLoading: statsLoading } = useAnalyticsStats(
-		selectedDeployment?.id || 0,
+		parseInt(selectedDeployment?.id || "0"),
 		currentRange.from,
 		currentRange.to,
 		!!selectedDeployment?.id
 	);
 
 	const { data: recentSignupsData, isLoading: signupsLoading } = useRecentSignups(
-		selectedDeployment?.id || 0,
+		parseInt(selectedDeployment?.id || "0"),
 		10,
 		!!selectedDeployment?.id
 	);

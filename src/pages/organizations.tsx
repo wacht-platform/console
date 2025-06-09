@@ -1,4 +1,5 @@
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { MagnifyingGlassIcon, BuildingOfficeIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { Avatar } from "@/components/ui/avatar";
 import { Heading } from "../components/ui/heading";
 import { Input, InputGroup } from "../components/ui/input";
 import { Select } from "../components/ui/select";
@@ -62,40 +63,43 @@ export default function OrganizationsPage() {
 			<div className="flex flex-col gap-2 mb-2">
 				<Heading>Organizations</Heading>
 			</div>
-			<div className="flex flex-wrap items-center justify-between gap-4">
-				<div className="sm:flex-1">
-					<div className="mt-4 flex max-w-md gap-2">
-						<div className="flex-1">
-							<InputGroup className="w-64">
-								<MagnifyingGlassIcon className="size-4" />
-								<Input name="search" placeholder="Search organizations..." />
-							</InputGroup>
-						</div>
-						<div className="flex-1">
-							<Listbox
-								onChange={(value) => handleSortChange(value)}
-								value={`${sortKey}-${sortOrder}`}
-							>
-								<ListboxOption value="created_at-asc">
-									<ListboxLabel>Sort by date (newest)</ListboxLabel>
-								</ListboxOption>
-								<ListboxOption value="created_at-desc">
-									<ListboxLabel>Sort by date (oldest)</ListboxLabel>
-								</ListboxOption>
-								<ListboxOption value="name-asc">
-									<ListboxLabel>Sort by name (A-Z)</ListboxLabel>
-								</ListboxOption>
-								<ListboxOption value="name-desc">
-									<ListboxLabel>Sort by name (Z-A)</ListboxLabel>
-								</ListboxOption>
-							</Listbox>
+			{!isLoading && (data?.data.length ?? 0) > 0 && (
+				<div className="flex flex-wrap items-center justify-between gap-4">
+					<div className="sm:flex-1">
+						<div className="mt-4 flex max-w-md gap-2">
+							<div className="flex-1">
+								<InputGroup className="w-64">
+									<MagnifyingGlassIcon className="size-4" />
+									<Input name="search" placeholder="Search organizations..." />
+								</InputGroup>
+							</div>
+							<div className="flex-1">
+								<Listbox
+									onChange={(value) => handleSortChange(value)}
+									value={`${sortKey}-${sortOrder}`}
+								>
+									<ListboxOption value="created_at-asc">
+										<ListboxLabel>Sort by date (newest)</ListboxLabel>
+									</ListboxOption>
+									<ListboxOption value="created_at-desc">
+										<ListboxLabel>Sort by date (oldest)</ListboxLabel>
+									</ListboxOption>
+									<ListboxOption value="name-asc">
+										<ListboxLabel>Sort by name (A-Z)</ListboxLabel>
+									</ListboxOption>
+									<ListboxOption value="name-desc">
+										<ListboxLabel>Sort by name (Z-A)</ListboxLabel>
+									</ListboxOption>
+								</Listbox>
+							</div>
 						</div>
 					</div>
+					<Button onClick={() => setCreateModalOpen(true)}>
+						<PlusIcon className="mr-2 h-4 w-4" />
+						Create Organization
+					</Button>
 				</div>
-				<Button onClick={() => setCreateModalOpen(true)}>
-					Create Organization
-				</Button>
-			</div>
+			)}
 
 			<div className="mt-6">
 				<Table>
@@ -114,11 +118,7 @@ export default function OrganizationsPage() {
 								className="hover:bg-zinc-50"
 							/>
 						) : data?.data.length === 0 ? (
-							<TableRow>
-								<TableCell colSpan={5} className="text-center">
-									No organizations found
-								</TableCell>
-							</TableRow>
+							null
 						) : (
 							data?.data.map((org) => (
 								<TableRow
@@ -128,6 +128,12 @@ export default function OrganizationsPage() {
 								>
 									<TableCell>
 										<div className="flex items-center gap-3">
+											<Avatar
+												className="size-8"
+												src={org.image_url}
+												initials={org.name.substring(0, 2).toUpperCase()}
+												alt={`${org.name} logo`}
+											/>
 											<span>{org.name}</span>
 										</div>
 									</TableCell>
@@ -140,6 +146,25 @@ export default function OrganizationsPage() {
 						)}
 					</TableBody>
 				</Table>
+
+				{/* Empty State */}
+				{!isLoading && (data?.data.length ?? 0) === 0 && (
+					<div className="text-center py-12">
+						<BuildingOfficeIcon className="mx-auto h-12 w-12 text-gray-400" />
+						<h3 className="mt-2 text-sm font-semibold text-gray-900">
+							No organizations
+						</h3>
+						<p className="mt-1 text-sm text-gray-500">
+							Get started by creating your first organization.
+						</p>
+						<div className="mt-6">
+							<Button onClick={() => setCreateModalOpen(true)}>
+								<PlusIcon className="mr-2 h-4 w-4" />
+								Create Organization
+							</Button>
+						</div>
+					</div>
+				)}
 
 				{!isLoading && (data?.data.length ?? 0) > 0 && (
 					<div className="flex items-center justify-between text-xs mt-3">

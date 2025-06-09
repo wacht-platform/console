@@ -3,6 +3,10 @@ import { apiClient } from "../client";
 import { useProjects } from "./use-projects";
 import type { PaginatedResponse } from "@/types/api";
 
+export interface AgentConfiguration {
+  [key: string]: unknown;
+}
+
 export interface Agent {
   id: string;
   created_at: string;
@@ -10,7 +14,7 @@ export interface Agent {
   name: string;
   description?: string;
   deployment_id: string;
-  configuration: any;
+  configuration: AgentConfiguration;
   tools_count: number;
   workflows_count: number;
   knowledge_bases_count: number;
@@ -19,14 +23,14 @@ export interface Agent {
 export interface CreateAgentRequest {
   name: string;
   description?: string;
-  configuration?: any;
+  configuration?: AgentConfiguration;
 }
 
 export interface UpdateAgentRequest {
   name?: string;
   description?: string;
   status?: string;
-  configuration?: any;
+  configuration?: AgentConfiguration;
 }
 
 interface GetAgentsParams {

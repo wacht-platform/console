@@ -75,25 +75,27 @@ export default function CreateAgentsPage() {
 				</p>
 			</div>
 
-			<div className="flex flex-wrap items-center justify-between gap-4">
-				<div className="sm:flex-1">
-					<div className="mt-4 flex max-w-md gap-2">
-						<InputGroup className="w-64">
-							<MagnifyingGlassIcon className="size-4" />
-							<Input
-								name="search"
-								placeholder="Search agents..."
-								value={searchTerm}
-								onChange={(e) => setSearchTerm(e.target.value)}
-							/>
-						</InputGroup>
+			{!isLoading && !error && agents.length > 0 && (
+				<div className="flex flex-wrap items-center justify-between gap-4">
+					<div className="sm:flex-1">
+						<div className="mt-4 flex max-w-md gap-2">
+							<InputGroup className="w-64">
+								<MagnifyingGlassIcon className="size-4" />
+								<Input
+									name="search"
+									placeholder="Search agents..."
+									value={searchTerm}
+									onChange={(e) => setSearchTerm(e.target.value)}
+								/>
+							</InputGroup>
+						</div>
 					</div>
+					<Button onClick={handleCreateAgent}>
+						<PlusIcon className="mr-2 h-4 w-4" />
+						Create Agent
+					</Button>
 				</div>
-				<Button onClick={handleCreateAgent}>
-					<PlusIcon className="mr-2 h-4 w-4" />
-					Create Agent
-				</Button>
-			</div>
+			)}
 
 			<div className="mt-6">
 				{isLoading ? (

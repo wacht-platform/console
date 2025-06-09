@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
 import { useProjects } from "@/lib/api/hooks/use-projects";
+import { toast } from 'sonner';
 
 export interface KnowledgeBase {
   id: string;
@@ -9,7 +10,7 @@ export interface KnowledgeBase {
   name: string;
   description?: string;
   deployment_id: string;
-  configuration: Record<string, any>;
+  configuration: Record<string, unknown>;
   documents_count: number;
   total_size: number;
 }
@@ -25,19 +26,19 @@ export interface KnowledgeBaseDocument {
   file_type: string;
   file_url: string;
   knowledge_base_id: string;
-  processing_metadata?: Record<string, any>;
+  processing_metadata?: Record<string, unknown>;
 }
 
 export interface CreateKnowledgeBaseRequest {
   name: string;
   description?: string;
-  configuration?: Record<string, any>;
+  configuration?: Record<string, unknown>;
 }
 
 export interface UpdateKnowledgeBaseRequest {
   name?: string;
   description?: string;
-  configuration?: Record<string, any>;
+  configuration?: Record<string, unknown>;
 }
 
 export interface KnowledgeBasesResponse {
@@ -205,6 +206,10 @@ export function useCreateKnowledgeBase() {
       queryClient.invalidateQueries({
         queryKey: ["knowledge-bases", selectedDeployment!.id],
       });
+      toast.success("Knowledge base created successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to create knowledge base. Please try again.");
     },
   });
 }
@@ -223,6 +228,10 @@ export function useUpdateKnowledgeBase(knowledgeBaseId: string) {
       queryClient.invalidateQueries({
         queryKey: ["knowledge-base", selectedDeployment!.id, knowledgeBaseId],
       });
+      toast.success("Knowledge base updated successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to update knowledge base. Please try again.");
     },
   });
 }
@@ -238,6 +247,10 @@ export function useDeleteKnowledgeBase() {
       queryClient.invalidateQueries({
         queryKey: ["knowledge-bases", selectedDeployment!.id],
       });
+      toast.success("Knowledge base deleted successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to delete knowledge base. Please try again.");
     },
   });
 }
@@ -259,6 +272,10 @@ export function useDeleteDocument(knowledgeBaseId: string) {
       queryClient.invalidateQueries({
         queryKey: ["knowledge-bases", selectedDeployment!.id],
       });
+      toast.success("Document deleted successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to delete document. Please try again.");
     },
   });
 }
@@ -297,6 +314,10 @@ export function useUploadDocument(knowledgeBaseId: string) {
       queryClient.invalidateQueries({
         queryKey: ["knowledge-base", selectedDeployment!.id, knowledgeBaseId],
       });
+      toast.success("Document uploaded successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to upload document. Please try again.");
     },
   });
 }
@@ -315,6 +336,10 @@ export function useUploadUrl(knowledgeBaseId: string) {
       queryClient.invalidateQueries({
         queryKey: ["knowledge-base", selectedDeployment!.id, knowledgeBaseId],
       });
+      toast.success("URL uploaded successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to upload URL. Please try again.");
     },
   });
 }

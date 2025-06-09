@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -9,7 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Field, Label, ErrorMessage } from "@/components/ui/fieldset";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateOrganization } from "@/lib/api/hooks/use-organization-mutations";
+import { PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { toast } from 'sonner';
+import { apiClient } from "@/lib/api/client";
+import { useProjects } from "@/lib/api/hooks/use-projects";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface CreateOrganizationModalProps {
   isOpen: boolean;
@@ -19,9 +23,67 @@ interface CreateOrganizationModalProps {
 export function CreateOrganizationModal({ isOpen, onClose }: CreateOrganizationModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const createOrganizationMutation = useCreateOrganization();
+  const { selectedDeployment } = useProjects();
+  const queryClient = useQueryClient();
+
+  // Create organization mutation using multipart form data
+  const createOrganizationMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      if (!selectedDeployment) {
+        throw new Error("No deployment selected");
+      }
+
+      const response = await apiClient.post(
+        `/deployments/${selectedDeployment.id}/organizations`,
+        formData
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["organizations", selectedDeployment?.id],
+      });
+    },
+  });
+
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select a valid image file');
+      return;
+    }
+
+    // Validate file size (2MB max)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image size must be less than 2MB');
+      return;
+    }
+
+    setSelectedImage(file);
+
+    // Create preview URL
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -42,22 +104,31 @@ export function CreateOrganizationModal({ isOpen, onClose }: CreateOrganizationM
     }
 
     try {
-      await createOrganizationMutation.mutateAsync({
-        name: name.trim(),
-        description: description.trim() || undefined,
-      });
+      const formData = new FormData();
+      formData.append('name', name.trim());
+      if (description.trim()) formData.append('description', description.trim());
+      if (selectedImage) formData.append('organization_image', selectedImage);
+
+      await createOrganizationMutation.mutateAsync(formData);
 
       // Reset form and close modal on success
+      toast.success("Organization created successfully!");
       resetForm();
       onClose();
     } catch (error) {
       console.error("Error creating organization:", error);
+      toast.error("Failed to create organization. Please try again.");
     }
   };
 
   const resetForm = () => {
     setName("");
     setDescription("");
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     setErrors({});
   };
 
@@ -71,6 +142,66 @@ export function CreateOrganizationModal({ isOpen, onClose }: CreateOrganizationM
       <DialogTitle>Create Organization</DialogTitle>
       <DialogBody>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Organization Image Upload */}
+          <Field>
+            <Label>Organization Logo (optional)</Label>
+            <div className="flex items-center space-x-4">
+              {/* Avatar Preview */}
+              <div
+                className="relative w-20 h-20 rounded-full border-2 border-dashed border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100 transition-all duration-200 cursor-pointer overflow-hidden"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {imagePreview ? (
+                  <>
+                    <img
+                      src={imagePreview}
+                      alt="Organization logo preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveImage();
+                      }}
+                      className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm"
+                    >
+                      <XMarkIcon className="w-3 h-3" />
+                    </button>
+                  </>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <PhotoIcon className="w-6 h-6 text-gray-400" />
+                  </div>
+                )}
+              </div>
+
+              {/* Upload Button and Info */}
+              <div className="flex-1">
+                <Button
+                  type="button"
+                  outline
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-sm mb-2"
+                >
+                  {imagePreview ? "Change Logo" : "Upload Logo"}
+                </Button>
+                <p className="text-xs text-gray-500">
+                  Recommended: Square PNG or JPG, max 2MB
+                </p>
+              </div>
+
+              {/* Hidden File Input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
+              />
+            </div>
+          </Field>
+
           <Field>
             <Label>Organization Name</Label>
             <Input
