@@ -10,9 +10,11 @@ import AppleIcon from "@/assets/apple.svg";
 import DiscordIcon from "@/assets/discord.svg";
 import FacebookIcon from "@/assets/facebook.svg";
 import GithubIcon from "@/assets/github.svg";
+import GitlabIcon from "@/assets/gitlab.svg";
 import GoogleIcon from "@/assets/google.svg";
 import LinkedInIcon from "@/assets/linkedin.svg";
 import MicrosoftIcon from "@/assets/microsoft.svg";
+import XIcon from "@/assets/x.svg";
 import { Dialog, DialogActions } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/fieldset";
 import { Field } from "@/components/ui/fieldset";
@@ -275,6 +277,24 @@ export function CreateProductionDeploymentDialog({
 								description="Allow users to sign in with Facebook"
 								selected={selectedMethods.includes("facebook_oauth")}
 								onClick={() => toggleAuthMethod("facebook_oauth")}
+							/>
+
+							<AuthMethodItem
+								method="gitlab_oauth"
+								icon={<img src={GitlabIcon} alt="GitLab" className="h-5 w-5" />}
+								label="GitLab"
+								description="Allow users to sign in with GitLab"
+								selected={selectedMethods.includes("gitlab_oauth")}
+								onClick={() => toggleAuthMethod("gitlab_oauth")}
+							/>
+
+							<AuthMethodItem
+								method="x_oauth"
+								icon={<img src={XIcon} alt="X" className="h-5 w-5" />}
+								label="X (Twitter)"
+								description="Allow users to sign in with X"
+								selected={selectedMethods.includes("x_oauth")}
+								onClick={() => toggleAuthMethod("x_oauth")}
 							/>
 						</div>
 					</div>

@@ -1,15 +1,10 @@
-import { useRef, useState } from "react";
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
 import { Text } from "@/components/ui/text";
 import {
 	EnvelopeIcon,
 	DevicePhoneMobileIcon,
 	UserCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Dialog, DialogActions } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/fieldset";
-import { Field } from "@/components/ui/fieldset";
-import { Switch } from "@/components/ui/switch";
 import AppleIcon from "@/assets/apple.svg";
 import DiscordIcon from "@/assets/discord.svg";
 import FacebookIcon from "@/assets/facebook.svg";
@@ -19,8 +14,10 @@ import GoogleIcon from "@/assets/google.svg";
 import LinkedInIcon from "@/assets/linkedin.svg";
 import MicrosoftIcon from "@/assets/microsoft.svg";
 import XIcon from "@/assets/x.svg";
+import { Dialog, DialogActions } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "./ui/button";
-import { useProjects } from "@/lib/api/hooks/use-projects";
+import { toast } from 'sonner';
 
 type AuthMethod =
 	| "email"
@@ -36,32 +33,22 @@ type AuthMethod =
 	| "gitlab_oauth"
 	| "x_oauth";
 
-interface CreateProjectDialogProps {
+interface CreateStagingDeploymentDialogProps {
 	open: boolean;
-	onClose: () => void;
+	onOpenChange: (open: boolean) => void;
+	onCreateStagingDeployment: (authMethods: string[]) => void;
+	isLoading?: boolean;
 }
 
-export function CreateProjectDialog({
+export function CreateStagingDeploymentDialog({
 	open,
-	onClose,
-}: CreateProjectDialogProps) {
-	const [appName, setAppName] = useState("");
+	onOpenChange,
+	onCreateStagingDeployment,
+	isLoading = false,
+}: CreateStagingDeploymentDialogProps) {
 	const [selectedMethods, setSelectedMethods] = useState<AuthMethod[]>([
 		"email",
 	]);
-	const [logoUrl, setLogoUrl] = useState<string | null>(null);
-	const [logoFile, setLogoFile] = useState<File | null>(null);
-	const logoInputRef = useRef<HTMLInputElement>(null);
-	const { createProject } = useProjects();
-
-	const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const file = event.target.files?.[0];
-		if (file) {
-			setLogoFile(file);
-			const url = URL.createObjectURL(file);
-			setLogoUrl(url);
-		}
-	};
 
 	const toggleAuthMethod = (method: AuthMethod) => {
 		if (selectedMethods.includes(method)) {
@@ -71,71 +58,44 @@ export function CreateProjectDialog({
 		}
 	};
 
-	const handleContinue = async () => {
+	const handleCreate = async () => {
 		try {
-			const formData = new FormData();
-			if (logoFile) {
-				formData.append("logo", logoFile);
-			}
-			for (const method of selectedMethods) {
-				formData.append("methods", method);
+			await onCreateStagingDeployment(selectedMethods);
+			toast.success("Staging deployment created successfully!");
+			onOpenChange(false);
+			setSelectedMethods(["email"]);
+		} catch (error: unknown) {
+			console.error("Failed to create staging deployment:", error);
+
+			// Extract error message from response
+			let errorMessage = "Failed to create staging deployment. Please try again.";
+			if (error && typeof error === 'object' && 'response' in error) {
+				const responseError = error as { response?: { data?: { message?: string } } };
+				if (responseError.response?.data?.message) {
+					errorMessage = responseError.response.data.message;
+				}
+			} else if (error && typeof error === 'object' && 'message' in error) {
+				const messageError = error as { message: string };
+				errorMessage = messageError.message;
 			}
 
-			formData.append("name", appName);
-
-			await createProject(formData);
-			onClose();
-		} catch (error) {
-			console.error(error);
+			toast.error(errorMessage);
 		}
 	};
 
 	return (
-		<Dialog size="3xl" open={open} onClose={onClose}>
+		<Dialog size="3xl" open={open} onClose={() => onOpenChange(false)}>
 			<div className="md:col-span-3 border-dashed border-zinc-200 dark:border-zinc-700">
 				<div className="space-y-4">
-					<Field>
-						<Label className="font-normal">Project name</Label>
-						<Text className="text-sm text-zinc-500 dark:text-zinc-400">
-							Set your project name and logo
+					<div>
+						<h2 className="text-lg text-zinc-900 dark:text-white">
+							Create Staging Deployment
+						</h2>
+						<Text className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+							Create a new staging deployment for testing and development. You can
+							have up to 3 staging deployments per project.
 						</Text>
-						<div className="flex items-center gap-4 mt-2">
-							<div className="shrink-0">
-								<button
-									type="button"
-									className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 overflow-hidden relative"
-									onClick={() => logoInputRef.current?.click()}
-									aria-label="Upload logo"
-								>
-									{logoUrl ? (
-										<img
-											src={logoUrl}
-											alt="App logo"
-											className="w-full h-full object-cover"
-										/>
-									) : (
-										<span className="text-xl font-semibold text-blue-600 dark:text-blue-400">
-											{appName ? appName.charAt(0).toUpperCase() : "M"}
-										</span>
-									)}
-								</button>
-								<input
-									type="file"
-									ref={logoInputRef}
-									className="hidden"
-									accept="image/*"
-									onChange={handleLogoUpload}
-								/>
-							</div>
-							<Input
-								type="text"
-								placeholder="Monolith"
-								className="flex-1 bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white placeholder-zinc-500"
-								value={appName}
-								onChange={(e) => setAppName(e.target.value)}
-							/>
-						</div>
-					</Field>
+					</div>
 
 					<div className="space-y-4">
 						<h2 className="text-sm font-medium">
@@ -217,7 +177,11 @@ export function CreateProjectDialog({
 							<AuthMethodItem
 								method="linkedin_oauth"
 								icon={
-									<img src={LinkedInIcon} alt="LinkedIn" className="h-5 w-5" />
+									<img
+										src={LinkedInIcon}
+										alt="LinkedIn"
+										className="h-5 w-5"
+									/>
 								}
 								label="LinkedIn"
 								description="Allow users to sign in with LinkedIn"
@@ -265,13 +229,19 @@ export function CreateProjectDialog({
 						</div>
 					</div>
 				</div>
+
+				<DialogActions className="mt-6">
+					<Button outline onClick={() => onOpenChange(false)} disabled={isLoading}>
+						Cancel
+					</Button>
+					<Button
+						onClick={handleCreate}
+						disabled={isLoading}
+					>
+						{isLoading ? "Creating..." : "Create Staging Deployment"}
+					</Button>
+				</DialogActions>
 			</div>
-			<DialogActions className="mt-4">
-				<Button outline onClick={onClose}>
-					Cancel
-				</Button>
-				<Button onClick={handleContinue}>Continue</Button>
-			</DialogActions>
 		</Dialog>
 	);
 }

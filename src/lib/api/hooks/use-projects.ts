@@ -98,10 +98,27 @@ export function useProjects() {
 	};
 }
 
+interface CreateStagingDeploymentRequest {
+	projectId: string;
+	authMethods: string[];
+}
+
 interface CreateProductionDeploymentRequest {
 	projectId: string;
 	customDomain: string;
 	authMethods: string[];
+}
+
+async function createStagingDeployment(
+	request: CreateStagingDeploymentRequest,
+): Promise<Deployment> {
+	const { data } = await apiClient.post<Deployment>(
+		`/project/${request.projectId}/staging-deployment`,
+		{
+			auth_methods: request.authMethods,
+		},
+	);
+	return data;
 }
 
 async function createProductionDeployment(
@@ -115,6 +132,33 @@ async function createProductionDeployment(
 		},
 	);
 	return data;
+}
+
+export function useCreateStagingDeployment() {
+	const [isLoading, setIsLoading] = useState(false);
+	const queryClient = useQueryClient();
+
+	const createDeployment = useCallback(
+		async (request: CreateStagingDeploymentRequest) => {
+			setIsLoading(true);
+			try {
+				const deployment = await createStagingDeployment(request);
+				queryClient.invalidateQueries({ queryKey: ["projects"] });
+				return deployment;
+			} catch (error) {
+				console.error("Error creating staging deployment:", error);
+				throw error;
+			} finally {
+				setIsLoading(false);
+			}
+		},
+		[queryClient],
+	);
+
+	return {
+		createStagingDeployment: createDeployment,
+		isLoading,
+	};
 }
 
 export function useCreateProductionDeployment() {

@@ -19,6 +19,7 @@ const ManageOrganizationsPage = lazy(
 );
 const ManageWorkspacesPage = lazy(() => import("./pages/manage-workspaces"));
 const PortalPage = lazy(() => import("./pages/portal"));
+const DeploymentSettingsPage = lazy(() => import("./pages/deployment-settings"));
 const EmailsPage = lazy(() => import("./pages/emails"));
 const EmailTemplateEditor = lazy(
 	() => import("./pages/emails/template-editor"),
@@ -243,6 +244,14 @@ export const router = createBrowserRouter([
 				element: (
 					<Suspense fallback={<LoadingFallback />}>
 						<PortalPage />
+					</Suspense>
+				),
+			},
+			{
+				path: "deployment-settings",
+				element: (
+					<Suspense fallback={<LoadingFallback />}>
+						<DeploymentSettingsPage />
 					</Suspense>
 				),
 			},

@@ -26,12 +26,12 @@ import {
 import {
 	ChevronDownIcon,
 	PlusIcon,
-	TrashIcon,
+
 	LockClosedIcon,
 	KeyIcon,
 	UserGroupIcon,
 	EnvelopeIcon,
-	SparklesIcon,
+
 	ViewColumnsIcon,
 	BuildingOffice2Icon,
 	BriefcaseIcon,
@@ -41,12 +41,13 @@ import {
 	CodeBracketSquareIcon,
 	WrenchScrewdriverIcon,
 	BookOpenIcon,
+	Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
-import { useProjects } from "@/lib/api/hooks/use-projects";
+import { useProjects, useCreateStagingDeployment } from "@/lib/api/hooks/use-projects";
 import { capitalize } from "@/lib/capitalize";
 import { CreateProjectDialog } from "./create-project-dialog";
 import { CreateProductionDeploymentDialog } from "./create-production-deployment-dialog";
-import { DeleteDeploymentDialog } from "./delete-deployment-dialog";
+import { CreateStagingDeploymentDialog } from "./create-staging-deployment-dialog";
 import { OrganizationSwitcher, UserButton } from "@snipextt/wacht";
 import { setNavigationFunction } from "@/lib/store/project";
 
@@ -58,7 +59,7 @@ export function ApplicationLayout() {
 		useState(false);
 	const [isCreateProductionDialogOpen, setIsCreateProductionDialogOpen] =
 		useState(false);
-	const [isDeleteDeploymentDialogOpen, setIsDeleteDeploymentDialogOpen] =
+	const [isCreateStagingDialogOpen, setIsCreateStagingDialogOpen] =
 		useState(false);
 	const {
 		projects,
@@ -70,10 +71,38 @@ export function ApplicationLayout() {
 		initializeFromUrl,
 	} = useProjects();
 
+	const { createStagingDeployment, isLoading: isCreatingStagingDeployment } = useCreateStagingDeployment();
+
 	// Initialize navigation function for the store
 	useEffect(() => {
 		setNavigationFunction(navigate);
 	}, [navigate]);
+
+	const handleCreateStagingDeployment = async (authMethods: string[]) => {
+		if (!selectedProject) return;
+
+		try {
+			const deployment = await createStagingDeployment({
+				projectId: selectedProject.id,
+				authMethods,
+			});
+			setIsCreateStagingDialogOpen(false);
+			// Navigate to the new staging deployment
+			setSelectedDeployment(deployment, true);
+		} catch (error) {
+			console.error("Failed to create staging deployment:", error);
+		}
+	};
+
+	// Check deployment limits
+	const hasProductionDeployment = selectedProject?.deployments.some(
+		(deployment) => deployment.mode === "production"
+	);
+	const stagingDeploymentCount = selectedProject?.deployments.filter(
+		(deployment) => deployment.mode === "staging"
+	).length || 0;
+	const canCreateStagingDeployment = stagingDeploymentCount < 3;
+	const canCreateProductionDeployment = !hasProductionDeployment;
 
 	// Sync store with URL parameters when they change
 	useEffect(() => {
@@ -173,19 +202,27 @@ export function ApplicationLayout() {
 											</DropdownItem>
 										))}
 										<DropdownDivider />
-										<DropdownItem
-											onClick={() => setIsCreateProductionDialogOpen(true)}
-										>
-											<DropdownIcon icon={PlusIcon} />
-											<DropdownLabel>Production deployment</DropdownLabel>
-										</DropdownItem>
-										{selectedProject.deployments.length > 1 && selectedDeployment && (
+										{canCreateStagingDeployment ? (
 											<DropdownItem
-												onClick={() => setIsDeleteDeploymentDialogOpen(true)}
-												className="text-red-600 dark:text-red-400"
+												onClick={() => setIsCreateStagingDialogOpen(true)}
 											>
-												<DropdownIcon icon={TrashIcon} />
-												<DropdownLabel>Delete {selectedDeployment.mode} deployment</DropdownLabel>
+												<DropdownIcon icon={PlusIcon} />
+												<DropdownLabel>Staging deployment</DropdownLabel>
+											</DropdownItem>
+										) : (
+											<DropdownItem disabled>
+												<DropdownIcon icon={PlusIcon} />
+												<DropdownLabel className="text-zinc-400">
+													Staging deployment (3/3 limit reached)
+												</DropdownLabel>
+											</DropdownItem>
+										)}
+										{canCreateProductionDeployment && (
+											<DropdownItem
+												onClick={() => setIsCreateProductionDialogOpen(true)}
+											>
+												<DropdownIcon icon={PlusIcon} />
+												<DropdownLabel>Production deployment</DropdownLabel>
 											</DropdownItem>
 										)}
 									</DropdownMenu>
@@ -292,9 +329,9 @@ export function ApplicationLayout() {
 							</SidebarItem>
 
 							<SidebarHeading className="mt-3">Customization</SidebarHeading>
-							<SidebarItem href={createNavigationLink("portal")}>
-								<DropdownIcon icon={SparklesIcon} />
-								<SidebarLabel>UI Settings</SidebarLabel>
+							<SidebarItem href={createNavigationLink("deployment-settings")}>
+								<DropdownIcon icon={Cog6ToothIcon} />
+								<SidebarLabel>Deployment Settings</SidebarLabel>
 							</SidebarItem>
 							<SidebarItem href={createNavigationLink("emails")}>
 								<DropdownIcon icon={EnvelopeIcon} />
@@ -311,20 +348,21 @@ export function ApplicationLayout() {
 				onClose={() => setIsCreateProjectDialogOpen(false)}
 			/>
 			{selectedProject && (
-				<CreateProductionDeploymentDialog
-					open={isCreateProductionDialogOpen}
-					onClose={() => setIsCreateProductionDialogOpen(false)}
-					projectId={selectedProject.id}
-				/>
+				<>
+					<CreateStagingDeploymentDialog
+						open={isCreateStagingDialogOpen}
+						onOpenChange={setIsCreateStagingDialogOpen}
+						onCreateStagingDeployment={handleCreateStagingDeployment}
+						isLoading={isCreatingStagingDeployment}
+					/>
+					<CreateProductionDeploymentDialog
+						open={isCreateProductionDialogOpen}
+						onClose={() => setIsCreateProductionDialogOpen(false)}
+						projectId={selectedProject.id}
+					/>
+				</>
 			)}
-			{selectedProject && selectedDeployment && (
-				<DeleteDeploymentDialog
-					open={isDeleteDeploymentDialogOpen}
-					onClose={() => setIsDeleteDeploymentDialogOpen(false)}
-					deployment={selectedDeployment}
-					projectId={selectedProject.id}
-				/>
-			)}
+
 		</SidebarLayout>
 	);
 }
