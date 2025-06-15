@@ -24,12 +24,15 @@ export interface DeploymentDisplaySettingsUpdates {
   create_organization_url?: string;
   default_user_profile_image_url?: string;
   default_organization_profile_image_url?: string;
+  default_workspace_profile_image_url?: string;
   use_initials_for_user_profile_image?: boolean;
   use_initials_for_organization_profile_image?: boolean;
   after_signup_redirect_url?: string;
   after_signin_redirect_url?: string;
   user_profile_url?: string;
   after_create_organization_redirect_url?: string;
+  waitlist_page_url?: string;
+  support_page_url?: string;
 }
 
 async function updateDeploymentDisplaySettings(

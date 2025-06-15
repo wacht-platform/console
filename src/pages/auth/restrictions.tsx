@@ -713,7 +713,7 @@ export default function RestrictionsPage() {
 
           <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
             <Field>
-              <Subheading>VOIP/ Virtual Number Restrictions</Subheading>
+              <Subheading>VOIP / Virtual Number Restrictions</Subheading>
               <Text>
                 Block specific number series associated with VOIP or virtual
                 numbers.

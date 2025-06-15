@@ -21,6 +21,7 @@ import {
 import SavePopup from "@/components/save-popup";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { DeleteDeploymentDialog } from "@/components/delete-deployment-dialog";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 interface ValidationErrors {
   appName?: string;
@@ -36,9 +37,12 @@ interface ValidationErrors {
   afterSignOutAllPageUrl?: string;
   defaultUserProfileImageUrl?: string;
   defaultOrganizationProfileImageUrl?: string;
+  defaultWorkspaceProfileImageUrl?: string;
   signupTermsStatement?: string;
   darkModePrimaryColor?: string;
   darkModeBackgroundColor?: string;
+  waitlistPageUrl?: string;
+  supportPageUrl?: string;
 }
 
 export default function DeploymentSettingsPage() {
@@ -60,9 +64,7 @@ export default function DeploymentSettingsPage() {
   const [backgroundColor, setBackgroundColor] = useState("#F3F4F6");
   const [afterSignOutOnePageUrl, setAfterSignOutOnePageUrl] = useState("");
   const [afterSignOutAllPageUrl, setAfterSignOutAllPageUrl] = useState("");
-  const [defaultUserProfileImageUrl, setDefaultUserProfileImageUrl] =
-    useState("");
-  const [defaultOrganizationProfileImageUrl, setDefaultOrganizationProfileImageUrl] = useState("");
+
   const [useInitialsForUserProfileImage, setUseInitialsForUserProfileImage] =
     useState(true);
   const [useInitialsForOrganizationProfileImage, setUseInitialsForOrganizationProfileImage] = useState(true);
@@ -70,6 +72,16 @@ export default function DeploymentSettingsPage() {
   const [signupTermsStatementShown, setSignupTermsStatementShown] = useState(true);
   const [darkModePrimaryColor, setDarkModePrimaryColor] = useState("#1E40AF");
   const [darkModeBackgroundColor, setDarkModeBackgroundColor] = useState("#111827");
+  const [waitlistPageUrl, setWaitlistPageUrl] = useState("");
+  const [supportPageUrl, setSupportPageUrl] = useState("");
+
+  // Image URL states to track current values (null means use original, empty string means removed)
+  const [logoImageUrl, setLogoImageUrl] = useState<string | null>(null);
+  const [faviconImageUrl, setFaviconImageUrl] = useState<string | null>(null);
+  const [userProfileImageUrl, setUserProfileImageUrl] = useState<string | null>(null);
+  const [orgProfileImageUrl, setOrgProfileImageUrl] = useState<string | null>(null);
+  const [workspaceProfileImageUrl, setWorkspaceProfileImageUrl] = useState<string | null>(null);
+
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -130,8 +142,8 @@ export default function DeploymentSettingsPage() {
       case "afterCreateOrganizationUrl":
       case "afterSignOutOnePageUrl":
       case "afterSignOutAllPageUrl":
-      case "defaultUserProfileImageUrl":
-      case "defaultOrganizationProfileImageUrl":
+      case "waitlistPageUrl":
+      case "supportPageUrl":
         if (value && !isValidUrl(value)) {
           errors[fieldName] = "Please enter a valid URL";
         } else {
@@ -198,12 +210,6 @@ export default function DeploymentSettingsPage() {
       );
       setAfterSignOutOnePageUrl(settings.after_sign_out_one_page_url || "");
       setAfterSignOutAllPageUrl(settings.after_sign_out_all_page_url || "");
-      setDefaultUserProfileImageUrl(
-        settings.default_user_profile_image_url || ""
-      );
-      setDefaultOrganizationProfileImageUrl(
-        settings.default_organization_profile_image_url || ""
-      );
       setUseInitialsForUserProfileImage(
         settings.use_initials_for_user_profile_image ?? true
       );
@@ -214,6 +220,15 @@ export default function DeploymentSettingsPage() {
       setSignupTermsStatementShown(settings.signup_terms_statement_shown ?? true);
       setDarkModePrimaryColor(settings.dark_mode_settings?.primary_color || "#1E40AF");
       setDarkModeBackgroundColor(settings.dark_mode_settings?.background_color || "#111827");
+      setWaitlistPageUrl(settings.waitlist_page_url || "");
+      setSupportPageUrl(settings.support_page_url || "");
+
+      // Initialize image URLs (null means use original values)
+      setLogoImageUrl(null);
+      setFaviconImageUrl(null);
+      setUserProfileImageUrl(null);
+      setOrgProfileImageUrl(null);
+      setWorkspaceProfileImageUrl(null);
     }
   }, [deploymentSettings]);
 
@@ -275,9 +290,6 @@ export default function DeploymentSettingsPage() {
       after_create_organization_redirect_url: afterCreateOrganizationUrl,
       after_sign_out_one_page_url: afterSignOutOnePageUrl,
       after_sign_out_all_page_url: afterSignOutAllPageUrl,
-      default_user_profile_image_url: defaultUserProfileImageUrl,
-      default_organization_profile_image_url:
-        defaultOrganizationProfileImageUrl,
       use_initials_for_user_profile_image: useInitialsForUserProfileImage,
       use_initials_for_organization_profile_image:
         useInitialsForOrganizationProfileImage,
@@ -297,6 +309,15 @@ export default function DeploymentSettingsPage() {
       },
       signup_terms_statement: signupTermsStatement,
       signup_terms_statement_shown: signupTermsStatementShown,
+      waitlist_page_url: waitlistPageUrl,
+      support_page_url: supportPageUrl,
+
+      // Include image URLs only if they have been changed
+      ...(logoImageUrl !== null && { logo_image_url: logoImageUrl }),
+      ...(faviconImageUrl !== null && { favicon_image_url: faviconImageUrl }),
+      ...(userProfileImageUrl !== null && { default_user_profile_image_url: userProfileImageUrl }),
+      ...(orgProfileImageUrl !== null && { default_organization_profile_image_url: orgProfileImageUrl }),
+      ...(workspaceProfileImageUrl !== null && { default_workspace_profile_image_url: workspaceProfileImageUrl }),
     };
 
     try {
@@ -328,12 +349,6 @@ export default function DeploymentSettingsPage() {
       );
       setAfterSignOutOnePageUrl(settings.after_sign_out_one_page_url || "");
       setAfterSignOutAllPageUrl(settings.after_sign_out_all_page_url || "");
-      setDefaultUserProfileImageUrl(
-        settings.default_user_profile_image_url || ""
-      );
-      setDefaultOrganizationProfileImageUrl(
-        settings.default_organization_profile_image_url || ""
-      );
       setUseInitialsForUserProfileImage(
         settings.use_initials_for_user_profile_image ?? true
       );
@@ -344,6 +359,16 @@ export default function DeploymentSettingsPage() {
       setSignupTermsStatementShown(settings.signup_terms_statement_shown ?? true);
       setDarkModePrimaryColor(settings.dark_mode_settings?.primary_color || "#1E40AF");
       setDarkModeBackgroundColor(settings.dark_mode_settings?.background_color || "#111827");
+      setWaitlistPageUrl(settings.waitlist_page_url || "");
+      setSupportPageUrl(settings.support_page_url || "");
+
+      // Reset image URLs to null (use original values)
+      setLogoImageUrl(null);
+      setFaviconImageUrl(null);
+      setUserProfileImageUrl(null);
+      setOrgProfileImageUrl(null);
+      setWorkspaceProfileImageUrl(null);
+
       setValidationErrors({});
       setShowValidationErrors(false);
       setIsDirty(false);
@@ -392,6 +417,48 @@ export default function DeploymentSettingsPage() {
                 {validationErrors.appName}
               </span>
             )}
+          </div>
+        </section>
+
+        <Divider className="my-8" soft />
+
+        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+          <div className="space-y-1">
+            <Subheading>Application Logo</Subheading>
+            <Text>Upload your application's logo image.</Text>
+          </div>
+          <div className="space-y-1">
+            <ImageUpload
+              label=""
+              imageType="logo"
+              currentImageUrl={logoImageUrl !== null ? logoImageUrl : deploymentSettings?.ui_settings?.logo_image_url}
+              onImageUploaded={(url) => {
+                setLogoImageUrl(url);
+                setIsDirty(true);
+              }}
+              variant="banner"
+              required={true}
+            />
+          </div>
+        </section>
+
+        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+          <div className="space-y-1">
+            <Subheading>Favicon</Subheading>
+            <Text>Upload your application's favicon image.</Text>
+          </div>
+          <div className="space-y-1">
+            <ImageUpload
+              label=""
+              imageType="favicon"
+              currentImageUrl={faviconImageUrl !== null ? faviconImageUrl : deploymentSettings?.ui_settings?.favicon_image_url}
+              onImageUploaded={(url) => {
+                setFaviconImageUrl(url);
+                setIsDirty(true);
+              }}
+              variant="avatar"
+              required={true}
+            />
           </div>
         </section>
 
@@ -820,71 +887,66 @@ export default function DeploymentSettingsPage() {
 
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>Default User Profile Image URL</Subheading>
+            <Subheading>Default User Profile Image</Subheading>
             <Text>
               Default profile image for users who haven't uploaded one.
             </Text>
           </div>
           <div className="space-y-1">
-            <Input
-              type="url"
-              placeholder="https://example.com/default-user.png"
-              value={defaultUserProfileImageUrl}
-              onChange={(e) =>
-                updateField(
-                  setDefaultUserProfileImageUrl,
-                  e.target.value,
-                  "defaultUserProfileImageUrl"
-                )
-              }
-              className={
-                validationErrors.defaultUserProfileImageUrl &&
-                showValidationErrors
-                  ? "border-red-500"
-                  : ""
-              }
+            <ImageUpload
+              label=""
+              imageType="user-profile"
+              currentImageUrl={userProfileImageUrl !== null ? userProfileImageUrl : deploymentSettings?.ui_settings?.default_user_profile_image_url}
+              onImageUploaded={(url) => {
+                setUserProfileImageUrl(url);
+                setIsDirty(true);
+              }}
+              variant="avatar"
+              required={true}
             />
-            {validationErrors.defaultUserProfileImageUrl &&
-              showValidationErrors && (
-                <span className="text-red-500 text-sm px-2">
-                  {validationErrors.defaultUserProfileImageUrl}
-                </span>
-              )}
           </div>
         </section>
 
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>Default Organization Profile Image URL</Subheading>
+            <Subheading>Default Organization Profile Image</Subheading>
             <Text>
               Default profile image for organizations that haven't uploaded one.
             </Text>
           </div>
           <div className="space-y-1">
-            <Input
-              type="url"
-              placeholder="https://example.com/default-org.png"
-              value={defaultOrganizationProfileImageUrl}
-              onChange={(e) =>
-                updateField(
-                  setDefaultOrganizationProfileImageUrl,
-                  e.target.value,
-                  "defaultOrganizationProfileImageUrl"
-                )
-              }
-              className={
-                validationErrors.defaultOrganizationProfileImageUrl &&
-                showValidationErrors
-                  ? "border-red-500"
-                  : ""
-              }
+            <ImageUpload
+              label=""
+              imageType="org-profile"
+              currentImageUrl={orgProfileImageUrl !== null ? orgProfileImageUrl : deploymentSettings?.ui_settings?.default_organization_profile_image_url}
+              onImageUploaded={(url) => {
+                setOrgProfileImageUrl(url);
+                setIsDirty(true);
+              }}
+              variant="avatar"
+              required={true}
             />
-            {validationErrors.defaultOrganizationProfileImageUrl &&
-              showValidationErrors && (
-                <span className="text-red-500 text-sm px-2">
-                  {validationErrors.defaultOrganizationProfileImageUrl}
-                </span>
-              )}
+          </div>
+        </section>
+
+        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+          <div className="space-y-1">
+            <Subheading>Default Workspace Profile Image</Subheading>
+            <Text>
+              Default profile image for workspaces that haven't uploaded one.
+            </Text>
+          </div>
+          <div className="space-y-1">
+            <ImageUpload
+              label=""
+              imageType="workspace-profile"
+              currentImageUrl={workspaceProfileImageUrl !== null ? workspaceProfileImageUrl : deploymentSettings?.ui_settings?.default_workspace_profile_image_url}
+              onImageUploaded={(url) => {
+                setWorkspaceProfileImageUrl(url);
+                setIsDirty(true);
+              }}
+              variant="avatar"
+            />
           </div>
         </section>
 
@@ -972,6 +1034,72 @@ export default function DeploymentSettingsPage() {
                 updateBooleanField(setSignupTermsStatementShown, checked)
               }
             />
+          </div>
+        </section>
+
+        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+          <div className="space-y-1">
+            <Subheading>Waitlist Page URL</Subheading>
+            <Text>
+              URL for your application's waitlist page.
+            </Text>
+          </div>
+          <div className="space-y-1">
+            <Input
+              type="url"
+              placeholder="https://example.com/waitlist"
+              value={waitlistPageUrl}
+              onChange={(e) =>
+                updateField(
+                  setWaitlistPageUrl,
+                  e.target.value,
+                  "waitlistPageUrl"
+                )
+              }
+              className={
+                validationErrors.waitlistPageUrl && showValidationErrors
+                  ? "border-red-500"
+                  : ""
+              }
+            />
+            {validationErrors.waitlistPageUrl && showValidationErrors && (
+              <span className="text-red-500 text-sm px-2">
+                {validationErrors.waitlistPageUrl}
+              </span>
+            )}
+          </div>
+        </section>
+
+        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+          <div className="space-y-1">
+            <Subheading>Support Page URL</Subheading>
+            <Text>
+              URL for your application's support or help page.
+            </Text>
+          </div>
+          <div className="space-y-1">
+            <Input
+              type="url"
+              placeholder="https://example.com/support"
+              value={supportPageUrl}
+              onChange={(e) =>
+                updateField(
+                  setSupportPageUrl,
+                  e.target.value,
+                  "supportPageUrl"
+                )
+              }
+              className={
+                validationErrors.supportPageUrl && showValidationErrors
+                  ? "border-red-500"
+                  : ""
+              }
+            />
+            {validationErrors.supportPageUrl && showValidationErrors && (
+              <span className="text-red-500 text-sm px-2">
+                {validationErrors.supportPageUrl}
+              </span>
+            )}
           </div>
         </section>
 

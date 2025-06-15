@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "../client";
 import { useProjects } from "./use-projects";
 
-type ImageType = "logo" | "favicon" | "user-profile" | "org-profile";
+type ImageType = "logo" | "favicon" | "user-profile" | "org-profile" | "workspace-profile";
 
 interface UploadResponse {
   url: string;

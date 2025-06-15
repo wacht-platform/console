@@ -6,7 +6,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { useUploadImage } from "@/lib/api/hooks/use-upload-image";
 import { toast } from 'sonner';
 
-type ImageType = "logo" | "favicon" | "user-profile" | "org-profile";
+type ImageType = "logo" | "favicon" | "user-profile" | "org-profile" | "workspace-profile";
 
 interface ImageUploadProps {
   label: string;
@@ -101,6 +101,9 @@ export function ImageUpload({
     setPreviewUrl(null);
     if (onImageRemoved) {
       onImageRemoved();
+    } else {
+      // If no onImageRemoved callback, still trigger onImageUploaded with empty string to mark as dirty
+      onImageUploaded("");
     }
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -114,48 +117,45 @@ export function ImageUpload({
   if (variant === "avatar") {
     return (
       <Field className={className}>
-        <Label>
-          {label}{required ? "" : " (optional)"}
-        </Label>
 
         <div className="flex items-center space-x-4">
           {/* Avatar Preview */}
-          <div
-            className={`relative w-20 h-20 rounded-full border-2 border-dashed transition-all duration-200 cursor-pointer overflow-hidden ${
-              isUploading
-                ? 'border-blue-300 bg-blue-50'
-                : 'border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100'
-            } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
-            onClick={!disabled ? handleUploadClick : undefined}
-          >
-            {previewUrl ? (
-              <>
+          <div className="relative">
+            <div
+              className={`w-20 h-20 rounded-full border-2 border-dashed transition-all duration-200 cursor-pointer overflow-hidden ${
+                isUploading
+                  ? 'border-blue-300 bg-blue-50'
+                  : 'border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100'
+              } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+              onClick={!disabled ? handleUploadClick : undefined}
+            >
+              {previewUrl ? (
                 <img
                   src={previewUrl}
                   alt={`${label} preview`}
                   className="w-full h-full object-cover"
                 />
-                {!disabled && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveImage();
-                    }}
-                    className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm"
-                  >
-                    <XMarkIcon className="w-3 h-3" />
-                  </button>
-                )}
-              </>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                {isUploading ? (
-                  <Spinner className="w-6 h-6 text-blue-500" />
-                ) : (
-                  <PhotoIcon className="w-6 h-6 text-gray-400" />
-                )}
-              </div>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  {isUploading ? (
+                    <Spinner className="w-6 h-6 text-blue-500" />
+                  ) : (
+                    <PhotoIcon className="w-6 h-6 text-gray-400" />
+                  )}
+                </div>
+              )}
+            </div>
+            {previewUrl && !disabled && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemoveImage();
+                }}
+                className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg border-2 border-white z-10"
+              >
+                <XMarkIcon className="w-3 h-3" />
+              </button>
             )}
           </div>
 
