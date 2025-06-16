@@ -54,7 +54,7 @@ async function updateWorkflow(
   workflowId: string,
   workflow: UpdateWorkflowRequest
 ): Promise<AiWorkflow> {
-  const { data } = await apiClient.put<{ data: AiWorkflow }>(
+  const { data } = await apiClient.patch<{ data: AiWorkflow }>(
     `/deployment/${deploymentId}/ai-workflows/${workflowId}`,
     workflow
   );

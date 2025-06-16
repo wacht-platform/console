@@ -2,16 +2,8 @@ import React, { useState, useEffect } from "react";
 import type { Node } from "@xyflow/react";
 
 import type { BaseNodeData } from "../../../types/NodeTypes";
-import type {
-  ActionType,
-  ApiActionConfig,
-  KnowledgeBaseActionConfig,
-  TriggerWorkflowActionConfig,
-  PlatformEventActionConfig,
-  SchemaField
-} from "../../../types/workflow";
-import type { AuthorizationConfiguration } from "../../../types/ai-tool";
-import { useWorkflows } from "../../../lib/api/hooks/use-workflows";
+import type { AiTool } from "../../../types/ai-tool";
+import ToolSelector from "../ToolSelector";
 
 import {
   Dialog,
@@ -24,6 +16,7 @@ import { Field, Label } from "@/components/ui/fieldset";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { validateNodeFormData, type ValidationError } from "../../../lib/utils/workflow-validation";
 
 
 interface NodeEditModalProps {
@@ -37,16 +30,11 @@ interface NodeEditModalProps {
 interface NodeFormData {
   label: string;
   description?: string;
-  node_type: "trigger" | "action" | "condition" | "transform" | "try-catch" | "llm-call" | "switch-case";
+  node_type: "trigger" | "action" | "condition" | "transform" | "try-catch" | "llm-call" | "switch-case" | "tool-call" | "store-context" | "fetch-context";
   // Trigger node fields
   condition?: string;
   scheduled_at?: string;
-  // Action node fields
-  action_type?: ActionType;
-  api_config?: ApiActionConfig;
-  knowledge_base_config?: KnowledgeBaseActionConfig;
-  trigger_workflow_config?: TriggerWorkflowActionConfig;
-  platform_event_config?: PlatformEventActionConfig;
+
   // Try/Catch fields
   enable_retry?: boolean;
   max_retries?: number;
@@ -57,18 +45,22 @@ interface NodeFormData {
   // LLM Call fields
   prompt_template?: string;
   response_format?: "text" | "json";
-  json_schema?: SchemaField[];
+  json_schema?: Array<{ name: string; type: string; required: boolean; description: string }>;
   // Switch/Case fields
   switch_variable?: string;
   comparison_type?: "equals" | "contains" | "starts_with" | "ends_with" | "regex";
   number_of_cases?: number;
   default_case?: boolean;
   cases?: Array<{ case_value: string; case_label?: string }>;
-  // Enhanced API fields
-  request_body_schema?: SchemaField[];
-  url_params_schema?: SchemaField[];
-  query_params_schema?: SchemaField[];
-  authorization?: AuthorizationConfiguration;
+  // Tool Call fields
+  tool_id?: string;
+  tool_name?: string;
+  tool_type?: string;
+  input_parameters?: Record<string, unknown>;
+  // Context fields
+  context_data?: string;
+  use_llm?: boolean;
+
 }
 
 const NodeEditModal: React.FC<NodeEditModalProps> = ({
@@ -78,29 +70,24 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
   onSave,
   availableNodes = [],
 }) => {
-  const { data } = useWorkflows();
-  const workflows = data?.workflows || [];
+  // Remove unused workflows since we no longer have trigger workflow action
 
   // Initialize formData with node data or defaults
   const [formData, setFormData] = useState<NodeFormData>({
     label: "",
     description: "",
     node_type: "action",
-    action_type: "api_call",
-    api_config: {
-      endpoint: "",
-      method: "GET",
-      headers: {},
-      body: "",
-      timeout_seconds: 30,
-    },
   });
+
+  // Validation state
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // Update formData when the selected node changes
   useEffect(() => {
     if (node?.data) {
       // Determine node type from the node type or data
-      let nodeType: "trigger" | "action" | "condition" | "transform" | "try-catch" | "llm-call" | "switch-case" = "action";
+      let nodeType: "trigger" | "action" | "condition" | "transform" | "try-catch" | "llm-call" | "switch-case" | "tool-call" | "store-context" | "fetch-context" = "action";
       if (node.type === "trigger") {
         nodeType = "trigger";
       } else if (node.type?.includes("conditional")) {
@@ -113,6 +100,12 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
         nodeType = "llm-call";
       } else if (node.type === "switch-case") {
         nodeType = "switch-case";
+      } else if (node.type === "tool-call") {
+        nodeType = "tool-call";
+      } else if (node.type === "store-context") {
+        nodeType = "store-context";
+      } else if (node.type === "fetch-context") {
+        nodeType = "fetch-context";
       }
 
       setFormData({
@@ -121,11 +114,6 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
         node_type: nodeType,
         condition: node.data.condition as string,
         scheduled_at: node.data.scheduled_at as string,
-        action_type: node.data.action_type as ActionType,
-        api_config: node.data.api_config as ApiActionConfig,
-        knowledge_base_config: node.data.knowledge_base_config as KnowledgeBaseActionConfig,
-        trigger_workflow_config: node.data.trigger_workflow_config as TriggerWorkflowActionConfig,
-        platform_event_config: node.data.platform_event_config as PlatformEventActionConfig,
         // Try/Catch fields
         enable_retry: node.data.enable_retry as boolean,
         max_retries: node.data.max_retries as number,
@@ -136,21 +124,39 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
         // LLM Call fields
         prompt_template: node.data.prompt_template as string,
         response_format: node.data.response_format as "text" | "json",
-        json_schema: node.data.json_schema as SchemaField[] || [],
+        json_schema: node.data.json_schema as any[] || [],
         // Switch/Case fields
         switch_variable: node.data.switch_variable as string,
         comparison_type: node.data.comparison_type as "equals" | "contains" | "starts_with" | "ends_with" | "regex",
         number_of_cases: node.data.number_of_cases as number,
         default_case: node.data.default_case as boolean,
         cases: node.data.cases as Array<{ case_value: string; case_label?: string }>,
-        // Enhanced API fields
-        request_body_schema: node.data.request_body_schema as SchemaField[] || [],
-        url_params_schema: node.data.url_params_schema as SchemaField[] || [],
-        query_params_schema: node.data.query_params_schema as SchemaField[] || [],
-        authorization: node.data.authorization as AuthorizationConfiguration || undefined,
+        // Tool Call fields
+        tool_id: node.data.tool_id as string,
+        tool_name: node.data.tool_name as string,
+        tool_type: node.data.tool_type as string,
+        input_parameters: node.data.input_parameters as Record<string, unknown> || {},
+        // Context fields
+        context_data: node.data.context_data as string,
+        use_llm: node.data.use_llm as boolean,
       });
     }
   }, [node]);
+
+  // Real-time validation when form data changes
+  useEffect(() => {
+    if (formData.label || formData.node_type) {
+      const errors = validateNodeFormData(formData.node_type, formData as unknown as Record<string, unknown>);
+      setValidationErrors(errors);
+
+      // Convert validation errors to field errors for display
+      const newFieldErrors: Record<string, string> = {};
+      errors.forEach(error => {
+        newFieldErrors[error.field] = error.message;
+      });
+      setFieldErrors(newFieldErrors);
+    }
+  }, [formData]);
 
   // Don't render the modal if it's not open or no node is selected
   if (!isOpen || !node) {
@@ -161,7 +167,20 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
 
   // Handle save action
   const handleSave = () => {
+    // Validate before saving
+    const errors = validateNodeFormData(formData.node_type, formData as unknown as Record<string, unknown>);
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      const newFieldErrors: Record<string, string> = {};
+      errors.forEach(error => {
+        newFieldErrors[error.field] = error.message;
+      });
+      setFieldErrors(newFieldErrors);
+      return; // Don't save if there are validation errors
+    }
+
     onSave(node!.id, formData as unknown as Record<string, unknown>);
+    onClose(); // Close modal on successful save
   };
 
   return (
@@ -181,7 +200,11 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
               value={formData.label}
               onChange={(e) => setFormData({ ...formData, label: e.target.value })}
               placeholder="Enter node label"
+              invalid={!!fieldErrors.label}
             />
+            {fieldErrors.label && (
+              <div className="mt-1 text-sm text-red-600">{fieldErrors.label}</div>
+            )}
           </Field>
 
           <Field>
@@ -230,7 +253,11 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                   onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
                   placeholder="Describe the condition to evaluate (e.g., user is active and has admin role)"
                   className="h-20"
+                  invalid={!!fieldErrors.condition}
                 />
+                {fieldErrors.condition && (
+                  <div className="mt-1 text-sm text-red-600">{fieldErrors.condition}</div>
+                )}
               </Field>
               <div className="text-xs text-gray-600 bg-blue-50 p-3 rounded">
                 <strong>Note:</strong> Describe the condition in natural language. The workflow will follow the True or False path based on this condition.
@@ -238,539 +265,7 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
             </div>
           )}
 
-          {/* Action Node Configuration - Action type is determined by block type */}
-          {formData.node_type === "action" && formData.action_type && (
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-              <div className="text-sm text-blue-800">
-                <strong>Action Type:</strong> {
-                  formData.action_type === "api_call" ? "API Call" :
-                  formData.action_type === "knowledge_base_search" ? "Knowledge Base Search" :
-                  formData.action_type === "trigger_workflow" ? "Trigger Workflow" :
-                  formData.action_type === "platform_event" ? "Platform Event" :
-                  formData.action_type
-                }
-              </div>
-              <div className="text-xs text-blue-600 mt-1">
-                Action type is determined by the block you selected from the sidebar.
-              </div>
-            </div>
-          )}
 
-          {/* API Call Configuration */}
-          {formData.node_type === "action" && formData.action_type === "api_call" && formData.api_config && (
-            <div className="space-y-4">
-              <h4 className="font-medium">API Configuration</h4>
-              <Field>
-                <Label htmlFor="endpoint">API Endpoint:</Label>
-                <Input
-                  id="endpoint"
-                  name="endpoint"
-                  type="text"
-                  value={formData.api_config.endpoint}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    api_config: { ...formData.api_config!, endpoint: e.target.value }
-                  })}
-                  placeholder="https://api.example.com/users/{userId}/posts (use {paramName} for URL parameters)"
-                />
-              </Field>
-              <Field>
-                <Label htmlFor="method">HTTP Method:</Label>
-                <Select
-                  id="method"
-                  name="method"
-                  value={formData.api_config.method}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    api_config: { ...formData.api_config!, method: e.target.value }
-                  })}
-                >
-                  <option value="GET">GET</option>
-                  <option value="POST">POST</option>
-                  <option value="PUT">PUT</option>
-                  <option value="DELETE">DELETE</option>
-                  <option value="PATCH">PATCH</option>
-                </Select>
-              </Field>
-
-              {/* URL Parameters Schema */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">URL Parameters Schema:</label>
-                <div className="text-xs text-gray-600 mb-2">
-                  Define the parameters that will be substituted in the URL path (e.g., {`{userId}`} in the endpoint).
-                </div>
-                <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {(formData.url_params_schema || []).length === 0 && (
-                    <div className="text-xs text-gray-500 italic p-2 text-center bg-gray-50 rounded">
-                      No URL parameters defined. Click "Add URL Parameter" to add one.
-                    </div>
-                  )}
-                  {(formData.url_params_schema || []).map((param, index) => (
-                    <div key={index} className="p-2 bg-gray-50 rounded">
-                      <div className="flex gap-2 items-center">
-                        <div className="flex-1">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Parameter Name</label>
-                          <Input
-                        placeholder="userId, postId, etc."
-                        value={param.name}
-                        onChange={(e) => {
-                          const newParams = [...(formData.url_params_schema || [])];
-                          newParams[index] = { ...param, name: e.target.value };
-                          setFormData({ ...formData, url_params_schema: newParams });
-                        }}
-                          />
-                        </div>
-                        <div className="w-24">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
-                          <Select
-                            value={param.type}
-                            onChange={(e) => {
-                              const newParams = [...(formData.url_params_schema || [])];
-                              newParams[index] = { ...param, type: e.target.value };
-                              setFormData({ ...formData, url_params_schema: newParams });
-                            }}
-                          >
-                            <option value="string">string</option>
-                            <option value="number">number</option>
-                            <option value="boolean">boolean</option>
-                          </Select>
-                        </div>
-                        <div className="w-20 flex flex-col">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Required</label>
-                          <div className="flex items-center justify-center h-9">
-                            <input
-                              type="checkbox"
-                              checked={param.required}
-                              onChange={(e) => {
-                                const newParams = [...(formData.url_params_schema || [])];
-                                newParams[index] = { ...param, required: e.target.checked };
-                                setFormData({ ...formData, url_params_schema: newParams });
-                              }}
-                            />
-                          </div>
-                        </div>
-                        <div className="w-8 flex flex-col">
-                          <div className="h-5 mb-1"></div>
-                          <div className="flex items-center justify-center h-9">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newParams = (formData.url_params_schema || []).filter((_, i) => i !== index);
-                                setFormData({ ...formData, url_params_schema: newParams });
-                              }}
-                              className="text-red-500 hover:text-red-700 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newParams = [...(formData.url_params_schema || []), { name: '', type: 'string', required: true, description: '' }];
-                    setFormData({ ...formData, url_params_schema: newParams });
-                  }}
-                  className="text-blue-600 hover:text-blue-800 text-sm"
-                >
-                  + Add URL Parameter
-                </button>
-              </div>
-
-              {/* Query Parameters Schema */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Query Parameters Schema:</label>
-                <div className="text-xs text-gray-600 mb-2">
-                  Define the query string parameters that will be appended to the URL (e.g., ?limit=10&offset=0).
-                </div>
-                <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {(formData.query_params_schema || []).length === 0 && (
-                    <div className="text-xs text-gray-500 italic p-2 text-center bg-gray-50 rounded">
-                      No query parameters defined. Click "Add Query Parameter" to add one.
-                    </div>
-                  )}
-                  {(formData.query_params_schema || []).map((param, index) => (
-                    <div key={index} className="p-2 bg-gray-50 rounded">
-                      <div className="flex gap-2 items-center">
-                        <div className="flex-1">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Parameter Name</label>
-                          <Input
-                            placeholder="limit, offset, search, etc."
-                            value={param.name}
-                            onChange={(e) => {
-                              const newParams = [...(formData.query_params_schema || [])];
-                              newParams[index] = { ...param, name: e.target.value };
-                              setFormData({ ...formData, query_params_schema: newParams });
-                            }}
-                          />
-                        </div>
-                        <div className="w-24">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
-                          <Select
-                            value={param.type}
-                            onChange={(e) => {
-                              const newParams = [...(formData.query_params_schema || [])];
-                              newParams[index] = { ...param, type: e.target.value };
-                              setFormData({ ...formData, query_params_schema: newParams });
-                            }}
-                          >
-                            <option value="string">string</option>
-                            <option value="number">number</option>
-                            <option value="boolean">boolean</option>
-                          </Select>
-                        </div>
-                        <div className="w-20 flex flex-col">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Required</label>
-                          <div className="flex items-center justify-center h-9">
-                            <input
-                              type="checkbox"
-                              checked={param.required}
-                              onChange={(e) => {
-                                const newParams = [...(formData.query_params_schema || [])];
-                                newParams[index] = { ...param, required: e.target.checked };
-                                setFormData({ ...formData, query_params_schema: newParams });
-                              }}
-                            />
-                          </div>
-                        </div>
-                        <div className="w-8 flex flex-col">
-                          <div className="h-5 mb-1"></div>
-                          <div className="flex items-center justify-center h-9">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newParams = (formData.query_params_schema || []).filter((_, i) => i !== index);
-                                setFormData({ ...formData, query_params_schema: newParams });
-                              }}
-                              className="text-red-500 hover:text-red-700 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newParams = [...(formData.query_params_schema || []), { name: '', type: 'string', required: false, description: '' }];
-                    setFormData({ ...formData, query_params_schema: newParams });
-                  }}
-                  className="text-blue-600 hover:text-blue-800 text-sm"
-                >
-                  + Add Query Parameter
-                </button>
-              </div>
-
-              {/* Request Body Schema */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Request Body Schema:</label>
-                <div className="text-xs text-gray-600 mb-2">
-                  Define the structure and types of data that will be sent in the request body.
-                </div>
-                <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {(formData.request_body_schema || []).length === 0 && (
-                    <div className="text-xs text-gray-500 italic p-2 text-center bg-gray-50 rounded">
-                      No body fields defined. Click "Add Body Field" to add one.
-                    </div>
-                  )}
-                  {(formData.request_body_schema || []).map((field, index) => (
-                    <div key={index} className="p-2 bg-gray-50 rounded">
-                      <div className="flex gap-2 items-center">
-                        <div className="flex-1">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">JSON Key Name</label>
-                          <Input
-                            placeholder="name, email, age, etc."
-                            value={field.name}
-                            onChange={(e) => {
-                              const newFields = [...(formData.request_body_schema || [])];
-                              newFields[index] = { ...field, name: e.target.value };
-                              setFormData({ ...formData, request_body_schema: newFields });
-                            }}
-                          />
-                        </div>
-                        <div className="w-24">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
-                          <Select
-                            value={field.type}
-                            onChange={(e) => {
-                              const newFields = [...(formData.request_body_schema || [])];
-                              newFields[index] = { ...field, type: e.target.value };
-                              setFormData({ ...formData, request_body_schema: newFields });
-                            }}
-                          >
-                            <option value="string">string</option>
-                            <option value="number">number</option>
-                            <option value="boolean">boolean</option>
-                            <option value="object">object</option>
-                            <option value="array">array</option>
-                          </Select>
-                        </div>
-                        <div className="w-20 flex flex-col">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Required</label>
-                          <div className="flex items-center justify-center h-9">
-                            <input
-                              type="checkbox"
-                              checked={field.required}
-                              onChange={(e) => {
-                                const newFields = [...(formData.request_body_schema || [])];
-                                newFields[index] = { ...field, required: e.target.checked };
-                                setFormData({ ...formData, request_body_schema: newFields });
-                              }}
-                            />
-                          </div>
-                        </div>
-                        <div className="w-8 flex flex-col">
-                          <div className="h-5 mb-1"></div>
-                          <div className="flex items-center justify-center h-9">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newFields = (formData.request_body_schema || []).filter((_, i) => i !== index);
-                                setFormData({ ...formData, request_body_schema: newFields });
-                              }}
-                              className="text-red-500 hover:text-red-700 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newFields = [...(formData.request_body_schema || []), { name: '', type: 'string', required: true, description: '' }];
-                    setFormData({ ...formData, request_body_schema: newFields });
-                  }}
-                  className="text-blue-600 hover:text-blue-800 text-sm"
-                >
-                  + Add Body Field
-                </button>
-              </div>
-
-              <Field>
-                <Label htmlFor="body">Request Body Template:</Label>
-                <Textarea
-                  id="body"
-                  name="body"
-                  value={formData.api_config.body || ""}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    api_config: { ...formData.api_config!, body: e.target.value }
-                  })}
-                  placeholder="Request body template with variables (e.g., { &quot;name&quot;: &quot;{{user.name}}&quot;, &quot;email&quot;: &quot;{{user.email}}&quot; })"
-                  className="h-20 font-mono text-sm"
-                />
-                <div className="text-xs text-gray-600 mt-1">
-                  Define the actual request body content with variable placeholders (e.g., {`{{variable}}`}).
-                </div>
-              </Field>
-
-              {/* Authorization Section */}
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700">Authorization:</label>
-                <div className="space-y-3">
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.authorization?.authorize_as_user || false}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        authorization: {
-                          authorize_as_user: e.target.checked,
-                          jwt_template_id: formData.authorization?.jwt_template_id,
-                          custom_headers: formData.authorization?.custom_headers || []
-                        }
-                      })}
-                    />
-                    <span className="text-sm">Authorize as user</span>
-                  </label>
-                  <div className="text-xs text-gray-600 ml-6">
-                    When enabled, the API call will be made with the current user's authorization context.
-                  </div>
-
-                  {formData.authorization?.authorize_as_user && (
-                    <div className="ml-6 space-y-3">
-                      <Field>
-                        <Label htmlFor="jwt_template_id">JWT Template ID (Optional):</Label>
-                        <Input
-                          id="jwt_template_id"
-                          name="jwt_template_id"
-                          type="text"
-                          value={formData.authorization?.jwt_template_id || ""}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            authorization: {
-                              ...formData.authorization!,
-                              jwt_template_id: e.target.value || undefined
-                            }
-                          })}
-                          placeholder="Enter JWT template ID"
-                        />
-                        <div className="text-xs text-gray-600 mt-1">
-                          Optional JWT template to use for user authorization.
-                        </div>
-                      </Field>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Knowledge Base Search Configuration */}
-          {formData.node_type === "action" && formData.action_type === "knowledge_base_search" && formData.knowledge_base_config && (
-            <div className="space-y-4">
-              <h4 className="font-medium">Knowledge Base Configuration</h4>
-              <Field>
-                <Label htmlFor="knowledge_base_id">Knowledge Base ID:</Label>
-                <Input
-                  id="knowledge_base_id"
-                  name="knowledge_base_id"
-                  type="text"
-                  value={formData.knowledge_base_config.knowledge_base_id}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    knowledge_base_config: { ...formData.knowledge_base_config!, knowledge_base_id: e.target.value }
-                  })}
-                  placeholder="Enter knowledge base ID"
-                />
-              </Field>
-              <Field>
-                <Label htmlFor="query">Search Query:</Label>
-                <Input
-                  id="query"
-                  name="query"
-                  type="text"
-                  value={formData.knowledge_base_config.query}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    knowledge_base_config: { ...formData.knowledge_base_config!, query: e.target.value }
-                  })}
-                  placeholder="Enter search query"
-                />
-              </Field>
-              <Field>
-                <Label htmlFor="max_results">Max Results:</Label>
-                <Input
-                  id="max_results"
-                  name="max_results"
-                  type="number"
-                  value={formData.knowledge_base_config.max_results || ""}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    knowledge_base_config: {
-                      ...formData.knowledge_base_config!,
-                      max_results: e.target.value ? parseInt(e.target.value) : undefined
-                    }
-                  })}
-                  placeholder="10"
-                />
-              </Field>
-              <Field>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.knowledge_base_config.sort_by_relevance !== false}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      knowledge_base_config: {
-                        ...formData.knowledge_base_config!,
-                        sort_by_relevance: e.target.checked
-                      }
-                    })}
-                  />
-                  <span>Sort results by relevance</span>
-                </label>
-              </Field>
-            </div>
-          )}
-
-          {/* Trigger Workflow Configuration */}
-          {formData.node_type === "action" && formData.action_type === "trigger_workflow" && formData.trigger_workflow_config && (
-            <div className="space-y-4">
-              <h4 className="font-medium">Trigger Another Workflow</h4>
-              <div className="text-xs text-gray-600 bg-blue-50 p-3 rounded">
-                <strong>Note:</strong> This action will manually trigger another workflow when this step is executed.
-              </div>
-              <Field>
-                <Label htmlFor="target_workflow_id">Workflow to Trigger:</Label>
-                <Select
-                  id="target_workflow_id"
-                  name="target_workflow_id"
-                  value={formData.trigger_workflow_config.target_workflow_id}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    trigger_workflow_config: { ...formData.trigger_workflow_config!, target_workflow_id: e.target.value }
-                  })}
-                >
-                  <option value="">Select a workflow to trigger</option>
-                  {workflows.map((workflow) => (
-                    <option key={workflow.id} value={workflow.id}>
-                      {workflow.name}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-            </div>
-          )}
-
-          {/* Platform Event Configuration */}
-          {formData.node_type === "action" && formData.action_type === "platform_event" && formData.platform_event_config && (
-            <div className="space-y-4">
-              <h4 className="font-medium">Platform Event Configuration</h4>
-              <div className="text-xs text-gray-600 bg-purple-50 p-3 rounded">
-                <strong>Note:</strong> This action will emit a platform event that can be consumed by other systems or workflows.
-              </div>
-              <Field>
-                <Label htmlFor="event_label">Event Label:</Label>
-                <Input
-                  id="event_label"
-                  name="event_label"
-                  type="text"
-                  value={formData.platform_event_config.event_label}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    platform_event_config: { ...formData.platform_event_config!, event_label: e.target.value }
-                  })}
-                  placeholder="user_action, system_alert, data_updated"
-                />
-              </Field>
-
-              <Field>
-                <Label htmlFor="event_data">Event Data (Optional JSON):</Label>
-                <Textarea
-                  id="event_data"
-                  name="event_data"
-                  value={formData.platform_event_config.event_data ? JSON.stringify(formData.platform_event_config.event_data, null, 2) : ""}
-                  onChange={(e) => {
-                    try {
-                      const parsed = e.target.value ? JSON.parse(e.target.value) : undefined;
-                      setFormData({
-                        ...formData,
-                        platform_event_config: {
-                          ...formData.platform_event_config!,
-                          event_data: parsed
-                        }
-                      });
-                    } catch {
-                      // Invalid JSON, keep the string value for now
-                    }
-                  }}
-                  placeholder='{"key": "value", "additional": "data"}'
-                  className="h-20 font-mono text-sm"
-                />
-              </Field>
-            </div>
-          )}
 
           {/* Try/Catch Configuration */}
           {formData.node_type === "try-catch" && (
@@ -957,7 +452,11 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                   })}
                   placeholder="Enter your prompt template here..."
                   className="h-24 font-mono text-sm"
+                  invalid={!!fieldErrors.prompt_template}
                 />
+                {fieldErrors.prompt_template && (
+                  <div className="mt-1 text-sm text-red-600">{fieldErrors.prompt_template}</div>
+                )}
               </Field>
 
               <Field>
@@ -982,6 +481,9 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                   <div className="text-xs text-gray-600 mb-2">
                     Define the structure of the expected JSON response from the LLM.
                   </div>
+                  {fieldErrors.json_schema && (
+                    <div className="text-sm text-red-600 mb-2">{fieldErrors.json_schema}</div>
+                  )}
                   <div className="space-y-2 max-h-32 overflow-y-auto">
                     {(formData.json_schema || []).length === 0 && (
                       <div className="text-xs text-gray-500 italic p-2 text-center bg-gray-50 rounded">
@@ -1085,7 +587,11 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                     switch_variable: e.target.value
                   })}
                   placeholder="user.status, response.code, etc."
+                  invalid={!!fieldErrors.switch_variable}
                 />
+                {fieldErrors.switch_variable && (
+                  <div className="mt-1 text-sm text-red-600">{fieldErrors.switch_variable}</div>
+                )}
               </Field>
 
               <Field>
@@ -1217,14 +723,158 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
               )}
             </div>
           )}
+
+          {/* Tool Call Configuration */}
+          {formData.node_type === "tool-call" && (
+            <div className="space-y-4">
+              <h4 className="font-medium">Tool Call Configuration</h4>
+              <div className={fieldErrors.tool_id ? "border border-red-300 rounded-md p-3 bg-red-50" : ""}>
+                <ToolSelector
+                  selectedToolId={formData.tool_id}
+                  onToolSelect={(tool: AiTool | null) => {
+                    setFormData({
+                      ...formData,
+                      tool_id: tool?.id || "",
+                      tool_name: tool?.name || "",
+                      tool_type: tool?.tool_type || "",
+                    });
+                  }}
+                  onParametersChange={(parameters: Record<string, unknown>) => {
+                    setFormData({
+                      ...formData,
+                      input_parameters: parameters,
+                    });
+                  }}
+                  inputParameters={formData.input_parameters}
+                />
+                {fieldErrors.tool_id && (
+                  <div className="mt-2 text-sm text-red-600 font-medium">{fieldErrors.tool_id}</div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Store Context Configuration */}
+          {formData.node_type === "store-context" && (
+            <div className="space-y-4">
+              <h4 className="font-medium">Store Context Configuration</h4>
+
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.use_llm === true}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      use_llm: e.target.checked
+                    })}
+                  />
+                  <span className="text-sm font-medium text-gray-700">Use LLM for dynamic context</span>
+                </label>
+              </div>
+
+              {!formData.use_llm && (
+                <Field>
+                  <Label htmlFor="context_data">Context Data:</Label>
+                  <Textarea
+                    id="context_data"
+                    name="context_data"
+                    value={formData.context_data || ""}
+                    onChange={(e) => setFormData({ ...formData, context_data: e.target.value })}
+                    placeholder="Enter the data to store in context..."
+                    className="h-24"
+                  />
+                </Field>
+              )}
+
+              {formData.use_llm && (
+                <div className="text-xs text-blue-600 bg-blue-50 p-3 rounded">
+                  <strong>LLM Mode:</strong> Context will be determined dynamically using LLM with static/dynamic parameters during workflow execution.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Fetch Context Configuration */}
+          {formData.node_type === "fetch-context" && (
+            <div className="space-y-4">
+              <h4 className="font-medium">Fetch Context Configuration</h4>
+
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.use_llm === true}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      use_llm: e.target.checked
+                    })}
+                  />
+                  <span className="text-sm font-medium text-gray-700">Use LLM for dynamic context</span>
+                </label>
+              </div>
+
+              {!formData.use_llm && (
+                <Field>
+                  <Label htmlFor="context_data">Context Query:</Label>
+                  <Textarea
+                    id="context_data"
+                    name="context_data"
+                    value={formData.context_data || ""}
+                    onChange={(e) => setFormData({ ...formData, context_data: e.target.value })}
+                    placeholder="Enter query or filter for fetching context..."
+                    className="h-24"
+                  />
+                </Field>
+              )}
+
+              {formData.use_llm && (
+                <div className="text-xs text-blue-600 bg-blue-50 p-3 rounded">
+                  <strong>LLM Mode:</strong> Context will be fetched dynamically using LLM with static/dynamic parameters during workflow execution.
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </DialogBody>
 
       <DialogActions>
-        <Button onClick={handleSave}>Save</Button>
-        <Button plain onClick={onClose}>
-          Cancel
-        </Button>
+        {/* Validation Summary */}
+        {validationErrors.length > 0 && (
+          <div className="flex-1 mr-4">
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+              <div className="flex items-center mb-2">
+                <svg className="w-4 h-4 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <span className="text-sm font-medium text-red-800">
+                  {validationErrors.length} validation error{validationErrors.length > 1 ? 's' : ''}
+                </span>
+              </div>
+              <ul className="text-xs text-red-700 space-y-1">
+                {validationErrors.slice(0, 3).map((error, index) => (
+                  <li key={index}>• {error.message}</li>
+                ))}
+                {validationErrors.length > 3 && (
+                  <li>• ... and {validationErrors.length - 3} more</li>
+                )}
+              </ul>
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          <Button
+            onClick={handleSave}
+            disabled={validationErrors.length > 0}
+            className={validationErrors.length > 0 ? "opacity-50 cursor-not-allowed" : ""}
+          >
+            Save
+          </Button>
+          <Button plain onClick={onClose}>
+            Cancel
+          </Button>
+        </div>
       </DialogActions>
     </Dialog>
   );

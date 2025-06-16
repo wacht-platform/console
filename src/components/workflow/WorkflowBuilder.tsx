@@ -18,28 +18,22 @@ import type {
   WorkflowFormData,
   WorkflowNode as WorkflowNodeType,
   WorkflowEdge as WorkflowEdgeType,
-  WebhookConfig,
-  EventConfig,
   SchemaField,
-  ActionType,
-  ApiActionConfig,
-  KnowledgeBaseActionConfig,
-  TriggerWorkflowActionConfig,
   ConditionEvaluationType,
   SwitchCase
 } from "@/types/workflow";
 
 
 import TriggerNode from "./nodes/TriggerNode";
-import SearchKnowledgebaseNode from "./nodes/SearchKnowledgebaseNode";
-import ApiCallNode from "./nodes/ApiCallNode";
-import PlatformEventNode from "./nodes/PlatformEventNode";
 import type { BaseNodeData } from "../../types/NodeTypes";
 import StopWorkflowNode from "./nodes/StopWorkflowNode";
 import ConditionalNode from "./nodes/ConditionalNode";
 import TryCatchNode from "./nodes/TryCatchNode";
 import LLMCallNode from "./nodes/LLMCallNode";
 import SwitchCaseNode from "./nodes/SwitchCaseNode";
+import ToolCallNode from "./nodes/ToolCallNode";
+import StoreContextNode from "./nodes/StoreContextNode";
+import FetchContextNode from "./nodes/FetchContextNode";
 import NodeEditModal from "./modals/NodeEditModal";
 
 import { DnDProvider } from "../../contexts/DnDContext";
@@ -87,32 +81,25 @@ const Sidebar = () => {
         Switch/Case
       </div>
       <div
-        className="dndnode action rest-api p-3 border border-orange-400 rounded-md cursor-grab text-center text-sm font-medium bg-orange-100 text-orange-800"
-        onDragStart={(event) => onDragStart(event, "rest-api")}
+        className="dndnode tool-call p-3 border border-indigo-400 rounded-md cursor-grab text-center text-sm font-medium bg-indigo-100 text-indigo-800"
+        onDragStart={(event) => onDragStart(event, "tool-call")}
         draggable
       >
-        Rest API
+        Tool Call
       </div>
       <div
-        className="dndnode action search-kb p-3 border border-green-400 rounded-md cursor-grab text-center text-sm font-medium bg-green-100 text-green-800"
-        onDragStart={(event) => onDragStart(event, "search-knowledgebase")}
+        className="dndnode store-context p-3 border border-green-400 rounded-md cursor-grab text-center text-sm font-medium bg-green-100 text-green-800"
+        onDragStart={(event) => onDragStart(event, "store-context")}
         draggable
       >
-        Search Knowledgebase
+        Store Context
       </div>
       <div
-        className="dndnode trigger-new p-3 border border-indigo-400 rounded-md cursor-grab text-center text-sm font-medium bg-indigo-100 text-indigo-800"
-        onDragStart={(event) => onDragStart(event, "trigger-new-workflow")}
+        className="dndnode fetch-context p-3 border border-teal-400 rounded-md cursor-grab text-center text-sm font-medium bg-teal-100 text-teal-800"
+        onDragStart={(event) => onDragStart(event, "fetch-context")}
         draggable
       >
-        Trigger New Workflow
-      </div>
-      <div
-        className="dndnode action platform-event p-3 border border-purple-400 rounded-md cursor-grab text-center text-sm font-medium bg-purple-100 text-purple-800"
-        onDragStart={(event) => onDragStart(event, "platform-event")}
-        draggable
-      >
-        Platform Event
+        Fetch Context
       </div>
       <div
         className="dndnode action stop p-3 border border-red-400 rounded-md cursor-grab text-center text-sm font-medium bg-red-100 text-red-800"
@@ -130,7 +117,11 @@ const initialNodes: Node[] = [
     type: "trigger",
     id: "dndnode_0",
     position: { x: 400, y: 100 }, // Better center position for most screens
-    data: { label: "Workflow trigger", description: "" },
+    data: {
+      label: "Workflow trigger",
+      description: "",
+      condition: "true"
+    },
   },
 ];
 
@@ -139,15 +130,14 @@ const getId = () => `dndnode_${id++}`;
 
 const nodeTypes = {
   trigger: TriggerNode,
-  "search-knowledgebase": SearchKnowledgebaseNode,
-  "rest-api": ApiCallNode,
-  "platform-event": PlatformEventNode,
   "stop-workflow": StopWorkflowNode,
   conditional: ConditionalNode,
-  "trigger-new-workflow": TriggerNode,
   "try-catch": TryCatchNode,
   "llm-call": LLMCallNode,
   "switch-case": SwitchCaseNode,
+  "tool-call": ToolCallNode,
+  "store-context": StoreContextNode,
+  "fetch-context": FetchContextNode,
 };
 
 interface WorkflowBuilderProps {
@@ -222,40 +212,14 @@ const DnDFlow = ({
         id: node.id,
         node_type: {
           type: "Trigger",
-          config: {
-            condition: (nodeData.condition as string) || "",
-            scheduled_at: nodeData.scheduled_at as string | undefined,
-            webhook_config: nodeData.webhook_config as WebhookConfig | undefined,
-            event_config: nodeData.event_config as EventConfig | undefined,
-          }
+          condition: (nodeData.condition as string) || "true",
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
           label: (nodeData.label as string) || "",
           description: (nodeData.description as string) || "",
           enabled: true,
-          config: (nodeData.config as Record<string, unknown>) || {},
-        },
-      };
-    } else if (node.type === "rest-api" || node.type === "search-knowledgebase" || node.type === "trigger-new-workflow") {
-      return {
-        id: node.id,
-        node_type: {
-          type: "Action",
-          config: {
-            action_type: nodeData.action_type as ActionType,
-            tool_id: nodeData.tool_id as string | undefined,
-            api_config: nodeData.api_config as ApiActionConfig | undefined,
-            knowledge_base_config: nodeData.knowledge_base_config as KnowledgeBaseActionConfig | undefined,
-            trigger_workflow_config: nodeData.trigger_workflow_config as TriggerWorkflowActionConfig | undefined,
-          }
-        },
-        position: { x: node.position.x, y: node.position.y },
-        data: {
-          label: (nodeData.label as string) || "",
-          description: (nodeData.description as string) || "",
-          enabled: true,
-          config: (nodeData.config as Record<string, unknown>) || {},
+          config: {},
         },
       };
     } else if (node.type === "conditional") {
@@ -263,19 +227,17 @@ const DnDFlow = ({
         id: node.id,
         node_type: {
           type: "Condition",
-          config: {
-            condition_type: (nodeData.condition_type as ConditionEvaluationType) || "simple",
-            condition: (nodeData.condition as string) || "",
-            true_path: nodeData.true_path as string | undefined,
-            false_path: nodeData.false_path as string | undefined,
-          }
+          condition_type: (nodeData.condition_type as ConditionEvaluationType) || "Simple",
+          expression: (nodeData.condition as string) || "",
+          true_path: nodeData.true_path as string | undefined,
+          false_path: nodeData.false_path as string | undefined,
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
           label: (nodeData.label as string) || "",
           description: (nodeData.description as string) || "",
           enabled: true,
-          config: (nodeData.config as Record<string, unknown>) || {},
+          config: {},
         },
       };
     } else if (node.type === "try-catch") {
@@ -283,21 +245,19 @@ const DnDFlow = ({
         id: node.id,
         node_type: {
           type: "ErrorHandler",
-          config: {
-            enable_retry: (nodeData.enable_retry as boolean) || false,
-            max_retries: (nodeData.max_retries as number) || 3,
-            retry_delay_seconds: (nodeData.retry_delay_seconds as number) || 5,
-            log_errors: nodeData.log_errors !== false,
-            custom_error_message: nodeData.custom_error_message as string | undefined,
-            contained_nodes: (nodeData.contained_nodes as string[]) || [],
-          }
+          enable_retry: (nodeData.enable_retry as boolean) || false,
+          max_retries: (nodeData.max_retries as number) || 3,
+          retry_delay_seconds: (nodeData.retry_delay_seconds as number) || 5,
+          log_errors: nodeData.log_errors !== false,
+          custom_error_message: nodeData.custom_error_message as string | undefined,
+          contained_nodes: (nodeData.contained_nodes as string[]) || [],
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
           label: (nodeData.label as string) || "",
           description: (nodeData.description as string) || "",
           enabled: true,
-          config: (nodeData.config as Record<string, unknown>) || {},
+          config: {},
         },
       };
     } else if (node.type === "llm-call") {
@@ -305,18 +265,16 @@ const DnDFlow = ({
         id: node.id,
         node_type: {
           type: "LLMCall",
-          config: {
-            prompt_template: (nodeData.prompt_template as string) || "",
-            response_format: (nodeData.response_format as "text" | "json") || "text",
-            json_schema: (nodeData.json_schema as SchemaField[]) || [],
-          }
+          prompt_template: (nodeData.prompt_template as string) || "",
+          response_format: (nodeData.response_format as "Text" | "Json") || "Text",
+          json_schema: (nodeData.json_schema as SchemaField[]) || [],
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
           label: (nodeData.label as string) || "",
           description: (nodeData.description as string) || "",
           enabled: true,
-          config: (nodeData.config as Record<string, unknown>) || {},
+          config: {},
         },
       };
     } else if (node.type === "switch-case") {
@@ -324,43 +282,101 @@ const DnDFlow = ({
         id: node.id,
         node_type: {
           type: "Switch",
-          config: {
-            switch_variable: (nodeData.switch_variable as string) || "",
-            comparison_type: (nodeData.comparison_type as "equals" | "contains" | "starts_with" | "ends_with" | "regex") || "equals",
-            cases: (nodeData.cases as SwitchCase[]) || [],
-            default_case: nodeData.default_case !== false,
-            case_sensitive: nodeData.case_sensitive !== false,
-            number_of_cases: (nodeData.number_of_cases as number) || 2,
-          }
+          switch_variable: (nodeData.switch_variable as string) || "",
+          comparison_type: (nodeData.comparison_type as "Equals" | "Contains" | "StartsWith" | "EndsWith" | "Regex") || "Equals",
+          cases: (nodeData.cases as SwitchCase[]) || [],
+          default_case: nodeData.default_case !== false,
+          case_sensitive: nodeData.case_sensitive !== false,
+          number_of_cases: (nodeData.number_of_cases as number) || 2,
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
           label: (nodeData.label as string) || "",
           description: (nodeData.description as string) || "",
           enabled: true,
-          config: (nodeData.config as Record<string, unknown>) || {},
+          config: {},
         },
       };
-    } else {
-      // Default fallback - treat as action
+    } else if (node.type === "tool-call") {
       return {
         id: node.id,
         node_type: {
-          type: "Action",
-          config: {
-            action_type: (nodeData.action_type as ActionType) || "api_call",
-            tool_id: nodeData.tool_id as string | undefined,
-            api_config: nodeData.api_config as ApiActionConfig | undefined,
-            knowledge_base_config: nodeData.knowledge_base_config as KnowledgeBaseActionConfig | undefined,
-            trigger_workflow_config: nodeData.trigger_workflow_config as TriggerWorkflowActionConfig | undefined,
-          }
+          type: "ToolCall",
+          tool_id: parseInt((nodeData.tool_id as string) || "0") || 0,
+          input_parameters: (nodeData.input_parameters as Record<string, unknown>) || {},
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
           label: (nodeData.label as string) || "",
           description: (nodeData.description as string) || "",
           enabled: true,
-          config: (nodeData.config as Record<string, unknown>) || {},
+          config: {},
+        },
+      };
+    } else if (node.type === "store-context") {
+      return {
+        id: node.id,
+        node_type: {
+          type: "StoreContext",
+          context_data: (nodeData.context_data as string) || "",
+          use_llm: nodeData.use_llm === true,
+        },
+        position: { x: node.position.x, y: node.position.y },
+        data: {
+          label: (nodeData.label as string) || "",
+          description: (nodeData.description as string) || "",
+          enabled: true,
+          config: {},
+        },
+      };
+    } else if (node.type === "fetch-context") {
+      return {
+        id: node.id,
+        node_type: {
+          type: "FetchContext",
+          context_data: (nodeData.context_data as string) || "",
+          use_llm: nodeData.use_llm === true,
+        },
+        position: { x: node.position.x, y: node.position.y },
+        data: {
+          label: (nodeData.label as string) || "",
+          description: (nodeData.description as string) || "",
+          enabled: true,
+          config: {},
+        },
+      };
+    } else if (node.type === "stop-workflow") {
+      // Map stop-workflow to a simple ToolCall with a special identifier
+      return {
+        id: node.id,
+        node_type: {
+          type: "ToolCall",
+          tool_id: -1, // Special ID to indicate stop workflow
+          input_parameters: { action: "stop_workflow" },
+        },
+        position: { x: node.position.x, y: node.position.y },
+        data: {
+          label: (nodeData.label as string) || "",
+          description: (nodeData.description as string) || "",
+          enabled: true,
+          config: {},
+        },
+      };
+    } else {
+      // Default fallback - treat as tool call
+      return {
+        id: node.id,
+        node_type: {
+          type: "ToolCall",
+          tool_id: parseInt((nodeData.tool_id as string) || "0") || 0,
+          input_parameters: (nodeData.input_parameters as Record<string, unknown>) || {},
+        },
+        position: { x: node.position.x, y: node.position.y },
+        data: {
+          label: (nodeData.label as string) || "",
+          description: (nodeData.description as string) || "",
+          enabled: true,
+          config: {},
         },
       };
     }
@@ -575,29 +591,27 @@ const DnDFlow = ({
       const position = getSmartPosition(mousePosition);
 
       const nodeLabel =
-        type === "search-knowledgebase"
-          ? "Search Knowledgebase"
-          : type === "rest-api"
-            ? "Rest API"
-            : type === "platform-event"
-              ? "Platform Event"
-              : type === "stop-workflow"
-                ? "Stop Workflow"
-                : type === "skip-step"
-                  ? "Skip Step"
-                  : type === "conditional"
-                    ? "Conditional Branching"
-                    : type === "trigger"
-                      ? "Workflow Trigger"
-                      : type === "trigger-new-workflow"
-                        ? "Trigger New Workflow"
-                        : type === "try-catch"
-                          ? "Try/Catch"
-                          : type === "llm-call"
-                            ? "LLM Call"
-                            : type === "switch-case"
-                              ? "Switch/Case"
-                              : `${type} node`;
+        type === "stop-workflow"
+          ? "Stop Workflow"
+          : type === "skip-step"
+            ? "Skip Step"
+            : type === "conditional"
+              ? "Conditional Branching"
+              : type === "trigger"
+                ? "Workflow Trigger"
+                : type === "try-catch"
+                  ? "Try/Catch"
+                  : type === "llm-call"
+                    ? "LLM Call"
+                    : type === "switch-case"
+                      ? "Switch/Case"
+                      : type === "tool-call"
+                        ? "Tool Call"
+                        : type === "store-context"
+                          ? "Store Context"
+                          : type === "fetch-context"
+                            ? "Fetch Context"
+                            : `${type} node`;
 
       const newNode: Node<BaseNodeData> = {
         id: getId(),
@@ -609,42 +623,12 @@ const DnDFlow = ({
         },
       };
 
-      // Set default action type based on block type
-      if (type === "rest-api") {
-        (newNode.data as unknown as Record<string, unknown>).action_type = "api_call";
-        (newNode.data as unknown as Record<string, unknown>).api_config = {
-          endpoint: "",
-          method: "GET",
-          headers: {},
-          body: "",
-          timeout_seconds: 30,
-        };
-      } else if (type === "search-knowledgebase") {
-        (newNode.data as unknown as Record<string, unknown>).action_type = "knowledge_base_search";
-        (newNode.data as unknown as Record<string, unknown>).knowledge_base_config = {
-          knowledge_base_id: "",
-          query: "",
-          max_results: 10,
-          similarity_threshold: 0.7,
-          sort_by_relevance: true,
-        };
-      } else if (type === "platform-event") {
-        (newNode.data as unknown as Record<string, unknown>).action_type = "platform_event";
-        (newNode.data as unknown as Record<string, unknown>).platform_event_config = {
-          event_label: "",
-          event_data: undefined,
-        };
-      } else if (type === "trigger-new-workflow") {
-        (newNode.data as unknown as Record<string, unknown>).action_type = "trigger_workflow";
-        (newNode.data as unknown as Record<string, unknown>).trigger_workflow_config = {
-          target_workflow_id: "",
-          input_mapping: {},
-          wait_for_completion: true,
-          timeout_seconds: 300,
-        };
-        (newNode.data as unknown as Record<string, unknown>).outputNode = true;
+      // Set default data based on block type
+      if (type === "tool-call") {
+        (newNode.data as unknown as Record<string, unknown>).tool_id = "";
+        (newNode.data as unknown as Record<string, unknown>).input_parameters = {};
       } else if (type === "trigger") {
-        (newNode.data as unknown as Record<string, unknown>).condition = "";
+        (newNode.data as unknown as Record<string, unknown>).condition = "true";
       } else if (type === "try-catch") {
         (newNode.data as unknown as Record<string, unknown>).enable_retry = false;
         (newNode.data as unknown as Record<string, unknown>).max_retries = 3;
@@ -663,6 +647,12 @@ const DnDFlow = ({
         (newNode.data as unknown as Record<string, unknown>).default_case = true;
         (newNode.data as unknown as Record<string, unknown>).case_sensitive = true;
         (newNode.data as unknown as Record<string, unknown>).number_of_cases = 2; // Default to 2 cases
+      } else if (type === "store-context") {
+        (newNode.data as unknown as Record<string, unknown>).context_data = "";
+        (newNode.data as unknown as Record<string, unknown>).use_llm = false;
+      } else if (type === "fetch-context") {
+        (newNode.data as unknown as Record<string, unknown>).context_data = "";
+        (newNode.data as unknown as Record<string, unknown>).use_llm = false;
       }
 
       console.log(newNode);

@@ -12,14 +12,11 @@ export default function CreateWorkflowPage() {
 	const isEditing = !!workflowId;
 	const [saveError, setSaveError] = useState<string | null>(null);
 
-	// Fetch workflow data if editing
 	const { data: workflow, isLoading } = useWorkflow(workflowId || "");
 
-	// API hooks
 	const createWorkflowMutation = useCreateWorkflow();
 	const updateWorkflowMutation = useUpdateWorkflow();
 
-	// Workflow form state
 	const [workflowData, setWorkflowData] = useState<WorkflowFormData>({
 		name: "Untitled Workflow",
 		description: "",
@@ -54,6 +51,41 @@ export default function CreateWorkflowPage() {
 		}
 	}, [workflow]);
 
+	// Only show validation errors after user has attempted to save or after a delay
+	const [hasAttemptedSave, setHasAttemptedSave] = useState(false);
+	const [validationTimeout, setValidationTimeout] = useState<NodeJS.Timeout | null>(null);
+
+	// Auto-validate with delay to avoid showing errors immediately
+	useEffect(() => {
+		// Clear existing timeout
+		if (validationTimeout) {
+			clearTimeout(validationTimeout);
+		}
+
+		// Only auto-validate if user has attempted to save before, or after a reasonable delay
+		if (hasAttemptedSave || workflowData.name.trim()) {
+			const timeout = setTimeout(() => {
+				const validation = validateWorkflow(workflowData);
+				setValidationErrors(validation.errors);
+
+				// Convert validation errors to field errors for display
+				const newFieldErrors: Record<string, string> = {};
+				validation.errors.forEach(error => {
+					newFieldErrors[error.field] = error.message;
+				});
+				setFieldErrors(newFieldErrors);
+			}, hasAttemptedSave ? 0 : 2000); // Immediate if user tried to save, 2s delay otherwise
+
+			setValidationTimeout(timeout);
+		}
+
+		return () => {
+			if (validationTimeout) {
+				clearTimeout(validationTimeout);
+			}
+		};
+	}, [workflowData, hasAttemptedSave]);
+
 	const handleBack = () => {
 		navigate("../workflows");
 	};
@@ -84,10 +116,10 @@ export default function CreateWorkflowPage() {
 
 	const handleSave = useCallback(async () => {
 		try {
-			// Always validate before saving
+			setHasAttemptedSave(true);
 			const isValid = validateWorkflowBeforeSave();
 			if (!isValid) {
-				setSaveError("Please fix the validation errors before saving the workflow.");
+				setSaveError(null);
 				return;
 			}
 
@@ -120,7 +152,7 @@ export default function CreateWorkflowPage() {
 			const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
 			setSaveError(`Failed to save workflow: ${errorMessage}`);
 		}
-	}, [workflowId, workflowData, updateWorkflowMutation, createWorkflowMutation, validateWorkflowBeforeSave, isEditing, navigate]);
+	}, [workflowId, workflowData, updateWorkflowMutation, createWorkflowMutation, validateWorkflowBeforeSave, isEditing, navigate, setHasAttemptedSave]);
 
 	if (isEditing && isLoading) {
 		return (
@@ -142,6 +174,7 @@ export default function CreateWorkflowPage() {
 				validationErrors={validationErrors}
 				fieldErrors={fieldErrors}
 				onFieldChange={handleFieldChange}
+				hasAttemptedSave={hasAttemptedSave}
 			/>
 
 			<div className="flex-1">
@@ -150,6 +183,32 @@ export default function CreateWorkflowPage() {
 						<div className="text-sm text-red-700">{saveError}</div>
 					</div>
 				)}
+
+				{/* Validation Errors Display - Only show if user has attempted to save */}
+				{validationErrors.length > 0 && hasAttemptedSave && (
+					<div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md" data-validation-errors>
+						<div className="flex items-center mb-3">
+							<svg className="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+								<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+							</svg>
+							<h4 className="text-sm font-medium text-red-800">
+								Please fix the following errors before saving:
+							</h4>
+						</div>
+						<ul className="text-sm text-red-700 space-y-2">
+							{validationErrors.map((error, index) => (
+								<li key={index} className="flex items-start">
+									<span className="mr-2 mt-0.5">•</span>
+									<div>
+										<span className="font-medium">{error.field.replace(/\./g, ' → ')}:</span>
+										<span className="ml-1">{error.message}</span>
+									</div>
+								</li>
+							))}
+						</ul>
+					</div>
+				)}
+
 				<div className="h-full bg-white rounded-lg">
 					<WorkflowBuilder
 						workflowData={workflowData}

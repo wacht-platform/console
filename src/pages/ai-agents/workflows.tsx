@@ -4,7 +4,6 @@ import {
 	FireIcon,
 	PlusIcon,
 	MagnifyingGlassIcon,
-	PlayIcon,
 	PencilIcon,
 	TrashIcon,
 } from "@heroicons/react/24/outline";
@@ -19,7 +18,6 @@ import {
 	TableHeader,
 	TableRow,
 } from "../../components/ui/table";
-import { Badge } from "../../components/ui/badge";
 import { useWorkflows, useDeleteWorkflow, useExecuteWorkflow } from "../../lib/api/hooks/use-workflows";
 
 
@@ -70,6 +68,9 @@ export default function WorkflowsPage() {
 		<div>
 			<div className="flex flex-col gap-2 mb-2">
 				<Heading>AI Workflows</Heading>
+				<p className="text-sm text-gray-600">
+					Create and manage automated workflows that combine AI agents, tools, and logic
+				</p>
 			</div>
 
 			{!isLoading && !error && workflows.length > 0 && (
@@ -125,7 +126,6 @@ export default function WorkflowsPage() {
 							<TableRow>
 								<TableHeader>Name</TableHeader>
 								<TableHeader>Description</TableHeader>
-								<TableHeader>Status</TableHeader>
 								<TableHeader className="w-[200px]">Actions</TableHeader>
 							</TableRow>
 						</TableHead>
@@ -142,23 +142,11 @@ export default function WorkflowsPage() {
 									</TableCell>
 									<TableCell>{workflow.description || "No description"}</TableCell>
 									<TableCell>
-										<Badge className="bg-blue-100 text-blue-800">
-											Active
-										</Badge>
-									</TableCell>
-									<TableCell>
 										<div className="flex gap-2">
 											<Button
 												outline
-
-												onClick={() => handleExecuteWorkflow(workflow.id)}
-												disabled={executeWorkflowMutation.isPending}
-											>
-												<PlayIcon className="h-4 w-4" />
-											</Button>
-											<Button
-												outline
 												onClick={() => handleEditWorkflow(workflow.id)}
+												title="Edit workflow"
 											>
 												<PencilIcon className="h-4 w-4" />
 											</Button>
@@ -167,6 +155,7 @@ export default function WorkflowsPage() {
 												className="text-red-600 hover:bg-red-50"
 												onClick={() => handleDeleteWorkflow(workflow.id)}
 												disabled={deleteWorkflowMutation.isPending}
+												title="Delete workflow"
 											>
 												<TrashIcon className="h-4 w-4" />
 											</Button>
@@ -178,7 +167,6 @@ export default function WorkflowsPage() {
 					</Table>
 				)}
 			</div>
-
 		</div>
 	);
 }

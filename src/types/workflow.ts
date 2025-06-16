@@ -22,32 +22,10 @@ export interface NodePosition {
   y: number;
 }
 
-export type TriggerType = "manual" | "scheduled" | "webhook" | "event" | "api_call";
 
-export interface WebhookAuth {
-  auth_type: string;
-  token?: string;
-  username?: string;
-  password?: string;
-}
-
-export interface WebhookConfig {
-  endpoint: string;
-  method: string;
-  headers: Record<string, string>;
-  authentication?: WebhookAuth;
-}
-
-export interface EventConfig {
-  event_type: string;
-  filters: Record<string, string>;
-}
 
 export interface TriggerNodeConfig {
-  condition?: string; // Condition expression for automatic triggering
-  scheduled_at?: string; // ISO date string for future scheduling
-  webhook_config?: WebhookConfig;
-  event_config?: EventConfig;
+  condition: string; // Text condition for automated trigger
 }
 
 export type ActionType =
@@ -152,14 +130,61 @@ export interface SwitchNodeConfig {
   number_of_cases?: number;
 }
 
+export interface ToolCallNodeConfig {
+  tool_id: number;
+  input_parameters: Record<string, unknown>;
+}
+
+export interface ConditionNodeConfig {
+  condition_type: ConditionEvaluationType;
+  expression: string;
+  true_path?: string;
+  false_path?: string;
+}
+
+export interface ErrorHandlerNodeConfig {
+  enable_retry: boolean;
+  max_retries: number;
+  retry_delay_seconds: number;
+  log_errors: boolean;
+  custom_error_message?: string;
+  contained_nodes: string[];
+}
+
+export interface LLMCallNodeConfig {
+  prompt_template: string;
+  response_format: "Text" | "Json";
+  json_schema: SchemaField[];
+}
+
+export interface SwitchNodeConfig {
+  switch_variable: string;
+  comparison_type: "Equals" | "Contains" | "StartsWith" | "EndsWith" | "Regex";
+  cases: SwitchCase[];
+  default_case: boolean;
+  case_sensitive: boolean;
+  number_of_cases: number;
+}
+
+export interface StoreContextNodeConfig {
+  context_data: string; // Textarea content for context to store
+  use_llm: boolean; // Toggle for using LLM instead of static data
+}
+
+export interface FetchContextNodeConfig {
+  context_data: string; // Textarea content for context to fetch
+  use_llm: boolean; // Toggle for using LLM instead of static data
+}
+
 export type WorkflowNodeType =
-  | { type: "Trigger"; config: TriggerNodeConfig }
-  | { type: "Action"; config: ActionNodeConfig }
-  | { type: "Condition"; config: ConditionNodeConfig }
-  | { type: "Transform"; config: TransformNodeConfig }
-  | { type: "ErrorHandler"; config: ErrorHandlerNodeConfig }
-  | { type: "LLMCall"; config: LLMCallNodeConfig }
-  | { type: "Switch"; config: SwitchNodeConfig };
+  | ({ type: "Trigger" } & TriggerNodeConfig)
+  | ({ type: "Condition" } & ConditionNodeConfig)
+  | ({ type: "ErrorHandler" } & ErrorHandlerNodeConfig)
+  | ({ type: "LLMCall" } & LLMCallNodeConfig)
+  | ({ type: "Switch" } & SwitchNodeConfig)
+  | ({ type: "ToolCall" } & ToolCallNodeConfig)
+  | ({ type: "StoreContext" } & StoreContextNodeConfig)
+  | ({ type: "FetchContext" } & FetchContextNodeConfig);
 
 export interface WorkflowNodeData {
   label: string;

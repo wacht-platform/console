@@ -17,22 +17,10 @@ import {
 	TableHeader,
 	TableRow,
 } from "../../components/ui/table";
-import { Badge } from "../../components/ui/badge";
 import { CreateAgentDialog } from "../../components/ai-agents/create-agent-dialog";
 import { useAgents, useDeleteAgent, type Agent } from "../../lib/api/hooks/use-agents";
 
-const getStatusColor = (status: string) => {
-	switch (status) {
-		case "active":
-			return "bg-green-100 text-green-800";
-		case "inactive":
-			return "bg-red-100 text-red-800";
-		case "draft":
-			return "bg-yellow-100 text-yellow-800";
-		default:
-			return "bg-gray-100 text-gray-800";
-	}
-};
+
 
 export default function CreateAgentsPage() {
 	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -132,7 +120,6 @@ export default function CreateAgentsPage() {
 								<TableHeader>Tools</TableHeader>
 								<TableHeader>Workflows</TableHeader>
 								<TableHeader>Knowledge</TableHeader>
-								<TableHeader>Status</TableHeader>
 								<TableHeader className="w-[150px]">Actions</TableHeader>
 							</TableRow>
 						</TableHead>
@@ -151,9 +138,6 @@ export default function CreateAgentsPage() {
 									<TableCell>{agent.tools_count} tools</TableCell>
 									<TableCell>{agent.workflows_count} workflows</TableCell>
 									<TableCell>{agent.knowledge_bases_count} docs</TableCell>
-									<TableCell>
-										<Badge className={getStatusColor("active")}>Active</Badge>
-									</TableCell>
 									<TableCell>
 										<div className="flex gap-2">
 											<Button outline onClick={() => handleEditAgent(agent)}>

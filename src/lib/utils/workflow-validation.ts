@@ -187,8 +187,7 @@ export function validateWorkflowDefinition(nodes: WorkflowNode[], edges: Workflo
 
   // Check for trigger node
   const triggerNodes = nodes.filter(node =>
-    node.node_type.type === "Trigger" ||
-    (node.data.config && typeof node.data.config === 'object' && 'trigger_type' in node.data.config)
+    node.node_type.type === "Trigger"
   );
 
   if (triggerNodes.length === 0) {
@@ -200,6 +199,34 @@ export function validateWorkflowDefinition(nodes: WorkflowNode[], edges: Workflo
     errors.push({
       field: "workflow_definition.nodes",
       message: "Workflow can only have one trigger node"
+    });
+  }
+
+  // Validate minimum meaningful workflow (trigger + at least one action)
+  if (nodes.length < 2) {
+    errors.push({
+      field: "workflow_definition.nodes",
+      message: "Workflow must have at least 2 nodes (a trigger and at least one action)"
+    });
+  }
+
+  // Validate that workflow has at least one action node (not just trigger)
+  const actionNodes = nodes.filter(node =>
+    node.node_type.type !== "Trigger"
+  );
+
+  if (actionNodes.length === 0) {
+    errors.push({
+      field: "workflow_definition.nodes",
+      message: "Workflow must have at least one action node (Tool Call, LLM Call, Condition, Switch, Error Handler, Store Context, or Fetch Context)"
+    });
+  }
+
+  // Validate that workflow has at least one edge (to connect trigger to actions)
+  if (nodes.length > 1 && edges.length === 0) {
+    errors.push({
+      field: "workflow_definition.edges",
+      message: "Workflow must have at least one connection between nodes"
     });
   }
 
@@ -274,9 +301,27 @@ function validateWorkflowNode(node: WorkflowNode, index: number): ValidationErro
   if (node.node_type.type === "Trigger") {
     const triggerErrors = validateTriggerNode(node, index);
     errors.push(...triggerErrors);
-  } else if (node.node_type.type === "Action") {
-    const actionErrors = validateActionNode(node, index);
-    errors.push(...actionErrors);
+  } else if (node.node_type.type === "ToolCall") {
+    const toolCallErrors = validateToolCallNode(node, index);
+    errors.push(...toolCallErrors);
+  } else if (node.node_type.type === "LLMCall") {
+    const llmCallErrors = validateLLMCallNode(node, index);
+    errors.push(...llmCallErrors);
+  } else if (node.node_type.type === "Switch") {
+    const switchErrors = validateSwitchNode(node, index);
+    errors.push(...switchErrors);
+  } else if (node.node_type.type === "Condition") {
+    const conditionalErrors = validateConditionalNode(node, index);
+    errors.push(...conditionalErrors);
+  } else if (node.node_type.type === "ErrorHandler") {
+    const tryCatchErrors = validateTryCatchNode(node, index);
+    errors.push(...tryCatchErrors);
+  } else if (node.node_type.type === "StoreContext") {
+    const storeContextErrors = validateStoreContextNode(node, index);
+    errors.push(...storeContextErrors);
+  } else if (node.node_type.type === "FetchContext") {
+    const fetchContextErrors = validateFetchContextNode(node, index);
+    errors.push(...fetchContextErrors);
   }
 
   return errors;
@@ -289,16 +334,41 @@ function validateTriggerNode(node: WorkflowNode, index: number): ValidationError
   const errors: ValidationError[] = [];
 
   if (node.node_type.type === "Trigger") {
-    const config = node.node_type.config;
+    const config = node.node_type as any; // Use any to access flattened fields
 
-    // Validate webhook trigger
-    if (config.webhook_config) {
-      if (!config.webhook_config.endpoint) {
-        errors.push({
-          field: `workflow_definition.nodes[${index}].config.webhook_config.endpoint`,
-          message: "Webhook endpoint is required for webhook triggers"
-        });
-      }
+    // Validate condition is required
+    if (!config.condition || !config.condition.trim()) {
+      errors.push({
+        field: `workflow_definition.nodes[${index}].condition`,
+        message: "Condition is required for trigger nodes"
+      });
+    }
+  }
+
+  return errors;
+}
+
+
+
+/**
+ * Validates Tool Call node specific requirements
+ */
+function validateToolCallNode(node: WorkflowNode, index: number): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  if (node.node_type.type === "ToolCall") {
+    const config = node.node_type as any; // Use any to access flattened fields
+
+    // Skip validation for stop-workflow nodes (tool_id = -1)
+    if (config.tool_id === -1) {
+      return errors; // No validation needed for stop-workflow nodes
+    }
+
+    if (!config.tool_id) {
+      errors.push({
+        field: `workflow_definition.nodes[${index}].tool_id`,
+        message: "Tool selection is required for Tool Call nodes"
+      });
     }
   }
 
@@ -306,54 +376,131 @@ function validateTriggerNode(node: WorkflowNode, index: number): ValidationError
 }
 
 /**
- * Validates action node specific requirements
+ * Validates LLM Call node specific requirements
  */
-function validateActionNode(node: WorkflowNode, index: number): ValidationError[] {
+function validateLLMCallNode(node: WorkflowNode, index: number): ValidationError[] {
   const errors: ValidationError[] = [];
 
-  if (node.node_type.type === "Action") {
-    const config = node.node_type.config;
+  if (node.node_type.type === "LLMCall") {
+    const config = node.node_type as any; // Use any to access flattened fields
 
-    if (!config.action_type) {
+    if (!config.prompt_template || !config.prompt_template.trim()) {
       errors.push({
-        field: `workflow_definition.nodes[${index}].config.action_type`,
-        message: "Action type is required"
+        field: `workflow_definition.nodes[${index}].prompt_template`,
+        message: "Prompt template is required for LLM Call nodes"
       });
     }
 
-    // Validate API call action
-    if (config.action_type === "api_call") {
-      if (!config.api_config?.endpoint) {
-        errors.push({
-          field: `workflow_definition.nodes[${index}].config.api_config.endpoint`,
-          message: "API endpoint is required for API call actions"
-        });
-      }
+    if (config.response_format === "Json" && (!config.json_schema || config.json_schema.length === 0)) {
+      errors.push({
+        field: `workflow_definition.nodes[${index}].json_schema`,
+        message: "JSON schema is required when response format is set to JSON"
+      });
+    }
+  }
 
-      if (!config.api_config?.method) {
-        errors.push({
-          field: `workflow_definition.nodes[${index}].config.api_config.method`,
-          message: "HTTP method is required for API call actions"
-        });
-      }
+  return errors;
+}
+
+/**
+ * Validates Switch/Case node specific requirements
+ */
+function validateSwitchNode(node: WorkflowNode, index: number): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  if (node.node_type.type === "Switch") {
+    const config = node.node_type as any; // Use any to access flattened fields
+
+    if (!config.switch_variable || !config.switch_variable.trim()) {
+      errors.push({
+        field: `workflow_definition.nodes[${index}].switch_variable`,
+        message: "Switch variable is required for Switch/Case nodes"
+      });
     }
 
-    // Validate knowledge base search action
-    if (config.action_type === "knowledge_base_search") {
-      if (!config.knowledge_base_config?.knowledge_base_id) {
-        errors.push({
-          field: `workflow_definition.nodes[${index}].config.knowledge_base_config.knowledge_base_id`,
-          message: "Knowledge base ID is required for knowledge base search actions"
-        });
-      }
-
-      if (!config.knowledge_base_config?.query) {
-        errors.push({
-          field: `workflow_definition.nodes[${index}].config.knowledge_base_config.query`,
-          message: "Search query is required for knowledge base search actions"
-        });
-      }
+    if (!config.cases || config.cases.length === 0) {
+      errors.push({
+        field: `workflow_definition.nodes[${index}].cases`,
+        message: "At least one case is required for Switch/Case nodes"
+      });
+    } else {
+      // Validate individual cases
+      config.cases.forEach((switchCase, caseIndex) => {
+        if (!switchCase.case_value || !switchCase.case_value.trim()) {
+          errors.push({
+            field: `workflow_definition.nodes[${index}].cases[${caseIndex}].case_value`,
+            message: `Case ${caseIndex + 1} value is required`
+          });
+        }
+      });
     }
+  }
+
+  return errors;
+}
+
+/**
+ * Validates Conditional node specific requirements
+ */
+function validateConditionalNode(node: WorkflowNode, index: number): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  if (node.node_type.type === "Condition") {
+    const config = node.node_type as any; // Use any to access flattened fields
+
+    if (!config.expression || !config.expression.trim()) {
+      errors.push({
+        field: `workflow_definition.nodes[${index}].expression`,
+        message: "Condition expression is required for Conditional nodes"
+      });
+    }
+  }
+
+  return errors;
+}
+
+/**
+ * Validates Try/Catch node specific requirements
+ */
+function validateTryCatchNode(node: WorkflowNode, index: number): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  if (node.node_type.type === "ErrorHandler") {
+    const config = node.node_type as any; // Use any to access flattened fields
+
+    if (config.max_retries !== undefined && config.max_retries < 0) {
+      errors.push({
+        field: `workflow_definition.nodes[${index}].max_retries`,
+        message: "Max retries must be 0 or greater"
+      });
+    }
+
+    if (config.retry_delay_seconds !== undefined && config.retry_delay_seconds < 0) {
+      errors.push({
+        field: `workflow_definition.nodes[${index}].retry_delay_seconds`,
+        message: "Retry delay must be 0 or greater"
+      });
+    }
+  }
+
+  return errors;
+}
+
+function validateStoreContextNode(node: WorkflowNode, index: number): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  if (node.node_type.type === "StoreContext") {
+    // No specific validation needed for Store Context nodes
+  }
+
+  return errors;
+}
+
+function validateFetchContextNode(node: WorkflowNode, index: number): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  if (node.node_type.type === "FetchContext") {
+    // No specific validation needed for Fetch Context nodes
   }
 
   return errors;
@@ -400,10 +547,7 @@ function validateWorkflowEdge(edge: WorkflowEdge, nodes: WorkflowNode[], index: 
   }
 
   // Validate that target is not a trigger node
-  if (targetNode && (
-    targetNode.node_type.type === "Trigger" ||
-    (targetNode.data.config && typeof targetNode.data.config === 'object' && 'trigger_type' in targetNode.data.config)
-  )) {
+  if (targetNode && targetNode.node_type.type === "Trigger") {
     errors.push({
       field: `workflow_definition.edges[${index}].target`,
       message: "Trigger nodes cannot be targets of edges"
@@ -501,4 +645,139 @@ export function validateField(fieldName: string, value: unknown): string | undef
   }
 
   return undefined;
+}
+
+/**
+ * Validates individual node form data and returns validation errors
+ */
+export function validateNodeFormData(nodeType: string, formData: Record<string, unknown>): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  // Validate common fields
+  if (!formData.label || typeof formData.label !== 'string' || !formData.label.trim()) {
+    errors.push({
+      field: "label",
+      message: "Node label is required"
+    });
+  }
+
+  // Node type specific validation
+  switch (nodeType) {
+    case "trigger":
+      if (!formData.condition || typeof formData.condition !== 'string' || !formData.condition.trim()) {
+        errors.push({
+          field: "condition",
+          message: "Condition is required for trigger nodes"
+        });
+      }
+      break;
+
+    case "tool-call":
+      if (!formData.tool_id || typeof formData.tool_id !== 'string' || !formData.tool_id.trim()) {
+        errors.push({
+          field: "tool_id",
+          message: "Tool selection is required"
+        });
+      }
+      break;
+
+    case "llm-call":
+      if (!formData.prompt_template || typeof formData.prompt_template !== 'string' || !formData.prompt_template.trim()) {
+        errors.push({
+          field: "prompt_template",
+          message: "Prompt template is required"
+        });
+      }
+
+      if (formData.response_format === "json") {
+        const jsonSchema = formData.json_schema as Array<{ name: string; type: string; required: boolean; description: string }>;
+        if (!jsonSchema || jsonSchema.length === 0) {
+          errors.push({
+            field: "json_schema",
+            message: "JSON schema is required when response format is set to JSON"
+          });
+        } else {
+          // Validate individual schema fields
+          jsonSchema.forEach((field, index) => {
+            if (!field.name || !field.name.trim()) {
+              errors.push({
+                field: `json_schema[${index}].name`,
+                message: `JSON field ${index + 1} name is required`
+              });
+            }
+            if (!field.type || !field.type.trim()) {
+              errors.push({
+                field: `json_schema[${index}].type`,
+                message: `JSON field ${index + 1} type is required`
+              });
+            }
+          });
+        }
+      }
+      break;
+
+    case "switch-case":
+      if (!formData.switch_variable || typeof formData.switch_variable !== 'string' || !formData.switch_variable.trim()) {
+        errors.push({
+          field: "switch_variable",
+          message: "Switch variable is required"
+        });
+      }
+
+      const cases = formData.cases as Array<{ case_value: string; case_label?: string }>;
+      if (!cases || cases.length === 0) {
+        errors.push({
+          field: "cases",
+          message: "At least one case is required"
+        });
+      } else {
+        cases.forEach((switchCase, index) => {
+          if (!switchCase.case_value || !switchCase.case_value.trim()) {
+            errors.push({
+              field: `cases[${index}].case_value`,
+              message: `Case ${index + 1} value is required`
+            });
+          }
+        });
+      }
+      break;
+
+    case "condition":
+      if (!formData.condition || typeof formData.condition !== 'string' || !formData.condition.trim()) {
+        errors.push({
+          field: "condition",
+          message: "Condition expression is required"
+        });
+      }
+      break;
+
+    case "try-catch":
+      if (formData.max_retries !== undefined && typeof formData.max_retries === 'number' && formData.max_retries < 0) {
+        errors.push({
+          field: "max_retries",
+          message: "Max retries must be 0 or greater"
+        });
+      }
+
+      if (formData.retry_delay_seconds !== undefined && typeof formData.retry_delay_seconds === 'number' && formData.retry_delay_seconds < 0) {
+        errors.push({
+          field: "retry_delay_seconds",
+          message: "Retry delay must be 0 or greater"
+        });
+      }
+      break;
+
+    case "store-context":
+      // No specific validation needed for Store Context nodes
+      break;
+
+    case "fetch-context":
+      // No specific validation needed for Fetch Context nodes
+      break;
+
+    default:
+      break;
+  }
+
+  return errors;
 }

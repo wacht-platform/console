@@ -19,6 +19,7 @@ interface WorkflowHeaderProps {
   validationErrors: ValidationError[];
   fieldErrors: Record<string, string>;
   onFieldChange: (fieldName: string, value: unknown) => void;
+  hasAttemptedSave?: boolean;
 }
 
 export default function WorkflowHeader({
@@ -31,6 +32,7 @@ export default function WorkflowHeader({
   validationErrors,
   fieldErrors,
   onFieldChange,
+  hasAttemptedSave = false,
 }: WorkflowHeaderProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [tempWorkflowData, setTempWorkflowData] = useState<WorkflowFormData>(workflowData);
@@ -69,16 +71,27 @@ export default function WorkflowHeader({
             <PencilIcon onClick={handleEditClick} className="w-4 h-4 mr-1" />
         </div>
         <div className="flex gap-2">
-          <Button
-            onClick={onSave}
-            disabled={
-              isSaving ||
-              validationErrors.length > 0 ||
-              !workflowData.name.trim()
-            }
-          >
-            {isSaving ? "Saving..." : isEditing ? "Update Workflow" : "Save Workflow"}
-          </Button>
+          <div className="relative">
+            <Button
+              onClick={validationErrors.length > 0 && hasAttemptedSave ? () => {
+                // Scroll to validation errors if they exist
+                const errorElement = document.querySelector('[data-validation-errors]');
+                if (errorElement) {
+                  errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              } : onSave}
+              disabled={isSaving || !workflowData.name.trim()}
+              className={validationErrors.length > 0 && hasAttemptedSave ? "bg-red-600 hover:bg-red-700 border-red-600" : ""}
+              title={validationErrors.length > 0 && hasAttemptedSave ? `${validationErrors.length} validation error(s) - click to see details` : ""}
+            >
+              {isSaving ? "Saving..." : validationErrors.length > 0 && hasAttemptedSave ? "Fix Validation Errors" : isEditing ? "Update Workflow" : "Save Workflow"}
+              {validationErrors.length > 0 && hasAttemptedSave && (
+                <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-800 rounded-full">
+                  {validationErrors.length}
+                </span>
+              )}
+            </Button>
+          </div>
           <Button outline onClick={onCancel}>
             Cancel
           </Button>

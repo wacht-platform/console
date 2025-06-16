@@ -89,47 +89,19 @@ export const NodeConfigPanel: React.FC<ConfigPanelProps> = ({
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Trigger Type
+          Condition *
         </label>
-        <Listbox
-          value={getStringValue(localNodeData.config?.triggerType) || 'webhook'}
-          onChange={(value: string) => handleConfigChange('triggerType', value)}
-          className="w-full"
-        >
-          <ListboxOption value="webhook">Webhook</ListboxOption>
-          <ListboxOption value="schedule">Schedule</ListboxOption>
-          <ListboxOption value="event">Application Event</ListboxOption>
-        </Listbox>
+        <textarea
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 h-24"
+          value={getStringValue(localNodeData.condition)}
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleConfigChange('condition', e.target.value)}
+          placeholder="Enter a condition for automated triggering (e.g., data.status === 'active' or 'true' for always trigger)"
+          required
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          Required text condition that determines when this workflow should be triggered automatically
+        </p>
       </div>
-      
-      {localNodeData.config?.triggerType === 'schedule' && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Cron Expression
-          </label>
-          <Input
-            value={getStringValue(localNodeData.config?.cronExpression)}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleConfigChange('cronExpression', e.target.value)}
-            placeholder="* * * * *"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Use cron format: minute hour day month weekday
-          </p>
-        </div>
-      )}
-      
-      {localNodeData.config?.triggerType === 'event' && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Event Name
-          </label>
-          <Input
-            value={getStringValue(localNodeData.config?.eventName)}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleConfigChange('eventName', e.target.value)}
-            placeholder="user.created"
-          />
-        </div>
-      )}
     </div>
   );
 
