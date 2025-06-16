@@ -93,8 +93,8 @@ export const NodeConfigPanel: React.FC<ConfigPanelProps> = ({
         </label>
         <textarea
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 h-24"
-          value={getStringValue(localNodeData.condition)}
-          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleConfigChange('condition', e.target.value)}
+          value={getStringValue(localNodeData.config?.expression)}
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleConfigChange('expression', e.target.value)}
           placeholder="Enter a condition for automated triggering (e.g., data.status === 'active' or 'true' for always trigger)"
           required
         />

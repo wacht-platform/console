@@ -411,10 +411,10 @@ function validateSwitchNode(node: WorkflowNode, index: number): ValidationError[
   if (node.node_type.type === "Switch") {
     const config = node.node_type as any; // Use any to access flattened fields
 
-    if (!config.switch_variable || !config.switch_variable.trim()) {
+    if (!config.switch_condition || !config.switch_condition.trim()) {
       errors.push({
-        field: `workflow_definition.nodes[${index}].switch_variable`,
-        message: "Switch variable is required for Switch/Case nodes"
+        field: `workflow_definition.nodes[${index}].switch_condition`,
+        message: "Switch condition is required for Switch/Case nodes"
       });
     }
 
@@ -425,11 +425,11 @@ function validateSwitchNode(node: WorkflowNode, index: number): ValidationError[
       });
     } else {
       // Validate individual cases
-      config.cases.forEach((switchCase, caseIndex) => {
-        if (!switchCase.case_value || !switchCase.case_value.trim()) {
+      config.cases.forEach((switchCase: any, caseIndex: number) => {
+        if (!switchCase.case_condition || !switchCase.case_condition.trim()) {
           errors.push({
-            field: `workflow_definition.nodes[${index}].cases[${caseIndex}].case_value`,
-            message: `Case ${caseIndex + 1} value is required`
+            field: `workflow_definition.nodes[${index}].cases[${caseIndex}].case_condition`,
+            message: `Case ${caseIndex + 1} condition is required`
           });
         }
       });
@@ -486,7 +486,7 @@ function validateTryCatchNode(node: WorkflowNode, index: number): ValidationErro
   return errors;
 }
 
-function validateStoreContextNode(node: WorkflowNode, index: number): ValidationError[] {
+function validateStoreContextNode(node: WorkflowNode, _index: number): ValidationError[] {
   const errors: ValidationError[] = [];
 
   if (node.node_type.type === "StoreContext") {
@@ -496,7 +496,7 @@ function validateStoreContextNode(node: WorkflowNode, index: number): Validation
   return errors;
 }
 
-function validateFetchContextNode(node: WorkflowNode, index: number): ValidationError[] {
+function validateFetchContextNode(node: WorkflowNode, _index: number): ValidationError[] {
   const errors: ValidationError[] = [];
 
   if (node.node_type.type === "FetchContext") {
@@ -717,14 +717,14 @@ export function validateNodeFormData(nodeType: string, formData: Record<string, 
       break;
 
     case "switch-case":
-      if (!formData.switch_variable || typeof formData.switch_variable !== 'string' || !formData.switch_variable.trim()) {
+      if (!formData.switch_condition || typeof formData.switch_condition !== 'string' || !formData.switch_condition.trim()) {
         errors.push({
-          field: "switch_variable",
-          message: "Switch variable is required"
+          field: "switch_condition",
+          message: "Switch condition is required"
         });
       }
 
-      const cases = formData.cases as Array<{ case_value: string; case_label?: string }>;
+      const cases = formData.cases as Array<{ case_condition: string; case_label?: string }>;
       if (!cases || cases.length === 0) {
         errors.push({
           field: "cases",
@@ -732,10 +732,10 @@ export function validateNodeFormData(nodeType: string, formData: Record<string, 
         });
       } else {
         cases.forEach((switchCase, index) => {
-          if (!switchCase.case_value || !switchCase.case_value.trim()) {
+          if (!switchCase.case_condition || !switchCase.case_condition.trim()) {
             errors.push({
-              field: `cases[${index}].case_value`,
-              message: `Case ${index + 1} value is required`
+              field: `cases[${index}].case_condition`,
+              message: `Case ${index + 1} condition is required`
             });
           }
         });

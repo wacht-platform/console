@@ -47,11 +47,9 @@ interface NodeFormData {
   response_format?: "text" | "json";
   json_schema?: Array<{ name: string; type: string; required: boolean; description: string }>;
   // Switch/Case fields
-  switch_variable?: string;
-  comparison_type?: "equals" | "contains" | "starts_with" | "ends_with" | "regex";
-  number_of_cases?: number;
+  switch_condition?: string;
   default_case?: boolean;
-  cases?: Array<{ case_value: string; case_label?: string }>;
+  cases?: Array<{ case_condition: string; case_label?: string }>;
   // Tool Call fields
   tool_id?: string;
   tool_name?: string;
@@ -126,11 +124,9 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
         response_format: node.data.response_format as "text" | "json",
         json_schema: node.data.json_schema as any[] || [],
         // Switch/Case fields
-        switch_variable: node.data.switch_variable as string,
-        comparison_type: node.data.comparison_type as "equals" | "contains" | "starts_with" | "ends_with" | "regex",
-        number_of_cases: node.data.number_of_cases as number,
+        switch_condition: node.data.switch_condition as string,
         default_case: node.data.default_case as boolean,
-        cases: node.data.cases as Array<{ case_value: string; case_label?: string }>,
+        cases: node.data.cases as Array<{ case_condition: string; case_label?: string }> || [],
         // Tool Call fields
         tool_id: node.data.tool_id as string,
         tool_name: node.data.tool_name as string,
@@ -576,79 +572,25 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
               <h4 className="font-medium">Switch/Case Configuration</h4>
 
               <Field>
-                <Label htmlFor="switch_variable">Switch Variable:</Label>
-                <Input
-                  id="switch_variable"
-                  name="switch_variable"
-                  type="text"
-                  value={formData.switch_variable || ""}
+                <Label htmlFor="switch_condition">Switch Condition:</Label>
+                <Textarea
+                  id="switch_condition"
+                  name="switch_condition"
+                  value={formData.switch_condition || ""}
                   onChange={(e) => setFormData({
                     ...formData,
-                    switch_variable: e.target.value
+                    switch_condition: e.target.value
                   })}
-                  placeholder="user.status, response.code, etc."
-                  invalid={!!fieldErrors.switch_variable}
+                  placeholder="Describe what to evaluate (e.g., 'the user's subscription status', 'the API response code', 'the order total amount')"
+                  className="h-20"
+                  invalid={!!fieldErrors.switch_condition}
                 />
-                {fieldErrors.switch_variable && (
-                  <div className="mt-1 text-sm text-red-600">{fieldErrors.switch_variable}</div>
+                {fieldErrors.switch_condition && (
+                  <div className="mt-1 text-sm text-red-600">{fieldErrors.switch_condition}</div>
                 )}
-              </Field>
-
-              <Field>
-                <Label htmlFor="comparison_type">Comparison Type:</Label>
-                <Select
-                  id="comparison_type"
-                  name="comparison_type"
-                  value={formData.comparison_type || "equals"}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    comparison_type: e.target.value as "equals" | "contains" | "starts_with" | "ends_with" | "regex"
-                  })}
-                >
-                  <option value="equals">Equals</option>
-                  <option value="contains">Contains</option>
-                  <option value="starts_with">Starts With</option>
-                  <option value="ends_with">Ends With</option>
-                  <option value="regex">Regex</option>
-                </Select>
-              </Field>
-
-              <Field>
-                <Label htmlFor="number_of_cases">Number of Cases:</Label>
-                <Input
-                  id="number_of_cases"
-                  name="number_of_cases"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={formData.number_of_cases || ""}
-                  onChange={(e) => {
-                    const numCases = e.target.value ? parseInt(e.target.value) : 2;
-                    // Adjust cases array to match the number
-                    const currentCases = formData.cases || [];
-                    let newCases = [...currentCases];
-
-                    if (numCases > currentCases.length) {
-                      // Add new cases
-                      for (let i = currentCases.length; i < numCases; i++) {
-                        newCases.push({
-                          case_value: `case_${i + 1}`,
-                          case_label: `Case ${i + 1}`
-                        });
-                      }
-                    } else if (numCases < currentCases.length) {
-                      // Remove excess cases
-                      newCases = newCases.slice(0, numCases);
-                    }
-
-                    setFormData({
-                      ...formData,
-                      number_of_cases: numCases,
-                      cases: newCases
-                    });
-                  }}
-                  placeholder="2"
-                />
+                <div className="mt-1 text-xs text-gray-500">
+                  Describe in natural language what condition should be evaluated for the switch
+                </div>
               </Field>
 
               <div className="space-y-2">
@@ -666,61 +608,92 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
               </div>
 
               {/* Case Definitions */}
-              {formData.number_of_cases && formData.number_of_cases > 0 && (
-                <div>
-                  <h5 className="font-medium mb-3">Case Definitions</h5>
-                  <div className="space-y-3 max-h-64 overflow-y-auto">
-                    {Array.from({ length: formData.number_of_cases }, (_, index) => {
-                      const caseData = formData.cases?.[index] || { case_value: '', case_label: '' };
-                      return (
-                        <div key={index} className="py-3 rounded">
-                          <div className="font-medium text-sm text-gray-700 mb-2">Case {index + 1}</div>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <label className="block text-xs font-medium text-gray-600 mb-1">
-                                Case Value:
-                              </label>
-                              <Input
-                                type="text"
-                                value={caseData.case_value}
-                                onChange={(e) => {
-                                  const newCases = [...(formData.cases || [])];
-                                  newCases[index] = {
-                                    ...newCases[index],
-                                    case_value: e.target.value
-                                  };
-                                  setFormData({ ...formData, cases: newCases });
-                                }}
-                                placeholder="active, success, etc."
-                                className="text-sm"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-medium text-gray-600 mb-1">
-                                Case Label:
-                              </label>
-                              <Input
-                                type="text"
-                                value={caseData.case_label || ''}
-                                onChange={(e) => {
-                                  const newCases = [...(formData.cases || [])];
-                                  newCases[index] = {
-                                    ...newCases[index],
-                                    case_label: e.target.value
-                                  };
-                                  setFormData({ ...formData, cases: newCases });
-                                }}
-                                placeholder="Active User, Success, etc."
-                                className="text-sm"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h5 className="font-medium">Case Definitions</h5>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      const newCases = [...(formData.cases || [])];
+                      newCases.push({
+                        case_condition: '',
+                        case_label: `Case ${newCases.length + 1}`
+                      });
+                      setFormData({ ...formData, cases: newCases });
+                    }}
+                    className="text-xs px-2 py-1"
+                  >
+                    Add Case
+                  </Button>
                 </div>
-              )}
+                <div className="space-y-6 max-h-64 overflow-y-auto">
+                  {(formData.cases || []).map((caseData, index) => (
+                    <div key={index}>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="font-medium text-sm text-gray-700">Case {index + 1}</div>
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            const newCases = [...(formData.cases || [])];
+                            newCases.splice(index, 1);
+                            setFormData({ ...formData, cases: newCases });
+                          }}
+                          className="text-xs text-red-600 hover:text-red-800"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            Case Condition:
+                          </label>
+                          <Textarea
+                            value={caseData.case_condition}
+                            onChange={(e) => {
+                              const newCases = [...(formData.cases || [])];
+                              newCases[index] = {
+                                ...newCases[index],
+                                case_condition: e.target.value
+                              };
+                              setFormData({ ...formData, cases: newCases });
+                            }}
+                            placeholder="Describe when this case should match (e.g., 'user is premium subscriber', 'response indicates success', 'amount is greater than $100')"
+                            className="text-sm h-16"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            Case Label (optional):
+                          </label>
+                          <Input
+                            type="text"
+                            value={caseData.case_label || ''}
+                            onChange={(e) => {
+                              const newCases = [...(formData.cases || [])];
+                              newCases[index] = {
+                                ...newCases[index],
+                                case_label: e.target.value
+                              };
+                              setFormData({ ...formData, cases: newCases });
+                            }}
+                            placeholder="Premium User, Success, High Value, etc."
+                            className="text-sm"
+                          />
+                        </div>
+                      </div>
+                      {index < (formData.cases || []).length - 1 && (
+                        <div className="mt-6 border-b border-gray-100"></div>
+                      )}
+                    </div>
+                  ))}
+                  {(!formData.cases || formData.cases.length === 0) && (
+                    <div className="text-center py-4 text-gray-500 text-sm">
+                      No cases defined. Click "Add Case" to create your first case.
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 

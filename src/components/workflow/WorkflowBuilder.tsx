@@ -266,7 +266,7 @@ const DnDFlow = ({
         node_type: {
           type: "LLMCall",
           prompt_template: (nodeData.prompt_template as string) || "",
-          response_format: (nodeData.response_format as "Text" | "Json") || "Text",
+          response_format: (nodeData.response_format as "text" | "json") || "text",
           json_schema: (nodeData.json_schema as SchemaField[]) || [],
         },
         position: { x: node.position.x, y: node.position.y },
@@ -282,12 +282,9 @@ const DnDFlow = ({
         id: node.id,
         node_type: {
           type: "Switch",
-          switch_variable: (nodeData.switch_variable as string) || "",
-          comparison_type: (nodeData.comparison_type as "Equals" | "Contains" | "StartsWith" | "EndsWith" | "Regex") || "Equals",
+          switch_condition: (nodeData.switch_condition as string) || "",
           cases: (nodeData.cases as SwitchCase[]) || [],
           default_case: nodeData.default_case !== false,
-          case_sensitive: nodeData.case_sensitive !== false,
-          number_of_cases: (nodeData.number_of_cases as number) || 2,
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
@@ -499,9 +496,9 @@ const DnDFlow = ({
           edgeLabel = `Case ${caseIndex + 1}`;
 
           // Use case data if available
-          const cases = (sourceData.cases as Array<{ case_label?: string; case_value?: string }>) || [];
+          const cases = (sourceData.cases as Array<{ case_label?: string; case_condition?: string }>) || [];
           if (cases[caseIndex]) {
-            edgeLabel = cases[caseIndex].case_label || cases[caseIndex].case_value || edgeLabel;
+            edgeLabel = cases[caseIndex].case_label || `Case ${caseIndex + 1}`;
           }
         }
 
@@ -642,11 +639,9 @@ const DnDFlow = ({
         (newNode.data as unknown as Record<string, unknown>).response_format = "text";
         (newNode.data as unknown as Record<string, unknown>).json_schema = "";
       } else if (type === "switch-case") {
-        (newNode.data as unknown as Record<string, unknown>).comparison_type = "equals";
+        (newNode.data as unknown as Record<string, unknown>).switch_condition = "";
         (newNode.data as unknown as Record<string, unknown>).cases = [];
         (newNode.data as unknown as Record<string, unknown>).default_case = true;
-        (newNode.data as unknown as Record<string, unknown>).case_sensitive = true;
-        (newNode.data as unknown as Record<string, unknown>).number_of_cases = 2; // Default to 2 cases
       } else if (type === "store-context") {
         (newNode.data as unknown as Record<string, unknown>).context_data = "";
         (newNode.data as unknown as Record<string, unknown>).use_llm = false;

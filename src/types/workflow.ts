@@ -87,7 +87,7 @@ export type ConditionEvaluationType = "javascript" | "json_path" | "simple";
 
 export interface ConditionNodeConfig {
   condition_type: ConditionEvaluationType;
-  condition: string; // Changed from expression to condition for consistency
+  expression: string;
   true_path?: string;
   false_path?: string;
 }
@@ -117,17 +117,14 @@ export interface LLMCallNodeConfig {
 }
 
 export interface SwitchCase {
-  case_value: string;
+  case_condition: string; // Natural language condition
   case_label?: string;
 }
 
 export interface SwitchNodeConfig {
-  switch_variable: string;
-  comparison_type: "equals" | "contains" | "starts_with" | "ends_with" | "regex";
+  switch_condition: string; // Natural language switch condition
   cases: SwitchCase[];
   default_case?: boolean;
-  case_sensitive?: boolean;
-  number_of_cases?: number;
 }
 
 export interface ToolCallNodeConfig {
@@ -140,30 +137,6 @@ export interface ConditionNodeConfig {
   expression: string;
   true_path?: string;
   false_path?: string;
-}
-
-export interface ErrorHandlerNodeConfig {
-  enable_retry: boolean;
-  max_retries: number;
-  retry_delay_seconds: number;
-  log_errors: boolean;
-  custom_error_message?: string;
-  contained_nodes: string[];
-}
-
-export interface LLMCallNodeConfig {
-  prompt_template: string;
-  response_format: "Text" | "Json";
-  json_schema: SchemaField[];
-}
-
-export interface SwitchNodeConfig {
-  switch_variable: string;
-  comparison_type: "Equals" | "Contains" | "StartsWith" | "EndsWith" | "Regex";
-  cases: SwitchCase[];
-  default_case: boolean;
-  case_sensitive: boolean;
-  number_of_cases: number;
 }
 
 export interface StoreContextNodeConfig {
@@ -292,12 +265,6 @@ export interface UpdateWorkflowRequest {
   workflow_definition?: WorkflowDefinition;
 }
 
-export interface ExecuteWorkflowRequest {
-  trigger_data?: Record<string, unknown>;
-  variables?: Record<string, unknown>;
-}
-
-// Form data for the frontend
 export interface WorkflowFormData {
   name: string;
   description: string;

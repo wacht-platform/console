@@ -6,8 +6,6 @@ import type {
   AiWorkflowWithDetails,
   CreateWorkflowRequest,
   UpdateWorkflowRequest,
-  ExecuteWorkflowRequest,
-  WorkflowExecution
 } from "@/types/workflow";
 import { useProjects } from "./use-projects";
 
@@ -66,30 +64,6 @@ async function deleteWorkflow(
   workflowId: string
 ): Promise<void> {
   await apiClient.delete(`/deployment/${deploymentId}/ai-workflows/${workflowId}`);
-}
-
-async function executeWorkflow(
-  deploymentId: string,
-  workflowId: string,
-  request: ExecuteWorkflowRequest
-): Promise<WorkflowExecution> {
-  const { data } = await apiClient.post<{ data: WorkflowExecution }>(
-    `/deployment/${deploymentId}/ai-workflows/${workflowId}/execute`,
-    request
-  );
-  return data.data;
-}
-
-async function fetchWorkflowExecutions(
-  deploymentId: string,
-  workflowId: string,
-  params: GetWorkflowsParams = {}
-): Promise<PaginatedResponse<WorkflowExecution>> {
-  const { data } = await apiClient.get<PaginatedResponse<WorkflowExecution>>(
-    `/deployment/${deploymentId}/ai-workflows/${workflowId}/executions`,
-    { params }
-  );
-  return data;
 }
 
 export function useWorkflows(params: GetWorkflowsParams = {}) {
@@ -153,33 +127,5 @@ export function useDeleteWorkflow() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workflows", selectedDeployment?.id] });
     },
-  });
-}
-
-export function useExecuteWorkflow() {
-  const { selectedDeployment } = useProjects();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ workflowId, request }: { workflowId: string; request: ExecuteWorkflowRequest }) =>
-      executeWorkflow(selectedDeployment!.id, workflowId, request),
-    onSuccess: (_, { workflowId }) => {
-      queryClient.invalidateQueries({ queryKey: ["workflow-executions", selectedDeployment?.id, workflowId] });
-      queryClient.invalidateQueries({ queryKey: ["workflows", selectedDeployment?.id] });
-    },
-  });
-}
-
-export function useWorkflowExecutions(workflowId: string, params: GetWorkflowsParams = {}) {
-  const { selectedDeployment } = useProjects();
-
-  return useQuery({
-    queryKey: ["workflow-executions", selectedDeployment?.id, workflowId, params],
-    queryFn: () => fetchWorkflowExecutions(selectedDeployment!.id, workflowId, params),
-    enabled: !!selectedDeployment?.id && !!workflowId,
-    select: (data) => ({
-      executions: data.data,
-      hasMore: data.has_more,
-    }),
   });
 }

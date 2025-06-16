@@ -3,19 +3,16 @@ import { Handle, Position } from "@xyflow/react";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 
 interface SwitchCase {
-  case_value: string;
+  case_condition: string;
   case_label?: string;
 }
 
 interface SwitchCaseNodeData {
   label: string;
   description: string;
-  switch_variable?: string;
-  comparison_type?: "equals" | "contains" | "starts_with" | "ends_with" | "regex";
+  switch_condition?: string;
   cases?: SwitchCase[];
   default_case?: boolean;
-  case_sensitive?: boolean;
-  number_of_cases?: number; // Number of cases to configure
 }
 
 interface SwitchCaseNodeProps {
@@ -25,10 +22,10 @@ interface SwitchCaseNodeProps {
 }
 
 const SwitchCaseNode = memo(({ data, selected }: SwitchCaseNodeProps) => {
-  const numberOfCases = data.number_of_cases || 0;
   const cases = data.cases || [];
+  const numberOfCases = cases.length;
 
-  // Calculate handle positions based on number_of_cases
+  // Calculate handle positions based on actual cases
   const totalOutputs = numberOfCases + (data.default_case ? 1 : 0);
   const handleSpacing = totalOutputs > 1 ? 80 / (totalOutputs - 1) : 0;
 
@@ -62,18 +59,9 @@ const SwitchCaseNode = memo(({ data, selected }: SwitchCaseNodeProps) => {
 
         {/* Configuration Summary */}
         <div className="mt-2 space-y-1">
-          {data.switch_variable && (
-            <div className="flex justify-between">
-              <span>Variable:</span>
-              <span className="font-medium truncate max-w-[100px]" title={data.switch_variable}>
-                {data.switch_variable}
-              </span>
-            </div>
-          )}
-          {data.comparison_type && (
-            <div className="flex justify-between">
-              <span>Type:</span>
-              <span className="font-medium capitalize">{data.comparison_type.replace('_', ' ')}</span>
+          {data.switch_condition && (
+            <div className="text-xs bg-indigo-100 p-2 rounded border border-indigo-200">
+              <span className="font-medium">Condition:</span> {data.switch_condition.substring(0, 50)}{data.switch_condition.length > 50 ? "..." : ""}
             </div>
           )}
           <div className="flex justify-between">
@@ -92,7 +80,7 @@ const SwitchCaseNode = memo(({ data, selected }: SwitchCaseNodeProps) => {
         <div className="mt-2 p-2 bg-indigo-100 rounded text-xs">
           <div className="font-medium text-indigo-800 mb-1">Configuration:</div>
           <div className="text-indigo-700">
-            Configure cases and variable in node settings. Each case will get its own output handle.
+            Configure switch condition and cases in node settings. Each case will get its own output handle.
           </div>
         </div>
       </div>
@@ -133,14 +121,14 @@ const SwitchCaseNode = memo(({ data, selected }: SwitchCaseNodeProps) => {
               <span
                 key={`label-${index}`}
                 className="truncate max-w-[40px]"
-                title={caseData?.case_label || caseData?.case_value || `Case ${index + 1}`}
+                title={caseData?.case_label || caseData?.case_condition || `Case ${index + 1}`}
                 style={{
                   position: 'absolute',
                   left: `${10 + (index * handleSpacing)}%`,
                   transform: 'translateX(-50%)'
                 }}
               >
-                {caseData?.case_label || caseData?.case_value || `C${index + 1}`}
+                {caseData?.case_label || `C${index + 1}`}
               </span>
             );
           })}

@@ -18,7 +18,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "../../components/ui/table";
-import { useWorkflows, useDeleteWorkflow, useExecuteWorkflow } from "../../lib/api/hooks/use-workflows";
+import { useWorkflows, useDeleteWorkflow } from "../../lib/api/hooks/use-workflows";
 
 
 
@@ -33,7 +33,6 @@ export default function WorkflowsPage() {
 	});
 	const workflows = data?.workflows || [];
 	const deleteWorkflowMutation = useDeleteWorkflow();
-	const executeWorkflowMutation = useExecuteWorkflow();
 
 	const handleCreateWorkflow = () => {
 		navigate("./create-workflow");
@@ -50,17 +49,6 @@ export default function WorkflowsPage() {
 			} catch (error) {
 				console.error("Failed to delete workflow:", error);
 			}
-		}
-	};
-
-	const handleExecuteWorkflow = async (workflowId: string) => {
-		try {
-			await executeWorkflowMutation.mutateAsync({
-				workflowId,
-				request: { trigger_data: {} },
-			});
-		} catch (error) {
-			console.error("Failed to execute workflow:", error);
 		}
 	};
 
