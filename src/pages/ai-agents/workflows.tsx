@@ -21,8 +21,6 @@ import {
 import { useWorkflows, useDeleteWorkflow } from "../../lib/api/hooks/use-workflows";
 
 
-
-
 export default function WorkflowsPage() {
 	const navigate = useNavigate();
 	const [searchTerm, setSearchTerm] = useState("");
