@@ -7,7 +7,7 @@ import App from "./App.tsx";
 // biome-ignore lint/style/noNonNullAssertion: <explanation>
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>
-		<DeploymentProvider publicKey="pk_test_aHR0cHM6Ly9kaW13aXR0ZWQtYXhpcy0xLmJhY2tlbmQtYXBpLnNlcnZpY2Vz">
+		<DeploymentProvider publicKey="pk_test_aHR0cHM6Ly9kaW13aXR0ZWQtYXhpcy0xLndhY2h0LnRlY2g=">
 			<App />
 		</DeploymentProvider>
 	</StrictMode>,
