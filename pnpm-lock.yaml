@@ -18,8 +18,8 @@ importers:
         specifier: ^4.7.0
         version: 4.7.0(monaco-editor@0.52.2)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@snipextt/wacht':
-        specifier: 0.0.1-alpha.41
-        version: 0.0.1-alpha.41(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1)
+        specifier: 0.0.1-alpha.42
+        version: 0.0.1-alpha.42(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1)
       '@tailwindcss/vite':
         specifier: ^4.0.1
         version: 4.0.1(vite@6.0.11(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(sass-embedded@1.86.3))
@@ -625,8 +625,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@snipextt/wacht@0.0.1-alpha.41':
-    resolution: {integrity: sha512-1NcENWFjEnCmnEakxiOX0uUE2doXexlVT5GQ35mRjMzZ42ulvV+rdAPkz+6m7BYzOXCzCvfpDk6592JjbrlfaA==}
+  '@snipextt/wacht@0.0.1-alpha.42':
+    resolution: {integrity: sha512-Y4JH590opn9VctBLnE8qyC/FCvulW0KhAJ6yrjakK711vDkq02rgdtsIuNNugwaEsKp5kwvx850cep04XrAAng==}
     peerDependencies:
       react: ^19.0.0
 
@@ -2468,7 +2468,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.32.1':
     optional: true
 
-  '@snipextt/wacht@0.0.1-alpha.41(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1)':
+  '@snipextt/wacht@0.0.1-alpha.42(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1)':
     dependencies:
       '@headlessui/react': 2.2.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       lucide-react: 0.474.0(react@19.0.0)
