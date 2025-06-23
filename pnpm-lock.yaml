@@ -17,9 +17,9 @@ importers:
       '@monaco-editor/react':
         specifier: ^4.7.0
         version: 4.7.0(monaco-editor@0.52.2)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@snipextt/wacht':
-        specifier: 0.0.1-alpha.42
-        version: 0.0.1-alpha.42(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1)
+      '@snipextt/wacht-react-router':
+        specifier: 0.0.1-alpha.1
+        version: 0.0.1-alpha.1(@snipextt/wacht@0.0.1-alpha.48(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1))(react-dom@19.0.0(react@19.0.0))(react-router@7.1.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)(rollup@4.32.1)
       '@tailwindcss/vite':
         specifier: ^4.0.1
         version: 4.0.1(vite@6.0.11(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(sass-embedded@1.86.3))
@@ -625,8 +625,16 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@snipextt/wacht@0.0.1-alpha.42':
-    resolution: {integrity: sha512-Y4JH590opn9VctBLnE8qyC/FCvulW0KhAJ6yrjakK711vDkq02rgdtsIuNNugwaEsKp5kwvx850cep04XrAAng==}
+  '@snipextt/wacht-react-router@0.0.1-alpha.1':
+    resolution: {integrity: sha512-Klp0132s8tJL5CZE2UBLJzrUKStYn6XPhVeKGclfINOl8iwQXyJ6S/Mbhx65WmDjIEOWAC086Ro1pDuCBbExJA==}
+    peerDependencies:
+      '@snipextt/wacht': ^0.0.1-alpha.48
+      react: ^18.0.0 || ^19.0.0 || ^19.0.0-0
+      react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-0
+      react-router: ^7.0.0
+
+  '@snipextt/wacht@0.0.1-alpha.48':
+    resolution: {integrity: sha512-NLLu3dKP9rqq2Dm857gBowRskptmcDyNWARr6EeGch6A2jE7zRxEQlu2OOna3KBAof70l7vjb+xDwtZE8hEEgQ==}
     peerDependencies:
       react: ^19.0.0
 
@@ -2468,7 +2476,17 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.32.1':
     optional: true
 
-  '@snipextt/wacht@0.0.1-alpha.42(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1)':
+  '@snipextt/wacht-react-router@0.0.1-alpha.1(@snipextt/wacht@0.0.1-alpha.48(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1))(react-dom@19.0.0(react@19.0.0))(react-router@7.1.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)(rollup@4.32.1)':
+    dependencies:
+      '@snipextt/wacht': 0.0.1-alpha.48(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1)
+      react: 19.0.0
+      react-dom: 19.0.0(react@19.0.0)
+      react-router: 7.1.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      rollup-plugin-preserve-use-client: 3.0.1(rollup@4.32.1)
+    transitivePeerDependencies:
+      - rollup
+
+  '@snipextt/wacht@0.0.1-alpha.48(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1)':
     dependencies:
       '@headlessui/react': 2.2.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       lucide-react: 0.474.0(react@19.0.0)
