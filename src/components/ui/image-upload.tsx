@@ -23,16 +23,24 @@ interface ImageUploadProps {
   };
 }
 
-const validateImageFile = (file: File): string | null => {
+const validateImageFile = (file: File, imageType?: ImageType): string | null => {
   const maxSize = 2 * 1024 * 1024; // 2MB to match the design
-  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+  const generalAllowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+  const faviconAllowedTypes = ['image/x-icon', 'image/vnd.microsoft.icon', 'image/png', 'image/gif'];
 
   if (file.size > maxSize) {
     return 'Image size must be less than 2MB';
   }
 
-  if (!allowedTypes.includes(file.type)) {
-    return 'Please select a valid image file (SVG, PNG, JPG, GIF, or WebP)';
+  // Use favicon-specific validation for favicon uploads
+  if (imageType === 'favicon') {
+    if (!faviconAllowedTypes.includes(file.type)) {
+      return 'Please select a valid favicon file (.ico, .png, or .gif)';
+    }
+  } else {
+    if (!generalAllowedTypes.includes(file.type)) {
+      return 'Please select a valid image file (SVG, PNG, JPG, GIF, or WebP)';
+    }
   }
 
   return null;
@@ -59,7 +67,7 @@ export function ImageUpload({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const validationError = validateImageFile(file);
+    const validationError = validateImageFile(file, imageType);
     if (validationError) {
       toast.error(validationError);
       if (event.target) {

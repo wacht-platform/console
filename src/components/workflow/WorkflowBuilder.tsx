@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, type DragEvent } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo, type DragEvent } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -150,8 +150,88 @@ const DnDFlow = ({
   onWorkflowDataChange,
 }: WorkflowBuilderProps) => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  
+  // Initialize nodes from workflowData if available, otherwise use initialNodes
+  const initialNodesData = useMemo(() => {
+    if (workflowData.workflow_definition.nodes.length > 0) {
+      // Map workflow nodes to React Flow nodes
+      return workflowData.workflow_definition.nodes.map((node) => {
+        let nodeType = 'action'; // default
+        let nodeData: any = {
+          label: node.data.label || '',
+          description: node.data.description || '',
+          enabled: node.data.enabled ?? true,
+          config: node.data.config || {},
+        };
+
+        if (node.node_type.type === 'Trigger') {
+          nodeType = 'trigger';
+          nodeData.condition = node.node_type.condition || '';
+        } else if (node.node_type.type === 'LLMCall') {
+          nodeType = 'llm-call';
+          nodeData = {
+            ...nodeData,
+            ...node.node_type,
+          };
+        } else if (node.node_type.type === 'Condition') {
+          nodeType = 'condition';
+          nodeData = {
+            ...nodeData,
+            ...node.node_type,
+          };
+        } else if (node.node_type.type === 'Switch') {
+          nodeType = 'switch-case';
+          nodeData = {
+            ...nodeData,
+            ...node.node_type,
+          };
+        } else if (node.node_type.type === 'ToolCall') {
+          nodeType = 'tool-call';
+          nodeData = {
+            ...nodeData,
+            ...node.node_type,
+          };
+        } else if (node.node_type.type === 'StoreContext') {
+          nodeType = 'store-context';
+          nodeData = {
+            ...nodeData,
+            ...node.node_type,
+          };
+        } else if (node.node_type.type === 'FetchContext') {
+          nodeType = 'fetch-context';
+          nodeData = {
+            ...nodeData,
+            ...node.node_type,
+          };
+        }
+
+        return {
+          id: node.id,
+          type: nodeType,
+          position: node.position,
+          data: nodeData,
+        };
+      });
+    }
+    return initialNodes;
+  }, []); // Only compute once on mount
+
+  // Initialize edges from workflowData if available
+  const initialEdgesData = useMemo(() => {
+    if (workflowData.workflow_definition.edges.length > 0) {
+      return workflowData.workflow_definition.edges.map((edge) => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        sourceHandle: edge.source_handle,
+        targetHandle: edge.target_handle,
+      }));
+    }
+    return [];
+  }, []); // Only compute once on mount
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodesData);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialEdgesData);
   const { screenToFlowPosition } = useReactFlow();
   const [type] = useDnD();
 
@@ -203,7 +283,7 @@ const DnDFlow = ({
   }, []); // Only run once on mount
 
   // Helper function to map React Flow node to WorkflowNode
-  const mapReactFlowNodeToWorkflowNode = (node: Node): WorkflowNodeType => {
+  const mapReactFlowNodeToWorkflowNode = useCallback((node: Node): WorkflowNodeType => {
     const nodeData = node.data as Record<string, unknown>;
 
     // Map based on node type
@@ -377,10 +457,13 @@ const DnDFlow = ({
         },
       };
     }
-  };
+  }, []);
 
   // Update workflow definition when nodes/edges change
   useEffect(() => {
+    // Skip the initial render when nodes are being loaded from workflowData
+    if (nodes.length === 0 && edges.length === 0) return;
+    
     const workflowNodes: WorkflowNodeType[] = nodes.map(mapReactFlowNodeToWorkflowNode);
 
     const workflowEdges: WorkflowEdgeType[] = edges.map(edge => ({
@@ -399,7 +482,7 @@ const DnDFlow = ({
         edges: workflowEdges,
       },
     });
-  }, [nodes, edges]);
+  }, [nodes, edges, onWorkflowDataChange, mapReactFlowNodeToWorkflowNode]);
 
   const onConnect: OnConnect = useCallback(
     (params) => {

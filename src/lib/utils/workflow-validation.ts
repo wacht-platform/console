@@ -391,7 +391,7 @@ function validateLLMCallNode(node: WorkflowNode, index: number): ValidationError
       });
     }
 
-    if (config.response_format === "Json" && (!config.json_schema || config.json_schema.length === 0)) {
+    if (config.response_format === "json" && (!config.json_schema || config.json_schema.length === 0)) {
       errors.push({
         field: `workflow_definition.nodes[${index}].json_schema`,
         message: "JSON schema is required when response format is set to JSON"

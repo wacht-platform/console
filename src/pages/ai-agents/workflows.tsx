@@ -18,12 +18,15 @@ import {
 	TableHeader,
 	TableRow,
 } from "../../components/ui/table";
+import { ConfirmationDialog } from "../../components/modals/confirmation-dialog";
 import { useWorkflows, useDeleteWorkflow } from "../../lib/api/hooks/use-workflows";
 
 
 export default function WorkflowsPage() {
 	const navigate = useNavigate();
 	const [searchTerm, setSearchTerm] = useState("");
+	const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+	const [workflowToDelete, setWorkflowToDelete] = useState<any>(null);
 
 	// API hooks
 	const { data, isLoading, error } = useWorkflows({
@@ -40,10 +43,17 @@ export default function WorkflowsPage() {
 		navigate(`./edit/${workflowId}`);
 	};
 
-	const handleDeleteWorkflow = async (workflowId: string) => {
-		if (confirm("Are you sure you want to delete this workflow?")) {
+	const handleDeleteWorkflow = (workflow: any) => {
+		setWorkflowToDelete(workflow);
+		setConfirmDeleteOpen(true);
+	};
+
+	const handleConfirmDelete = async () => {
+		if (workflowToDelete) {
 			try {
-				await deleteWorkflowMutation.mutateAsync(workflowId);
+				await deleteWorkflowMutation.mutateAsync(workflowToDelete.id);
+				setConfirmDeleteOpen(false);
+				setWorkflowToDelete(null);
 			} catch (error) {
 				console.error("Failed to delete workflow:", error);
 			}
@@ -139,7 +149,7 @@ export default function WorkflowsPage() {
 											<Button
 												outline
 												className="text-red-600 hover:bg-red-50"
-												onClick={() => handleDeleteWorkflow(workflow.id)}
+												onClick={() => handleDeleteWorkflow(workflow)}
 												disabled={deleteWorkflowMutation.isPending}
 												title="Delete workflow"
 											>
@@ -153,6 +163,20 @@ export default function WorkflowsPage() {
 					</Table>
 				)}
 			</div>
+			
+			<ConfirmationDialog
+				isOpen={confirmDeleteOpen}
+				onClose={() => {
+					setConfirmDeleteOpen(false);
+					setWorkflowToDelete(null);
+				}}
+				onConfirm={handleConfirmDelete}
+				title="Delete Workflow"
+				message={workflowToDelete ? `Are you sure you want to delete the workflow "${workflowToDelete.name}"? This action cannot be undone.` : ''}
+				confirmText="Delete"
+				isDestructive={true}
+				isLoading={deleteWorkflowMutation.isPending}
+			/>
 		</div>
 	);
 }

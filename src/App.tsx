@@ -8,7 +8,7 @@ import {
   SignedOut,
   NavigateToSignIn,
   useSession,
-} from "@snipextt/wacht-react-router";
+} from "@snipextt/wacht";
 import { LoadingFallback } from "./components/loading-fallback";
 import { useEffect } from "react";
 import { apiClient } from "./lib/api/client";

@@ -7,6 +7,7 @@ import { Divider } from "@/components/ui/divider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 
 export default function ApplicationSettingsPage() {
   const [copiedAppId, setCopiedAppId] = useState(false);
@@ -25,12 +26,12 @@ export default function ApplicationSettingsPage() {
     const allowedFaviconTypes = ['image/x-icon', 'image/vnd.microsoft.icon'];
 
     if (type === 'logo' && !allowedLogoTypes.includes(file.type)) {
-      alert('Please upload a valid image file (.jpeg, .png, .gif, or .webp)');
+      toast.error('Please upload a valid image file (.jpeg, .png, .gif, or .webp)');
       return;
     }
 
     if (type === 'favicon' && !allowedFaviconTypes.includes(file.type)) {
-      alert('Please upload a valid favicon file (.ico)');
+      toast.error('Please upload a valid favicon file (.ico)');
       return;
     }
 

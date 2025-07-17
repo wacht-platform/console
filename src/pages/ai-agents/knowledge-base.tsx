@@ -5,7 +5,6 @@ import {
 	MagnifyingGlassIcon,
 	DocumentTextIcon,
 	ChevronDownIcon,
-	PencilIcon,
 	TrashIcon,
 } from "@heroicons/react/24/outline";
 import { Heading } from "../../components/ui/heading";
@@ -29,6 +28,7 @@ import {
 } from "../../components/ui/dropdown";
 import { EnhancedUploadDialog } from "../../components/ai-agents/enhanced-upload-dialog";
 import { CreateKnowledgeBaseFormDialog } from "../../components/ai-agents/create-knowledge-base-form-dialog";
+import { ConfirmationDialog } from "../../components/modals/confirmation-dialog";
 import {
 	useKnowledgeBases,
 	useKnowledgeBaseDocuments,
@@ -77,6 +77,27 @@ export default function KnowledgeBasePage() {
 	const [documentsPage, setDocumentsPage] = useState(0);
 	const [documentsLimit] = useState(20);
 
+	// Confirmation dialog states
+	const [deleteDocumentDialog, setDeleteDocumentDialog] = useState<{
+		isOpen: boolean;
+		documentId: string | null;
+		documentTitle: string | null;
+	}>({
+		isOpen: false,
+		documentId: null,
+		documentTitle: null,
+	});
+
+	const [deleteKnowledgeBaseDialog, setDeleteKnowledgeBaseDialog] = useState<{
+		isOpen: boolean;
+		knowledgeBaseId: string | null;
+		knowledgeBaseName: string | null;
+	}>({
+		isOpen: false,
+		knowledgeBaseId: null,
+		knowledgeBaseName: null,
+	});
+
 	// Fetch available knowledge bases
 	const {
 		data: knowledgeBasesResponse,
@@ -121,32 +142,47 @@ export default function KnowledgeBasePage() {
 		setIsCreateDialogOpen(true);
 	};
 
-	const handleEditDocument = (doc: KnowledgeBaseDocument) => {
-		// TODO: Implement document editing
-		console.log("Edit document:", doc);
+
+
+	const handleDeleteDocument = (documentId: string, documentTitle: string) => {
+		setDeleteDocumentDialog({
+			isOpen: true,
+			documentId,
+			documentTitle,
+		});
 	};
 
-	const handleDeleteDocument = async (documentId: string) => {
-		if (confirm("Are you sure you want to delete this document?")) {
-			try {
-				await deleteDocumentMutation.mutateAsync(documentId);
-			} catch (error) {
-				console.error("Error deleting document:", error);
-			}
+	const handleDeleteKnowledgeBase = (knowledgeBaseId: string, knowledgeBaseName: string) => {
+		setDeleteKnowledgeBaseDialog({
+			isOpen: true,
+			knowledgeBaseId,
+			knowledgeBaseName,
+		});
+	};
+
+	const confirmDeleteDocument = async () => {
+		if (!deleteDocumentDialog.documentId) return;
+
+		try {
+			await deleteDocumentMutation.mutateAsync(deleteDocumentDialog.documentId);
+			setDeleteDocumentDialog({ isOpen: false, documentId: null, documentTitle: null });
+		} catch (error) {
+			console.error("Error deleting document:", error);
 		}
 	};
 
-	const handleDeleteKnowledgeBase = async (knowledgeBaseId: string) => {
-		if (confirm("Are you sure you want to delete this knowledge base? This will also delete all documents in it.")) {
-			try {
-				await deleteKnowledgeBaseMutation.mutateAsync(knowledgeBaseId);
-				// Reset selected knowledge base if it was deleted
-				if (selectedKnowledgeBase?.id === knowledgeBaseId) {
-					setSelectedKnowledgeBase(null);
-				}
-			} catch (error) {
-				console.error("Error deleting knowledge base:", error);
+	const confirmDeleteKnowledgeBase = async () => {
+		if (!deleteKnowledgeBaseDialog.knowledgeBaseId) return;
+
+		try {
+			await deleteKnowledgeBaseMutation.mutateAsync(deleteKnowledgeBaseDialog.knowledgeBaseId);
+			// Reset selected knowledge base if it was deleted
+			if (selectedKnowledgeBase?.id === deleteKnowledgeBaseDialog.knowledgeBaseId) {
+				setSelectedKnowledgeBase(null);
 			}
+			setDeleteKnowledgeBaseDialog({ isOpen: false, knowledgeBaseId: null, knowledgeBaseName: null });
+		} catch (error) {
+			console.error("Error deleting knowledge base:", error);
 		}
 	};
 
@@ -277,7 +313,7 @@ export default function KnowledgeBasePage() {
 								<Button
 									outline
 									className="text-red-600 hover:bg-red-50"
-									onClick={() => handleDeleteKnowledgeBase(selectedKnowledgeBase.id)}
+									onClick={() => handleDeleteKnowledgeBase(selectedKnowledgeBase.id, selectedKnowledgeBase.name)}
 									disabled={deleteKnowledgeBaseMutation.isPending}
 								>
 									Delete Knowledge Base
@@ -400,13 +436,10 @@ export default function KnowledgeBasePage() {
 
 										<TableCell>
 											<div className="flex gap-2">
-												<Button outline onClick={() => handleEditDocument(doc)}>
-													<PencilIcon className="h-4 w-4" />
-												</Button>
 												<Button
 													outline
 													className="text-red-600 hover:bg-red-50"
-													onClick={() => handleDeleteDocument(doc.id)}
+													onClick={() => handleDeleteDocument(doc.id, doc.title)}
 													disabled={deleteDocumentMutation.isPending}
 												>
 													<TrashIcon className="h-4 w-4" />
@@ -459,6 +492,30 @@ export default function KnowledgeBasePage() {
 				open={isCreateKnowledgeBaseDialogOpen}
 				onClose={() => setIsCreateKnowledgeBaseDialogOpen(false)}
 				onCreate={handleCreateKnowledgeBase}
+			/>
+
+			{/* Delete Document Confirmation Dialog */}
+			<ConfirmationDialog
+				isOpen={deleteDocumentDialog.isOpen}
+				onClose={() => setDeleteDocumentDialog({ isOpen: false, documentId: null, documentTitle: null })}
+				onConfirm={confirmDeleteDocument}
+				title="Delete Document"
+				message={`Are you sure you want to delete "${deleteDocumentDialog.documentTitle}"? This action cannot be undone.`}
+				confirmText="Delete Document"
+				isDestructive={true}
+				isLoading={deleteDocumentMutation.isPending}
+			/>
+
+			{/* Delete Knowledge Base Confirmation Dialog */}
+			<ConfirmationDialog
+				isOpen={deleteKnowledgeBaseDialog.isOpen}
+				onClose={() => setDeleteKnowledgeBaseDialog({ isOpen: false, knowledgeBaseId: null, knowledgeBaseName: null })}
+				onConfirm={confirmDeleteKnowledgeBase}
+				title="Delete Knowledge Base"
+				message={`Are you sure you want to delete "${deleteKnowledgeBaseDialog.knowledgeBaseName}"? This will permanently delete the knowledge base and all its documents. This action cannot be undone.`}
+				confirmText="Delete Knowledge Base"
+				isDestructive={true}
+				isLoading={deleteKnowledgeBaseMutation.isPending}
 			/>
 		</div>
 	);

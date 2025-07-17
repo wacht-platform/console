@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
 import { useProjects } from "@/lib/api/hooks/use-projects";
-import { toast } from 'sonner';
+import { toast } from "sonner";
 
 export interface KnowledgeBase {
   id: string;
@@ -57,7 +57,7 @@ async function fetchKnowledgeBases(
     limit?: number;
     offset?: number;
     search?: string;
-  }
+  },
 ): Promise<KnowledgeBasesResponse> {
   const searchParams = new URLSearchParams();
   if (params?.limit) searchParams.set("limit", params.limit.toString());
@@ -65,28 +65,28 @@ async function fetchKnowledgeBases(
   if (params?.search) searchParams.set("search", params.search);
 
   const { data } = await apiClient.get<KnowledgeBasesResponse>(
-    `/deployment/${deploymentId}/ai-knowledge-bases?${searchParams.toString()}`
+    `/deployments/${deploymentId}/ai-knowledge-bases?${searchParams.toString()}`,
   );
   return data;
 }
 
 async function fetchKnowledgeBase(
   deploymentId: string,
-  knowledgeBaseId: string
+  knowledgeBaseId: string,
 ): Promise<KnowledgeBase> {
   const { data } = await apiClient.get<KnowledgeBase>(
-    `/deployment/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}`
+    `/deployments/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}`,
   );
   return data;
 }
 
 async function createKnowledgeBase(
   deploymentId: string,
-  request: CreateKnowledgeBaseRequest
+  request: CreateKnowledgeBaseRequest,
 ): Promise<KnowledgeBase> {
   const { data } = await apiClient.post<KnowledgeBase>(
-    `/deployment/${deploymentId}/ai-knowledge-bases`,
-    request
+    `/deployments/${deploymentId}/ai-knowledge-bases`,
+    request,
   );
   return data;
 }
@@ -94,31 +94,31 @@ async function createKnowledgeBase(
 async function updateKnowledgeBase(
   deploymentId: string,
   knowledgeBaseId: string,
-  request: UpdateKnowledgeBaseRequest
+  request: UpdateKnowledgeBaseRequest,
 ): Promise<KnowledgeBase> {
   const { data } = await apiClient.patch<KnowledgeBase>(
-    `/deployment/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}`,
-    request
+    `/deployments/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}`,
+    request,
   );
   return data;
 }
 
 async function deleteKnowledgeBase(
   deploymentId: string,
-  knowledgeBaseId: string
+  knowledgeBaseId: string,
 ): Promise<void> {
   await apiClient.delete(
-    `/deployment/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}`
+    `/deployments/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}`,
   );
 }
 
 async function deleteDocument(
   deploymentId: string,
   knowledgeBaseId: string,
-  documentId: string
+  documentId: string,
 ): Promise<void> {
   await apiClient.delete(
-    `/deployment/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}/documents/${documentId}`
+    `/deployments/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}/documents/${documentId}`,
   );
 }
 
@@ -128,14 +128,14 @@ async function fetchKnowledgeBaseDocuments(
   params?: {
     limit?: number;
     offset?: number;
-  }
+  },
 ): Promise<DocumentsResponse> {
   const searchParams = new URLSearchParams();
   if (params?.limit) searchParams.set("limit", params.limit.toString());
   if (params?.offset) searchParams.set("offset", params.offset.toString());
 
   const { data } = await apiClient.get<DocumentsResponse>(
-    `/deployment/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}/documents?${searchParams.toString()}`
+    `/deployments/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}/documents?${searchParams.toString()}`,
   );
   return data;
 }
@@ -143,39 +143,25 @@ async function fetchKnowledgeBaseDocuments(
 async function uploadDocument(
   deploymentId: string,
   knowledgeBaseId: string,
-  formData: FormData
+  formData: FormData,
 ): Promise<KnowledgeBaseDocument> {
   const { data } = await apiClient.post<KnowledgeBaseDocument>(
-    `/deployment/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}/documents`,
+    `/deployments/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}/documents`,
     formData,
     {
       headers: {
         "Content-Type": "multipart/form-data",
       },
-    }
+    },
   );
   return data;
 }
 
-async function uploadUrl(
-  deploymentId: string,
-  knowledgeBaseId: string,
-  request: { title: string; description?: string; url: string }
-): Promise<KnowledgeBaseDocument> {
-  const { data } = await apiClient.post<KnowledgeBaseDocument>(
-    `/deployment/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}/documents/url`,
-    request
-  );
-  return data;
-}
-
-export function useKnowledgeBases(
-  params?: {
-    limit?: number;
-    offset?: number;
-    search?: string;
-  }
-) {
+export function useKnowledgeBases(params?: {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}) {
   const { selectedDeployment } = useProjects();
 
   return useQuery({
@@ -264,7 +250,11 @@ export function useDeleteDocument(knowledgeBaseId: string) {
       deleteDocument(selectedDeployment!.id, knowledgeBaseId, documentId),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["knowledge-base-documents", selectedDeployment!.id, knowledgeBaseId],
+        queryKey: [
+          "knowledge-base-documents",
+          selectedDeployment!.id,
+          knowledgeBaseId,
+        ],
       });
       queryClient.invalidateQueries({
         queryKey: ["knowledge-base", selectedDeployment!.id, knowledgeBaseId],
@@ -285,13 +275,23 @@ export function useKnowledgeBaseDocuments(
   params?: {
     limit?: number;
     offset?: number;
-  }
+  },
 ) {
   const { selectedDeployment } = useProjects();
 
   return useQuery({
-    queryKey: ["knowledge-base-documents", selectedDeployment?.id, knowledgeBaseId, params],
-    queryFn: () => fetchKnowledgeBaseDocuments(selectedDeployment!.id, knowledgeBaseId, params),
+    queryKey: [
+      "knowledge-base-documents",
+      selectedDeployment?.id,
+      knowledgeBaseId,
+      params,
+    ],
+    queryFn: () =>
+      fetchKnowledgeBaseDocuments(
+        selectedDeployment!.id,
+        knowledgeBaseId,
+        params,
+      ),
     enabled: !!selectedDeployment?.id && !!knowledgeBaseId,
     select: (data) => ({
       documents: data.data,
@@ -309,7 +309,11 @@ export function useUploadDocument(knowledgeBaseId: string) {
       uploadDocument(selectedDeployment!.id, knowledgeBaseId, formData),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["knowledge-base-documents", selectedDeployment!.id, knowledgeBaseId],
+        queryKey: [
+          "knowledge-base-documents",
+          selectedDeployment!.id,
+          knowledgeBaseId,
+        ],
       });
       queryClient.invalidateQueries({
         queryKey: ["knowledge-base", selectedDeployment!.id, knowledgeBaseId],
@@ -318,28 +322,6 @@ export function useUploadDocument(knowledgeBaseId: string) {
     },
     onError: () => {
       toast.error("Failed to upload document. Please try again.");
-    },
-  });
-}
-
-export function useUploadUrl(knowledgeBaseId: string) {
-  const { selectedDeployment } = useProjects();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (request: { title: string; description?: string; url: string }) =>
-      uploadUrl(selectedDeployment!.id, knowledgeBaseId, request),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["knowledge-base-documents", selectedDeployment!.id, knowledgeBaseId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["knowledge-base", selectedDeployment!.id, knowledgeBaseId],
-      });
-      toast.success("URL uploaded successfully!");
-    },
-    onError: () => {
-      toast.error("Failed to upload URL. Please try again.");
     },
   });
 }

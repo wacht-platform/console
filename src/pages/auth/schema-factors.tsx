@@ -1455,7 +1455,7 @@ export default function SchemaFactorsPage() {
                     settings.auth_factors_enabled?.authenticator || false
                   }
                   onChange={(checked) =>
-                    handleToggle("2fa_authenticator_enabled", checked)
+                    handleToggle("second_factor_authenticator_enabled", checked)
                   }
                 />
               </SwitchField>
@@ -1465,9 +1465,9 @@ export default function SchemaFactorsPage() {
                 <Description>Users can verify with a backup code</Description>
                 <Switch
                   name="2fa_backup_code_enabled"
-                  checked={settings.auth_factors_enabled?.backup_code}
+                  checked={settings.auth_factors_enabled?.backup_code || false}
                   onChange={(checked) =>
-                    handleToggle("2fa_backup_code_enabled", checked)
+                    handleToggle("second_factor_backup_code_enabled", checked)
                   }
                 />
               </SwitchField>

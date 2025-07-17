@@ -18,6 +18,7 @@ import {
 	TableRow,
 } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
+import { ConfirmationDialog } from "../../components/modals/confirmation-dialog";
 import { CreateToolDialog } from "../../components/ai-agents/create-tool-dialog";
 import { useTools, useDeleteTool } from "../../lib/api/hooks/use-tools";
 import type { AiTool } from "@/types/ai-tool";
@@ -41,6 +42,8 @@ export default function ToolsPage() {
 	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 	const [editingTool, setEditingTool] = useState<AiTool | null>(null);
 	const [searchTerm, setSearchTerm] = useState("");
+	const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+	const [toolToDelete, setToolToDelete] = useState<AiTool | null>(null);
 
 	// API hooks
 	const { data, isLoading, error } = useTools({
@@ -59,10 +62,17 @@ export default function ToolsPage() {
 		setIsCreateDialogOpen(true);
 	};
 
-	const handleDeleteTool = async (toolId: string) => {
-		if (confirm("Are you sure you want to delete this tool?")) {
+	const handleDeleteTool = (tool: AiTool) => {
+		setToolToDelete(tool);
+		setConfirmDeleteOpen(true);
+	};
+
+	const handleConfirmDelete = async () => {
+		if (toolToDelete) {
 			try {
-				await deleteToolMutation.mutateAsync(toolId);
+				await deleteToolMutation.mutateAsync(toolToDelete.id);
+				setConfirmDeleteOpen(false);
+				setToolToDelete(null);
 			} catch (error) {
 				console.error("Failed to delete tool:", error);
 			}
@@ -165,7 +175,7 @@ export default function ToolsPage() {
 											<Button
 												outline
 												className="text-red-600 hover:bg-red-50"
-												onClick={() => handleDeleteTool(tool.id)}
+												onClick={() => handleDeleteTool(tool)}
 												disabled={deleteToolMutation.isPending}
 											>
 												<TrashIcon className="h-4 w-4" />
@@ -186,6 +196,20 @@ export default function ToolsPage() {
 					setEditingTool(null);
 				}}
 				tool={editingTool || undefined}
+			/>
+			
+			<ConfirmationDialog
+				isOpen={confirmDeleteOpen}
+				onClose={() => {
+					setConfirmDeleteOpen(false);
+					setToolToDelete(null);
+				}}
+				onConfirm={handleConfirmDelete}
+				title="Delete Tool"
+				message={toolToDelete ? `Are you sure you want to delete the tool "${toolToDelete.name}"? This action cannot be undone.` : ''}
+				confirmText="Delete"
+				isDestructive={true}
+				isLoading={deleteToolMutation.isPending}
 			/>
 		</div>
 	);

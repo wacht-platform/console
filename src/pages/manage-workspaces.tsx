@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/fieldset";
 import { Radio, RadioField, RadioGroup } from "@/components/ui/radio";
+import { toast } from "sonner";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 import { useUpdateDeploymentB2bSettings } from "@/lib/api/hooks/use-update-deployment-b2b-settings";
 import { useDeploymentWorkspaceRoles } from "@/lib/api/hooks/use-deployment-workspace-roles";
@@ -188,11 +189,11 @@ export default function ManageWorkspacesPage() {
 
       await updateB2bSettings.mutateAsync(payload);
 
-      alert("Workspace settings updated successfully");
+      toast.success("Workspace settings updated successfully");
       setIsDirty(false);
     } catch (error) {
       console.error("Failed to update settings:", error);
-      alert("Failed to update workspace settings");
+      toast.error("Failed to update workspace settings");
     } finally {
       setIsSaving(false);
     }

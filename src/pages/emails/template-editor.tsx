@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import { Heading } from "@/components/ui/heading";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,9 @@ import { EmailTemplate } from "@/types/deployment";
 import type { IJodit } from "jodit/esm/types/jodit";
 import { useEmailTemplate } from "@/lib/api/hooks/use-email-templates";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
+import { EnvelopeIcon, ArrowLeftIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
+import { Spinner } from "@/components/ui/spinner";
+import { toast } from "sonner";
 
 interface RichTextEditorProps {
   value: string;
@@ -27,10 +30,41 @@ const RichTextEditor = ({
       readonly: false,
       toolbarAdaptive: false,
       placeholder: "",
-      buttons: ["link", "source", "image", "fontsize"],
+      buttons: [
+        "bold",
+        "italic",
+        "underline",
+        "|",
+        "ul",
+        "ol",
+        "|",
+        "outdent",
+        "indent",
+        "|",
+        "fontsize",
+        "|",
+        "link",
+        "image",
+        "|",
+        "align",
+        "|",
+        "hr",
+        "|",
+        "source",
+      ],
       showCharsCounter: false,
       showWordsCounter: false,
       showXPathInStatusbar: false,
+      height: 500,
+      toolbarButtonSize: "middle" as const,
+      style: {
+        '.jodit-wysiwyg': {
+          padding: '16px',
+          fontSize: '14px',
+          lineHeight: '1.6',
+          color: '#374151',
+        },
+      },
     }),
     []
   );
@@ -42,22 +76,20 @@ const RichTextEditor = ({
   }, [onEditorInit]);
 
   return (
-    <div className="rich-text-editor">
-      <div className="quill-container rounded-b">
-        <JoditEditor
-          ref={editor}
-          value={value}
-          config={config}
-          onChange={onChange}
-        />
-      </div>
-    </div>
+    <JoditEditor
+      ref={editor}
+      value={value}
+      config={config}
+      onChange={onChange}
+    />
   );
 };
 
 export default function EmailTemplateEditor() {
   const { templateId } = useParams<{ templateId: string }>();
+  const navigate = useNavigate();
   const editorRef = useRef<IJodit | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const { emailTemplate, isLoading, error, updateTemplate } = useEmailTemplate(
     templateId!
@@ -94,7 +126,7 @@ export default function EmailTemplateEditor() {
   const handleEditorChange = (html: string) => {
     setFormData((prev) => ({
       ...prev,
-      body: html,
+      template_data: html,
     }));
   };
 
@@ -102,127 +134,272 @@ export default function EmailTemplateEditor() {
     editorRef.current = editor;
   };
 
-  const onSave = () => {
-    updateTemplate(formData);
+  const onSave = async () => {
+    setIsSaving(true);
+    try {
+      await updateTemplate(formData);
+      toast.success("Email template saved successfully!");
+    } catch (error) {
+      toast.error("Failed to save email template");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-2">
-          <Heading className="text-2xl font-bold">
-            {formData.template_name || "New template"}
-          </Heading>
+  const handleBack = () => {
+    navigate("/emails");
+  };
+
+  const insertVariable = (variable: string) => {
+    if (editorRef.current) {
+      const editor = editorRef.current;
+      editor.selection.insertHTML(`{{${variable}}}`);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Spinner className="w-8 h-8 mx-auto mb-4" />
+          <p className="text-sm text-gray-500">Loading template...</p>
         </div>
-        <Button onClick={onSave}>Save Template</Button>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600">Error loading template</p>
+        <Button onClick={handleBack} className="mt-4">
+          Back to Templates
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-6">
+        <button
+          onClick={handleBack}
+          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
+        >
+          <ArrowLeftIcon className="w-4 h-4 mr-1" />
+          Back to templates
+        </button>
+        <div className="flex items-center justify-between">
+          <div>
+            <Heading className="text-2xl font-normal text-gray-900">
+              {formData.template_name || "Email Template"}
+            </Heading>
+            <p className="mt-1 text-sm text-gray-600">Customize your email template content and settings</p>
+          </div>
+          <Button onClick={onSave} disabled={isSaving}>
+            {isSaving ? (
+              <>
+                <Spinner className="w-4 h-4 mr-2" />
+                Saving...
+              </>
+            ) : (
+              "Save Template"
+            )}
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <div className="w-full">
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <div className="grid gap-2">
+        <div className="lg:col-span-2 space-y-8">
+          <div>
+            <h3 className="text-base font-normal leading-6 text-gray-900 mb-4">Template Settings</h3>
+            <div className="space-y-4">
+                <div>
                   <label
                     htmlFor="name"
-                    className="text-sm font-medium text-gray-700"
+                    className="block text-sm font-normal text-gray-700"
                   >
                     Template Name
                   </label>
+                  <p className="mt-1 text-sm text-gray-500">This name is for internal reference only</p>
                   <Input
                     id="name"
                     value={formData.template_name}
                     onChange={(e) =>
                       handleInputChange("template_name", e.target.value)
                     }
-                    placeholder="Enter template name"
-                    className="w-full"
+                    placeholder="e.g., Welcome Email, Password Reset"
+                    className="mt-2 w-full"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 gap-4">
-                  <div className="space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
                     <label
                       htmlFor="from"
-                      className="text-sm font-medium text-gray-700"
+                      className="block text-sm font-normal text-gray-700"
                     >
-                      From
+                      From Address
                     </label>
-                    <div className="relative">
+                    <p className="mt-1 text-sm text-gray-500">The sender name for this email</p>
+                    <div className="mt-2 flex rounded-md shadow-sm">
                       <Input
                         id="from"
                         value={formData.template_from}
                         onChange={(e) =>
                           handleInputChange("template_from", e.target.value)
                         }
-                        className="w-full rounded-r-none"
+                        className="flex-1 rounded-r-none"
+                        placeholder="noreply"
                       />
-                      <div className="absolute rounded-r-md right-[1.2px] top-[1.2px] bottom-[1.2px] px-3 bg-gray-100 text-gray-500 flex items-center">
+                      <span className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
                         @{deploymentSettings?.mail_from_host}
-                      </div>
+                      </span>
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div>
                     <label
                       htmlFor="reply-to"
-                      className="text-sm font-medium text-gray-700"
+                      className="block text-sm font-normal text-gray-700"
                     >
-                      Reply-To
+                      Reply-To Address
                     </label>
-                    <div className="relative">
+                    <p className="mt-1 text-sm text-gray-500">Where replies should be sent</p>
+                    <div className="mt-2 flex rounded-md shadow-sm">
                       <Input
                         id="reply-to"
                         value={formData.template_reply_to}
                         onChange={(e) =>
                           handleInputChange("template_reply_to", e.target.value)
                         }
-                        className="w-full rounded-r-none"
+                        className="flex-1 rounded-r-none"
+                        placeholder="support"
                       />
-                      <div className="absolute rounded-r-md right-[1.2px] top-[1.2px] bottom-[1.2px] px-3 bg-gray-100 text-gray-500 flex items-center">
+                      <span className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
                         @{deploymentSettings?.mail_from_host}
-                      </div>
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid gap-2">
+                <div>
                   <label
                     htmlFor="subject"
-                    className="text-sm font-medium text-gray-700"
+                    className="block text-sm font-normal text-gray-700"
                   >
-                    Subject
+                    Email Subject
                   </label>
+                  <p className="mt-1 text-sm text-gray-500">You can use template variables in the subject line</p>
                   <Input
                     id="subject"
                     value={formData.template_subject}
                     onChange={(e) =>
                       handleInputChange("template_subject", e.target.value)
                     }
-                    className="w-full"
+                    className="mt-2 w-full"
+                    placeholder="e.g., Welcome to {{app_name}}!"
                   />
                 </div>
-              </div>
+            </div>
+          </div>
 
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold">Email Body</h2>
-                <RichTextEditor
-                  value={formData.template_data}
-                  onChange={handleEditorChange}
-                  onEditorInit={handleEditorInit}
-                />
-              </div>
+          <div>
+            <h3 className="text-base font-normal leading-6 text-gray-900 mb-4">Email Content</h3>
+            <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+              <RichTextEditor
+                value={formData.template_data}
+                onChange={handleEditorChange}
+                onEditorInit={handleEditorInit}
+              />
             </div>
           </div>
         </div>
 
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg sticky top-6">
-            <h2 className="text-lg">Available Variables</h2>
-            <p className="text-sm text-gray-500">
-              You can use these variables in your template. Click on a variable
-              to insert it at the cursor position.
-            </p>
+          <div className="bg-gray-50 border border-gray-200 rounded-lg sticky top-6">
+            <div className="px-5 py-5">
+              <h3 className="text-base font-normal leading-6 text-gray-900 mb-4">Template Variables</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Click on a variable to insert it at the cursor position in the editor.
+              </p>
+              
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-xs font-normal text-gray-500 uppercase tracking-wide mb-2">User Information</h4>
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => insertVariable("user.first_name")}
+                      className="w-full text-left px-3 py-2 text-sm bg-white hover:bg-gray-50 rounded-md transition-colors border border-gray-200"
+                    >
+                      <span className="font-mono text-xs text-gray-600">{`{{user.first_name}}`}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertVariable("user.last_name")}
+                      className="w-full text-left px-3 py-2 text-sm bg-white hover:bg-gray-50 rounded-md transition-colors border border-gray-200"
+                    >
+                      <span className="font-mono text-xs text-gray-600">{`{{user.last_name}}`}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertVariable("user.email")}
+                      className="w-full text-left px-3 py-2 text-sm bg-white hover:bg-gray-50 rounded-md transition-colors border border-gray-200"
+                    >
+                      <span className="font-mono text-xs text-gray-600">{`{{user.email}}`}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-normal text-gray-500 uppercase tracking-wide mb-2">Application</h4>
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => insertVariable("app_name")}
+                      className="w-full text-left px-3 py-2 text-sm bg-white hover:bg-gray-50 rounded-md transition-colors border border-gray-200"
+                    >
+                      <span className="font-mono text-xs text-gray-600">{`{{app_name}}`}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertVariable("app_url")}
+                      className="w-full text-left px-3 py-2 text-sm bg-white hover:bg-gray-50 rounded-md transition-colors border border-gray-200"
+                    >
+                      <span className="font-mono text-xs text-gray-600">{`{{app_url}}`}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-normal text-gray-500 uppercase tracking-wide mb-2">Authentication</h4>
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => insertVariable("verification_code")}
+                      className="w-full text-left px-3 py-2 text-sm bg-white hover:bg-gray-50 rounded-md transition-colors border border-gray-200"
+                    >
+                      <span className="font-mono text-xs text-gray-600">{`{{verification_code}}`}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertVariable("magic_link")}
+                      className="w-full text-left px-3 py-2 text-sm bg-white hover:bg-gray-50 rounded-md transition-colors border border-gray-200"
+                    >
+                      <span className="font-mono text-xs text-gray-600">{`{{magic_link}}`}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertVariable("reset_link")}
+                      className="w-full text-left px-3 py-2 text-sm bg-white hover:bg-gray-50 rounded-md transition-colors border border-gray-200"
+                    >
+                      <span className="font-mono text-xs text-gray-600">{`{{reset_link}}`}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

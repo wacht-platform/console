@@ -8,7 +8,6 @@ import {
   FieldGroup,
   Label,
   Description,
-  Fieldset,
 } from "@/components/ui/fieldset";
 import { DeploymentJWTTemplate } from "@/types/deployment";
 import Editor from "@monaco-editor/react";
@@ -17,9 +16,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { useDeploymentJWTTemplates } from "@/lib/api/hooks/use-deployment-jwt-templates";
 import { Button } from "@/components/ui/button";
-import { TrashIcon } from "@heroicons/react/24/outline";
+import { TrashIcon, DocumentDuplicateIcon, KeyIcon, ClockIcon, CpuChipIcon } from "@heroicons/react/24/outline";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from 'sonner';
+import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
 
 export default function JWTTemplateCreateUpdatePage() {
   const { templateId } = useParams();
@@ -49,12 +49,14 @@ export default function JWTTemplateCreateUpdatePage() {
   const [secretKey, setSecretKey] = useState("");
   const isEditMode = !!templateId;
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   useEffect(() => {
     if (templateId && jwtTemplates) {
       const template = jwtTemplates.find((t) => t.id === templateId);
       if (template) {
         setFormData(template);
+        setClaims(JSON.stringify(template.template || {}, null, 2));
         setIsCustomSigningKey(!!template.custom_signing_key?.enabled);
         if (template.custom_signing_key) {
           setSigningAlgorithm(template.custom_signing_key.algorithm || "HS256");
@@ -188,7 +190,11 @@ export default function JWTTemplateCreateUpdatePage() {
     }
   };
 
-  async function deleteTemplate() {
+  async function handleDeleteTemplate() {
+    setConfirmDeleteOpen(true);
+  }
+
+  async function confirmDeleteTemplate() {
     if (!templateId) return;
 
     try {
@@ -198,116 +204,159 @@ export default function JWTTemplateCreateUpdatePage() {
     } catch (error) {
       toast.error("Failed to delete JWT template");
       console.error(error);
+    } finally {
+      setConfirmDeleteOpen(false);
     }
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <Heading>
-          {isEditMode ? "Update Template" : "Create New Template"}
-        </Heading>
-        <div className="flex items-center gap-4">
-          {isEditMode && !isDeletingJWTTemplate && (
-            <TrashIcon
-              className="w-6 h-6 text-red-500 cursor-pointer"
-              onClick={deleteTemplate}
-            />
-          )}
-          {isDeletingJWTTemplate && <Spinner className="w-5 h-5" />}
-          <Button
-            onClick={handleSubmit}
-            disabled={isCreatingJWTTemplate || isUpdatingJWTTemplate}
-          >
-            {isCreatingJWTTemplate || isUpdatingJWTTemplate
-              ? isEditMode
-                ? "Updating..."
-                : "Creating..."
-              : isEditMode
-                ? "Update Template"
-                : "Create Template"}
-          </Button>
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-8">
+        <div className="flex justify-between items-start">
+          <div>
+            <Heading className="text-2xl font-normal text-gray-900">
+              {isEditMode ? "Edit JWT Template" : "Create JWT Template"}
+            </Heading>
+            <p className="mt-1 text-sm text-gray-600">
+              {isEditMode 
+                ? "Update your JWT template configuration and claims" 
+                : "Configure a new JWT template for token generation"}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {isEditMode && (
+              <Button
+                outline
+                className="text-red-600 hover:bg-red-50 border-red-200"
+                onClick={handleDeleteTemplate}
+                disabled={isDeletingJWTTemplate}
+              >
+                {isDeletingJWTTemplate ? (
+                  <Spinner className="w-4 h-4" />
+                ) : (
+                  <TrashIcon className="w-4 h-4" />
+                )}
+                <span className="ml-2">Delete</span>
+              </Button>
+            )}
+            <Button
+              onClick={handleSubmit}
+              disabled={isCreatingJWTTemplate || isUpdatingJWTTemplate}
+            >
+              {isCreatingJWTTemplate || isUpdatingJWTTemplate
+                ? isEditMode
+                  ? "Updating..."
+                  : "Creating..."
+                : isEditMode
+                  ? "Update Template"
+                  : "Create Template"}
+            </Button>
+          </div>
         </div>
       </div>
 
       {validationError && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center">
+          <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          </svg>
           {validationError}
         </div>
       )}
 
-      <div className="space-y-8 mt-4">
-        <Field>
-          <Label>Name</Label>
-          <Input
-            name="name"
-            className="mt-0"
-            inputClassName="mt-0"
-            value={formData.name}
-            onChange={handleInputChange}
-            placeholder="Template name"
-          />
-        </Field>
-
-        <Fieldset>
-          <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-8">
+        <div className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
+          <div className="px-6 py-6">
+            <h3 className="text-base font-normal leading-6 text-gray-900 mb-4">Basic Information</h3>
             <Field>
-              <Label>Token lifetime</Label>
-              <div className="relative mt-2">
-                <Input
-                  name="token_lifetime"
-                  value={formData.token_lifetime}
-                  onChange={handleNumberInputChange}
-                  type="number"
-                  min="1"
-                />
-                <div className="rounded-r-md text-sm flex items-center px-4 bg-gray-100 absolute right-[1.2px] top-[1.2px] bottom-[1.2px]">
-                  seconds
-                </div>
-              </div>
-            </Field>
-
-            <Field>
-              <Label>Allowed clock skew</Label>
-              <div className="relative mt-2">
-                <Input
-                  name="allowed_clock_skew"
-                  value={formData.allowed_clock_skew}
-                  onChange={handleNumberInputChange}
-                  type="number"
-                  min="0"
-                />
-                <div className="rounded-r-md text-sm flex items-center px-4 bg-gray-100 absolute right-[1.2px] top-[1.2px] bottom-[1.2px]">
-                  seconds
-                </div>
-              </div>
-            </Field>
-          </FieldGroup>
-        </Fieldset>
-
-        <Fieldset>
-          <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <SwitchField className="h-fit">
-              <Label>Custom signing key</Label>
-              <Description>
-                Enable if using a third-party authentication service that
-                requires custom signing keys
-              </Description>
-              <Switch
-                checked={isCustomSigningKey}
-                onChange={toggleCustomSigningKey}
-                name="custom_signing_key"
+              <Label>Template Name</Label>
+              <Description>A unique name to identify this JWT template</Description>
+              <Input
+                name="name"
+                className="mt-2"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="e.g., API Access Token, User Session Token"
               />
-            </SwitchField>
-            {isCustomSigningKey && (
-              <div className="space-y-4">
-                <Field>
-                  <Label>Signing algorithm</Label>
-                  <Listbox
-                    name="signing_algorithm"
-                    value={signingAlgorithm}
-                    onChange={handleAlgorithmChange}
-                  >
+            </Field>
+          </div>
+        </div>
+
+        <div className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
+          <div className="px-6 py-6">
+            <h3 className="text-base font-normal leading-6 text-gray-900 mb-4 flex items-center">
+              <ClockIcon className="w-5 h-5 mr-2 text-gray-400" />
+              Token Configuration
+            </h3>
+            <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Field>
+                <Label>Token Lifetime</Label>
+                <Description>How long the token remains valid</Description>
+                <div className="relative mt-2">
+                  <Input
+                    name="token_lifetime"
+                    value={formData.token_lifetime}
+                    onChange={handleNumberInputChange}
+                    type="number"
+                    min="1"
+                    className="pr-20"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <span className="text-gray-500 sm:text-sm">seconds</span>
+                  </div>
+                </div>
+              </Field>
+
+              <Field>
+                <Label>Allowed Clock Skew</Label>
+                <Description>Tolerance for time synchronization issues</Description>
+                <div className="relative mt-2">
+                  <Input
+                    name="allowed_clock_skew"
+                    value={formData.allowed_clock_skew}
+                    onChange={handleNumberInputChange}
+                    type="number"
+                    min="0"
+                    className="pr-20"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <span className="text-gray-500 sm:text-sm">seconds</span>
+                  </div>
+                </div>
+              </Field>
+            </FieldGroup>
+          </div>
+        </div>
+
+        <div className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
+          <div className="px-6 py-6">
+            <h3 className="text-base font-normal leading-6 text-gray-900 mb-4 flex items-center">
+              <KeyIcon className="w-5 h-5 mr-2 text-gray-400" />
+              Signing Configuration
+            </h3>
+            <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <SwitchField className="md:col-span-2">
+                <Label>Use Custom Signing Key</Label>
+                <Description>
+                  Enable this option if you're using a third-party authentication service that requires custom signing keys
+                </Description>
+                <Switch
+                  checked={isCustomSigningKey}
+                  onChange={toggleCustomSigningKey}
+                  name="custom_signing_key"
+                />
+              </SwitchField>
+              {isCustomSigningKey && (
+                <>
+                  <Field>
+                    <Label>Signing Algorithm</Label>
+                    <Description>The cryptographic algorithm to use</Description>
+                    <Listbox
+                      name="signing_algorithm"
+                      value={signingAlgorithm}
+                      onChange={handleAlgorithmChange}
+                      className="mt-2"
+                    >
                     <ListboxOption value="HS256">
                       <ListboxLabel>HS256</ListboxLabel>
                     </ListboxOption>
@@ -332,164 +381,216 @@ export default function JWTTemplateCreateUpdatePage() {
                     <ListboxOption value="ES384">
                       <ListboxLabel>ES384</ListboxLabel>
                     </ListboxOption>
-                  </Listbox>
-                </Field>
-                <Field>
-                  <Label>Secret Key</Label>
-                  <Textarea
-                    name="secret_key"
-                    value={secretKey}
-                    onChange={handleSecretKeyChange}
+                    </Listbox>
+                  </Field>
+                  <Field>
+                    <Label>Secret Key</Label>
+                    <Description>The key used to sign the JWT</Description>
+                    <Textarea
+                      name="secret_key"
+                      value={secretKey}
+                      onChange={handleSecretKeyChange}
+                      className="mt-2 font-mono text-sm"
+                      rows={4}
+                      placeholder="Enter your secret key here..."
+                    />
+                  </Field>
+                </>
+              )}
+            </FieldGroup>
+          </div>
+        </div>
+
+        <div className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
+          <div className="px-6 py-6">
+            <h3 className="text-base font-normal leading-6 text-gray-900 mb-4 flex items-center">
+              <CpuChipIcon className="w-5 h-5 mr-2 text-gray-400" />
+              Token Endpoints
+            </h3>
+            <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Field>
+                <Label>Issuer</Label>
+                <Description>The JWT issuer claim value</Description>
+                <div className="relative mt-2">
+                  <Input
+                    name="issuer"
+                    value={selectedDeployment?.backend_host}
+                    disabled
+                    className="pr-16 bg-gray-50"
                   />
-                </Field>
-              </div>
-            )}
-          </FieldGroup>
-        </Fieldset>
+                  <button
+                    type="button"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 inline-flex items-center px-2.5 py-1.5 text-xs font-normal text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        selectedDeployment?.backend_host || "",
+                      );
+                      toast.success("Issuer copied to clipboard!");
+                    }}
+                  >
+                    <DocumentDuplicateIcon className="w-3.5 h-3.5 mr-1" />
+                    Copy
+                  </button>
+                </div>
+              </Field>
 
-        <Fieldset>
-          <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Field>
-              <Label>Issuer</Label>
-              <div className="relative mt-2">
-                <Input
-                  name="issuer"
-                  value={selectedDeployment?.backend_host}
-                  disabled
-                />
-                <button
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 px-2 py-1 text-sm text-indigo-600 bg-indigo-50 rounded z-10"
-                  onClick={() => {
-                    navigator.clipboard.writeText(
-                      selectedDeployment?.backend_host || "",
-                    );
-                    toast.success("Issuer copied to clipboard!");
-                  }}
-                >
-                  Copy
-                </button>
-              </div>
-            </Field>
+              <Field>
+                <Label>JWKS Endpoint</Label>
+                <Description>JSON Web Key Set endpoint for public keys</Description>
+                <div className="relative mt-2">
+                  <Input
+                    name="jwks_endpoint"
+                    value={`https://${selectedDeployment?.backend_host}/.well-known/jwks.json`}
+                    disabled
+                    className="pr-16 bg-gray-50 text-sm"
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 inline-flex items-center px-2.5 py-1.5 text-xs font-normal text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        `https://${selectedDeployment?.backend_host}/.well-known/jwks.json`,
+                      );
+                      toast.success("JWKS endpoint copied to clipboard!");
+                    }}
+                  >
+                    <DocumentDuplicateIcon className="w-3.5 h-3.5 mr-1" />
+                    Copy
+                  </button>
+                </div>
+              </Field>
+            </FieldGroup>
+          </div>
+        </div>
 
-            <Field>
-              <Label>JWKS Endpoint</Label>
-              <div className="relative mt-2">
-                <Input
-                  name="jwks_endpoint"
-                  value={`https://${selectedDeployment?.backend_host}/.well-known/jwks.json`}
-                  disabled
-                />
-                <button
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 px-2 py-1 text-sm text-indigo-600 bg-indigo-50 rounded z-10"
-                  onClick={() => {
-                    navigator.clipboard.writeText(
-                      `https://${selectedDeployment?.backend_host}/.well-known/jwks.json`,
-                    );
-                    toast.success("JWKS endpoint copied to clipboard!");
-                  }}
-                >
-                  Copy
-                </button>
-              </div>
-            </Field>
-          </FieldGroup>
-        </Fieldset>
-
-        <Fieldset>
-          <FieldGroup>
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-              <div className="md:col-span-8 space-y-4">
-                <h3 className="text-sm font-medium text-gray-700">Claims</h3>
-                <Editor
-                  height="400px"
-                  defaultLanguage="json"
-                  value={claims}
-                  onChange={handleClaimsChange}
-                  theme="vs-dark"
-                  options={{
-                    minimap: { enabled: false },
-                    fontSize: 14,
-                    scrollBeyondLastLine: false,
-                    automaticLayout: true,
-                    formatOnPaste: true,
-                    formatOnType: true,
-                  }}
-                />
+        <div className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
+          <div className="px-6 py-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-8 space-y-4">
+                <div>
+                  <h3 className="text-base font-normal leading-6 text-gray-900">JWT Claims</h3>
+                  <p className="mt-1 text-sm text-gray-600">Define the payload data to include in your JWT tokens</p>
+                </div>
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <Editor
+                    height="400px"
+                    defaultLanguage="json"
+                    value={claims}
+                    onChange={handleClaimsChange}
+                    theme="vs-light"
+                    options={{
+                      minimap: { enabled: false },
+                      fontSize: 14,
+                      scrollBeyondLastLine: false,
+                      automaticLayout: true,
+                      formatOnPaste: true,
+                      formatOnType: true,
+                      lineNumbers: "on",
+                      renderLineHighlight: "all",
+                      padding: { top: 16, bottom: 16 },
+                    }}
+                  />
+                </div>
               </div>
 
-              <div className="md:col-span-4 space-y-4">
-                <h3 className="text-sm font-medium text-gray-700">
-                  Insert shortcodes
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => insertShortcode("user.id")}
-                    className="text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm w-fit"
-                  >
-                    user.id
-                  </button>
-                  <button
-                    onClick={() => insertShortcode("user.external_id")}
-                    className="text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm w-fit"
-                  >
-                    user.external_id
-                  </button>
-                  <button
-                    onClick={() => insertShortcode("user.first_name")}
-                    className="text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm w-fit"
-                  >
-                    user.first_name
-                  </button>
-                  <button
-                    onClick={() => insertShortcode("user.last_name")}
-                    className="text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm w-fit"
-                  >
-                    user.last_name
-                  </button>
-                  <button
-                    onClick={() => insertShortcode("user.full_name")}
-                    className="text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm w-fit"
-                  >
-                    user.full_name
-                  </button>
-                  <button
-                    onClick={() => insertShortcode("user.username")}
-                    className="text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm w-fit"
-                  >
-                    user.username
-                  </button>
-                  <button
-                    onClick={() => insertShortcode("user.created_at")}
-                    className="text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm w-fit"
-                  >
-                    user.created_at
-                  </button>
-                  <button
-                    onClick={() => insertShortcode("user.updated_at")}
-                    className="text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm w-fit"
-                  >
-                    user.updated_at
-                  </button>
-                  <button
-                    onClick={() => insertShortcode("user.last_sign_in_at")}
-                    className="text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm w-fit"
-                  >
-                    user.last_sign_in_at
-                  </button>
-                  <button
-                    onClick={() =>
-                      insertShortcode("user.primary_email_address")
-                    }
-                    className="text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm w-fit"
-                  >
-                    user.primary_email_address
-                  </button>
+              <div className="lg:col-span-4 space-y-4">
+                <div>
+                  <h3 className="text-base font-normal leading-6 text-gray-900">Available Variables</h3>
+                  <p className="mt-1 text-sm text-gray-600">Click to insert user attributes</p>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-xs font-normal text-gray-500 uppercase tracking-wide">User Properties</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => insertShortcode("user.id")}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      user.id
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertShortcode("user.external_id")}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      user.external_id
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertShortcode("user.first_name")}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      user.first_name
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertShortcode("user.last_name")}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      user.last_name
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertShortcode("user.full_name")}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      user.full_name
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertShortcode("user.username")}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      user.username
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertShortcode("user.created_at")}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      user.created_at
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertShortcode("user.updated_at")}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      user.updated_at
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertShortcode("user.last_sign_in_at")}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      user.last_sign_in_at
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        insertShortcode("user.primary_email_address")
+                      }
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 col-span-2"
+                    >
+                      user.primary_email_address
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </FieldGroup>
-        </Fieldset>
+          </div>
+        </div>
       </div>
+
+      <ConfirmationDialog
+        isOpen={confirmDeleteOpen}
+        onClose={() => setConfirmDeleteOpen(false)}
+        onConfirm={confirmDeleteTemplate}
+        title="Delete JWT Template"
+        message={`Are you sure you want to delete the template "${formData.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        isDestructive={true}
+        isLoading={isDeletingJWTTemplate}
+      />
     </div>
   );
 }

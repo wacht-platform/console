@@ -9,11 +9,12 @@ import { useNavigate } from "react-router";
 import { useProjectStore } from "@/lib/store/project";
 import { CreateProjectDialog } from "@/components/create-project-dialog";
 import { useState } from "react";
-import { UserButton, OrganizationSwitcher } from "@snipextt/wacht-react-router";
+import { UserButton, OrganizationSwitcher } from "@snipextt/wacht";
 import { Tab, SimpleTabs } from "@/components/ui/simple-tabs";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Heading } from "@/components/ui/heading";
 import { LoadingFallback } from "@/components/loading-fallback";
+import { PlusIcon, GlobeAltIcon, ClockIcon } from "@heroicons/react/24/outline";
+import { AIAgentChat } from "@snipextt/wacht";
 
 export default function ProjectsPage() {
   const { projects, isLoading } = useProjects();
@@ -27,91 +28,119 @@ export default function ProjectsPage() {
 
   const productionDeployments =
     projects?.filter((project) =>
-      project.deployments.some((deployment) => deployment.mode === "production")
+      project.deployments.some(
+        (deployment) => deployment.mode === "production",
+      ),
     ) || [];
 
   const stagingDeployments =
     projects?.filter((project) =>
-      project.deployments.some((deployment) => deployment.mode === "staging")
+      project.deployments.some((deployment) => deployment.mode === "staging"),
     ) || [];
 
   return (
-    <div className="mx-auto px-8 pt-24 space-y-4">
-      <Navbar className="fixed z-10 top-0 left-0 right-0 border-b border-slate-200 bg-white px-8 py-3">
-        <OrganizationSwitcher />
-        <NavbarSpacer />
-        <UserButton showName={false} />
+    <div className="min-h-screen bg-gray-50">
+      {/* Navbar */}
+      <Navbar className="fixed z-50 top-0 left-0 right-0 bg-white border-b border-gray-200 h-14">
+        <div className="max-w-7xl mx-auto w-full flex items-center px-8 h-full">
+          <OrganizationSwitcher />
+          <NavbarSpacer />
+          <UserButton showName={false} />
+        </div>
       </Navbar>
-      <div className="flex items-center justify-between">
-        <Heading>Your Projects</Heading>
-        <Button onClick={() => setCreateProjectDialogOpen(true)}>
-          <span>Create Project</span>
-        </Button>
-      </div>
 
-      <div className="w-full">
-        <SimpleTabs>
-          <Tab label="All Projects">
+      {/* Main Content */}
+      <div className="pt-14 max-w-7xl mx-auto px-8">
+        {/* Header */}
+        <div className="py-8">
+          <div className="flex items-center justify-between">
             <div>
-              {projects && projects.length > 0 ? (
-                <div className="flex flex-col space-y-2">
-                  {projects.map((project) => (
-                    <ApplicationListItem key={project.id} {...project} />
-                  ))}
-                </div>
-              ) : (
-                <EmptyState
-                  title="No projects found"
-                  description="Get started by creating your first project"
-                  actionLabel="Create project"
-                  onAction={() => setCreateProjectDialogOpen(true)}
-                />
-              )}
+              <h1 className="text-lg text-gray-900">Projects</h1>
+              <p className="mt-1 text-sm text-gray-500">
+                Manage your applications and deployments
+              </p>
             </div>
-          </Tab>
+            <Button
+              onClick={() => setCreateProjectDialogOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <PlusIcon className="w-4 h-4" />
+              <span>New project</span>
+            </Button>
+          </div>
+        </div>
 
-          <Tab label="Production Deployments">
-            <div>
-              {productionDeployments.length > 0 ? (
-                <div className="flex flex-col space-y-2">
-                  {productionDeployments.map((project) => (
-                    <ApplicationListItem
-                      key={project.id}
-                      {...project}
-                      highlightMode="production"
-                    />
-                  ))}
-                </div>
-              ) : (
-                <EmptyState
-                  title="No production deployments"
-                  description="Create a project with a production deployment"
-                />
-              )}
-            </div>
-          </Tab>
+        {/* Tabs */}
+        <div>
+          <SimpleTabs>
+            <Tab label="All projects">
+              <div className="mt-6">
+                {projects && projects.length > 0 ? (
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    {projects.map((project, index) => (
+                      <ProjectItem
+                        key={project.id}
+                        {...project}
+                        isLast={index === projects.length - 1}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState
+                    title="No projects yet"
+                    description="Create your first project to get started"
+                    actionLabel="New project"
+                    onAction={() => setCreateProjectDialogOpen(true)}
+                  />
+                )}
+              </div>
+            </Tab>
 
-          <Tab label="Staging Deployments">
-            <div>
-              {stagingDeployments.length > 0 ? (
-                <div className="flex flex-col space-y-2">
-                  {stagingDeployments.map((project) => (
-                    <ApplicationListItem
-                      key={project.id}
-                      {...project}
-                      highlightMode="staging"
-                    />
-                  ))}
-                </div>
-              ) : (
-                <EmptyState
-                  title="No staging deployments"
-                  description="Create a project with a staging deployment"
-                />
-              )}
-            </div>
-          </Tab>
-        </SimpleTabs>
+            <Tab label="Production">
+              <div className="mt-6">
+                {productionDeployments.length > 0 ? (
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    {productionDeployments.map((project, index) => (
+                      <ProjectItem
+                        key={project.id}
+                        {...project}
+                        highlightMode="production"
+                        isLast={index === productionDeployments.length - 1}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState
+                    title="No production deployments"
+                    description="Deploy your first production environment"
+                  />
+                )}
+              </div>
+            </Tab>
+
+            <Tab label="Staging">
+              <div className="mt-6">
+                {stagingDeployments.length > 0 ? (
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    {stagingDeployments.map((project, index) => (
+                      <ProjectItem
+                        key={project.id}
+                        {...project}
+                        highlightMode="staging"
+                        isLast={index === stagingDeployments.length - 1}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState
+                    title="No staging deployments"
+                    description="Create a staging environment for testing"
+                  />
+                )}
+              </div>
+            </Tab>
+          </SimpleTabs>
+        </div>
       </div>
 
       <CreateProjectDialog
@@ -122,30 +151,30 @@ export default function ProjectsPage() {
   );
 }
 
-interface ApplicationListItemProps extends ProjectWithDeployments {
+interface ProjectItemProps extends ProjectWithDeployments {
   highlightMode?: "production" | "staging";
+  isLast?: boolean;
 }
 
-function ApplicationListItem({
+function ProjectItem({
   name,
   image_url,
   deployments,
   created_at,
   id,
   highlightMode,
-}: ApplicationListItemProps) {
+  isLast,
+}: ProjectItemProps) {
   const navigate = useNavigate();
   const { setSelectedProject, setSelectedDeployment, projects } =
     useProjectStore();
 
   const navigateToProject = () => {
-    // If highlightMode is specified, prioritize that deployment type
     let targetDeployment = highlightMode
       ? deployments.find((deployment) => deployment.mode === highlightMode)
       : deployments.find((deployment) => deployment.mode === "production") ||
         deployments[0];
 
-    // Fallback if no matching deployment found
     if (!targetDeployment) {
       targetDeployment = deployments[0];
     }
@@ -158,57 +187,56 @@ function ApplicationListItem({
     }
   };
 
-  // Get badge color based on deployment mode
-  const getBadgeClass = (mode: string) => {
-    if (mode === "production") {
-      return "gap-1 border-green-200 bg-green-50 text-green-700 dark:border-green-900/50 dark:bg-green-950/50 dark:text-green-400";
-    } else if (mode === "staging") {
-      return "gap-1 border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/50 dark:bg-blue-950/50 dark:text-blue-400";
-    }
-    return "gap-1 border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-400";
-  };
-
-  // Find deployments to highlight
   const productionDeployment = deployments.find((d) => d.mode === "production");
   const stagingDeployment = deployments.find((d) => d.mode === "staging");
 
-  // Determine which deployment to show in the URL
-  const displayDeployment =
-    highlightMode === "staging" && stagingDeployment
-      ? stagingDeployment
-      : productionDeployment || deployments[0];
+  // Get the primary deployment URL
+  const primaryDeployment =
+    productionDeployment || stagingDeployment || deployments[0];
 
   return (
     <div
       onClick={navigateToProject}
-      className="cursor-pointer group flex items-center justify-between py-4 border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors"
+      className={`px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors ${!isLast ? "border-b border-gray-200" : ""}`}
     >
-      <div className="flex items-center gap-4">
-        <Avatar className="w-8 h-8" initials={name.charAt(0)} src={image_url} />
-        <div className="space-y-1">
-          <h3 className="text-sm font-medium text-slate-900 dark:text-white">
-            {name}
-          </h3>
-          <div className="flex items-center gap-2">
-            <Badge className={getBadgeClass(displayDeployment.mode)}>
-              https://{displayDeployment.frontend_host}
-            </Badge>
-            <span className="text-xs text-slate-500 dark:text-slate-400">
-              Created {format(new Date(created_at), "MMM d, yyyy")}
-            </span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Avatar
+            className="w-10 h-10"
+            initials={name.charAt(0)}
+            src={image_url}
+          />
+          <div className="space-y-1">
+            <h3 className="text-sm font-medium text-gray-900">{name}</h3>
+            <div className="flex items-center gap-4 text-xs text-gray-500">
+              <div className="flex items-center gap-1">
+                <ClockIcon className="w-3 h-3" />
+                <span>{format(new Date(created_at), "MMM d, yyyy")}</span>
+              </div>
+              {primaryDeployment && (
+                <div className="flex items-center gap-1">
+                  <GlobeAltIcon className="w-3 h-3" />
+                  <span className="truncate max-w-xs">
+                    {primaryDeployment.frontend_host}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-      <div className="flex items-center gap-2">
-        {productionDeployment && (
-          <Badge className={getBadgeClass("production")}>Production</Badge>
-        )}
-        {stagingDeployment && (
-          <Badge className={getBadgeClass("staging")}>Staging</Badge>
-        )}
-        <Badge className="gap-1 border-gray-200 bg-gray-50 text-gray-700">
-          {deployments.length} deployment{deployments.length !== 1 ? "s" : ""}
-        </Badge>
+
+        <div className="flex items-center gap-3">
+          {productionDeployment && (
+            <Badge className="bg-green-50 text-green-700 border-green-200 text-xs">
+              Production
+            </Badge>
+          )}
+          {stagingDeployment && (
+            <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+              Staging
+            </Badge>
+          )}
+        </div>
       </div>
     </div>
   );

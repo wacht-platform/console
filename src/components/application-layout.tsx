@@ -49,7 +49,7 @@ import { capitalize } from "@/lib/capitalize";
 import { CreateProjectDialog } from "./create-project-dialog";
 import { CreateProductionDeploymentDialog } from "./create-production-deployment-dialog";
 import { CreateStagingDeploymentDialog } from "./create-staging-deployment-dialog";
-import { OrganizationSwitcher, UserButton } from "@snipextt/wacht-react-router";
+import { OrganizationSwitcher, UserButton } from "@snipextt/wacht";
 import { setNavigationFunction } from "@/lib/store/project";
 
 export function ApplicationLayout() {
@@ -98,11 +98,11 @@ export function ApplicationLayout() {
 
   // Check deployment limits
   const hasProductionDeployment = selectedProject?.deployments.some(
-    (deployment) => deployment.mode === "production"
+    (deployment) => deployment.mode === "production",
   );
   const stagingDeploymentCount =
     selectedProject?.deployments.filter(
-      (deployment) => deployment.mode === "staging"
+      (deployment) => deployment.mode === "staging",
     ).length || 0;
   const canCreateStagingDeployment = stagingDeploymentCount < 3;
   const canCreateProductionDeployment = !hasProductionDeployment;
@@ -118,7 +118,7 @@ export function ApplicationLayout() {
     (pathname: string) => {
       return `/project/${selectedProject?.id}/deployment/${selectedDeployment?.id}/${pathname}`;
     },
-    [selectedDeployment, selectedProject]
+    [selectedDeployment, selectedProject],
   );
 
   if (isLoading) {

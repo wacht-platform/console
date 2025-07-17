@@ -1,10 +1,10 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/button";
 import {
   Dialog,
   DialogTitle,
   DialogBody,
   DialogActions,
-} from "@/components/ui/dialog";
+} from "../ui/dialog";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
 interface ConfirmationDialogProps {

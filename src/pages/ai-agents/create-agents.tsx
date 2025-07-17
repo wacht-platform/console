@@ -18,6 +18,7 @@ import {
 	TableRow,
 } from "../../components/ui/table";
 import { CreateAgentDialog } from "../../components/ai-agents/create-agent-dialog";
+import { ConfirmationDialog } from "../../components/modals/confirmation-dialog";
 import { useAgents, useDeleteAgent, type Agent } from "../../lib/api/hooks/use-agents";
 
 
@@ -26,6 +27,8 @@ export default function CreateAgentsPage() {
 	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 	const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
 	const [searchTerm, setSearchTerm] = useState("");
+	const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+	const [agentToDelete, setAgentToDelete] = useState<Agent | null>(null);
 
 	// API hooks
 	const { data, isLoading, error } = useAgents({
@@ -44,10 +47,17 @@ export default function CreateAgentsPage() {
 		setIsCreateDialogOpen(true);
 	};
 
-	const handleDeleteAgent = async (agentId: string) => {
-		if (confirm("Are you sure you want to delete this agent?")) {
+	const handleDeleteAgent = (agent: Agent) => {
+		setAgentToDelete(agent);
+		setConfirmDeleteOpen(true);
+	};
+
+	const handleConfirmDelete = async () => {
+		if (agentToDelete) {
 			try {
-				await deleteAgentMutation.mutateAsync(agentId);
+				await deleteAgentMutation.mutateAsync(agentToDelete.id);
+				setConfirmDeleteOpen(false);
+				setAgentToDelete(null);
 			} catch (error) {
 				console.error("Failed to delete agent:", error);
 			}
@@ -146,7 +156,7 @@ export default function CreateAgentsPage() {
 											<Button
 												outline
 												className="text-red-600 hover:bg-red-50"
-												onClick={() => handleDeleteAgent(agent.id)}
+												onClick={() => handleDeleteAgent(agent)}
 												disabled={deleteAgentMutation.isPending}
 											>
 												<TrashIcon className="h-4 w-4" />
@@ -167,6 +177,20 @@ export default function CreateAgentsPage() {
 					setEditingAgent(null);
 				}}
 				agent={editingAgent}
+			/>
+			
+			<ConfirmationDialog
+				isOpen={confirmDeleteOpen}
+				onClose={() => {
+					setConfirmDeleteOpen(false);
+					setAgentToDelete(null);
+				}}
+				onConfirm={handleConfirmDelete}
+				title="Delete Agent"
+				message={agentToDelete ? `Are you sure you want to delete the agent "${agentToDelete.name}"? This action cannot be undone.` : ''}
+				confirmText="Delete"
+				isDestructive={true}
+				isLoading={deleteAgentMutation.isPending}
 			/>
 		</div>
 	);

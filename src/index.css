@@ -154,3 +154,61 @@
 .react-flow__node {
     min-width: 350px;
 }
+
+/* Jodit Editor Styling */
+.jodit-container {
+    border: none !important;
+    font-family: inherit !important;
+}
+
+.jodit-toolbar {
+    border: none !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    background-color: #f9fafb !important;
+    padding: 8px !important;
+}
+
+.jodit-toolbar-button {
+    border: none !important;
+    margin: 0 2px !important;
+    background: transparent !important;
+}
+
+.jodit-toolbar-button:hover {
+    background-color: #e5e7eb !important;
+}
+
+.jodit-toolbar-button__button {
+    padding: 6px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+}
+
+.jodit-workplace {
+    border: none !important;
+}
+
+.jodit-wysiwyg {
+    padding: 0 !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    color: #374151 !important;
+    min-height: 400px !important;
+    background-color: white !important;
+}
+
+.jodit-wysiwyg p {
+    margin: 0 !important;
+}
+
+.jodit-placeholder {
+    display: none !important;
+}
+
+.jodit-wysiwyg:focus {
+    outline: none !important;
+}
+
+.jodit-status-bar {
+    display: none !important;
+}

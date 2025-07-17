@@ -41,32 +41,32 @@ interface GetAgentsParams {
 
 async function fetchAgents(
   deploymentId: string,
-  params: GetAgentsParams = {}
+  params: GetAgentsParams = {},
 ): Promise<PaginatedResponse<Agent>> {
   const { data } = await apiClient.get<PaginatedResponse<Agent>>(
-    `/deployment/${deploymentId}/ai-agents`,
-    { params }
+    `/deployments/${deploymentId}/ai-agents`,
+    { params },
   );
   return data;
 }
 
 async function fetchAgent(
   deploymentId: string,
-  agentId: string
+  agentId: string,
 ): Promise<Agent> {
   const { data } = await apiClient.get<{ data: Agent }>(
-    `/deployment/${deploymentId}/ai-agents/${agentId}`
+    `/deployments/${deploymentId}/ai-agents/${agentId}`,
   );
   return data.data;
 }
 
 async function createAgent(
   deploymentId: string,
-  agent: CreateAgentRequest
+  agent: CreateAgentRequest,
 ): Promise<Agent> {
   const { data } = await apiClient.post<{ data: Agent }>(
-    `/deployment/${deploymentId}/ai-agents`,
-    agent
+    `/deployments/${deploymentId}/ai-agents`,
+    agent,
   );
   return data.data;
 }
@@ -74,20 +74,20 @@ async function createAgent(
 async function updateAgent(
   deploymentId: string,
   agentId: string,
-  agent: UpdateAgentRequest
+  agent: UpdateAgentRequest,
 ): Promise<Agent> {
   const { data } = await apiClient.patch<{ data: Agent }>(
-    `/deployment/${deploymentId}/ai-agents/${agentId}`,
-    agent
+    `/deployments/${deploymentId}/ai-agents/${agentId}`,
+    agent,
   );
   return data.data;
 }
 
 async function deleteAgent(
   deploymentId: string,
-  agentId: string
+  agentId: string,
 ): Promise<void> {
-  await apiClient.delete(`/deployment/${deploymentId}/ai-agents/${agentId}`);
+  await apiClient.delete(`/deployments/${deploymentId}/ai-agents/${agentId}`);
 }
 
 export function useAgents(params: GetAgentsParams = {}) {
@@ -134,8 +134,13 @@ export function useUpdateAgent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ agentId, agent }: { agentId: string; agent: UpdateAgentRequest }) =>
-      updateAgent(selectedDeployment!.id, agentId, agent),
+    mutationFn: ({
+      agentId,
+      agent,
+    }: {
+      agentId: string;
+      agent: UpdateAgentRequest;
+    }) => updateAgent(selectedDeployment!.id, agentId, agent),
     onSuccess: (_, { agentId }) => {
       queryClient.invalidateQueries({
         queryKey: ["agents", selectedDeployment!.id],

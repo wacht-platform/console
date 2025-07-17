@@ -15,7 +15,10 @@ export function Navbar({
 	return (
 		<nav
 			{...props}
-			className={clsx(className, "flex flex-1 items-center gap-4 py-2.5")}
+			className={clsx(
+				className, 
+				"flex flex-1 items-center gap-4 py-3"
+			)}
 		/>
 	);
 }
@@ -28,7 +31,7 @@ export function NavbarDivider({
 		<div
 			aria-hidden="true"
 			{...props}
-			className={clsx(className, "h-6 w-px bg-zinc-950/10 dark:bg-white/10")}
+			className={clsx(className, "h-5 w-px bg-gray-200")}
 		/>
 	);
 }
@@ -54,7 +57,7 @@ export function NavbarSpacer({
 		<div
 			aria-hidden="true"
 			{...props}
-			className={clsx(className, "-ml-4 flex-1")}
+			className={clsx(className, "flex-1")}
 		/>
 	);
 }
@@ -73,32 +76,20 @@ export const NavbarItem = forwardRef(function NavbarItem(
 ) {
 	const classes = clsx(
 		// Base
-		"relative flex min-w-0 items-center gap-3 rounded-lg p-2 text-left text-base/6 font-medium text-zinc-950 sm:text-sm/5",
-		// Leading icon/icon-only
-		"*:data-[slot=icon]:size-6 *:data-[slot=icon]:shrink-0 sm:*:data-[slot=icon]:size-5",
-		// Trailing icon (down chevron or similar)
-		"*:not-nth-2:last:data-[slot=icon]:ml-auto *:not-nth-2:last:data-[slot=icon]:size-5 sm:*:not-nth-2:last:data-[slot=icon]:size-4",
-		// Avatar
-		"*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7 *:data-[slot=avatar]:[--avatar-radius:var(--radius)] *:data-[slot=avatar]:[--ring-opacity:10%] sm:*:data-[slot=avatar]:size-6",
-		// Direct SVG targeting for Heroicons
-		"[&>svg]:h-5 [&>svg]:w-5 [&>svg]:stroke-zinc-600 [&>svg]:stroke-[1.5]",
-		"hover:[&>svg]:stroke-zinc-900 data-hover:[&>svg]:stroke-zinc-900",
-		"data-active:[&>svg]:stroke-zinc-900",
-		// Dark mode
-		"dark:text-white",
-		"dark:[&>svg]:stroke-zinc-400",
-		"dark:data-hover:bg-white/5 dark:data-hover:[&>svg]:stroke-white",
-		"dark:data-active:bg-white/5 dark:data-active:[&>svg]:stroke-white",
+		"relative flex min-w-0 items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium",
+		// Colors
+		"text-gray-700 hover:text-gray-900",
+		"hover:bg-gray-100",
+		"transition-colors",
+		// Icons
+		"*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0",
+		"*:data-[slot=avatar]:size-6 *:data-[slot=avatar]:shrink-0",
+		// Current state
+		current && "text-gray-900 bg-gray-100",
 	);
 
 	return (
 		<span className={clsx(className, "relative")}>
-			{current && (
-				<motion.span
-					layoutId="current-indicator"
-					className="absolute inset-x-2 -bottom-2.5 h-0.5 rounded-full bg-zinc-950 dark:bg-white"
-				/>
-			)}
 			{"href" in props ? (
 				<Link
 					{...props}
@@ -111,7 +102,7 @@ export const NavbarItem = forwardRef(function NavbarItem(
 			) : (
 				<Headless.Button
 					{...props}
-					className={clsx("cursor-default", classes)}
+					className={classes}
 					data-current={current ? "true" : undefined}
 					ref={ref}
 				>

@@ -28,6 +28,7 @@ import type { DeploymentWaitlistUser, UserWithIdentifiers } from "@/types/user";
 import { useApproveWaitlistUser } from "@/lib/api/hooks/use-deployment-user-mutations";
 import { useNavigate } from "react-router";
 import { SkeletonTableRows } from "@/components/ui/skeleton";
+import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
 
@@ -46,6 +47,8 @@ export default function UsersPage() {
 	const offset = (page - 1) * itemsPerPage;
 	const [createUserModalOpen, setCreateUserModalOpen] = useState(false);
 	const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
+	const [confirmApprovalOpen, setConfirmApprovalOpen] = useState(false);
+	const [selectedWaitlistUser, setSelectedWaitlistUser] = useState<DeploymentWaitlistUser | null>(null);
 
 	const { data: activeUsers, isLoading: activeUsersLoading } =
 		useDeploymentUsers({
@@ -104,16 +107,15 @@ export default function UsersPage() {
 	const approveWaitlistMutation = useApproveWaitlistUser();
 
 	const handleApproveWaitlist = (waitlistUser: DeploymentWaitlistUser) => {
-		const displayName = waitlistUser.first_name && waitlistUser.last_name
-			? `${waitlistUser.first_name} ${waitlistUser.last_name}`
-			: waitlistUser.email_address;
+		setSelectedWaitlistUser(waitlistUser);
+		setConfirmApprovalOpen(true);
+	};
 
-		if (
-			confirm(
-				`Are you sure you want to approve ${displayName}?`,
-			)
-		) {
-			approveWaitlistMutation.mutate(waitlistUser.id);
+	const handleConfirmApproval = () => {
+		if (selectedWaitlistUser) {
+			approveWaitlistMutation.mutate(selectedWaitlistUser.id);
+			setConfirmApprovalOpen(false);
+			setSelectedWaitlistUser(null);
 		}
 	};
 
@@ -415,6 +417,25 @@ export default function UsersPage() {
 						</div>
 					)}
 			</div>
+			
+			<ConfirmationDialog
+				isOpen={confirmApprovalOpen}
+				onClose={() => {
+					setConfirmApprovalOpen(false);
+					setSelectedWaitlistUser(null);
+				}}
+				onConfirm={handleConfirmApproval}
+				title="Approve Waitlist User"
+				message={selectedWaitlistUser ? 
+					`Are you sure you want to approve ${
+						selectedWaitlistUser.first_name && selectedWaitlistUser.last_name
+							? `${selectedWaitlistUser.first_name} ${selectedWaitlistUser.last_name}`
+							: selectedWaitlistUser.email_address
+					}?` : ''
+				}
+				confirmText="Approve"
+				isLoading={approveWaitlistMutation.isPending}
+			/>
 		</div>
 	);
 }

@@ -9,6 +9,7 @@ import {
   DialogActions,
 } from "@/components/ui/dialog";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import AppleIcon from "@/assets/apple.svg";
 import DiscordIcon from "@/assets/discord.svg";
@@ -452,8 +453,8 @@ export default function SSOConnectionsPage() {
     if (checked) {
       handleOpenSettings(providerInfo);
     } else {
-      window.alert(
-        `Disabling ${providerInfo.name} requires confirmation or further action. This action is not yet fully implemented.`,
+      toast.info(
+        `Disabling ${providerInfo.name} requires confirmation or further action. This action is not yet fully implemented.`
       );
     }
   };

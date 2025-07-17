@@ -6,9 +6,11 @@ interface VerifyDnsRecordsRequest {
   deploymentId: string;
 }
 
-async function verifyDnsRecords(request: VerifyDnsRecordsRequest): Promise<Deployment> {
+async function verifyDnsRecords(
+  request: VerifyDnsRecordsRequest,
+): Promise<Deployment> {
   const { data } = await apiClient.post<Deployment>(
-    `/deployment/${request.deploymentId}/verify-dns`
+    `/deployments/${request.deploymentId}/verify-dns`,
   );
   return data;
 }
@@ -21,7 +23,7 @@ export function useVerifyDnsRecords() {
     onSuccess: (deployment) => {
       // Invalidate projects query to refetch updated deployment data
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      
+
       // Update the specific deployment in cache if it exists
       queryClient.setQueryData(["deployment", deployment.id], deployment);
     },

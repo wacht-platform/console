@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/fieldset";
 import { Radio, RadioField, RadioGroup } from "@/components/ui/radio";
+import { toast } from "sonner";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 import { useUpdateDeploymentB2bSettings } from "@/lib/api/hooks/use-update-deployment-b2b-settings";
 import { useDeploymentOrgRoles } from "@/lib/api/hooks/use-deployment-org-roles";
@@ -171,11 +172,11 @@ export default function ManageOrganizationsPage() {
 
       await updateB2bSettings.mutateAsync(payload);
 
-      alert("Organization settings updated successfully");
+      toast.success("Organization settings updated successfully");
       setIsDirty(false);
     } catch (error) {
       console.error("Failed to update settings:", error);
-      alert("Failed to update organization settings");
+      toast.error("Failed to update organization settings");
     } finally {
       setIsSaving(false);
     }
