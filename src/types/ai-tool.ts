@@ -2,18 +2,6 @@ export type AiToolType = "api" | "knowledge_base" | "platform_event" | "platform
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
-export interface ParameterValueType {
-  type: "hardcoded" | "from_chat";
-  value?: string;
-  lookup_key?: string;
-}
-
-export interface HttpParameter {
-  name: string;
-  value_type: ParameterValueType;
-  required: boolean;
-  description?: string;
-}
 
 export interface SchemaField {
   name: string;
@@ -25,20 +13,16 @@ export interface SchemaField {
 export interface AuthorizationConfiguration {
   authorize_as_user: boolean;
   jwt_template_id?: string;
-  custom_headers: HttpParameter[];
+  custom_headers?: SchemaField[];
 }
 
 export interface ApiToolConfiguration {
   type: "Api";
   endpoint: string;
   method: HttpMethod;
-  headers: HttpParameter[];
-  query_parameters: HttpParameter[];
-  body_parameters: HttpParameter[];
   authorization?: AuthorizationConfiguration;
   request_body_schema?: SchemaField[];
   url_params_schema?: SchemaField[];
-  query_params_schema?: SchemaField[];
   timeout_seconds?: number;
 }
 

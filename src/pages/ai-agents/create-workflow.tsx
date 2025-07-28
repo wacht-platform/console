@@ -12,7 +12,8 @@ export default function CreateWorkflowPage() {
 	const isEditing = !!workflowId;
 	const [saveError, setSaveError] = useState<string | null>(null);
 
-	const { data: workflow, isLoading } = useWorkflow(workflowId || "");
+
+	const { data: workflow, isLoading, error } = useWorkflow(workflowId || "");
 
 	const createWorkflowMutation = useCreateWorkflow();
 	const updateWorkflowMutation = useUpdateWorkflow();
@@ -34,6 +35,16 @@ export default function CreateWorkflowPage() {
 			version: "1.0.0",
 		},
 	});
+	
+	// Check if we need to update workflowData
+	if (workflow && workflowData.workflow_definition.nodes.length <= 1 && workflow.workflow_definition.nodes.length > 1) {
+		setWorkflowData({
+			name: workflow.name,
+			description: workflow.description || "",
+			configuration: workflow.configuration,
+			workflow_definition: workflow.workflow_definition,
+		});
+	}
 
 	// Validation state
 	const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
@@ -211,6 +222,7 @@ export default function CreateWorkflowPage() {
 
 				<div className="h-full bg-white rounded-lg">
 					<WorkflowBuilder
+						key={workflowId || 'new'}
 						workflowData={workflowData}
 						onWorkflowDataChange={setWorkflowData}
 					/>

@@ -19,7 +19,6 @@ import type {
   WorkflowNode as WorkflowNodeType,
   WorkflowEdge as WorkflowEdgeType,
   SchemaField,
-  ConditionEvaluationType,
   SwitchCase
 } from "@/types/workflow";
 
@@ -27,13 +26,10 @@ import type {
 import TriggerNode from "./nodes/TriggerNode";
 import type { BaseNodeData } from "../../types/NodeTypes";
 import StopWorkflowNode from "./nodes/StopWorkflowNode";
-import ConditionalNode from "./nodes/ConditionalNode";
 import TryCatchNode from "./nodes/TryCatchNode";
 import LLMCallNode from "./nodes/LLMCallNode";
 import SwitchCaseNode from "./nodes/SwitchCaseNode";
 import ToolCallNode from "./nodes/ToolCallNode";
-import StoreContextNode from "./nodes/StoreContextNode";
-import FetchContextNode from "./nodes/FetchContextNode";
 import NodeEditModal from "./modals/NodeEditModal";
 
 import { DnDProvider } from "../../contexts/DnDContext";
@@ -52,13 +48,6 @@ const Sidebar = () => {
     <aside className="flex flex-col gap-4 pt-4">
       <Subheading className="text-base!">Workflow Blocks</Subheading>
 
-      <div
-        className="dndnode conditional p-3 border border-amber-400 rounded-md cursor-grab text-center text-sm font-medium bg-amber-100 text-amber-800"
-        onDragStart={(event) => onDragStart(event, "conditional")}
-        draggable
-      >
-        Conditional Branching
-      </div>
       <div
         className="dndnode try-catch p-3 border border-yellow-400 rounded-md cursor-grab text-center text-sm font-medium bg-yellow-100 text-yellow-800"
         onDragStart={(event) => onDragStart(event, "try-catch")}
@@ -86,20 +75,6 @@ const Sidebar = () => {
         draggable
       >
         Tool Call
-      </div>
-      <div
-        className="dndnode store-context p-3 border border-green-400 rounded-md cursor-grab text-center text-sm font-medium bg-green-100 text-green-800"
-        onDragStart={(event) => onDragStart(event, "store-context")}
-        draggable
-      >
-        Store Context
-      </div>
-      <div
-        className="dndnode fetch-context p-3 border border-teal-400 rounded-md cursor-grab text-center text-sm font-medium bg-teal-100 text-teal-800"
-        onDragStart={(event) => onDragStart(event, "fetch-context")}
-        draggable
-      >
-        Fetch Context
       </div>
       <div
         className="dndnode action stop p-3 border border-red-400 rounded-md cursor-grab text-center text-sm font-medium bg-red-100 text-red-800"
@@ -131,13 +106,10 @@ const getId = () => `dndnode_${id++}`;
 const nodeTypes = {
   trigger: TriggerNode,
   "stop-workflow": StopWorkflowNode,
-  conditional: ConditionalNode,
   "try-catch": TryCatchNode,
   "llm-call": LLMCallNode,
   "switch-case": SwitchCaseNode,
   "tool-call": ToolCallNode,
-  "store-context": StoreContextNode,
-  "fetch-context": FetchContextNode,
 };
 
 interface WorkflowBuilderProps {
@@ -149,13 +121,15 @@ const DnDFlow = ({
   workflowData,
   onWorkflowDataChange,
 }: WorkflowBuilderProps) => {
+  
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   
-  // Initialize nodes from workflowData if available, otherwise use initialNodes
-  const initialNodesData = useMemo(() => {
+
+  // Compute initial nodes and edges directly (not memoized) to ensure they update
+  const computeInitialNodes = () => {
+    
     if (workflowData.workflow_definition.nodes.length > 0) {
-      // Map workflow nodes to React Flow nodes
-      return workflowData.workflow_definition.nodes.map((node) => {
+      const mappedNodes = workflowData.workflow_definition.nodes.map((node) => {
         let nodeType = 'action'; // default
         let nodeData: any = {
           label: node.data.label || '',
@@ -173,12 +147,6 @@ const DnDFlow = ({
             ...nodeData,
             ...node.node_type,
           };
-        } else if (node.node_type.type === 'Condition') {
-          nodeType = 'condition';
-          nodeData = {
-            ...nodeData,
-            ...node.node_type,
-          };
         } else if (node.node_type.type === 'Switch') {
           nodeType = 'switch-case';
           nodeData = {
@@ -191,33 +159,28 @@ const DnDFlow = ({
             ...nodeData,
             ...node.node_type,
           };
-        } else if (node.node_type.type === 'StoreContext') {
-          nodeType = 'store-context';
-          nodeData = {
-            ...nodeData,
-            ...node.node_type,
-          };
-        } else if (node.node_type.type === 'FetchContext') {
-          nodeType = 'fetch-context';
+        } else if (node.node_type.type === 'ErrorHandler') {
+          nodeType = 'try-catch';
           nodeData = {
             ...nodeData,
             ...node.node_type,
           };
         }
 
-        return {
+        const mappedNode = {
           id: node.id,
           type: nodeType,
           position: node.position,
           data: nodeData,
         };
+        return mappedNode;
       });
+      return mappedNodes;
     }
     return initialNodes;
-  }, []); // Only compute once on mount
+  };
 
-  // Initialize edges from workflowData if available
-  const initialEdgesData = useMemo(() => {
+  const computeInitialEdges = () => {
     if (workflowData.workflow_definition.edges.length > 0) {
       return workflowData.workflow_definition.edges.map((edge) => ({
         id: edge.id,
@@ -228,10 +191,10 @@ const DnDFlow = ({
       }));
     }
     return [];
-  }, []); // Only compute once on mount
+  };
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodesData);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialEdgesData);
+  const [nodes, setNodes, onNodesChange] = useNodesState(computeInitialNodes());
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(computeInitialEdges());
   const { screenToFlowPosition } = useReactFlow();
   const [type] = useDnD();
 
@@ -239,6 +202,7 @@ const DnDFlow = ({
   const [selectedNode, setSelectedNode] = useState<Node<BaseNodeData> | null>(
     null,
   );
+
 
   // Center the initial trigger node when component mounts and on window resize
   useEffect(() => {
@@ -293,24 +257,6 @@ const DnDFlow = ({
         node_type: {
           type: "Trigger",
           condition: (nodeData.condition as string) || "true",
-        },
-        position: { x: node.position.x, y: node.position.y },
-        data: {
-          label: (nodeData.label as string) || "",
-          description: (nodeData.description as string) || "",
-          enabled: true,
-          config: {},
-        },
-      };
-    } else if (node.type === "conditional") {
-      return {
-        id: node.id,
-        node_type: {
-          type: "Condition",
-          condition_type: (nodeData.condition_type as ConditionEvaluationType) || "Simple",
-          expression: (nodeData.condition as string) || "",
-          true_path: nodeData.true_path as string | undefined,
-          false_path: nodeData.false_path as string | undefined,
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
@@ -381,38 +327,6 @@ const DnDFlow = ({
           type: "ToolCall",
           tool_id: parseInt((nodeData.tool_id as string) || "0") || 0,
           input_parameters: (nodeData.input_parameters as Record<string, unknown>) || {},
-        },
-        position: { x: node.position.x, y: node.position.y },
-        data: {
-          label: (nodeData.label as string) || "",
-          description: (nodeData.description as string) || "",
-          enabled: true,
-          config: {},
-        },
-      };
-    } else if (node.type === "store-context") {
-      return {
-        id: node.id,
-        node_type: {
-          type: "StoreContext",
-          context_data: (nodeData.context_data as string) || "",
-          use_llm: nodeData.use_llm === true,
-        },
-        position: { x: node.position.x, y: node.position.y },
-        data: {
-          label: (nodeData.label as string) || "",
-          description: (nodeData.description as string) || "",
-          enabled: true,
-          config: {},
-        },
-      };
-    } else if (node.type === "fetch-context") {
-      return {
-        id: node.id,
-        node_type: {
-          type: "FetchContext",
-          context_data: (nodeData.context_data as string) || "",
-          use_llm: nodeData.use_llm === true,
         },
         position: { x: node.position.x, y: node.position.y },
         data: {
@@ -501,74 +415,7 @@ const DnDFlow = ({
         return;
       }
 
-      if (sourceNode?.type === "conditional") {
-        const edgeLabel = params.sourceHandle === "true" ? "True" : "False";
 
-        if (targetNode?.type === "conditional") {
-          console.warn(
-            "Conditional node cannot connect directly to another conditional node.",
-          );
-          return;
-        }
-
-        const outgoingEdges = edges.filter(
-          (edge) => edge.source === sourceNode.id,
-        );
-
-        if (
-          outgoingEdges.some(
-            (edge) => edge.sourceHandle === params.sourceHandle,
-          )
-        ) {
-          console.warn(
-            `An edge already exists from handle ${params.sourceHandle} on this conditional node.`,
-          );
-          return;
-        }
-
-        const edgeWithLabel = {
-          ...params,
-          label: edgeLabel,
-          labelStyle: { fill: "#666", fontWeight: 700 },
-          style: {
-            stroke: params.sourceHandle === "true" ? "#10b981" : "#ef4444",
-          },
-        };
-
-        setEdges((eds) => addEdge(edgeWithLabel, eds));
-        return;
-      }
-
-      if (sourceNode?.type === "try-catch") {
-        const edgeLabel = params.sourceHandle === "success" ? "Success" : "Error";
-
-        const outgoingEdges = edges.filter(
-          (edge) => edge.source === sourceNode.id,
-        );
-
-        if (
-          outgoingEdges.some(
-            (edge) => edge.sourceHandle === params.sourceHandle,
-          )
-        ) {
-          console.warn(
-            `An edge already exists from handle ${params.sourceHandle} on this try/catch node.`,
-          );
-          return;
-        }
-
-        const edgeWithLabel = {
-          ...params,
-          label: edgeLabel,
-          labelStyle: { fill: "#666", fontWeight: 700 },
-          style: {
-            stroke: params.sourceHandle === "success" ? "#10b981" : "#ef4444",
-          },
-        };
-
-        setEdges((eds) => addEdge(edgeWithLabel, eds));
-        return;
-      }
 
       if (sourceNode?.type === "switch-case") {
         const sourceData = sourceNode.data as Record<string, unknown>;

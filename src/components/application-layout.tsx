@@ -269,6 +269,10 @@ export function ApplicationLayout() {
                 <DropdownIcon icon={BuildingOffice2Icon} />
                 <SidebarLabel>Organizations</SidebarLabel>
               </SidebarItem>
+              {/* <SidebarItem href={createNavigationLink("billing")}>
+                <DropdownIcon icon={CreditCardIcon} />
+                <SidebarLabel>Billing</SidebarLabel>
+              </SidebarItem> */}
             </SidebarSection>
 
             <SidebarDivider />

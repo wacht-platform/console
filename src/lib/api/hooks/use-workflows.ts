@@ -29,10 +29,10 @@ async function fetchWorkflowById(
   deploymentId: string,
   workflowId: string,
 ): Promise<AiWorkflow> {
-  const { data } = await apiClient.get<{ data: AiWorkflow }>(
+  const { data } = await apiClient.get<AiWorkflow>(
     `/deployments/${deploymentId}/ai-workflows/${workflowId}`,
   );
-  return data.data;
+  return data;
 }
 
 async function createWorkflow(
@@ -72,7 +72,12 @@ export function useWorkflows(params: GetWorkflowsParams = {}) {
 
   return useQuery({
     queryKey: ["workflows", selectedDeployment?.id, params],
-    queryFn: () => fetchWorkflows(selectedDeployment!.id, params),
+    queryFn: () => {
+      if (!selectedDeployment?.id) {
+        throw new Error("No deployment selected");
+      }
+      return fetchWorkflows(selectedDeployment.id, params);
+    },
     enabled: !!selectedDeployment?.id,
     select: (data) => ({
       workflows: data.data,
@@ -82,12 +87,20 @@ export function useWorkflows(params: GetWorkflowsParams = {}) {
 }
 
 export function useWorkflow(workflowId: string) {
-  const { selectedDeployment } = useProjects();
+  const { selectedDeployment, isLoading: projectsLoading } = useProjects();
+  
 
   return useQuery({
     queryKey: ["workflow", selectedDeployment?.id, workflowId],
-    queryFn: () => fetchWorkflowById(selectedDeployment!.id, workflowId),
-    enabled: !!selectedDeployment?.id && !!workflowId,
+    queryFn: () => {
+      if (!selectedDeployment?.id) {
+        throw new Error("No deployment selected");
+      }
+      return fetchWorkflowById(selectedDeployment.id, workflowId);
+    },
+    enabled: !!selectedDeployment?.id && !!workflowId && !projectsLoading,
+    retry: 3,
+    retryDelay: 1000,
   });
 }
 

@@ -51,6 +51,7 @@ export default function ProjectsPage() {
 
       {/* Main Content */}
       <div className="pt-14 max-w-7xl mx-auto px-8">
+        <AIAgentChat agentName="ddd" contextId="26280014114725699" />
         {/* Header */}
         <div className="py-8">
           <div className="flex items-center justify-between">

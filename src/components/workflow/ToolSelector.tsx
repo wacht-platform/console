@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTools } from "../../lib/api/hooks/use-tools";
 import { Select } from "../ui/select";
-import { Field, Label } from "../ui/fieldset";
+import { Field, Label, Fieldset } from "../ui/fieldset";
 import { Input } from "../ui/input";
 import { WrenchScrewdriverIcon } from "@heroicons/react/24/outline";
 import type { AiTool } from "../../types/ai-tool";
@@ -75,7 +75,7 @@ export default function ToolSelector({
   }
 
   return (
-    <div className="space-y-6">
+    <Fieldset className="space-y-6">
       {/* Tool Selection */}
       <div className="space-y-4">
         <Field>
@@ -124,7 +124,7 @@ export default function ToolSelector({
       {/* Input Parameters */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <Label>Input Parameters</Label>
+          <h4 className="text-sm font-medium text-gray-700">Input Parameters</h4>
           <button
             type="button"
             onClick={addParameter}
@@ -174,6 +174,6 @@ export default function ToolSelector({
           </div>
         )}
       </div>
-    </div>
+    </Fieldset>
   );
 }

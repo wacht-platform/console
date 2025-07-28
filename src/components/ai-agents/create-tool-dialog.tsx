@@ -60,12 +60,9 @@ export function CreateToolDialog({
       type: "Api",
       endpoint: "",
       method: "GET",
-      headers: [],
-      query_parameters: [],
-      body_parameters: [],
+      authorization: undefined,
       request_body_schema: [],
       url_params_schema: [],
-      query_params_schema: [],
       timeout_seconds: 30,
     } as ApiToolConfiguration,
   });
@@ -100,12 +97,9 @@ export function CreateToolDialog({
           type: "Api",
           endpoint: "",
           method: "GET",
-          headers: [],
-          query_parameters: [],
-          body_parameters: [],
+          authorization: undefined,
           request_body_schema: [],
           url_params_schema: [],
-          query_params_schema: [],
           timeout_seconds: 30,
         } as ApiToolConfiguration,
       });
@@ -207,12 +201,9 @@ export function CreateToolDialog({
           type: "Api",
           endpoint: "",
           method: "GET",
-          headers: [],
-          query_parameters: [],
-          body_parameters: [],
+          authorization: undefined,
           request_body_schema: [],
           url_params_schema: [],
-          query_params_schema: [],
           timeout_seconds: 30,
         } as ApiToolConfiguration;
         break;
@@ -383,7 +374,7 @@ export function CreateToolDialog({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="block text-sm font-medium text-gray-700">
-                  URL Parameters Schema
+                  URL & Query Parameters
                 </label>
                 <button
                   type="button"
@@ -407,14 +398,13 @@ export function CreateToolDialog({
                   }}
                   className="text-blue-600 hover:text-blue-800 text-sm"
                 >
-                  + Add URL Parameter
+                  + Add Parameter
                 </button>
               </div>
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {(apiConfig.url_params_schema || []).length === 0 && (
                   <div className="text-xs text-gray-500 italic p-2 text-center bg-gray-50 rounded">
-                    No URL parameters defined. Click "Add URL Parameter" to add
-                    one.
+                    No parameters defined. Click "Add Parameter" to add URL path or query parameters.
                   </div>
                 )}
                 {(apiConfig.url_params_schema || []).map((param, index) => (
@@ -425,7 +415,7 @@ export function CreateToolDialog({
                           Parameter Name
                         </label>
                         <Input
-                          placeholder="userId, postId, etc."
+                          placeholder="userId, postId, search, limit, etc."
                           value={param.name}
                           onChange={(e) => {
                             const newParams = [
@@ -529,155 +519,6 @@ export function CreateToolDialog({
               </div>
             </div>
 
-            {/* Query Parameters Schema */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700">
-                  Query Parameters Schema
-                </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newParams = [
-                      ...(apiConfig.query_params_schema || []),
-                      {
-                        name: "",
-                        field_type: "string",
-                        required: false,
-                        description: "",
-                      },
-                    ];
-                    setFormData({
-                      ...formData,
-                      configuration: {
-                        ...apiConfig,
-                        query_params_schema: newParams,
-                      },
-                    });
-                  }}
-                  className="text-blue-600 hover:text-blue-800 text-sm"
-                >
-                  + Add Query Parameter
-                </button>
-              </div>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {(apiConfig.query_params_schema || []).length === 0 && (
-                  <div className="text-xs text-gray-500 italic p-2 text-center bg-gray-50 rounded">
-                    No query parameters defined. Click "Add Query Parameter" to
-                    add one.
-                  </div>
-                )}
-                {(apiConfig.query_params_schema || []).map((param, index) => (
-                  <div key={index} className="p-2 bg-gray-50 rounded">
-                    <div className="flex gap-2 items-center">
-                      <div className="flex-1">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
-                          Parameter Name
-                        </label>
-                        <Input
-                          placeholder="limit, offset, search, etc."
-                          value={param.name}
-                          onChange={(e) => {
-                            const newParams = [
-                              ...(apiConfig.query_params_schema || []),
-                            ];
-                            newParams[index] = {
-                              ...param,
-                              name: e.target.value,
-                            };
-                            setFormData({
-                              ...formData,
-                              configuration: {
-                                ...apiConfig,
-                                query_params_schema: newParams,
-                              },
-                            });
-                          }}
-                        />
-                      </div>
-                      <div className="w-24">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
-                          Type
-                        </label>
-                        <Select
-                          value={param.field_type}
-                          onChange={(e) => {
-                            const newParams = [
-                              ...(apiConfig.query_params_schema || []),
-                            ];
-                            newParams[index] = {
-                              ...param,
-                              field_type: e.target.value,
-                            };
-                            setFormData({
-                              ...formData,
-                              configuration: {
-                                ...apiConfig,
-                                query_params_schema: newParams,
-                              },
-                            });
-                          }}
-                        >
-                          <option value="string">string</option>
-                          <option value="number">number</option>
-                          <option value="boolean">boolean</option>
-                        </Select>
-                      </div>
-                      <div className="w-16 flex flex-col">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
-                          Required
-                        </label>
-                        <div className="flex items-center justify-center h-9">
-                          <input
-                            type="checkbox"
-                            checked={param.required}
-                            onChange={(e) => {
-                              const newParams = [
-                                ...(apiConfig.query_params_schema || []),
-                              ];
-                              newParams[index] = {
-                                ...param,
-                                required: e.target.checked,
-                              };
-                              setFormData({
-                                ...formData,
-                                configuration: {
-                                  ...apiConfig,
-                                  query_params_schema: newParams,
-                                },
-                              });
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <div className="w-8 flex flex-col">
-                        <div className="h-5 mb-1"></div>
-                        <div className="flex items-center justify-center h-9">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newParams = (
-                                apiConfig.query_params_schema || []
-                              ).filter((_, i) => i !== index);
-                              setFormData({
-                                ...formData,
-                                configuration: {
-                                  ...apiConfig,
-                                  query_params_schema: newParams,
-                                },
-                              });
-                            }}
-                            className="text-red-500 hover:text-red-700 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
 
             {/* Request Body Schema */}
             <div className="space-y-2">

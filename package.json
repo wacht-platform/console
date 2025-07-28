@@ -1,7 +1,7 @@
 {
-  "name": "dashboard-frontend",
+  "name": "console-frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -20,7 +20,6 @@
     "@xyflow/react": "^12.6.4",
     "axios": "^1.7.9",
     "clsx": "^2.1.1",
-    "dashboard-frontend": "link:",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.0.6",
     "handlebars": "^4.7.8",

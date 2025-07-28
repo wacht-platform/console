@@ -66,7 +66,7 @@ You need:
 
 ```bash
 git clone <repository-url>
-cd wacht-dashboard-frontend
+cd console-frontend
 pnpm install
 ```
 

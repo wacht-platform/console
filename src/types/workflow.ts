@@ -49,7 +49,6 @@ export interface ApiActionConfig {
   timeout_seconds?: number;
   request_body_schema?: SchemaField[];
   url_params_schema?: SchemaField[];
-  query_params_schema?: SchemaField[];
   authorization?: {
     authorize_as_user: boolean;
     jwt_template_id?: string;
@@ -83,14 +82,6 @@ export interface ActionNodeConfig {
   platform_event_config?: PlatformEventActionConfig;
 }
 
-export type ConditionEvaluationType = "javascript" | "json_path" | "simple";
-
-export interface ConditionNodeConfig {
-  condition_type: ConditionEvaluationType;
-  expression: string;
-  true_path?: string;
-  false_path?: string;
-}
 
 export type TransformType = "javascript" | "json_transform" | "data_mapping";
 
@@ -132,32 +123,14 @@ export interface ToolCallNodeConfig {
   input_parameters: Record<string, unknown>;
 }
 
-export interface ConditionNodeConfig {
-  condition_type: ConditionEvaluationType;
-  expression: string;
-  true_path?: string;
-  false_path?: string;
-}
 
-export interface StoreContextNodeConfig {
-  context_data: string; // Textarea content for context to store
-  use_llm: boolean; // Toggle for using LLM instead of static data
-}
-
-export interface FetchContextNodeConfig {
-  context_data: string; // Textarea content for context to fetch
-  use_llm: boolean; // Toggle for using LLM instead of static data
-}
 
 export type WorkflowNodeType =
   | ({ type: "Trigger" } & TriggerNodeConfig)
-  | ({ type: "Condition" } & ConditionNodeConfig)
   | ({ type: "ErrorHandler" } & ErrorHandlerNodeConfig)
   | ({ type: "LLMCall" } & LLMCallNodeConfig)
   | ({ type: "Switch" } & SwitchNodeConfig)
-  | ({ type: "ToolCall" } & ToolCallNodeConfig)
-  | ({ type: "StoreContext" } & StoreContextNodeConfig)
-  | ({ type: "FetchContext" } & FetchContextNodeConfig);
+  | ({ type: "ToolCall" } & ToolCallNodeConfig);
 
 export interface WorkflowNodeData {
   label: string;
@@ -173,20 +146,13 @@ export interface WorkflowNode {
   data: WorkflowNodeData;
 }
 
-export type ConditionType = "always" | "on_success" | "on_error" | "on_condition";
-
-export interface EdgeCondition {
-  expression: string;
-  condition_type: ConditionType;
-}
 
 export interface WorkflowEdge {
   id: string;
   source: string;
   target: string;
-  source_handle?: string;
+  source_handle?: string; // For switch nodes: "case-0", "case-1", "default"
   target_handle?: string;
-  condition?: EdgeCondition;
 }
 
 export interface WorkflowDefinition {

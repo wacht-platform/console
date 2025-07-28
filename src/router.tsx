@@ -44,6 +44,7 @@ const ToolsPage = lazy(() => import("./pages/ai-agents/tools"));
 const KnowledgeBasePage = lazy(
   () => import("./pages/ai-agents/knowledge-base"),
 );
+// const BillingPage = lazy(() => import("./pages/billing"));
 
 export const router = createBrowserRouter([
   {
@@ -302,6 +303,14 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
+      // {
+      //   path: "billing",
+      //   element: (
+      //     <Suspense fallback={<LoadingFallback />}>
+      //       <BillingPage />
+      //     </Suspense>
+      //   ),
+      // },
     ],
   },
   {
