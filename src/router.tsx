@@ -44,7 +44,10 @@ const ToolsPage = lazy(() => import("./pages/ai-agents/tools"));
 const KnowledgeBasePage = lazy(
   () => import("./pages/ai-agents/knowledge-base"),
 );
-// const BillingPage = lazy(() => import("./pages/billing"));
+const WebhooksPage = lazy(() => import("./pages/webhooks"));
+const WebhookEndpointsPage = lazy(() => import("./pages/webhooks/endpoints"));
+const WebhookDeliveriesPage = lazy(() => import("./pages/webhooks/deliveries"));
+const WebhookAnalyticsPage = lazy(() => import("./pages/webhooks/analytics"));
 
 export const router = createBrowserRouter([
   {
@@ -303,14 +306,43 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
-      // {
-      //   path: "billing",
-      //   element: (
-      //     <Suspense fallback={<LoadingFallback />}>
-      //       <BillingPage />
-      //     </Suspense>
-      //   ),
-      // },
+      {
+        path: "webhooks",
+        children: [
+          {
+            index: true,
+            element: (
+              <Suspense fallback={<LoadingFallback />}>
+                <WebhooksPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "endpoints",
+            element: (
+              <Suspense fallback={<LoadingFallback />}>
+                <WebhookEndpointsPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "deliveries",
+            element: (
+              <Suspense fallback={<LoadingFallback />}>
+                <WebhookDeliveriesPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "analytics",
+            element: (
+              <Suspense fallback={<LoadingFallback />}>
+                <WebhookAnalyticsPage />
+              </Suspense>
+            ),
+          },
+        ],
+      },
     ],
   },
   {

@@ -15,6 +15,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { SimpleTabs, Tab } from "@/components/ui/simple-tabs";
 import Editor from "@monaco-editor/react";
 import { CreateWorkspaceModal } from "@/components/workspaces/CreateWorkspaceModal";
+import { EditWorkspaceDialog } from "@/components/workspaces/EditWorkspaceDialog";
 import { EditOrganizationDialog } from "@/components/organizations/EditOrganizationDialog";
 import { AddMemberDialog } from "@/components/organizations/AddMemberDialog";
 import { EditMemberDialog } from "@/components/organizations/EditMemberDialog";
@@ -65,9 +66,11 @@ export default function OrganizationDetailsPage() {
 	const [isEditingPrivateMetadata, setIsEditingPrivateMetadata] =
 		useState(false);
 
-	// Workspace creation modal state
+	// Workspace modal states
 	const [createWorkspaceModalOpen, setCreateWorkspaceModalOpen] =
 		useState(false);
+	const [editWorkspaceModalOpen, setEditWorkspaceModalOpen] = useState(false);
+	const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
 
 	// Organization management modal states
 	const [editOrganizationModalOpen, setEditOrganizationModalOpen] =
@@ -260,6 +263,11 @@ export default function OrganizationDetailsPage() {
 	};
 
 	// Workspace handlers
+	const handleEditWorkspace = (workspace: Workspace) => {
+		setSelectedWorkspace(workspace);
+		setEditWorkspaceModalOpen(true);
+	};
+
 	const handleDeleteWorkspace = (workspace: Workspace) => {
 		setSelectedWorkspace(workspace);
 		setDeleteWorkspaceModalOpen(true);
@@ -285,6 +293,17 @@ export default function OrganizationDetailsPage() {
 				organizationId={organization.id}
 				organizationName={organization.name}
 			/>
+
+			{selectedWorkspace && (
+				<EditWorkspaceDialog
+					isOpen={editWorkspaceModalOpen}
+					onClose={() => {
+						setEditWorkspaceModalOpen(false);
+						setSelectedWorkspace(null);
+					}}
+					workspace={selectedWorkspace}
+				/>
+			)}
 
 			{/* Header */}
 			<div className="flex justify-between items-center mb-6">
@@ -690,7 +709,7 @@ export default function OrganizationDetailsPage() {
 															className="p-2 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600"
 															onClick={(e) => {
 																e.stopPropagation();
-																// TODO: Add edit workspace functionality
+																handleEditWorkspace(workspace);
 															}}
 														>
 															<PencilIcon className="h-4 w-4" />

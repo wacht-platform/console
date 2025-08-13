@@ -40,6 +40,7 @@ import {
   WrenchScrewdriverIcon,
   BookOpenIcon,
   Cog6ToothIcon,
+  BoltIcon,
 } from "@heroicons/react/24/outline";
 import {
   useProjects,
@@ -49,8 +50,9 @@ import { capitalize } from "@/lib/capitalize";
 import { CreateProjectDialog } from "./create-project-dialog";
 import { CreateProductionDeploymentDialog } from "./create-production-deployment-dialog";
 import { CreateStagingDeploymentDialog } from "./create-staging-deployment-dialog";
-import { OrganizationSwitcher, UserButton } from "@snipextt/wacht";
+import { OrganizationSwitcher, UserButton, NotificationBell } from "@snipextt/wacht";
 import { setNavigationFunction } from "@/lib/store/project";
+import { AgentPopup } from "./agent-popup";
 
 export function ApplicationLayout() {
   const { pathname } = useLocation();
@@ -235,6 +237,7 @@ export function ApplicationLayout() {
           </NavbarSection>
           <NavbarSpacer />
           <NavbarSection>
+            <NotificationBell />
             <UserButton showName={false} />
           </NavbarSection>
         </Navbar>
@@ -269,10 +272,6 @@ export function ApplicationLayout() {
                 <DropdownIcon icon={BuildingOffice2Icon} />
                 <SidebarLabel>Organizations</SidebarLabel>
               </SidebarItem>
-              {/* <SidebarItem href={createNavigationLink("billing")}>
-                <DropdownIcon icon={CreditCardIcon} />
-                <SidebarLabel>Billing</SidebarLabel>
-              </SidebarItem> */}
             </SidebarSection>
 
             <SidebarDivider />
@@ -344,6 +343,10 @@ export function ApplicationLayout() {
                 <DropdownIcon icon={EnvelopeIcon} />
                 <SidebarLabel>Email Settings</SidebarLabel>
               </SidebarItem>
+              <SidebarItem href={createNavigationLink("webhooks")}>
+                <DropdownIcon icon={BoltIcon} />
+                <SidebarLabel>Webhooks</SidebarLabel>
+              </SidebarItem>
             </SidebarSection>
           </SidebarBody>
         </Sidebar>
@@ -369,6 +372,7 @@ export function ApplicationLayout() {
           />
         </>
       )}
+      <AgentPopup />
     </SidebarLayout>
   );
 }

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { format } from "date-fns";
 import { useWorkspaceDetails } from "@/lib/api/hooks/use-workspace-details";
-import { useDeleteWorkspace } from "@/lib/api/hooks/use-workspace-mutations";
+import { useDeleteWorkspace, useUpdateWorkspace } from "@/lib/api/hooks/use-workspace-mutations";
 import { Button } from "@/components/ui/button";
 import { LoadingFallback } from "@/components/loading-fallback";
 import { SimpleTabs, Tab } from "@/components/ui/simple-tabs";
@@ -15,6 +15,7 @@ import { useDeleteWorkspaceRole } from "@/lib/api/hooks/use-workspace-role-mutat
 import { EmptyState } from "@/components/ui/empty-state";
 import { Avatar } from "@/components/ui/avatar";
 import { WorkspaceRole } from "@/types/organization";
+import { toast } from "sonner";
 
 import {
   PencilIcon,
@@ -34,6 +35,7 @@ export default function WorkspaceDetailsPage() {
 
   const deleteWorkspace = useDeleteWorkspace();
   const deleteWorkspaceRole = useDeleteWorkspaceRole();
+  const updateWorkspace = useUpdateWorkspace();
 
   // Metadata editor states
   const [publicMetadata, setPublicMetadata] = useState<string>("");
@@ -104,21 +106,49 @@ export default function WorkspaceDetailsPage() {
 
   const handleSavePublicMetadata = async () => {
     try {
-      // TODO: Implement update workspace API call
+      // Parse the JSON to validate it
+      const parsedMetadata = JSON.parse(publicMetadata);
+      
+      // Create FormData with the updated public metadata
+      const formData = new FormData();
+      formData.append("public_metadata", JSON.stringify(parsedMetadata));
+      
+      await updateWorkspace.mutateAsync({
+        workspaceId: workspaceId!,
+        data: formData,
+      });
+      
       setIsEditingPublicMetadata(false);
-      console.log("Public metadata updated successfully");
     } catch (error) {
-      console.error("Failed to save public metadata:", error);
+      if (error instanceof SyntaxError) {
+        toast.error("Invalid JSON format in public metadata");
+      } else {
+        console.error("Failed to save public metadata:", error);
+      }
     }
   };
 
   const handleSavePrivateMetadata = async () => {
     try {
-      // TODO: Implement update workspace API call
+      // Parse the JSON to validate it
+      const parsedMetadata = JSON.parse(privateMetadata);
+      
+      // Create FormData with the updated private metadata
+      const formData = new FormData();
+      formData.append("private_metadata", JSON.stringify(parsedMetadata));
+      
+      await updateWorkspace.mutateAsync({
+        workspaceId: workspaceId!,
+        data: formData,
+      });
+      
       setIsEditingPrivateMetadata(false);
-      console.log("Private metadata updated successfully");
     } catch (error) {
-      console.error("Failed to save private metadata:", error);
+      if (error instanceof SyntaxError) {
+        toast.error("Invalid JSON format in private metadata");
+      } else {
+        console.error("Failed to save private metadata:", error);
+      }
     }
   };
 

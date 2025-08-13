@@ -14,7 +14,6 @@ import { Tab, SimpleTabs } from "@/components/ui/simple-tabs";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingFallback } from "@/components/loading-fallback";
 import { PlusIcon, GlobeAltIcon, ClockIcon } from "@heroicons/react/24/outline";
-import { AIAgentChat } from "@snipextt/wacht";
 
 export default function ProjectsPage() {
   const { projects, isLoading } = useProjects();
@@ -51,7 +50,6 @@ export default function ProjectsPage() {
 
       {/* Main Content */}
       <div className="pt-14 max-w-7xl mx-auto px-8">
-        <AIAgentChat agentName="ddd" contextId="26280014114725699" />
         {/* Header */}
         <div className="py-8">
           <div className="flex items-center justify-between">

@@ -322,6 +322,9 @@ function validateWorkflowNode(node: WorkflowNode, index: number): ValidationErro
   } else if (node.node_type.type === "FetchContext") {
     const fetchContextErrors = validateFetchContextNode(node, index);
     errors.push(...fetchContextErrors);
+  } else if (node.node_type.type === "UserInput") {
+    const userInputErrors = validateUserInputNode(node, index);
+    errors.push(...userInputErrors);
   }
 
   return errors;
@@ -501,6 +504,34 @@ function validateFetchContextNode(node: WorkflowNode, _index: number): Validatio
 
   if (node.node_type.type === "FetchContext") {
     // No specific validation needed for Fetch Context nodes
+  }
+
+  return errors;
+}
+
+/**
+ * Validates User Input node specific requirements
+ */
+function validateUserInputNode(node: WorkflowNode, index: number): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  if (node.node_type.type === "UserInput") {
+    const config = node.node_type as any; // Use any to access flattened fields
+
+    if (!config.prompt || !config.prompt.trim()) {
+      errors.push({
+        field: `workflow_definition.nodes[${index}].prompt`,
+        message: "Prompt is required for User Input nodes"
+      });
+    }
+
+    if ((config.input_type === "select" || config.input_type === "multiselect") && 
+        (!config.options || config.options.length === 0)) {
+      errors.push({
+        field: `workflow_definition.nodes[${index}].options`,
+        message: "At least one option is required for select/multiselect input types"
+      });
+    }
   }
 
   return errors;
@@ -773,6 +804,23 @@ export function validateNodeFormData(nodeType: string, formData: Record<string, 
 
     case "fetch-context":
       // No specific validation needed for Fetch Context nodes
+      break;
+
+    case "user-input":
+      if (!formData.prompt || typeof formData.prompt !== 'string' || !formData.prompt.trim()) {
+        errors.push({
+          field: "prompt",
+          message: "Prompt is required"
+        });
+      }
+
+      if ((formData.input_type === "select" || formData.input_type === "multiselect") && 
+          (!formData.options || !Array.isArray(formData.options) || formData.options.length === 0)) {
+        errors.push({
+          field: "options",
+          message: "At least one option is required for select/multiselect input types"
+        });
+      }
       break;
 
     default:

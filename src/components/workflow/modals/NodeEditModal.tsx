@@ -30,7 +30,7 @@ interface NodeEditModalProps {
 interface NodeFormData {
   label: string;
   description?: string;
-  node_type: "trigger" | "action" | "condition" | "transform" | "try-catch" | "llm-call" | "switch-case" | "tool-call" | "store-context" | "fetch-context";
+  node_type: "trigger" | "action" | "condition" | "transform" | "try-catch" | "llm-call" | "switch-case" | "tool-call" | "store-context" | "fetch-context" | "user-input";
   // Trigger node fields
   condition?: string;
   scheduled_at?: string;
@@ -58,6 +58,12 @@ interface NodeFormData {
   // Context fields
   context_data?: string;
   use_llm?: boolean;
+  // User Input fields
+  prompt?: string;
+  input_type?: "text" | "number" | "select" | "multiselect" | "boolean" | "date";
+  default_value?: string;
+  placeholder?: string;
+  options?: string[];
 
 }
 
@@ -85,7 +91,7 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
   useEffect(() => {
     if (node?.data) {
       // Determine node type from the node type or data
-      let nodeType: "trigger" | "action" | "condition" | "transform" | "try-catch" | "llm-call" | "switch-case" | "tool-call" | "store-context" | "fetch-context" = "action";
+      let nodeType: "trigger" | "action" | "condition" | "transform" | "try-catch" | "llm-call" | "switch-case" | "tool-call" | "store-context" | "fetch-context" | "user-input" = "action";
       if (node.type === "trigger") {
         nodeType = "trigger";
       } else if (node.type?.includes("conditional")) {
@@ -98,6 +104,8 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
         nodeType = "llm-call";
       } else if (node.type === "switch-case") {
         nodeType = "switch-case";
+      } else if (node.type === "user-input") {
+        nodeType = "user-input";
       } else if (node.type === "tool-call") {
         nodeType = "tool-call";
       } else if (node.type === "store-context") {
@@ -724,6 +732,110 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                   <div className="mt-2 text-sm text-red-600 font-medium">{fieldErrors.tool_id}</div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* User Input Configuration */}
+          {formData.node_type === "user-input" && (
+            <div className="space-y-4">
+              <h4 className="font-medium">User Input Configuration</h4>
+
+              <Field>
+                <Label htmlFor="prompt">Prompt:</Label>
+                <Textarea
+                  id="prompt"
+                  name="prompt"
+                  value={formData.prompt || ""}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    prompt: e.target.value
+                  })}
+                  placeholder="Enter the question or prompt to show to the user..."
+                  className="h-20"
+                  invalid={!!fieldErrors.prompt}
+                />
+                {fieldErrors.prompt && (
+                  <div className="mt-1 text-sm text-red-600">{fieldErrors.prompt}</div>
+                )}
+              </Field>
+
+              <Field>
+                <Label htmlFor="input_type">Input Type:</Label>
+                <Select
+                  id="input_type"
+                  name="input_type"
+                  value={formData.input_type || "text"}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    input_type: e.target.value as "text" | "number" | "select" | "multiselect" | "boolean" | "date"
+                  })}
+                >
+                  <option value="text">Text Input</option>
+                  <option value="number">Number Input</option>
+                  <option value="select">Single Select</option>
+                  <option value="multiselect">Multi Select</option>
+                  <option value="boolean">Yes/No</option>
+                  <option value="date">Date Picker</option>
+                </Select>
+              </Field>
+
+              <Field>
+                <Label htmlFor="default_value">Default Value:</Label>
+                <Input
+                  id="default_value"
+                  name="default_value"
+                  type="text"
+                  value={formData.default_value || ""}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    default_value: e.target.value
+                  })}
+                  placeholder="Optional default value"
+                />
+              </Field>
+
+              <Field>
+                <Label htmlFor="placeholder">Placeholder:</Label>
+                <Input
+                  id="placeholder"
+                  name="placeholder"
+                  type="text"
+                  value={formData.placeholder || ""}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    placeholder: e.target.value
+                  })}
+                  placeholder="Optional placeholder text"
+                />
+              </Field>
+
+              {/* Options for select/multiselect */}
+              {(formData.input_type === "select" || formData.input_type === "multiselect") && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Options:</label>
+                  <div className="text-xs text-gray-600 mb-2">
+                    Define the options available for selection (one per line).
+                  </div>
+                  <Textarea
+                    value={(formData.options || []).join("\n")}
+                    onChange={(e) => {
+                      const options = e.target.value
+                        .split("\n")
+                        .map(opt => opt.trim())
+                        .filter(opt => opt.length > 0);
+                      setFormData({
+                        ...formData,
+                        options
+                      });
+                    }}
+                    placeholder="Option 1\nOption 2\nOption 3"
+                    className="h-24 font-mono text-sm"
+                  />
+                  {fieldErrors.options && (
+                    <div className="mt-1 text-sm text-red-600">{fieldErrors.options}</div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

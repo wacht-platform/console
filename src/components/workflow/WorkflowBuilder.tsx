@@ -30,6 +30,7 @@ import TryCatchNode from "./nodes/TryCatchNode";
 import LLMCallNode from "./nodes/LLMCallNode";
 import SwitchCaseNode from "./nodes/SwitchCaseNode";
 import ToolCallNode from "./nodes/ToolCallNode";
+import UserInputNode from "./nodes/UserInputNode";
 import NodeEditModal from "./modals/NodeEditModal";
 
 import { DnDProvider } from "../../contexts/DnDContext";
@@ -77,6 +78,13 @@ const Sidebar = () => {
         Tool Call
       </div>
       <div
+        className="dndnode user-input p-3 border border-cyan-400 rounded-md cursor-grab text-center text-sm font-medium bg-cyan-100 text-cyan-800"
+        onDragStart={(event) => onDragStart(event, "user-input")}
+        draggable
+      >
+        User Input
+      </div>
+      <div
         className="dndnode action stop p-3 border border-red-400 rounded-md cursor-grab text-center text-sm font-medium bg-red-100 text-red-800"
         onDragStart={(event) => onDragStart(event, "stop-workflow")}
         draggable
@@ -110,6 +118,7 @@ const nodeTypes = {
   "llm-call": LLMCallNode,
   "switch-case": SwitchCaseNode,
   "tool-call": ToolCallNode,
+  "user-input": UserInputNode,
 };
 
 interface WorkflowBuilderProps {
@@ -161,6 +170,12 @@ const DnDFlow = ({
           };
         } else if (node.node_type.type === 'ErrorHandler') {
           nodeType = 'try-catch';
+          nodeData = {
+            ...nodeData,
+            ...node.node_type,
+          };
+        } else if (node.node_type.type === 'UserInput') {
+          nodeType = 'user-input';
           nodeData = {
             ...nodeData,
             ...node.node_type,
@@ -344,6 +359,25 @@ const DnDFlow = ({
           type: "ToolCall",
           tool_id: -1, // Special ID to indicate stop workflow
           input_parameters: { action: "stop_workflow" },
+        },
+        position: { x: node.position.x, y: node.position.y },
+        data: {
+          label: (nodeData.label as string) || "",
+          description: (nodeData.description as string) || "",
+          enabled: true,
+          config: {},
+        },
+      };
+    } else if (node.type === "user-input") {
+      return {
+        id: node.id,
+        node_type: {
+          type: "UserInput",
+          prompt: (nodeData.prompt as string) || "",
+          input_type: (nodeData.input_type as "text" | "number" | "select" | "multiselect" | "boolean" | "date") || "text",
+          default_value: nodeData.default_value as string | undefined,
+          placeholder: nodeData.placeholder as string | undefined,
+          options: (nodeData.options as string[]) || undefined,
         },
         position: { x: node.position.x, y: node.position.y },
         data: {

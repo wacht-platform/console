@@ -123,6 +123,22 @@ export interface ToolCallNodeConfig {
   input_parameters: Record<string, unknown>;
 }
 
+export type UserInputType = 
+  | "text"
+  | "number"
+  | "select"
+  | "multiselect"
+  | "boolean"
+  | "date";
+
+export interface UserInputNodeConfig {
+  prompt: string;
+  input_type: UserInputType;
+  default_value?: string;
+  placeholder?: string;
+  options?: string[]; // For select/multiselect types
+}
+
 
 
 export type WorkflowNodeType =
@@ -130,7 +146,8 @@ export type WorkflowNodeType =
   | ({ type: "ErrorHandler" } & ErrorHandlerNodeConfig)
   | ({ type: "LLMCall" } & LLMCallNodeConfig)
   | ({ type: "Switch" } & SwitchNodeConfig)
-  | ({ type: "ToolCall" } & ToolCallNodeConfig);
+  | ({ type: "ToolCall" } & ToolCallNodeConfig)
+  | ({ type: "UserInput" } & UserInputNodeConfig);
 
 export interface WorkflowNodeData {
   label: string;

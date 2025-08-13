@@ -35,7 +35,7 @@ export interface KnowledgeBaseSearchSettings {
 
 export interface KnowledgeBaseToolConfiguration {
   type: "KnowledgeBase";
-  knowledge_base_id: string;
+  knowledge_base_ids: string[];
   search_settings: KnowledgeBaseSearchSettings;
 }
 

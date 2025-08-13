@@ -129,8 +129,8 @@ export function CreateToolDialog({
       }
     } else if (formData.type === "knowledge_base") {
       const kbConfig = formData.configuration as KnowledgeBaseToolConfiguration;
-      if (!kbConfig.knowledge_base_id) {
-        errors.push("Knowledge base selection is required");
+      if (!kbConfig.knowledge_base_ids || kbConfig.knowledge_base_ids.length === 0) {
+        errors.push("At least one knowledge base must be selected");
       }
     } else if (formData.type === "platform_event") {
       const eventConfig =
@@ -210,7 +210,7 @@ export function CreateToolDialog({
       case "knowledge_base":
         newConfiguration = {
           type: "KnowledgeBase",
-          knowledge_base_id: "",
+          knowledge_base_ids: [],
           search_settings: {
             max_results: 10,
             similarity_threshold: 0.7,
@@ -688,26 +688,39 @@ export function CreateToolDialog({
           <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Field>
-                <Label>Knowledge Base</Label>
-                <Select
-                  value={kbConfig.knowledge_base_id || ""}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      configuration: {
-                        ...kbConfig,
-                        knowledge_base_id: e.target.value,
-                      },
-                    })
-                  }
-                >
-                  <option value="">Select a knowledge base</option>
-                  {knowledgeBases.map((kb) => (
-                    <option key={kb.id} value={kb.id.toString()}>
-                      {kb.name}
-                    </option>
-                  ))}
-                </Select>
+                <Label>Knowledge Bases</Label>
+                <div className="space-y-2">
+                  <div className="text-sm text-gray-600">Select one or more knowledge bases to search</div>
+                  <div className="max-h-32 overflow-y-auto border rounded-md p-2 bg-white">
+                    {knowledgeBases.length === 0 ? (
+                      <div className="text-sm text-gray-500 italic">No knowledge bases available</div>
+                    ) : (
+                      knowledgeBases.map((kb) => (
+                        <label key={kb.id} className="flex items-center space-x-2 py-1 hover:bg-gray-50 px-1 rounded cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={(kbConfig.knowledge_base_ids || []).includes(kb.id.toString())}
+                            onChange={(e) => {
+                              const currentIds = kbConfig.knowledge_base_ids || [];
+                              const kbId = kb.id.toString();
+                              const newIds = e.target.checked
+                                ? [...currentIds, kbId]
+                                : currentIds.filter(id => id !== kbId);
+                              setFormData({
+                                ...formData,
+                                configuration: {
+                                  ...kbConfig,
+                                  knowledge_base_ids: newIds,
+                                },
+                              });
+                            }}
+                          />
+                          <span className="text-sm">{kb.name}</span>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                </div>
               </Field>
 
               <Field>

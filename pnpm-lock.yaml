@@ -18,11 +18,14 @@ importers:
         specifier: ^4.7.0
         version: 4.7.0(monaco-editor@0.52.2)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@snipextt/wacht':
-        specifier: link:/Users/snipextt/code/wacht-frontend/wacht-react/jsx
-        version: link:../../wacht-frontend/wacht-react/jsx
+        specifier: link:/Users/snipextt/code/wacht-dashboard/react-sdk/jsx
+        version: link:../react-sdk/jsx
       '@snipextt/wacht-react-router':
         specifier: 0.0.1-alpha.2
-        version: 0.0.1-alpha.2(@snipextt/wacht@..+wacht-frontend+wacht-react+jsx)(react-dom@19.0.0(react@19.0.0))(react-router@7.1.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)(rollup@4.32.1)
+        version: 0.0.1-alpha.2(@snipextt/wacht@react-sdk+jsx)(react-dom@19.0.0(react@19.0.0))(react-router@7.1.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)(rollup@4.32.1)
+      '@snipextt/wacht-workspace':
+        specifier: link:/Users/snipextt/code/wacht-dashboard/react-sdk
+        version: link:../react-sdk
       '@tailwindcss/vite':
         specifier: ^4.0.1
         version: 4.0.1(vite@6.0.11(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(sass-embedded@1.86.3))
@@ -38,9 +41,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      dashboard-frontend:
-        specifier: 'link:'
-        version: 'link:'
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -2301,9 +2301,9 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.32.1':
     optional: true
 
-  '@snipextt/wacht-react-router@0.0.1-alpha.2(@snipextt/wacht@..+wacht-frontend+wacht-react+jsx)(react-dom@19.0.0(react@19.0.0))(react-router@7.1.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)(rollup@4.32.1)':
+  '@snipextt/wacht-react-router@0.0.1-alpha.2(@snipextt/wacht@react-sdk+jsx)(react-dom@19.0.0(react@19.0.0))(react-router@7.1.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)(rollup@4.32.1)':
     dependencies:
-      '@snipextt/wacht': link:../../wacht-frontend/wacht-react/jsx
+      '@snipextt/wacht': link:../react-sdk/jsx
       react: 19.0.0
       react-dom: 19.0.0(react@19.0.0)
       react-router: 7.1.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
