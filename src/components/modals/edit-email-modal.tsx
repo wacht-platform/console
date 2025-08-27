@@ -20,7 +20,12 @@ interface EmailData {
 interface EditEmailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (id: string, email: string, verified: boolean, isPrimary: boolean) => void;
+  onSubmit: (
+    id: string,
+    email: string,
+    verified: boolean,
+    isPrimary: boolean,
+  ) => void;
   emailData: EmailData | null;
 }
 
@@ -35,7 +40,6 @@ export function EditEmailModal({
   const [isPrimary, setIsPrimary] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Update form when emailData changes
   useEffect(() => {
     if (emailData) {
       setEmail(emailData.email);
@@ -112,7 +116,12 @@ export function EditEmailModal({
         </form>
       </DialogBody>
       <DialogActions>
-        <Button type="button" outline onClick={handleClose} disabled={isLoading}>
+        <Button
+          type="button"
+          outline
+          onClick={handleClose}
+          disabled={isLoading}
+        >
           Cancel
         </Button>
         <Button

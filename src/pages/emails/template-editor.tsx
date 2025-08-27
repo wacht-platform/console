@@ -8,9 +8,10 @@ import { EmailTemplate } from "@/types/deployment";
 import type { IJodit } from "jodit/esm/types/jodit";
 import { useEmailTemplate } from "@/lib/api/hooks/use-email-templates";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
-import { EnvelopeIcon, ArrowLeftIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
+import { useDarkMode } from "@/lib/hooks/use-dark-mode";
 
 interface RichTextEditorProps {
   value: string;
@@ -24,12 +25,14 @@ const RichTextEditor = ({
   onEditorInit,
 }: RichTextEditorProps) => {
   const editor = useRef<IJodit | null>(null);
+  const isDarkMode = useDarkMode();
 
   const config = useMemo(
     () => ({
       readonly: false,
       toolbarAdaptive: false,
       placeholder: "",
+      theme: isDarkMode ? "dark" : "default",
       buttons: [
         "bold",
         "italic",
@@ -62,11 +65,19 @@ const RichTextEditor = ({
           padding: '16px',
           fontSize: '14px',
           lineHeight: '1.6',
-          color: '#374151',
+          color: isDarkMode ? '#e5e7eb' : '#374151',
+          backgroundColor: isDarkMode ? '#18181b' : '#ffffff',
+        },
+        '.jodit-container': {
+          backgroundColor: isDarkMode ? '#18181b' : '#ffffff',
+        },
+        '.jodit-toolbar': {
+          backgroundColor: isDarkMode ? '#27272a' : '#f3f4f6',
+          borderColor: isDarkMode ? '#3f3f46' : '#e5e7eb',
         },
       },
     }),
-    []
+    [isDarkMode]
   );
 
   useEffect(() => {
@@ -162,7 +173,7 @@ export default function EmailTemplateEditor() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <Spinner className="w-8 h-8 mx-auto mb-4" />
-          <p className="text-sm text-gray-500">Loading template...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading template...</p>
         </div>
       </div>
     );
@@ -184,17 +195,17 @@ export default function EmailTemplateEditor() {
       <div className="mb-6">
         <button
           onClick={handleBack}
-          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
+          className="inline-flex items-center text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 mb-4"
         >
           <ArrowLeftIcon className="w-4 h-4 mr-1" />
           Back to templates
         </button>
         <div className="flex items-center justify-between">
           <div>
-            <Heading className="text-2xl font-normal text-gray-900">
+            <Heading className="text-2xl font-normal text-gray-900 dark:text-gray-100">
               {formData.template_name || "Email Template"}
             </Heading>
-            <p className="mt-1 text-sm text-gray-600">Customize your email template content and settings</p>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Customize your email template content and settings</p>
           </div>
           <Button onClick={onSave} disabled={isSaving}>
             {isSaving ? (
@@ -212,16 +223,16 @@ export default function EmailTemplateEditor() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-8">
           <div>
-            <h3 className="text-base font-normal leading-6 text-gray-900 mb-4">Template Settings</h3>
+            <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-gray-100 mb-4">Template Settings</h3>
             <div className="space-y-4">
                 <div>
                   <label
                     htmlFor="name"
-                    className="block text-sm font-normal text-gray-700"
+                    className="block text-sm font-normal text-gray-700 dark:text-gray-300"
                   >
                     Template Name
                   </label>
-                  <p className="mt-1 text-sm text-gray-500">This name is for internal reference only</p>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">This name is for internal reference only</p>
                   <Input
                     id="name"
                     value={formData.template_name}
@@ -237,11 +248,11 @@ export default function EmailTemplateEditor() {
                   <div>
                     <label
                       htmlFor="from"
-                      className="block text-sm font-normal text-gray-700"
+                      className="block text-sm font-normal text-gray-700 dark:text-gray-300"
                     >
                       From Address
                     </label>
-                    <p className="mt-1 text-sm text-gray-500">The sender name for this email</p>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">The sender name for this email</p>
                     <div className="mt-2 flex rounded-md shadow-sm">
                       <Input
                         id="from"
@@ -252,7 +263,7 @@ export default function EmailTemplateEditor() {
                         className="flex-1 rounded-r-none"
                         placeholder="noreply"
                       />
-                      <span className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                      <span className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 sm:text-sm">
                         @{deploymentSettings?.mail_from_host}
                       </span>
                     </div>
@@ -261,11 +272,11 @@ export default function EmailTemplateEditor() {
                   <div>
                     <label
                       htmlFor="reply-to"
-                      className="block text-sm font-normal text-gray-700"
+                      className="block text-sm font-normal text-gray-700 dark:text-gray-300"
                     >
                       Reply-To Address
                     </label>
-                    <p className="mt-1 text-sm text-gray-500">Where replies should be sent</p>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Where replies should be sent</p>
                     <div className="mt-2 flex rounded-md shadow-sm">
                       <Input
                         id="reply-to"
@@ -276,7 +287,7 @@ export default function EmailTemplateEditor() {
                         className="flex-1 rounded-r-none"
                         placeholder="support"
                       />
-                      <span className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                      <span className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 sm:text-sm">
                         @{deploymentSettings?.mail_from_host}
                       </span>
                     </div>
@@ -286,11 +297,11 @@ export default function EmailTemplateEditor() {
                 <div>
                   <label
                     htmlFor="subject"
-                    className="block text-sm font-normal text-gray-700"
+                    className="block text-sm font-normal text-gray-700 dark:text-gray-300"
                   >
                     Email Subject
                   </label>
-                  <p className="mt-1 text-sm text-gray-500">You can use template variables in the subject line</p>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">You can use template variables in the subject line</p>
                   <Input
                     id="subject"
                     value={formData.template_subject}
@@ -305,8 +316,8 @@ export default function EmailTemplateEditor() {
           </div>
 
           <div>
-            <h3 className="text-base font-normal leading-6 text-gray-900 mb-4">Email Content</h3>
-            <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+            <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-gray-100 mb-4">Email Content</h3>
+            <div className="border border-gray-200 dark:border-zinc-700 rounded-lg overflow-hidden bg-white dark:bg-zinc-900">
               <RichTextEditor
                 value={formData.template_data}
                 onChange={handleEditorChange}
@@ -317,84 +328,84 @@ export default function EmailTemplateEditor() {
         </div>
 
         <div className="lg:col-span-1">
-          <div className="bg-gray-50 border border-gray-200 rounded-lg sticky top-6">
+          <div className="bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg sticky top-6">
             <div className="px-5 py-5">
-              <h3 className="text-base font-normal leading-6 text-gray-900 mb-4">Template Variables</h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-gray-100 mb-4">Template Variables</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                 Click on a variable to insert it at the cursor position in the editor.
               </p>
               
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-xs font-normal text-gray-500 uppercase tracking-wide mb-2">User Information</h4>
+                  <h4 className="text-xs font-normal text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">User Information</h4>
                   <div className="space-y-1">
                     <button
                       type="button"
                       onClick={() => insertVariable("user.first_name")}
-                      className="w-full text-left px-3 py-2 text-sm bg-white hover:bg-gray-50 rounded-md transition-colors border border-gray-200"
+                      className="w-full text-left px-3 py-2 text-sm bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 rounded-md transition-colors border border-gray-200 dark:border-zinc-700"
                     >
-                      <span className="font-mono text-xs text-gray-600">{`{{user.first_name}}`}</span>
+                      <span className="font-mono text-xs text-gray-600 dark:text-gray-400">{`{{user.first_name}}`}</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => insertVariable("user.last_name")}
-                      className="w-full text-left px-3 py-2 text-sm bg-white hover:bg-gray-50 rounded-md transition-colors border border-gray-200"
+                      className="w-full text-left px-3 py-2 text-sm bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 rounded-md transition-colors border border-gray-200 dark:border-zinc-700"
                     >
-                      <span className="font-mono text-xs text-gray-600">{`{{user.last_name}}`}</span>
+                      <span className="font-mono text-xs text-gray-600 dark:text-gray-400">{`{{user.last_name}}`}</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => insertVariable("user.email")}
-                      className="w-full text-left px-3 py-2 text-sm bg-white hover:bg-gray-50 rounded-md transition-colors border border-gray-200"
+                      className="w-full text-left px-3 py-2 text-sm bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 rounded-md transition-colors border border-gray-200 dark:border-zinc-700"
                     >
-                      <span className="font-mono text-xs text-gray-600">{`{{user.email}}`}</span>
+                      <span className="font-mono text-xs text-gray-600 dark:text-gray-400">{`{{user.email}}`}</span>
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="text-xs font-normal text-gray-500 uppercase tracking-wide mb-2">Application</h4>
+                  <h4 className="text-xs font-normal text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Application</h4>
                   <div className="space-y-1">
                     <button
                       type="button"
                       onClick={() => insertVariable("app_name")}
-                      className="w-full text-left px-3 py-2 text-sm bg-white hover:bg-gray-50 rounded-md transition-colors border border-gray-200"
+                      className="w-full text-left px-3 py-2 text-sm bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 rounded-md transition-colors border border-gray-200 dark:border-zinc-700"
                     >
-                      <span className="font-mono text-xs text-gray-600">{`{{app_name}}`}</span>
+                      <span className="font-mono text-xs text-gray-600 dark:text-gray-400">{`{{app_name}}`}</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => insertVariable("app_url")}
-                      className="w-full text-left px-3 py-2 text-sm bg-white hover:bg-gray-50 rounded-md transition-colors border border-gray-200"
+                      className="w-full text-left px-3 py-2 text-sm bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 rounded-md transition-colors border border-gray-200 dark:border-zinc-700"
                     >
-                      <span className="font-mono text-xs text-gray-600">{`{{app_url}}`}</span>
+                      <span className="font-mono text-xs text-gray-600 dark:text-gray-400">{`{{app_url}}`}</span>
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="text-xs font-normal text-gray-500 uppercase tracking-wide mb-2">Authentication</h4>
+                  <h4 className="text-xs font-normal text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Authentication</h4>
                   <div className="space-y-1">
                     <button
                       type="button"
                       onClick={() => insertVariable("verification_code")}
-                      className="w-full text-left px-3 py-2 text-sm bg-white hover:bg-gray-50 rounded-md transition-colors border border-gray-200"
+                      className="w-full text-left px-3 py-2 text-sm bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 rounded-md transition-colors border border-gray-200 dark:border-zinc-700"
                     >
-                      <span className="font-mono text-xs text-gray-600">{`{{verification_code}}`}</span>
+                      <span className="font-mono text-xs text-gray-600 dark:text-gray-400">{`{{verification_code}}`}</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => insertVariable("magic_link")}
-                      className="w-full text-left px-3 py-2 text-sm bg-white hover:bg-gray-50 rounded-md transition-colors border border-gray-200"
+                      className="w-full text-left px-3 py-2 text-sm bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 rounded-md transition-colors border border-gray-200 dark:border-zinc-700"
                     >
-                      <span className="font-mono text-xs text-gray-600">{`{{magic_link}}`}</span>
+                      <span className="font-mono text-xs text-gray-600 dark:text-gray-400">{`{{magic_link}}`}</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => insertVariable("reset_link")}
-                      className="w-full text-left px-3 py-2 text-sm bg-white hover:bg-gray-50 rounded-md transition-colors border border-gray-200"
+                      className="w-full text-left px-3 py-2 text-sm bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 rounded-md transition-colors border border-gray-200 dark:border-zinc-700"
                     >
-                      <span className="font-mono text-xs text-gray-600">{`{{reset_link}}`}</span>
+                      <span className="font-mono text-xs text-gray-600 dark:text-gray-400">{`{{reset_link}}`}</span>
                     </button>
                   </div>
                 </div>

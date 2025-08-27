@@ -208,7 +208,7 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
       <DialogTitle>Create User</DialogTitle>
       <DialogBody>
         {isLoading ? (
-          <div className="text-center py-4">Loading settings...</div>
+          <div className="text-center py-4 text-zinc-600 dark:text-zinc-400">Loading settings...</div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Profile Image Upload */}
@@ -217,7 +217,7 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
               <div className="flex items-center space-x-4">
                 {/* Avatar Preview */}
                 <div
-                  className="relative w-20 h-20 rounded-full border-2 border-dashed border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100 transition-all duration-200 cursor-pointer overflow-hidden"
+                  className="relative w-20 h-20 rounded-full border-2 border-dashed border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer overflow-hidden"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   {imagePreview ? (
@@ -233,14 +233,14 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
                           e.stopPropagation();
                           handleRemoveImage();
                         }}
-                        className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm"
+                        className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500 transition-colors shadow-sm"
                       >
                         <XMarkIcon className="w-3 h-3" />
                       </button>
                     </>
                   ) : (
                     <div className="flex items-center justify-center h-full">
-                      <PhotoIcon className="w-6 h-6 text-gray-400" />
+                      <PhotoIcon className="w-6 h-6 text-gray-400 dark:text-gray-500" />
                     </div>
                   )}
                 </div>
@@ -255,7 +255,7 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
                   >
                     {imagePreview ? "Change Image" : "Upload Image"}
                   </Button>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     Recommended: Square PNG or JPG, max 2MB
                   </p>
                 </div>

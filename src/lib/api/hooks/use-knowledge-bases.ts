@@ -229,8 +229,8 @@ export function useDeleteKnowledgeBase() {
   return useMutation({
     mutationFn: (knowledgeBaseId: string) =>
       deleteKnowledgeBase(selectedDeployment!.id, knowledgeBaseId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
+    onSuccess: async () => {
+      await queryClient.refetchQueries({
         queryKey: ["knowledge-bases", selectedDeployment!.id],
       });
       toast.success("Knowledge base deleted successfully!");

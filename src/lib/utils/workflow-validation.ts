@@ -310,16 +310,16 @@ function validateWorkflowNode(node: WorkflowNode, index: number): ValidationErro
   } else if (node.node_type.type === "Switch") {
     const switchErrors = validateSwitchNode(node, index);
     errors.push(...switchErrors);
-  } else if (node.node_type.type === "Condition") {
+  } else if ((node.node_type as any).type === "Condition") {
     const conditionalErrors = validateConditionalNode(node, index);
     errors.push(...conditionalErrors);
   } else if (node.node_type.type === "ErrorHandler") {
     const tryCatchErrors = validateTryCatchNode(node, index);
     errors.push(...tryCatchErrors);
-  } else if (node.node_type.type === "StoreContext") {
+  } else if ((node.node_type as any).type === "StoreContext") {
     const storeContextErrors = validateStoreContextNode(node, index);
     errors.push(...storeContextErrors);
-  } else if (node.node_type.type === "FetchContext") {
+  } else if ((node.node_type as any).type === "FetchContext") {
     const fetchContextErrors = validateFetchContextNode(node, index);
     errors.push(...fetchContextErrors);
   } else if (node.node_type.type === "UserInput") {
@@ -448,7 +448,7 @@ function validateSwitchNode(node: WorkflowNode, index: number): ValidationError[
 function validateConditionalNode(node: WorkflowNode, index: number): ValidationError[] {
   const errors: ValidationError[] = [];
 
-  if (node.node_type.type === "Condition") {
+  if ((node.node_type as any).type === "Condition") {
     const config = node.node_type as any; // Use any to access flattened fields
 
     if (!config.expression || !config.expression.trim()) {
@@ -492,7 +492,7 @@ function validateTryCatchNode(node: WorkflowNode, index: number): ValidationErro
 function validateStoreContextNode(node: WorkflowNode, _index: number): ValidationError[] {
   const errors: ValidationError[] = [];
 
-  if (node.node_type.type === "StoreContext") {
+  if ((node.node_type as any).type === "StoreContext") {
     // No specific validation needed for Store Context nodes
   }
 
@@ -502,7 +502,7 @@ function validateStoreContextNode(node: WorkflowNode, _index: number): Validatio
 function validateFetchContextNode(node: WorkflowNode, _index: number): ValidationError[] {
   const errors: ValidationError[] = [];
 
-  if (node.node_type.type === "FetchContext") {
+  if ((node.node_type as any).type === "FetchContext") {
     // No specific validation needed for Fetch Context nodes
   }
 

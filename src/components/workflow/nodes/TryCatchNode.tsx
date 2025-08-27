@@ -23,103 +23,145 @@ const TryCatchNode = memo(({ data, selected }: TryCatchNodeProps) => {
 
   return (
     <div
-      className={`relative shadow-md rounded-md bg-yellow-50 border-2 min-w-[500px] min-h-[400px] ${
-        selected ? "border-yellow-500" : "border-yellow-300"
+      className={`relative shadow-xl rounded-2xl bg-gradient-to-br from-yellow-50 to-amber-50 border-3 min-w-[520px] min-h-[420px] transition-all duration-300 hover:shadow-2xl ${
+        selected ? "border-yellow-500 ring-4 ring-yellow-200" : "border-yellow-400 hover:border-yellow-500"
       }`}
-      style={{ zIndex: 0 }} // Lower z-index so other nodes can be dropped on top
+      style={{ zIndex: 0 }}
       data-node-type="try-catch"
     >
       {/* Node Resizer */}
       <NodeResizer
         color="#eab308"
         isVisible={selected}
-        minWidth={500}
-        minHeight={400}
+        minWidth={520}
+        minHeight={420}
       />
 
       {/* Input Handle */}
       <Handle
         type="target"
         position={Position.Top}
-        className="w-3 h-3 !bg-yellow-500 border-2 border-white"
+        className="w-4 h-4 !bg-yellow-600 !border-2 !border-white shadow-md"
         style={{ zIndex: 10 }}
       />
 
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 bg-yellow-100 border-b border-yellow-300 px-4 py-2 rounded-t-md z-10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600" />
-            <div className="font-medium text-yellow-800 text-sm">Try/Catch Container</div>
+      {/* Enhanced Header */}
+      <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-yellow-100 to-amber-100 border-b-2 border-yellow-300 px-6 py-4 rounded-t-2xl z-10 shadow-sm">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center shadow-md">
+              <ExclamationTriangleIcon className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <div className="font-semibold text-gray-900 text-sm">{data.label}</div>
+              <div className="text-xs text-yellow-600 font-medium">TRY/CATCH CONTAINER</div>
+            </div>
           </div>
-          <div className="text-xs text-yellow-600">
-            {containedNodesCount === 1 ? '1 protected node' : 'No protected node'}
+          <div className="flex items-center gap-2">
+            <div className={`w-3 h-3 rounded-full ${containedNodesCount === 1 ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
+            <span className="text-xs font-medium text-yellow-700">
+              {containedNodesCount === 1 ? '1 Protected Node' : 'No Protected Node'}
+            </span>
           </div>
         </div>
 
-        {/* Configuration Summary */}
-        <div className="mt-1 text-xs text-yellow-700 flex gap-4">
-          {data.enable_retry && (
-            <span>Retry: <span className="font-medium">Enabled</span></span>
-          )}
+        {/* Enhanced Configuration Summary */}
+        <div className="flex flex-wrap gap-3">
+          <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+            data.enable_retry 
+              ? 'bg-green-200 text-green-800' 
+              : 'bg-gray-200 text-gray-600'
+          }`}>
+            {data.enable_retry ? '🔄 Retry Enabled' : '❌ Retry Disabled'}
+          </div>
+          
           {data.enable_retry && data.max_retries && data.max_retries > 0 && (
-            <span>Max Retries: <span className="font-medium">{data.max_retries}</span></span>
+            <div className="px-3 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-medium">
+              📊 Max: {data.max_retries} retries
+            </div>
           )}
-          {!data.enable_retry && (
-            <span>Retry: <span className="font-medium">Disabled</span></span>
+          
+          {data.retry_delay_seconds && (
+            <div className="px-3 py-1 bg-purple-200 text-purple-800 rounded-full text-xs font-medium">
+              ⏱️ Delay: {data.retry_delay_seconds}s
+            </div>
           )}
+          
+          <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+            data.log_errors !== false 
+              ? 'bg-indigo-200 text-indigo-800' 
+              : 'bg-gray-200 text-gray-600'
+          }`}>
+            {data.log_errors !== false ? '📝 Logging On' : '📝 Logging Off'}
+          </div>
         </div>
       </div>
 
-      {/* Container Drop Zone */}
+      {/* Enhanced Container Drop Zone */}
       <div
-        className="absolute top-20 left-6 right-6 bottom-20 border-4 border-dashed border-yellow-400 rounded-lg bg-yellow-25 flex items-center justify-center hover:border-yellow-500 hover:bg-yellow-100 transition-colors"
+        className="absolute top-24 left-8 right-8 bottom-24 border-4 border-dashed border-yellow-400 rounded-2xl bg-gradient-to-br from-yellow-25 to-amber-25 flex items-center justify-center hover:border-yellow-500 hover:from-yellow-50 hover:to-amber-50 transition-all duration-300 shadow-inner"
         style={{ zIndex: 1 }}
       >
         {containedNodesCount === 0 ? (
           <div className="text-center text-yellow-600 pointer-events-none p-8">
-            <PlusIcon className="w-12 h-12 mx-auto mb-4 opacity-60" />
-            <div className="text-lg font-medium mb-2">Try/Catch Protection Zone</div>
-            <div className="text-sm opacity-75 mb-2">Drop ONE workflow node here to protect it</div>
-            <div className="text-sm opacity-75 mb-4">with error handling and retry logic</div>
-            <div className="text-xs bg-yellow-200 rounded px-3 py-2 inline-block">
-              💡 Only one node can be protected at a time
+            <div className="w-16 h-16 bg-gradient-to-br from-yellow-200 to-amber-200 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <PlusIcon className="w-8 h-8 text-yellow-700" />
+            </div>
+            <div className="text-xl font-bold mb-3 text-gray-800">Error Protection Zone</div>
+            <div className="text-sm opacity-90 mb-2 leading-relaxed">Drop <strong>one workflow node</strong> here to protect it</div>
+            <div className="text-sm opacity-90 mb-6 leading-relaxed">with advanced error handling and retry logic</div>
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-200 to-amber-200 rounded-xl px-4 py-3 shadow-md">
+              <span className="text-lg">🛡️</span>
+              <div className="text-xs font-medium text-yellow-800">
+                <div>Only one node can be protected</div>
+                <div className="opacity-75">at a time for optimal error handling</div>
+              </div>
             </div>
           </div>
         ) : (
           <div className="text-center text-yellow-700 pointer-events-none p-8">
-            <ExclamationTriangleIcon className="w-12 h-12 mx-auto mb-4 opacity-60" />
-            <div className="text-lg font-medium mb-2">1 Protected Node</div>
-            <div className="text-sm opacity-75 mb-2">Error handling and retry logic active</div>
-            <div className="text-xs bg-green-200 rounded px-3 py-2 inline-block">
-              ✅ Node is protected from errors
+            <div className="w-16 h-16 bg-gradient-to-br from-green-200 to-emerald-200 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <ExclamationTriangleIcon className="w-8 h-8 text-green-700" />
+            </div>
+            <div className="text-xl font-bold mb-3 text-gray-800">Node Protected</div>
+            <div className="text-sm opacity-90 mb-2 leading-relaxed">Error handling and retry logic are <strong>active</strong></div>
+            <div className="text-sm opacity-90 mb-6 leading-relaxed">Your workflow node is safely protected</div>
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-200 to-emerald-200 rounded-xl px-4 py-3 shadow-md">
+              <span className="text-lg">✅</span>
+              <div className="text-xs font-medium text-green-800">
+                <div>Protection Active</div>
+                <div className="opacity-75">Errors will be caught and handled</div>
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Success Output Handle */}
+      {/* Enhanced Output Handles */}
       <Handle
         type="source"
         position={Position.Bottom}
         id="success"
-        className="w-3 h-3 !bg-green-500 border-2 border-white !left-[25%]"
+        className="w-4 h-4 !bg-green-600 !border-2 !border-white shadow-md !left-[25%]"
         style={{ zIndex: 10 }}
       />
 
-      {/* Error Output Handle */}
       <Handle
         type="source"
         position={Position.Bottom}
         id="error"
-        className="w-3 h-3 !bg-red-500 border-2 border-white !left-[75%]"
+        className="w-4 h-4 !bg-red-600 !border-2 !border-white shadow-md !left-[75%]"
         style={{ zIndex: 10 }}
       />
 
-      {/* Handle Labels */}
-      <div className="absolute -bottom-6 left-0 right-0 flex justify-between text-xs text-gray-500 z-10">
-        <span className="ml-[15%]">Success</span>
-        <span className="mr-[15%]">Error</span>
+      {/* Enhanced Handle Labels */}
+      <div className="absolute -bottom-10 left-0 right-0 flex justify-between text-xs font-medium z-10">
+        <div className="ml-[15%] bg-green-100 text-green-800 px-3 py-1 rounded-full shadow-sm border border-green-200">
+          ✅ Success
+        </div>
+        <div className="mr-[15%] bg-red-100 text-red-800 px-3 py-1 rounded-full shadow-sm border border-red-200">
+          ❌ Error
+        </div>
       </div>
     </div>
   );

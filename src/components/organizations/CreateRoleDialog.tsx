@@ -31,12 +31,11 @@ export function CreateRoleDialog({
   const createRole = useCreateOrganizationRole();
   const { deploymentSettings } = useCurrentDeployemnt();
 
-  // Get available permissions from deployment B2B settings
   const availablePermissions = React.useMemo(() => {
-    const orgPermissions = deploymentSettings?.b2b_settings?.organization_permissions || [];
+    const orgPermissions =
+      deploymentSettings?.b2b_settings?.organization_permissions || [];
 
-    // Convert to options format - just show the permission string as-is
-    return orgPermissions.map(permission => ({
+    return orgPermissions.map((permission) => ({
       id: permission,
       name: permission,
       description: permission,
@@ -65,8 +64,6 @@ export function CreateRoleDialog({
     }
   };
 
-
-
   return (
     <Dialog open={isOpen} onClose={onClose}>
       <DialogTitle>Create Organization Role</DialogTitle>
@@ -91,7 +88,9 @@ export function CreateRoleDialog({
               label="Permissions"
               options={availablePermissions}
               selectedValues={formData.permissions}
-              onChange={(permissions) => setFormData(prev => ({ ...prev, permissions }))}
+              onChange={(permissions) =>
+                setFormData((prev) => ({ ...prev, permissions }))
+              }
               placeholder="Select permissions for this role..."
             />
           </div>

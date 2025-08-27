@@ -69,7 +69,7 @@ export function useProjects() {
     async (projectId: string, deploymentId: string) => {
       try {
         const response = await apiClient.delete(
-          `/project/${projectId}/deployments/${deploymentId}`,
+          `/project/${projectId}/deployment/${deploymentId}`,
         );
         queryClient.invalidateQueries({ queryKey: ["projects"] });
         return response.data;

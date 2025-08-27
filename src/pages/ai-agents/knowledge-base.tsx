@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
 	BookOpenIcon,
 	PlusIcon,
@@ -19,6 +19,7 @@ import {
 	TableRow,
 } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
+import { Spinner } from "../../components/ui/spinner";
 import {
 	Dropdown,
 	DropdownButton,
@@ -35,8 +36,7 @@ import {
 	useDeleteKnowledgeBase,
 	useDeleteDocument,
 	useCreateKnowledgeBase,
-	type KnowledgeBase,
-	type KnowledgeBaseDocument
+	type KnowledgeBase
 } from "../../lib/api/hooks/use-knowledge-bases";
 
 
@@ -107,10 +107,21 @@ export default function KnowledgeBasePage() {
 
 	const knowledgeBases = knowledgeBasesResponse?.data || [];
 
-	// Auto-select the first knowledge base if none is selected
-	if (!selectedKnowledgeBase && knowledgeBases.length > 0) {
-		setSelectedKnowledgeBase(knowledgeBases[0]);
-	}
+	// Auto-select the first knowledge base if none is selected, or if the selected one no longer exists
+	useEffect(() => {
+		if (!selectedKnowledgeBase && knowledgeBases.length > 0) {
+			setSelectedKnowledgeBase(knowledgeBases[0]);
+		} else if (selectedKnowledgeBase && knowledgeBases.length > 0) {
+			// Check if the currently selected knowledge base still exists
+			const stillExists = knowledgeBases.find(kb => kb.id === selectedKnowledgeBase.id);
+			if (!stillExists) {
+				setSelectedKnowledgeBase(knowledgeBases[0]);
+			}
+		} else if (selectedKnowledgeBase && knowledgeBases.length === 0) {
+			// No knowledge bases left, clear selection
+			setSelectedKnowledgeBase(null);
+		}
+	}, [knowledgeBases, selectedKnowledgeBase]);
 
 	// Reset pagination when knowledge base changes
 	const handleKnowledgeBaseChange = (kb: KnowledgeBase) => {
@@ -176,11 +187,12 @@ export default function KnowledgeBasePage() {
 
 		try {
 			await deleteKnowledgeBaseMutation.mutateAsync(deleteKnowledgeBaseDialog.knowledgeBaseId);
+			setDeleteKnowledgeBaseDialog({ isOpen: false, knowledgeBaseId: null, knowledgeBaseName: null });
+			
 			// Reset selected knowledge base if it was deleted
 			if (selectedKnowledgeBase?.id === deleteKnowledgeBaseDialog.knowledgeBaseId) {
 				setSelectedKnowledgeBase(null);
 			}
-			setDeleteKnowledgeBaseDialog({ isOpen: false, knowledgeBaseId: null, knowledgeBaseName: null });
 		} catch (error) {
 			console.error("Error deleting knowledge base:", error);
 		}
@@ -203,9 +215,9 @@ export default function KnowledgeBasePage() {
 	// Show loading state while fetching knowledge bases
 	if (isLoadingKnowledgeBases) {
 		return (
-			<div className="text-center py-12">
-				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-				<p className="mt-2 text-sm text-gray-500">Loading knowledge bases...</p>
+			<div className="flex flex-col items-center justify-center min-h-[400px] py-12">
+				<Spinner size="lg" />
+				<p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">Loading knowledge bases...</p>
 			</div>
 		);
 	}
@@ -235,10 +247,10 @@ export default function KnowledgeBasePage() {
 
 				<div className="text-center py-12">
 					<BookOpenIcon className="mx-auto h-12 w-12 text-gray-400" />
-					<h3 className="mt-2 text-sm font-semibold text-gray-900">
+					<h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
 						No knowledge bases
 					</h3>
-					<p className="mt-1 text-sm text-gray-500">
+					<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
 						Get started by creating your first knowledge base.
 					</p>
 					<div className="mt-6">
@@ -263,69 +275,82 @@ export default function KnowledgeBasePage() {
 		<div>
 			<div className="flex flex-col gap-2 mb-2">
 				<Heading>Knowledge Base</Heading>
-				<p className="text-sm text-gray-600">
+				<p className="text-sm text-gray-600 dark:text-gray-400">
 					Upload and manage documents that AI agents can reference
 				</p>
 			</div>
 
 			{/* Knowledge Base Selector */}
 			<div className="mb-6">
-				<div className="bg-white rounded-lg border border-gray-200 p-4">
-					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-4">
-							<div className="flex items-center gap-2">
-								<span className="text-sm font-medium text-gray-700">Knowledge Base:</span>
-								<Dropdown>
-									<DropdownButton outline>
-										{selectedKnowledgeBase?.name || "Select Knowledge Base"}
-										<ChevronDownIcon className="ml-2 h-4 w-4" />
-									</DropdownButton>
-									<DropdownMenu>
-										{knowledgeBases.map((kb) => (
-											<DropdownItem
-												key={kb.id}
-												onClick={() => handleKnowledgeBaseChange(kb)}
-											>
-												<DropdownLabel>{kb.name}</DropdownLabel>
+				<div className="bg-white dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-zinc-700 p-4">
+					<div className="space-y-4">
+						{/* Knowledge Base Selector Row */}
+						<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+							<div className="flex flex-col sm:flex-row sm:items-center gap-4 min-w-0 flex-1">
+								<div className="flex items-center gap-2 shrink-0">
+									<span className="text-sm font-medium text-gray-700 dark:text-gray-300">Knowledge Base:</span>
+								</div>
+								<div className="min-w-0 flex-1 max-w-md">
+									<Dropdown>
+										<DropdownButton outline className="w-full justify-between">
+											<span className="truncate">
+												{selectedKnowledgeBase?.name || "Select Knowledge Base"}
+											</span>
+											<ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
+										</DropdownButton>
+										<DropdownMenu>
+											{knowledgeBases.map((kb) => (
+												<DropdownItem
+													key={kb.id}
+													onClick={() => handleKnowledgeBaseChange(kb)}
+												>
+													<DropdownLabel className="truncate" title={kb.name}>
+														{kb.name}
+													</DropdownLabel>
+												</DropdownItem>
+											))}
+											<DropdownItem onClick={() => setIsCreateKnowledgeBaseDialogOpen(true)}>
+												<DropdownLabel>+ Create New Knowledge Base</DropdownLabel>
 											</DropdownItem>
-										))}
-										<DropdownItem onClick={() => setIsCreateKnowledgeBaseDialogOpen(true)}>
-											<DropdownLabel>+ Create New Knowledge Base</DropdownLabel>
-										</DropdownItem>
-									</DropdownMenu>
-								</Dropdown>
+										</DropdownMenu>
+									</Dropdown>
+								</div>
+								{selectedKnowledgeBase && (
+									<div className="text-sm text-gray-500 dark:text-gray-400 shrink-0">
+										{selectedKnowledgeBase.documents_count} documents • {formatFileSize(selectedKnowledgeBase.total_size)}
+									</div>
+								)}
 							</div>
+							
+							{/* Action Buttons */}
 							{selectedKnowledgeBase && (
-								<div className="text-sm text-gray-500">
-									{selectedKnowledgeBase.documents_count} documents • {formatFileSize(selectedKnowledgeBase.total_size)}
+								<div className="flex gap-2 shrink-0">
+									<Button
+										onClick={handleCreateDocument}
+										disabled={!selectedKnowledgeBase}
+									>
+										<PlusIcon className="mr-2 h-4 w-4" />
+										Upload Document
+									</Button>
+									<Button
+										outline
+										className="text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
+										onClick={() => handleDeleteKnowledgeBase(selectedKnowledgeBase.id, selectedKnowledgeBase.name)}
+										disabled={deleteKnowledgeBaseMutation.isPending}
+									>
+										Delete Knowledge Base
+									</Button>
 								</div>
 							)}
 						</div>
-						{selectedKnowledgeBase && (
-							<div className="flex gap-2">
-								<Button
-									onClick={handleCreateDocument}
-									disabled={!selectedKnowledgeBase}
-								>
-									<PlusIcon className="mr-2 h-4 w-4" />
-									Upload Document
-								</Button>
-								<Button
-									outline
-									className="text-red-600 hover:bg-red-50"
-									onClick={() => handleDeleteKnowledgeBase(selectedKnowledgeBase.id, selectedKnowledgeBase.name)}
-									disabled={deleteKnowledgeBaseMutation.isPending}
-								>
-									Delete Knowledge Base
-								</Button>
+						
+						{/* Description Row */}
+						{selectedKnowledgeBase?.description && (
+							<div className="text-sm text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-3">
+								{selectedKnowledgeBase.description}
 							</div>
 						)}
 					</div>
-					{selectedKnowledgeBase?.description && (
-						<div className="mt-2 text-sm text-gray-600">
-							{selectedKnowledgeBase.description}
-						</div>
-					)}
 				</div>
 			</div>
 
@@ -347,17 +372,17 @@ export default function KnowledgeBasePage() {
 				{!selectedKnowledgeBase ? (
 					<div className="text-center py-12">
 						<BookOpenIcon className="mx-auto h-12 w-12 text-gray-400" />
-						<h3 className="mt-2 text-sm font-semibold text-gray-900">
+						<h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
 							Select a knowledge base
 						</h3>
-						<p className="mt-1 text-sm text-gray-500">
+						<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
 							Choose a knowledge base from the dropdown above to view its documents.
 						</p>
 					</div>
 				) : isLoadingDocuments ? (
-					<div className="text-center py-12">
-						<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-						<p className="mt-2 text-sm text-gray-500">Loading documents...</p>
+					<div className="flex flex-col items-center justify-center min-h-[300px] py-12">
+						<Spinner size="lg" />
+						<p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">Loading documents...</p>
 					</div>
 				) : documentsError ? (
 					<div className="text-center py-12">
@@ -369,10 +394,10 @@ export default function KnowledgeBasePage() {
 				) : documents.length === 0 ? (
 					<div className="text-center py-12">
 						<BookOpenIcon className="mx-auto h-12 w-12 text-gray-400" />
-						<h3 className="mt-2 text-sm font-semibold text-gray-900">
+						<h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
 							No documents
 						</h3>
-						<p className="mt-1 text-sm text-gray-500">
+						<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
 							Get started by uploading your first document.
 						</p>
 						<div className="mt-6">
@@ -415,7 +440,7 @@ export default function KnowledgeBasePage() {
 										</TableCell>
 										<TableCell>
 											<div className="max-w-xs">
-												<p className="text-sm text-gray-900 truncate">
+												<p className="text-sm text-gray-900 dark:text-gray-100 truncate">
 													{doc.description || "No description"}
 												</p>
 											</div>
@@ -455,7 +480,7 @@ export default function KnowledgeBasePage() {
 				{/* Pagination Controls */}
 				{documents.length > 0 && (
 					<div className="mt-6 flex items-center justify-between">
-						<div className="text-sm text-gray-700">
+						<div className="text-sm text-gray-700 dark:text-gray-300">
 							Showing {documentsPage * documentsLimit + 1} to{" "}
 							{Math.min((documentsPage + 1) * documentsLimit, documentsPage * documentsLimit + documents.length)} of{" "}
 							{documentsPage * documentsLimit + documents.length}{hasMoreDocuments ? "+" : ""} documents

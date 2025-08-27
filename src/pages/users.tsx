@@ -12,13 +12,12 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { Avatar } from "@/components/ui/avatar";
-import { NavigationTabs, type Tab } from "@/components/navigation-tabs";
 import {
 	useDeploymentInvitedUsers,
 	useDeploymentUsers,
 	useDeploymentWaitlist,
 } from "@/lib/api/hooks/use-deployment-users";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
@@ -26,23 +25,33 @@ import { CreateUserModal } from "@/components/users/CreateUserModal";
 import { InviteUserModal } from "@/components/users/InviteUserModal";
 import type { DeploymentWaitlistUser, UserWithIdentifiers } from "@/types/user";
 import { useApproveWaitlistUser } from "@/lib/api/hooks/use-deployment-user-mutations";
-import { useNavigate } from "react-router";
-import { SkeletonTableRows } from "@/components/ui/skeleton";
+import { useNavigate, useLocation, useParams } from "react-router";
+import { Spinner } from "@/components/ui/spinner";
 import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
 
 export default function UsersPage() {
 	const navigate = useNavigate();
+	const location = useLocation();
+	const { projectId, deploymentId } = useParams();
 	const [sortKey, setSortKey] = useState<string>("created_at");
 	const [sortOrder, setSortOrder] = useState<string>("desc");
 	const [page, setPage] = useState(1);
-	const [tabs, setTabs] = useState<Tab[]>([
-		{ name: "Active", current: true },
-		{ name: "Invited", current: false },
-		{ name: "Waitlist", current: false },
-	]);
-	const [selectedTabKey, setSelectedTabKey] = useState<string>("Active");
+	
+	// Determine current tab from URL
+	const getCurrentTab = () => {
+		if (location.pathname.includes('/users/invited')) return 'Invited';
+		if (location.pathname.includes('/users/waitlist')) return 'Waitlist';
+		return 'Active'; // Default to Active for /users and /users/active
+	};
+	
+	const [selectedTabKey, setSelectedTabKey] = useState<string>(getCurrentTab());
+	
+	// Update selected tab when URL changes
+	useEffect(() => {
+		setSelectedTabKey(getCurrentTab());
+	}, [location.pathname]);
 	const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_OPTIONS[0]);
 	const offset = (page - 1) * itemsPerPage;
 	const [createUserModalOpen, setCreateUserModalOpen] = useState(false);
@@ -120,7 +129,7 @@ export default function UsersPage() {
 	};
 
 	const handleViewUserDetails = (user: UserWithIdentifiers) => {
-		navigate(`../user/${user.id}`);
+		navigate(`/project/${projectId}/deployment/${deploymentId}/user/${user.id}`);
 	};
 
 	const handleSortChange = (value: string) => {
@@ -136,10 +145,7 @@ export default function UsersPage() {
 		setPage(1);
 	};
 
-	const onTabChange = (tab: Tab) => {
-		setTabs(tabs.map((t) => ({ ...t, current: t.name === tab.name })));
-		setSelectedTabKey(tab.name);
-	};
+	// Remove the onTabChange function since navigation is now handled by routes
 
 	return (
 		<div>
@@ -154,7 +160,6 @@ export default function UsersPage() {
 
 			<div className="flex flex-col gap-2 mb-2">
 				<Heading>Users</Heading>
-				<NavigationTabs tabs={tabs} onChange={onTabChange} />
 			</div>
 			{hasUsersInCurrentTab() && (
 				<div className="flex flex-wrap items-center justify-between gap-4">
@@ -231,17 +236,14 @@ export default function UsersPage() {
 					</TableHead>
 					<TableBody>
 						{isLoading ? (
-							<SkeletonTableRows
-								rows={itemsPerPage}
-								columns={
-									selectedTabKey === "Waitlist"
-										? 4
-										: selectedTabKey === "Invited"
-											? 4
-											: 5
-								}
-								className="hover:bg-zinc-50"
-							/>
+							<tr>
+								<td colSpan={6} className="p-8 text-center">
+									<div className="flex items-center justify-center gap-3">
+										<Spinner size="sm" />
+										<span className="text-sm text-zinc-600 dark:text-zinc-400">Loading users...</span>
+									</div>
+								</td>
+							</tr>
 						) : selectedTabKey === "Active" &&
 							activeUsers?.data.length === 0 ? (
 							null
@@ -255,7 +257,7 @@ export default function UsersPage() {
 							activeUsers?.data.map((user) => (
 								<TableRow
 									key={user.id}
-									className="cursor-pointer hover:bg-zinc-50"
+									className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
 									onClick={() => handleViewUserDetails(user)}
 								>
 									<TableCell>
@@ -270,15 +272,15 @@ export default function UsersPage() {
 									</TableCell>
 									<TableCell>
 										{user.primary_email_address || (
-											<span className="text-zinc-400">-</span>
+											<span className="text-zinc-400 dark:text-zinc-500">-</span>
 										)}
 									</TableCell>
 									<TableCell>
-										{user.username || <span className="text-zinc-400">-</span>}
+										{user.username || <span className="text-zinc-400 dark:text-zinc-500">-</span>}
 									</TableCell>
 									<TableCell>
 										{user.primary_phone_number || (
-											<span className="text-zinc-400">-</span>
+											<span className="text-zinc-400 dark:text-zinc-500">-</span>
 										)}
 									</TableCell>
 									<TableCell>

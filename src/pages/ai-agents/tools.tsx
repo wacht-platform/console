@@ -20,21 +20,22 @@ import {
 import { Badge } from "../../components/ui/badge";
 import { ConfirmationDialog } from "../../components/modals/confirmation-dialog";
 import { CreateToolDialog } from "../../components/ai-agents/create-tool-dialog";
+import { Spinner } from "../../components/ui/spinner";
 import { useTools, useDeleteTool } from "../../lib/api/hooks/use-tools";
 import type { AiTool } from "@/types/ai-tool";
 
 const getTypeColor = (type: string) => {
 	switch (type) {
 		case "api":
-			return "bg-blue-100 text-blue-800";
+			return "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300";
 		case "knowledge_base":
-			return "bg-green-100 text-green-800";
+			return "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300";
 		case "platform_event":
-			return "bg-purple-100 text-purple-800";
+			return "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300";
 		case "platform_function":
-			return "bg-orange-100 text-orange-800";
+			return "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300";
 		default:
-			return "bg-gray-100 text-gray-800";
+			return "bg-gray-100 dark:bg-gray-800/30 text-gray-800 dark:text-gray-300";
 	}
 };
 
@@ -83,7 +84,7 @@ export default function ToolsPage() {
 		<div>
 			<div className="flex flex-col gap-2 mb-2">
 				<Heading>AI Tools</Heading>
-				<p className="text-sm text-gray-600">
+				<p className="text-sm text-gray-600 dark:text-gray-400">
 					Manage tools that can be used by AI agents and workflows
 				</p>
 			</div>
@@ -112,21 +113,21 @@ export default function ToolsPage() {
 
 			<div className="mt-6">
 				{isLoading ? (
-					<div className="text-center py-12">
-						<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-						<p className="mt-2 text-sm text-gray-500">Loading tools...</p>
+					<div className="flex flex-col items-center justify-center min-h-[400px] py-12">
+						<Spinner size="lg" />
+						<p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">Loading tools...</p>
 					</div>
 				) : error ? (
 					<div className="text-center py-12">
-						<p className="text-red-600">Error loading tools: {error.message}</p>
+						<p className="text-red-600 dark:text-red-400">Error loading tools: {error.message}</p>
 					</div>
 				) : tools.length === 0 ? (
 					<div className="text-center py-12">
-						<WrenchScrewdriverIcon className="mx-auto h-12 w-12 text-gray-400" />
-						<h3 className="mt-2 text-sm font-semibold text-gray-900">
+						<WrenchScrewdriverIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" />
+						<h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
 							No tools
 						</h3>
-						<p className="mt-1 text-sm text-gray-500">
+						<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
 							Get started by creating your first AI tool.
 						</p>
 						<div className="mt-6">

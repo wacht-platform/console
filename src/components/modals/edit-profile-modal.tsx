@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Field, Label } from "@/components/ui/fieldset";
 import { PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { toast } from 'sonner';
+import { toast } from "sonner";
 import { apiClient } from "@/lib/api/client";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -45,7 +45,6 @@ export function EditProfileModal({
   const { selectedDeployment } = useProjects();
   const queryClient = useQueryClient();
 
-  // Update user mutation using multipart form data
   const updateUserMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       if (!selectedDeployment) {
@@ -54,7 +53,7 @@ export function EditProfileModal({
 
       const response = await apiClient.patch(
         `/deployments/${selectedDeployment.id}/users/${userId}`,
-        formData
+        formData,
       );
       return response.data;
     },
@@ -65,7 +64,6 @@ export function EditProfileModal({
     },
   });
 
-  // Update form when profileData changes
   useEffect(() => {
     if (profileData) {
       setFirstName(profileData.first_name || "");
@@ -79,21 +77,18 @@ export function EditProfileModal({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select a valid image file');
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file");
       return;
     }
 
-    // Validate file size (2MB max)
     if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image size must be less than 2MB');
+      toast.error("Image size must be less than 2MB");
       return;
     }
 
     setSelectedImage(file);
 
-    // Create preview URL
     const reader = new FileReader();
     reader.onload = (e) => {
       setImagePreview(e.target?.result as string);
@@ -105,7 +100,7 @@ export function EditProfileModal({
     setSelectedImage(null);
     setImagePreview(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -115,10 +110,10 @@ export function EditProfileModal({
     setIsLoading(true);
     try {
       const formData = new FormData();
-      if (firstName.trim()) formData.append('first_name', firstName.trim());
-      if (lastName.trim()) formData.append('last_name', lastName.trim());
-      if (username.trim()) formData.append('username', username.trim());
-      if (selectedImage) formData.append('profile_image', selectedImage);
+      if (firstName.trim()) formData.append("first_name", firstName.trim());
+      if (lastName.trim()) formData.append("last_name", lastName.trim());
+      if (username.trim()) formData.append("username", username.trim());
+      if (selectedImage) formData.append("profile_image", selectedImage);
 
       await updateUserMutation.mutateAsync(formData);
       toast.success("Profile updated successfully!");
@@ -140,7 +135,7 @@ export function EditProfileModal({
     }
     setSelectedImage(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
     onClose();
   };
@@ -244,7 +239,12 @@ export function EditProfileModal({
         </form>
       </DialogBody>
       <DialogActions>
-        <Button type="button" outline onClick={handleClose} disabled={isLoading}>
+        <Button
+          type="button"
+          outline
+          onClick={handleClose}
+          disabled={isLoading}
+        >
           Cancel
         </Button>
         <Button type="submit" onClick={handleSubmit} disabled={isLoading}>

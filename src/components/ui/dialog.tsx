@@ -29,7 +29,6 @@ export function Dialog({
   className?: string;
   children: React.ReactNode;
 } & Omit<Headless.DialogProps, "as" | "className">) {
-  // Ensure we always have the required props
   if (open === undefined || onClose === undefined) {
     console.error('Dialog component requires both "open" and "onClose" props', {
       open,

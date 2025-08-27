@@ -1,319 +1,536 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams } from "react-router";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { 
+import { Textarea } from "@/components/ui/textarea";
+import { Heading } from "@/components/ui/heading";
+import { Field, Description, Label } from "@/components/ui/fieldset";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogTitle,
+  DialogDescription,
+  DialogBody,
+  DialogActions,
+} from "@/components/ui/dialog";
+
+import { WebhookEventSubscription, EventSubscription } from "@/components/webhook-event-subscription";
+import {
   PlusIcon,
-  ArrowLeftIcon,
   TrashIcon,
   PencilIcon,
   GlobeAltIcon,
-  BoltIcon,
-  ShieldCheckIcon
+  BeakerIcon,
 } from "@heroicons/react/24/outline";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiClient } from "@/lib/api/client";
+import { webhookApi, WebhookEndpoint, WebhookAppEvent, CreateEndpointRequest, UpdateEndpointRequest } from "@/lib/api/webhooks";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
+import { format } from "date-fns";
 
-interface WebhookEndpoint {
-  id: number;
-  app_id: number;
+interface EndpointFormData {
   url: string;
-  description?: string;
-  headers?: Record<string, string>;
-  is_active: boolean;
+  description: string;
   max_retries: number;
   timeout_seconds: number;
-  created_at: string;
-  updated_at: string;
+  subscriptions: EventSubscription[];
 }
-
-interface EventSubscription {
-  event_name: string;
-  filter_rules?: any;
-}
-
-const AVAILABLE_EVENTS = [
-  { name: "user.created", description: "New user signed up" },
-  { name: "user.updated", description: "User profile updated" },
-  { name: "user.deleted", description: "User account deleted" },
-  { name: "organization.created", description: "New organization created" },
-  { name: "workspace.created", description: "New workspace created" },
-];
 
 export default function WebhookEndpointsPage() {
   const { deploymentId } = useParams();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [newEndpointUrl, setNewEndpointUrl] = useState("");
-  const [newEndpointDescription, setNewEndpointDescription] = useState("");
-  const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editingEndpoint, setEditingEndpoint] = useState<WebhookEndpoint | null>(null);
+  const [selectedEndpoint, setSelectedEndpoint] = useState<WebhookEndpoint | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [testModalOpen, setTestModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const pageSize = 20;
+
+  const [formData, setFormData] = useState<EndpointFormData>({
+    url: "",
+    description: "",
+    max_retries: 5,
+    timeout_seconds: 30,
+    subscriptions: [],
+  });
 
   // Fetch endpoints
-  const { data: endpoints, isLoading } = useQuery({
-    queryKey: ["webhook-endpoints", deploymentId],
-    queryFn: async () => {
-      const response = await apiClient.get(`/deployments/${deploymentId}/webhooks/endpoints`);
-      return response.data.endpoints as WebhookEndpoint[];
-    },
+  const { data, isLoading: endpointsLoading } = useQuery({
+    queryKey: ["webhook-endpoints", deploymentId, currentPage],
+    queryFn: () => webhookApi.getEndpoints(deploymentId!, {
+      limit: pageSize,
+      offset: currentPage * pageSize,
+    }),
+    staleTime: 0, // Consider data immediately stale
+    gcTime: 5 * 60 * 1000, // Cache for 5 minutes after unmount
   });
+  
+  const endpoints = data?.endpoints;
+  const hasMore = data?.has_more || false;
+
+  // Fetch available events
+  const { data: availableEvents } = useQuery({
+    queryKey: ["webhook-events", deploymentId],
+    queryFn: () => webhookApi.getAvailableEvents(deploymentId!),
+  });
+
+  // Group events by category
+  const eventsByCategory = (availableEvents || []).reduce((acc, event) => {
+    const category = event.event_name.split('.')[0];
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(event);
+    return acc;
+  }, {} as Record<string, WebhookAppEvent[]>);
 
   // Create endpoint mutation
   const createMutation = useMutation({
-    mutationFn: async () => {
-      const subscriptions: EventSubscription[] = selectedEvents.map(event => ({
-        event_name: event,
-      }));
-
-      const response = await apiClient.post(`/deployments/${deploymentId}/webhooks/endpoints`, {
-        url: newEndpointUrl,
-        description: newEndpointDescription,
-        subscriptions,
-      });
-      return response.data;
-    },
+    mutationFn: (data: CreateEndpointRequest) => 
+      webhookApi.createEndpoint(deploymentId!, data),
     onSuccess: () => {
-      toast.success("Webhook endpoint created successfully!");
+      toast.success("Endpoint created successfully!");
       queryClient.invalidateQueries({ queryKey: ["webhook-endpoints", deploymentId] });
-      setShowCreateDialog(false);
-      setNewEndpointUrl("");
-      setNewEndpointDescription("");
-      setSelectedEvents([]);
+      setCreateModalOpen(false);
+      resetForm();
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to create webhook endpoint");
+    onError: () => {
+      toast.error("Failed to create endpoint");
+    },
+  });
+
+  // Update endpoint mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateEndpointRequest }) =>
+      webhookApi.updateEndpoint(deploymentId!, id, data),
+    onSuccess: () => {
+      toast.success("Endpoint updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["webhook-endpoints", deploymentId] });
+      setEditingEndpoint(null);
+      resetForm();
+    },
+    onError: () => {
+      toast.error("Failed to update endpoint");
     },
   });
 
   // Delete endpoint mutation
   const deleteMutation = useMutation({
-    mutationFn: async (endpointId: number) => {
-      await apiClient.delete(`/deployments/${deploymentId}/webhooks/endpoints/${endpointId}`);
-    },
+    mutationFn: (id: string) => webhookApi.deleteEndpoint(deploymentId!, id),
     onSuccess: () => {
-      toast.success("Webhook endpoint deleted successfully!");
+      toast.success("Endpoint deleted successfully!");
       queryClient.invalidateQueries({ queryKey: ["webhook-endpoints", deploymentId] });
+      setDeleteConfirmOpen(false);
+      setSelectedEndpoint(null);
     },
     onError: () => {
-      toast.error("Failed to delete webhook endpoint");
+      toast.error("Failed to delete endpoint");
     },
   });
 
-  // Toggle endpoint active status
-  const toggleActiveMutation = useMutation({
-    mutationFn: async ({ endpointId, isActive }: { endpointId: number; isActive: boolean }) => {
-      const response = await apiClient.patch(`/deployments/${deploymentId}/webhooks/endpoints/${endpointId}`, {
-        is_active: isActive,
-      });
-      return response.data;
-    },
+  // Test endpoint mutation
+  const testMutation = useMutation({
+    mutationFn: (id: string) => 
+      webhookApi.testEndpoint(deploymentId!, id, {
+        event_name: "test.webhook",
+        payload: {
+          test: true,
+          timestamp: new Date().toISOString(),
+        },
+      }),
     onSuccess: () => {
-      toast.success("Endpoint status updated!");
-      queryClient.invalidateQueries({ queryKey: ["webhook-endpoints", deploymentId] });
+      toast.success("Test webhook sent successfully!");
+      setTestModalOpen(false);
+      setSelectedEndpoint(null);
     },
     onError: () => {
-      toast.error("Failed to update endpoint status");
+      toast.error("Failed to send test webhook");
     },
   });
 
-  const handleEventToggle = (eventName: string) => {
-    setSelectedEvents(prev =>
-      prev.includes(eventName)
-        ? prev.filter(e => e !== eventName)
-        : [...prev, eventName]
-    );
+  const resetForm = () => {
+    setFormData({
+      url: "",
+      description: "",
+      max_retries: 5,
+      timeout_seconds: 30,
+      subscriptions: [],
+    });
   };
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto py-6 space-y-6">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-64 w-full" />
-      </div>
-    );
-  }
+  const handleCreate = () => {
+    createMutation.mutate({
+      url: formData.url,
+      description: formData.description,
+      max_retries: formData.max_retries,
+      timeout_seconds: formData.timeout_seconds,
+      subscriptions: formData.subscriptions,
+    });
+  };
+
+  const handleUpdate = () => {
+    if (!editingEndpoint) return;
+
+    updateMutation.mutate({
+      id: editingEndpoint.id,
+      data: {
+        url: formData.url,
+        description: formData.description,
+        max_retries: formData.max_retries,
+        timeout_seconds: formData.timeout_seconds,
+        subscriptions: formData.subscriptions,
+      },
+    });
+  };
+
+  const handleEdit = (endpoint: WebhookEndpoint) => {
+    setEditingEndpoint(endpoint);
+    setFormData({
+      url: endpoint.url,
+      description: endpoint.description || "",
+      max_retries: endpoint.max_retries || 5,
+      timeout_seconds: endpoint.timeout_seconds || 30,
+      subscriptions: endpoint.subscriptions?.map(s => ({
+        event_name: s.event_name || "",
+        filter_rules: s.filter_rules
+      })) || [],
+    });
+  };
+
+  const handleDelete = (endpoint: WebhookEndpoint) => {
+    setSelectedEndpoint(endpoint);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleTest = (endpoint: WebhookEndpoint) => {
+    setSelectedEndpoint(endpoint);
+    setTestModalOpen(true);
+  };
+
+
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(`/deployments/${deploymentId}/webhooks`)}
-          >
-            <ArrowLeftIcon className="h-4 w-4 mr-2" />
-            Back to Webhooks
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Webhook Endpoints</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage endpoints to receive platform events
-            </p>
+    <div>
+      {/* Create/Edit Modal */}
+      <Dialog 
+        open={createModalOpen || !!editingEndpoint} 
+        onClose={() => {
+          setCreateModalOpen(false);
+          setEditingEndpoint(null);
+          resetForm();
+        }}
+        className="sm:max-w-2xl lg:max-w-4xl"
+      >
+        <DialogTitle>{editingEndpoint ? "Edit Endpoint" : "Create Endpoint"}</DialogTitle>
+        <DialogDescription>
+          {editingEndpoint ? "Update your webhook endpoint configuration" : "Configure a new webhook endpoint to receive events"}
+        </DialogDescription>
+        <DialogBody className="space-y-4 max-h-[70vh] overflow-y-auto overflow-x-hidden">
+          <Field>
+            <Label>URL</Label>
+            <Input
+              type="url"
+              placeholder="https://example.com/webhooks"
+              value={formData.url}
+              onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+            />
+          </Field>
+          
+          <Field>
+            <Label>Description</Label>
+            <Textarea
+              placeholder="Optional description for this endpoint"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={3}
+            />
+          </Field>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Field>
+              <Label>Max Retries</Label>
+              <Input
+                type="number"
+                min="0"
+                max="10"
+                value={formData.max_retries}
+                onChange={(e) => setFormData({ ...formData, max_retries: parseInt(e.target.value) })}
+              />
+            </Field>
+            <Field>
+              <Label>Timeout (seconds)</Label>
+              <Input
+                type="number"
+                min="1"
+                max="60"
+                value={formData.timeout_seconds}
+                onChange={(e) => setFormData({ ...formData, timeout_seconds: parseInt(e.target.value) })}
+              />
+            </Field>
           </div>
-        </div>
-        <Button onClick={() => setShowCreateDialog(true)}>
-          <PlusIcon className="h-4 w-4 mr-2" />
-          Add Endpoint
-        </Button>
-      </div>
 
-      {/* Endpoints List */}
-      {endpoints && endpoints.length > 0 ? (
-        <div className="grid gap-4">
-          {endpoints.map((endpoint) => (
-            <Card key={endpoint.id}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="flex items-start gap-3">
-                    <GlobeAltIcon className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-mono text-sm">{endpoint.url}</p>
-                        <Badge variant={endpoint.is_active ? "default" : "secondary"}>
-                          {endpoint.is_active ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                      {endpoint.description && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {endpoint.description}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                        <span>Max retries: {endpoint.max_retries}</span>
-                        <span>Timeout: {endpoint.timeout_seconds}s</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleActiveMutation.mutate({
-                        endpointId: endpoint.id,
-                        isActive: !endpoint.is_active
+          <Field>
+            <Label>Event Subscriptions</Label>
+            <Description>Select events and optionally add filters for each</Description>
+              <div className="mt-4 space-y-6">
+                {Object.entries(eventsByCategory).map(([category, events]) => (
+                  <div key={category}>
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">
+                      {category.replace('_', ' ')}
+                    </h4>
+                    <div className="space-y-2">
+                      {events.map((event) => {
+                        const subscription = formData.subscriptions.find(
+                          s => s.event_name === event.event_name
+                        );
+                        return (
+                          <WebhookEventSubscription
+                            key={event.id}
+                            event={event}
+                            subscription={subscription}
+                            onChange={(newSub) => {
+                              if (newSub) {
+                                // Add or update subscription
+                                const exists = formData.subscriptions.some(
+                                  s => s.event_name === event.event_name
+                                );
+                                if (exists) {
+                                  setFormData({
+                                    ...formData,
+                                    subscriptions: formData.subscriptions.map(s =>
+                                      s.event_name === event.event_name ? newSub : s
+                                    ),
+                                  });
+                                } else {
+                                  setFormData({
+                                    ...formData,
+                                    subscriptions: [...formData.subscriptions, newSub],
+                                  });
+                                }
+                              } else {
+                                // Remove subscription
+                                setFormData({
+                                  ...formData,
+                                  subscriptions: formData.subscriptions.filter(
+                                    s => s.event_name !== event.event_name
+                                  ),
+                                });
+                              }
+                            }}
+                          />
+                        );
                       })}
-                    >
-                      {endpoint.is_active ? "Deactivate" : "Activate"}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        if (confirm("Are you sure you want to delete this endpoint?")) {
-                          deleteMutation.mutate(endpoint.id);
-                        }
-                      }}
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <Card>
-          <CardContent className="py-12">
-            <div className="text-center">
-              <BoltIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">No endpoints configured</h3>
-              <p className="text-muted-foreground mb-4">
-                Add an endpoint to start receiving webhook events
-              </p>
-              <Button onClick={() => setShowCreateDialog(true)}>
-                <PlusIcon className="h-4 w-4 mr-2" />
-                Add First Endpoint
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Create Endpoint Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Add Webhook Endpoint</DialogTitle>
-            <DialogDescription>
-              Configure an endpoint to receive platform events
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="url">Endpoint URL</Label>
-              <Input
-                id="url"
-                type="url"
-                placeholder="https://api.example.com/webhooks"
-                value={newEndpointUrl}
-                onChange={(e) => setNewEndpointUrl(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description (optional)</Label>
-              <Input
-                id="description"
-                placeholder="Production webhook endpoint"
-                value={newEndpointDescription}
-                onChange={(e) => setNewEndpointDescription(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Subscribe to Events</Label>
-              <div className="space-y-2 border rounded-lg p-4">
-                {AVAILABLE_EVENTS.map((event) => (
-                  <div key={event.name} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={event.name}
-                      checked={selectedEvents.includes(event.name)}
-                      onCheckedChange={() => handleEventToggle(event.name)}
-                    />
-                    <label
-                      htmlFor={event.name}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1 cursor-pointer"
-                    >
-                      <span className="font-mono">{event.name}</span>
-                      <span className="text-muted-foreground ml-2">- {event.description}</span>
-                    </label>
+                    </div>
                   </div>
                 ))}
               </div>
-              {selectedEvents.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  Select at least one event to subscribe to
-                </p>
-              )}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={() => createMutation.mutate()}
-              disabled={!newEndpointUrl || selectedEvents.length === 0 || createMutation.isPending}
-            >
-              {createMutation.isPending ? "Creating..." : "Create Endpoint"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
+            </Field>
+        </DialogBody>
+        <DialogActions>
+          <Button plain onClick={() => {
+            setCreateModalOpen(false);
+            setEditingEndpoint(null);
+            resetForm();
+          }}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={editingEndpoint ? handleUpdate : handleCreate}
+            disabled={!formData.url || formData.subscriptions.length === 0 || (createMutation.isPending || updateMutation.isPending)}
+          >
+            {createMutation.isPending || updateMutation.isPending ? (
+              <>
+                <Spinner size="xs" className="mr-2" />
+                {editingEndpoint ? "Updating..." : "Creating..."}
+              </>
+            ) : (
+              editingEndpoint ? "Update" : "Create"
+            )}
+          </Button>
+        </DialogActions>
       </Dialog>
+
+      {/* Delete Confirmation */}
+      <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
+        <DialogTitle>Delete Endpoint</DialogTitle>
+        <DialogDescription>
+          Are you sure you want to delete this endpoint? This action cannot be undone.
+        </DialogDescription>
+        <DialogActions>
+          <Button plain onClick={() => setDeleteConfirmOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            color="red"
+            onClick={() => selectedEndpoint && deleteMutation.mutate(selectedEndpoint.id)}
+            disabled={deleteMutation.isPending}
+          >
+            {deleteMutation.isPending ? (
+              <>
+                <Spinner size="xs" className="mr-2" />
+                Deleting...
+              </>
+            ) : (
+              "Delete"
+            )}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Test Modal */}
+      <Dialog open={testModalOpen} onClose={() => setTestModalOpen(false)}>
+        <DialogTitle>Test Endpoint</DialogTitle>
+        <DialogDescription>
+          Send a test webhook to {selectedEndpoint?.url}
+        </DialogDescription>
+        <DialogActions>
+          <Button plain onClick={() => setTestModalOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => selectedEndpoint && testMutation.mutate(selectedEndpoint.id)}
+            disabled={testMutation.isPending}
+          >
+            {testMutation.isPending ? (
+              <>
+                <Spinner size="xs" className="mr-2" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <BeakerIcon className="mr-2 h-4 w-4" />
+                Send Test
+              </>
+            )}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <Heading>Webhook Endpoints</Heading>
+        <Button onClick={() => setCreateModalOpen(true)}>
+          <PlusIcon className="mr-2 h-4 w-4" />
+          Create Endpoint
+        </Button>
+      </div>
+
+      {/* Endpoints Table */}
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableHeader>URL</TableHeader>
+            <TableHeader>Events</TableHeader>
+            <TableHeader>Status</TableHeader>
+            <TableHeader>Created</TableHeader>
+            <TableHeader></TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {endpointsLoading ? (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center py-8">
+                <div className="flex items-center justify-center gap-3">
+                  <Spinner size="sm" />
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading endpoints...</span>
+                </div>
+              </TableCell>
+            </TableRow>
+          ) : !endpoints || endpoints.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center py-8">
+                <GlobeAltIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <p className="mt-2 text-sm text-gray-500">No endpoints configured</p>
+              </TableCell>
+            </TableRow>
+          ) : (
+            endpoints.map((endpoint) => (
+              <TableRow key={endpoint.id}>
+                <TableCell>
+                  <div>
+                    <div className="font-medium">{endpoint.url}</div>
+                    {endpoint.description && (
+                      <div className="text-sm text-zinc-500">{endpoint.description}</div>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">{endpoint.subscriptions?.length || 0} events</span>
+                      {endpoint.subscriptions?.some(s => s.filter_rules) && (
+                        <Badge color="amber" className="text-xs">
+                          {endpoint.subscriptions?.filter(s => s.filter_rules).length} filtered
+                        </Badge>
+                      )}
+                    </div>
+                    {endpoint.subscriptions && endpoint.subscriptions.length > 0 && (
+                      <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                        {endpoint.subscriptions.slice(0, 3).map(s => s.event_name).join(', ')}
+                        {endpoint.subscriptions.length > 3 && ` +${endpoint.subscriptions.length - 3} more`}
+                      </div>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge color={endpoint.is_active ? "green" : "zinc"}>
+                    {endpoint.is_active ? "Active" : "Inactive"}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {format(new Date(endpoint.created_at), "MMM d, yyyy")}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Button plain onClick={() => handleTest(endpoint)}>
+                      <BeakerIcon className="h-4 w-4" />
+                    </Button>
+                    <Button plain onClick={() => handleEdit(endpoint)}>
+                      <PencilIcon className="h-4 w-4" />
+                    </Button>
+                    <Button plain onClick={() => handleDelete(endpoint)}>
+                      <TrashIcon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+      
+      {/* Pagination Controls */}
+      {endpoints && endpoints.length > 0 && (
+        <div className="flex items-center justify-between mt-4">
+          <div className="text-sm text-zinc-500 dark:text-zinc-400">
+            Showing {currentPage * pageSize + 1} - {Math.min((currentPage + 1) * pageSize, currentPage * pageSize + endpoints.length)} of {hasMore ? 'many' : currentPage * pageSize + endpoints.length} endpoints
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              plain
+              disabled={currentPage === 0}
+              onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+            >
+              Previous
+            </Button>
+            <Button
+              plain
+              disabled={!hasMore}
+              onClick={() => setCurrentPage(p => p + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -19,6 +19,7 @@ import {
 } from "../../components/ui/table";
 import { CreateAgentDialog } from "../../components/ai-agents/create-agent-dialog";
 import { ConfirmationDialog } from "../../components/modals/confirmation-dialog";
+import { Spinner } from "../../components/ui/spinner";
 import { useAgents, useDeleteAgent, type Agent } from "../../lib/api/hooks/use-agents";
 
 
@@ -68,7 +69,7 @@ export default function CreateAgentsPage() {
 		<div>
 			<div className="flex flex-col gap-2 mb-2">
 				<Heading>AI Agents</Heading>
-				<p className="text-sm text-gray-600">
+				<p className="text-sm text-gray-600 dark:text-gray-400">
 					Manage AI agents that combine tools, workflows, and knowledge bases
 				</p>
 			</div>
@@ -97,21 +98,21 @@ export default function CreateAgentsPage() {
 
 			<div className="mt-6">
 				{isLoading ? (
-					<div className="text-center py-12">
-						<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-						<p className="mt-2 text-sm text-gray-500">Loading agents...</p>
+					<div className="flex flex-col items-center justify-center min-h-[400px] py-12">
+						<Spinner size="lg" />
+						<p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">Loading agents...</p>
 					</div>
 				) : error ? (
 					<div className="text-center py-12">
-						<p className="text-red-600">Error loading agents: {error.message}</p>
+						<p className="text-red-600 dark:text-red-400">Error loading agents: {error.message}</p>
 					</div>
 				) : agents.length === 0 ? (
 					<div className="text-center py-12">
-						<CodeBracketSquareIcon className="mx-auto h-12 w-12 text-gray-400" />
-						<h3 className="mt-2 text-sm font-semibold text-gray-900">
+						<CodeBracketSquareIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" />
+						<h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
 							No AI agents
 						</h3>
-						<p className="mt-1 text-sm text-gray-500">
+						<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
 							Get started by creating your first AI agent.
 						</p>
 						<div className="mt-6">
@@ -138,16 +139,16 @@ export default function CreateAgentsPage() {
 								<TableRow key={agent.id}>
 									<TableCell>
 										<div className="flex items-center gap-3">
-											<div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+											<div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
 												<CodeBracketSquareIcon className="h-4 w-4" />
 											</div>
-											<span className="font-medium">{agent.name}</span>
+											<span className="font-medium text-gray-900 dark:text-gray-100">{agent.name}</span>
 										</div>
 									</TableCell>
-									<TableCell>{agent.description}</TableCell>
-									<TableCell>{agent.tools_count} tools</TableCell>
-									<TableCell>{agent.workflows_count} workflows</TableCell>
-									<TableCell>{agent.knowledge_bases_count} docs</TableCell>
+									<TableCell className="text-gray-700 dark:text-gray-300">{agent.description}</TableCell>
+									<TableCell className="text-gray-700 dark:text-gray-300">{agent.tools_count} tools</TableCell>
+									<TableCell className="text-gray-700 dark:text-gray-300">{agent.workflows_count} workflows</TableCell>
+									<TableCell className="text-gray-700 dark:text-gray-300">{agent.knowledge_bases_count} docs</TableCell>
 									<TableCell>
 										<div className="flex gap-2">
 											<Button outline onClick={() => handleEditAgent(agent)}>
@@ -155,7 +156,7 @@ export default function CreateAgentsPage() {
 											</Button>
 											<Button
 												outline
-												className="text-red-600 hover:bg-red-50"
+												className="text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
 												onClick={() => handleDeleteAgent(agent)}
 												disabled={deleteAgentMutation.isPending}
 											>

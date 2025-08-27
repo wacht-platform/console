@@ -13,7 +13,7 @@ export default function CreateWorkflowPage() {
 	const [saveError, setSaveError] = useState<string | null>(null);
 
 
-	const { data: workflow, isLoading, error } = useWorkflow(workflowId || "");
+	const { data: workflow, isLoading } = useWorkflow(workflowId || "");
 
 	const createWorkflowMutation = useCreateWorkflow();
 	const updateWorkflowMutation = useUpdateWorkflow();

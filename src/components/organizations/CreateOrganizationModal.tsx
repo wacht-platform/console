@@ -10,7 +10,7 @@ import { Field, Label, ErrorMessage } from "@/components/ui/fieldset";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { toast } from 'sonner';
+import { toast } from "sonner";
 import { apiClient } from "@/lib/api/client";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -20,7 +20,10 @@ interface CreateOrganizationModalProps {
   onClose: () => void;
 }
 
-export function CreateOrganizationModal({ isOpen, onClose }: CreateOrganizationModalProps) {
+export function CreateOrganizationModal({
+  isOpen,
+  onClose,
+}: CreateOrganizationModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -31,7 +34,6 @@ export function CreateOrganizationModal({ isOpen, onClose }: CreateOrganizationM
   const { selectedDeployment } = useProjects();
   const queryClient = useQueryClient();
 
-  // Create organization mutation using multipart form data
   const createOrganizationMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       if (!selectedDeployment) {
@@ -40,7 +42,7 @@ export function CreateOrganizationModal({ isOpen, onClose }: CreateOrganizationM
 
       const response = await apiClient.post(
         `/deployments/${selectedDeployment.id}/organizations`,
-        formData
+        formData,
       );
       return response.data;
     },
@@ -55,21 +57,18 @@ export function CreateOrganizationModal({ isOpen, onClose }: CreateOrganizationM
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select a valid image file');
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file");
       return;
     }
 
-    // Validate file size (2MB max)
     if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image size must be less than 2MB');
+      toast.error("Image size must be less than 2MB");
       return;
     }
 
     setSelectedImage(file);
 
-    // Create preview URL
     const reader = new FileReader();
     reader.onload = (e) => {
       setImagePreview(e.target?.result as string);
@@ -81,7 +80,7 @@ export function CreateOrganizationModal({ isOpen, onClose }: CreateOrganizationM
     setSelectedImage(null);
     setImagePreview(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -105,13 +104,13 @@ export function CreateOrganizationModal({ isOpen, onClose }: CreateOrganizationM
 
     try {
       const formData = new FormData();
-      formData.append('name', name.trim());
-      if (description.trim()) formData.append('description', description.trim());
-      if (selectedImage) formData.append('organization_image', selectedImage);
+      formData.append("name", name.trim());
+      if (description.trim())
+        formData.append("description", description.trim());
+      if (selectedImage) formData.append("organization_image", selectedImage);
 
       await createOrganizationMutation.mutateAsync(formData);
 
-      // Reset form and close modal on success
       toast.success("Organization created successfully!");
       resetForm();
       onClose();
@@ -127,7 +126,7 @@ export function CreateOrganizationModal({ isOpen, onClose }: CreateOrganizationM
     setSelectedImage(null);
     setImagePreview(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
     setErrors({});
   };
@@ -209,9 +208,7 @@ export function CreateOrganizationModal({ isOpen, onClose }: CreateOrganizationM
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter organization name"
             />
-            {errors.name && (
-              <ErrorMessage>{errors.name}</ErrorMessage>
-            )}
+            {errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
           </Field>
 
           <Field>
@@ -232,8 +229,13 @@ export function CreateOrganizationModal({ isOpen, onClose }: CreateOrganizationM
         <Button outline onClick={handleClose}>
           Cancel
         </Button>
-        <Button onClick={handleSubmit} disabled={createOrganizationMutation.isPending}>
-          {createOrganizationMutation.isPending ? "Creating..." : "Create Organization"}
+        <Button
+          onClick={handleSubmit}
+          disabled={createOrganizationMutation.isPending}
+        >
+          {createOrganizationMutation.isPending
+            ? "Creating..."
+            : "Create Organization"}
         </Button>
       </DialogActions>
     </Dialog>

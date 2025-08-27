@@ -37,12 +37,11 @@ export function EditRoleDialog({
   const updateRole = useUpdateOrganizationRole();
   const { deploymentSettings } = useCurrentDeployemnt();
 
-  // Get available permissions from deployment B2B settings
   const availablePermissions = React.useMemo(() => {
-    const orgPermissions = deploymentSettings?.b2b_settings?.organization_permissions || [];
+    const orgPermissions =
+      deploymentSettings?.b2b_settings?.organization_permissions || [];
 
-    // Convert to options format - just show the permission string as-is
-    return orgPermissions.map(permission => ({
+    return orgPermissions.map((permission) => ({
       id: permission,
       name: permission,
       description: permission,
@@ -87,8 +86,6 @@ export function EditRoleDialog({
     }
   };
 
-
-
   return (
     <Dialog open={isOpen} onClose={onClose}>
       <DialogTitle>Edit Organization Role</DialogTitle>
@@ -113,7 +110,9 @@ export function EditRoleDialog({
               label="Permissions"
               options={availablePermissions}
               selectedValues={formData.permissions}
-              onChange={(permissions) => setFormData(prev => ({ ...prev, permissions }))}
+              onChange={(permissions) =>
+                setFormData((prev) => ({ ...prev, permissions }))
+              }
               placeholder="Select permissions for this role..."
             />
           </div>

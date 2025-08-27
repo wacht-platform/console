@@ -1,7 +1,7 @@
 import { DnsVerificationPanel } from "@/components/dns-verification-panel";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { useVerifyDnsRecords } from "@/lib/api/hooks/use-dns-verification";
-import { LoadingFallback } from "@/components/loading-fallback";
+import { Spinner } from "@/components/ui/spinner";
 import { Text } from "@/components/ui/text";
 
 export default function DnsVerificationPage() {
@@ -17,11 +17,12 @@ export default function DnsVerificationPage() {
 
 	if (isLoading) {
 		return (
-			<LoadingFallback
-				variant="default"
-				message="Loading deployment details..."
-				size="lg"
-			/>
+			<div className="flex items-center justify-center min-h-[400px] w-full">
+				<div className="flex flex-col items-center gap-4">
+					<Spinner size="lg" />
+					<span className="text-sm text-zinc-600 dark:text-zinc-400">Loading deployment details...</span>
+				</div>
+			</div>
 		);
 	}
 

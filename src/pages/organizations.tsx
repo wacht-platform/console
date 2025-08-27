@@ -19,7 +19,7 @@ import { useDeploymentOrganizations } from "@/lib/api/hooks/use-deployment-organ
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import { useNavigate } from "react-router";
 import { CreateOrganizationModal } from "@/components/organizations/CreateOrganizationModal";
-import { SkeletonTableRows } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
 
@@ -112,18 +112,21 @@ export default function OrganizationsPage() {
 					</TableHead>
 					<TableBody>
 						{isLoading ? (
-							<SkeletonTableRows
-								rows={itemsPerPage}
-								columns={3}
-								className="hover:bg-zinc-50"
-							/>
+							<tr>
+								<td colSpan={3} className="p-8 text-center">
+									<div className="flex items-center justify-center gap-3">
+										<Spinner size="sm" />
+										<span className="text-sm text-zinc-600 dark:text-zinc-400">Loading organizations...</span>
+									</div>
+								</td>
+							</tr>
 						) : data?.data.length === 0 ? (
 							null
 						) : (
 							data?.data.map((org) => (
 								<TableRow
 									key={org.id}
-									className="cursor-pointer hover:bg-gray-50"
+									className="cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800/50"
 									onClick={() => navigate(`../organization/${org.id}`)}
 								>
 									<TableCell>

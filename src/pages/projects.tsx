@@ -12,7 +12,7 @@ import { useState } from "react";
 import { UserButton, OrganizationSwitcher } from "@snipextt/wacht";
 import { Tab, SimpleTabs } from "@/components/ui/simple-tabs";
 import { EmptyState } from "@/components/ui/empty-state";
-import { LoadingFallback } from "@/components/loading-fallback";
+import { Spinner } from "@/components/ui/spinner";
 import { PlusIcon, GlobeAltIcon, ClockIcon } from "@heroicons/react/24/outline";
 
 export default function ProjectsPage() {
@@ -21,7 +21,12 @@ export default function ProjectsPage() {
 
   if (isLoading) {
     return (
-      <LoadingFallback variant="detailed" message="Loading your projects..." />
+      <div className="flex items-center justify-center min-h-[400px] w-full">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner size="lg" />
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading your projects...</span>
+        </div>
+      </div>
     );
   }
 
@@ -38,9 +43,9 @@ export default function ProjectsPage() {
     ) || [];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
       {/* Navbar */}
-      <Navbar className="fixed z-50 top-0 left-0 right-0 bg-white border-b border-gray-200 h-14">
+      <Navbar className="fixed z-50 top-0 left-0 right-0 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 h-14">
         <div className="max-w-7xl mx-auto w-full flex items-center px-8 h-full">
           <OrganizationSwitcher />
           <NavbarSpacer />
@@ -54,8 +59,8 @@ export default function ProjectsPage() {
         <div className="py-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg text-gray-900">Projects</h1>
-              <p className="mt-1 text-sm text-gray-500">
+              <h1 className="text-lg text-neutral-900 dark:text-neutral-100">Projects</h1>
+              <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
                 Manage your applications and deployments
               </p>
             </div>
@@ -75,7 +80,7 @@ export default function ProjectsPage() {
             <Tab label="All projects">
               <div className="mt-6">
                 {projects && projects.length > 0 ? (
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-800 overflow-hidden">
                     {projects.map((project, index) => (
                       <ProjectItem
                         key={project.id}
@@ -98,7 +103,7 @@ export default function ProjectsPage() {
             <Tab label="Production">
               <div className="mt-6">
                 {productionDeployments.length > 0 ? (
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-800 overflow-hidden">
                     {productionDeployments.map((project, index) => (
                       <ProjectItem
                         key={project.id}
@@ -120,7 +125,7 @@ export default function ProjectsPage() {
             <Tab label="Staging">
               <div className="mt-6">
                 {stagingDeployments.length > 0 ? (
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-800 overflow-hidden">
                     {stagingDeployments.map((project, index) => (
                       <ProjectItem
                         key={project.id}
@@ -196,7 +201,7 @@ function ProjectItem({
   return (
     <div
       onClick={navigateToProject}
-      className={`px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors ${!isLast ? "border-b border-gray-200" : ""}`}
+      className={`px-6 py-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 cursor-pointer transition-colors ${!isLast ? "border-b border-neutral-200 dark:border-neutral-800" : ""}`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -206,8 +211,8 @@ function ProjectItem({
             src={image_url}
           />
           <div className="space-y-1">
-            <h3 className="text-sm font-medium text-gray-900">{name}</h3>
-            <div className="flex items-center gap-4 text-xs text-gray-500">
+            <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100">{name}</h3>
+            <div className="flex items-center gap-4 text-xs text-neutral-500 dark:text-neutral-400">
               <div className="flex items-center gap-1">
                 <ClockIcon className="w-3 h-3" />
                 <span>{format(new Date(created_at), "MMM d, yyyy")}</span>
@@ -226,12 +231,12 @@ function ProjectItem({
 
         <div className="flex items-center gap-3">
           {productionDeployment && (
-            <Badge className="bg-green-50 text-green-700 border-green-200 text-xs">
+            <Badge className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 text-xs">
               Production
             </Badge>
           )}
           {stagingDeployment && (
-            <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+            <Badge className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 text-xs">
               Staging
             </Badge>
           )}

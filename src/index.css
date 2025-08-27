@@ -125,6 +125,10 @@
     scrollbar-color: #d1d5db #ffffff;
 }
 
+.dark * {
+    scrollbar-color: #4b5563 #1f2937;
+}
+
 *::-webkit-scrollbar {
     width: 8px;
 }
@@ -133,17 +137,33 @@
     background: #f9fafb;
 }
 
+.dark *::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+
 *::-webkit-scrollbar-thumb {
     background: #d1d5db;
     border-radius: 4px;
+}
+
+.dark *::-webkit-scrollbar-thumb {
+    background: #4b5563;
 }
 
 *::-webkit-scrollbar-thumb:hover {
     background: #9ca3af;
 }
 
+.dark *::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
+
 *::-webkit-scrollbar-thumb:active {
     background: #6b7280;
+}
+
+.dark *::-webkit-scrollbar-thumb:active {
+    background: #9ca3af;
 }
 
 .react-flow__handle {
@@ -168,6 +188,11 @@
     padding: 8px !important;
 }
 
+.dark .jodit-toolbar {
+    border-bottom-color: #374151 !important;
+    background-color: #1f2937 !important;
+}
+
 .jodit-toolbar-button {
     border: none !important;
     margin: 0 2px !important;
@@ -178,10 +203,18 @@
     background-color: #e5e7eb !important;
 }
 
+.dark .jodit-toolbar-button:hover {
+    background-color: #374151 !important;
+}
+
 .jodit-toolbar-button__button {
     padding: 6px !important;
     min-width: 32px !important;
     min-height: 32px !important;
+}
+
+.dark .jodit-toolbar-button__button {
+    color: #d1d5db !important;
 }
 
 .jodit-workplace {
@@ -195,6 +228,11 @@
     color: #374151 !important;
     min-height: 400px !important;
     background-color: white !important;
+}
+
+.dark .jodit-wysiwyg {
+    color: #d1d5db !important;
+    background-color: #111827 !important;
 }
 
 .jodit-wysiwyg p {

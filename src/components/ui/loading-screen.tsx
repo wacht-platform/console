@@ -28,7 +28,7 @@ export function LoadingScreen({
 				className={`p-4 ${className}`}
 			>
 				<div className="flex items-center gap-2 mb-4">
-					<Spinner size="sm" variant="dots" color="primary" />
+					<Spinner size="sm" />
 					<p className="text-xs text-zinc-600 dark:text-zinc-400">{message}</p>
 				</div>
 				<SkeletonTable rows={rows} columns={columns} />
@@ -45,7 +45,7 @@ export function LoadingScreen({
 				className={`p-4 ${className}`}
 			>
 				<div className="flex items-center gap-2 mb-4">
-					<Spinner size="sm" variant="dots" color="primary" />
+					<Spinner size="sm" />
 					<p className="text-xs text-zinc-600 dark:text-zinc-400">{message}</p>
 				</div>
 				<SkeletonList items={items} />
@@ -62,7 +62,7 @@ export function LoadingScreen({
 				className={`p-4 ${className}`}
 			>
 				<div className="flex items-center gap-2 mb-4">
-					<Spinner size="sm" variant="dots" color="primary" />
+					<Spinner size="sm" />
 					<p className="text-xs text-zinc-600 dark:text-zinc-400">{message}</p>
 				</div>
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -82,7 +82,7 @@ export function LoadingScreen({
 				transition={{ duration: 0.3 }}
 				className={`flex items-center gap-3 p-4 ${className}`}
 			>
-				<Spinner size="sm" variant="dots" color="primary" />
+				<Spinner size="sm" />
 				<p className="text-sm text-zinc-600 dark:text-zinc-400">{message}</p>
 			</motion.div>
 		);
@@ -99,8 +99,8 @@ export function LoadingScreen({
 				transition={{ duration: 0.3 }}
 				className="flex flex-col items-center gap-4"
 			>
-				<Spinner size="lg" variant="ring" color="primary" />
-				<p className="text-sm text-zinc-600 dark:text-zinc-400 loading-dots">
+				<Spinner size="lg" />
+				<p className="text-sm text-zinc-600 dark:text-zinc-400">
 					{message}
 				</p>
 			</motion.div>

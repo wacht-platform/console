@@ -1,13 +1,39 @@
 import { useState } from "react";
 import { SparklesIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { AgentConversation } from "@snipextt/wacht";
+import { ContextManager, ContextManagerAPI } from "@snipextt/wacht";
 import { useProjects } from "@/lib/api/hooks/use-projects";
+import { useAgentToken } from "@/lib/hooks/use-agent-token";
 import { motion, AnimatePresence } from "framer-motion";
-import { p } from "node_modules/react-router/dist/development/fog-of-war-D6dP9JIt.d.mts";
+import { apiClient } from "@/lib/api/client";
 
 export function AgentPopup() {
   const [isOpen, setIsOpen] = useState(false);
   const { selectedDeployment } = useProjects();
+  const { getAgentToken } = useAgentToken();
+
+  // Context API implementation
+  const contextAPI: ContextManagerAPI = {
+    async listContexts(options) {
+      const params = new URLSearchParams();
+      if (options?.limit) params.append("limit", options.limit.toString());
+      if (options?.offset) params.append("offset", options.offset.toString());
+      if (options?.status) params.append("status", options.status);
+      if (options?.context_group)
+        params.append("context_group", options.context_group);
+      if (options?.search) params.append("search", options.search);
+
+      const queryString = params.toString();
+      const url = `/ai-execution-context${queryString ? `?${queryString}` : ""}`;
+
+      const response = await apiClient.get(url);
+      return response.data;
+    },
+
+    async createContext(request) {
+      const response = await apiClient.post("/ai-execution-context", request);
+      return response.data;
+    },
+  };
 
   if (!selectedDeployment) {
     return null;
@@ -58,9 +84,10 @@ export function AgentPopup() {
               </button>
             </div>
             <div className="flex-1 overflow-hidden">
-              <AgentConversation
-                contextId="26280014114725699"
-                agentName="ddd"
+              <ContextManager
+                api={contextAPI}
+                agentName="DART Analyzer - DARTBundle_0806_0832_Atul"
+                onTokenNeeded={getAgentToken}
                 platformAdapter={{
                   onPlatformEvent: (eventName, eventData) => {
                     console.log("Platform event:", eventName, eventData);
@@ -71,21 +98,6 @@ export function AgentPopup() {
                     executionId,
                   ) => {
                     console.log(functionName, parameters, executionId);
-                    if (functionName === "run_js") {
-                      try {
-                        // Execute JavaScript code
-                        const result = eval((parameters as any).code);
-                        // Check if result is a promise and await it
-                        const resolvedResult = result instanceof Promise ? await result : result;
-                        return { result: String(resolvedResult) };
-                      } catch (error) {
-                        return { 
-                          error: (error as any).message,
-                          stack: (error as any).stack
-                        };
-                      }
-                    }
-                    // Handle other functions...
                     return { error: "Unknown function" };
                   },
                 }}

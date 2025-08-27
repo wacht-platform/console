@@ -1,16 +1,31 @@
 import { createBrowserRouter } from "react-router";
 import { ApplicationLayout } from "@/components/application-layout";
 import { lazy, Suspense } from "react";
-import { LoadingFallback } from "@/components/loading-fallback";
+import { Spinner } from "@/components/ui/spinner";
+
+const SimpleFallback = () => (
+  <div className="flex items-center justify-center min-h-[400px] w-full">
+    <div className="flex flex-col items-center gap-4">
+      <Spinner size="lg" />
+      <span className="text-sm text-zinc-600 dark:text-zinc-400">
+        Loading...
+      </span>
+    </div>
+  </div>
+);
 
 const OverviewPage = lazy(() => import("./pages/overview"));
-const UsersPage = lazy(() => import("./pages/users"));
+
+const ActiveUsersPage = lazy(() => import("./pages/users/active"));
+const InvitedUsersPage = lazy(() => import("./pages/users/invited"));
+const WaitlistUsersPage = lazy(() => import("./pages/users/waitlist"));
 const UserDetailsPage = lazy(() => import("./pages/user/[id]"));
 const OrganizationsPage = lazy(() => import("./pages/organizations"));
 const OrganizationDetailsPage = lazy(() => import("./pages/organization/[id]"));
 const WorkspaceDetailsPage = lazy(() => import("./pages/workspace/[id]"));
 const SchemaFactorsPage = lazy(() => import("./pages/auth/schema-factors"));
 const SSOConnectionsPage = lazy(() => import("./pages/auth/social-login"));
+const SessionsPage = lazy(() => import("./pages/auth/sessions"));
 const OAuthApplicationsPage = lazy(() => import("./pages/auth/oauth"));
 const Web3AuthPage = lazy(() => import("./pages/auth/web3"));
 const RestrictionsPage = lazy(() => import("./pages/auth/restrictions"));
@@ -47,7 +62,13 @@ const KnowledgeBasePage = lazy(
 const WebhooksPage = lazy(() => import("./pages/webhooks"));
 const WebhookEndpointsPage = lazy(() => import("./pages/webhooks/endpoints"));
 const WebhookDeliveriesPage = lazy(() => import("./pages/webhooks/deliveries"));
+const WebhookDeliveryDetailsPage = lazy(
+  () => import("./pages/webhooks/delivery-details"),
+);
 const WebhookAnalyticsPage = lazy(() => import("./pages/webhooks/analytics"));
+const ApiKeysPage = lazy(() => import("./pages/api-keys"));
+const BillingPage = lazy(() => import("./pages/billing"));
+const BillingSuccessPage = lazy(() => import("./pages/billing/success"));
 
 export const router = createBrowserRouter([
   {
@@ -57,23 +78,68 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: (
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<SimpleFallback />}>
             <OverviewPage />
           </Suspense>
         ),
       },
       {
         path: "users",
+        children: [
+          {
+            index: true,
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <ActiveUsersPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "active",
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <ActiveUsersPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "invited",
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <InvitedUsersPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "waitlist",
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <WaitlistUsersPage />
+              </Suspense>
+            ),
+          },
+        ],
+      },
+      {
+        path: "billing",
         element: (
-          <Suspense fallback={<LoadingFallback />}>
-            <UsersPage />
+          <Suspense fallback={<SimpleFallback />}>
+            <BillingPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "billing/success",
+        element: (
+          <Suspense fallback={<SimpleFallback />}>
+            <BillingSuccessPage />
           </Suspense>
         ),
       },
       {
         path: "user/:id",
         element: (
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<SimpleFallback />}>
             <UserDetailsPage />
           </Suspense>
         ),
@@ -81,7 +147,7 @@ export const router = createBrowserRouter([
       {
         path: "organizations",
         element: (
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<SimpleFallback />}>
             <OrganizationsPage />
           </Suspense>
         ),
@@ -89,7 +155,7 @@ export const router = createBrowserRouter([
       {
         path: "organization/:id",
         element: (
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<SimpleFallback />}>
             <OrganizationDetailsPage />
           </Suspense>
         ),
@@ -97,7 +163,7 @@ export const router = createBrowserRouter([
       {
         path: "workspace/:id",
         element: (
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<SimpleFallback />}>
             <WorkspaceDetailsPage />
           </Suspense>
         ),
@@ -108,7 +174,7 @@ export const router = createBrowserRouter([
           {
             path: "schema-factors",
             element: (
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<SimpleFallback />}>
                 <SchemaFactorsPage />
               </Suspense>
             ),
@@ -116,15 +182,23 @@ export const router = createBrowserRouter([
           {
             path: "sso",
             element: (
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<SimpleFallback />}>
                 <SSOConnectionsPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "sessions",
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <SessionsPage />
               </Suspense>
             ),
           },
           {
             path: "oauth",
             element: (
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<SimpleFallback />}>
                 <OAuthApplicationsPage />
               </Suspense>
             ),
@@ -132,7 +206,7 @@ export const router = createBrowserRouter([
           {
             path: "web3",
             element: (
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<SimpleFallback />}>
                 <Web3AuthPage />
               </Suspense>
             ),
@@ -140,7 +214,7 @@ export const router = createBrowserRouter([
           {
             path: "restrictions",
             element: (
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<SimpleFallback />}>
                 <RestrictionsPage />
               </Suspense>
             ),
@@ -151,7 +225,7 @@ export const router = createBrowserRouter([
               {
                 index: true,
                 element: (
-                  <Suspense fallback={<LoadingFallback />}>
+                  <Suspense fallback={<SimpleFallback />}>
                     <JWTTemplatesPage />
                   </Suspense>
                 ),
@@ -159,7 +233,7 @@ export const router = createBrowserRouter([
               {
                 path: "new",
                 element: (
-                  <Suspense fallback={<LoadingFallback />}>
+                  <Suspense fallback={<SimpleFallback />}>
                     <JWTTemplateCreateUpdatePage />
                   </Suspense>
                 ),
@@ -167,7 +241,7 @@ export const router = createBrowserRouter([
               {
                 path: "edit/:templateId",
                 element: (
-                  <Suspense fallback={<LoadingFallback />}>
+                  <Suspense fallback={<SimpleFallback />}>
                     <JWTTemplateCreateUpdatePage />
                   </Suspense>
                 ),
@@ -182,7 +256,7 @@ export const router = createBrowserRouter([
           {
             path: "ai-agents",
             element: (
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<SimpleFallback />}>
                 <CreateAgentsPage />
               </Suspense>
             ),
@@ -190,7 +264,7 @@ export const router = createBrowserRouter([
           {
             path: "workflows",
             element: (
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<SimpleFallback />}>
                 <WorkflowsPage />
               </Suspense>
             ),
@@ -198,7 +272,7 @@ export const router = createBrowserRouter([
           {
             path: "workflows/create-workflow",
             element: (
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<SimpleFallback />}>
                 <CreateWorkflowPage />
               </Suspense>
             ),
@@ -206,7 +280,7 @@ export const router = createBrowserRouter([
           {
             path: "workflows/edit/:workflowId",
             element: (
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<SimpleFallback />}>
                 <CreateWorkflowPage />
               </Suspense>
             ),
@@ -214,7 +288,7 @@ export const router = createBrowserRouter([
           {
             path: "tools",
             element: (
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<SimpleFallback />}>
                 <ToolsPage />
               </Suspense>
             ),
@@ -222,7 +296,7 @@ export const router = createBrowserRouter([
           {
             path: "knowledge-base",
             element: (
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<SimpleFallback />}>
                 <KnowledgeBasePage />
               </Suspense>
             ),
@@ -232,7 +306,7 @@ export const router = createBrowserRouter([
       {
         path: "manage-organizations",
         element: (
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<SimpleFallback />}>
             <ManageOrganizationsPage />
           </Suspense>
         ),
@@ -240,7 +314,7 @@ export const router = createBrowserRouter([
       {
         path: "manage-workspaces",
         element: (
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<SimpleFallback />}>
             <ManageWorkspacesPage />
           </Suspense>
         ),
@@ -248,7 +322,7 @@ export const router = createBrowserRouter([
       {
         path: "portal",
         element: (
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<SimpleFallback />}>
             <PortalPage />
           </Suspense>
         ),
@@ -256,7 +330,7 @@ export const router = createBrowserRouter([
       {
         path: "deployment-settings",
         element: (
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<SimpleFallback />}>
             <DeploymentSettingsPage />
           </Suspense>
         ),
@@ -267,7 +341,7 @@ export const router = createBrowserRouter([
           {
             index: true,
             element: (
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<SimpleFallback />}>
                 <EmailsPage />
               </Suspense>
             ),
@@ -275,7 +349,7 @@ export const router = createBrowserRouter([
           {
             path: ":templateId",
             element: (
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<SimpleFallback />}>
                 <EmailTemplateEditor />
               </Suspense>
             ),
@@ -285,7 +359,7 @@ export const router = createBrowserRouter([
       {
         path: "sms",
         element: (
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<SimpleFallback />}>
             <SMSPage />
           </Suspense>
         ),
@@ -293,7 +367,7 @@ export const router = createBrowserRouter([
       {
         path: "settings",
         element: (
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<SimpleFallback />}>
             <ApplicationSettingsPage />
           </Suspense>
         ),
@@ -301,7 +375,7 @@ export const router = createBrowserRouter([
       {
         path: "dns-verification",
         element: (
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<SimpleFallback />}>
             <DnsVerificationPage />
           </Suspense>
         ),
@@ -312,7 +386,7 @@ export const router = createBrowserRouter([
           {
             index: true,
             element: (
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<SimpleFallback />}>
                 <WebhooksPage />
               </Suspense>
             ),
@@ -320,35 +394,56 @@ export const router = createBrowserRouter([
           {
             path: "endpoints",
             element: (
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<SimpleFallback />}>
                 <WebhookEndpointsPage />
               </Suspense>
             ),
           },
           {
             path: "deliveries",
-            element: (
-              <Suspense fallback={<LoadingFallback />}>
-                <WebhookDeliveriesPage />
-              </Suspense>
-            ),
+            children: [
+              {
+                index: true,
+                element: (
+                  <Suspense fallback={<SimpleFallback />}>
+                    <WebhookDeliveriesPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ":deliveryId",
+                element: (
+                  <Suspense fallback={<SimpleFallback />}>
+                    <WebhookDeliveryDetailsPage />
+                  </Suspense>
+                ),
+              },
+            ],
           },
           {
             path: "analytics",
             element: (
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<SimpleFallback />}>
                 <WebhookAnalyticsPage />
               </Suspense>
             ),
           },
         ],
       },
+      {
+        path: "api-keys",
+        element: (
+          <Suspense fallback={<SimpleFallback />}>
+            <ApiKeysPage />
+          </Suspense>
+        ),
+      },
     ],
   },
   {
     path: "",
     element: (
-      <Suspense fallback={<LoadingFallback />}>
+      <Suspense fallback={<SimpleFallback />}>
         <ProjectsPage />
       </Suspense>
     ),

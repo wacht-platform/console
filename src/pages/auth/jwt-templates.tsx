@@ -83,10 +83,10 @@ export default function JWTTemplatesPage() {
       </div>
 
       {isLoadingJWTTemplates ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <Spinner className="w-8 h-8 mx-auto mb-4" />
-            <p className="text-sm text-gray-500">Loading templates...</p>
+        <div className="flex items-center justify-center min-h-[400px] w-full">
+          <div className="flex flex-col items-center gap-4">
+            <Spinner size="lg" />
+            <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading templates...</span>
           </div>
         </div>
       ) : !jwtTemplates || jwtTemplates.length === 0 ? (

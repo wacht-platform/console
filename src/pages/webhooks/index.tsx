@@ -1,69 +1,84 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabItem } from "@/components/ui/tabs";
-import { 
+import { SimpleTabs, Tab } from "@/components/ui/simple-tabs";
+import { Heading, Subheading } from "@/components/ui/heading";
+import { Stat } from "@/components/stat";
+import {
   ArrowRightIcon,
   CheckCircleIcon,
-  ExclamationTriangleIcon,
-  ChartBarIcon,
   BoltIcon,
-  ShieldCheckIcon,
-  ArrowPathIcon
+  GlobeAltIcon,
+  ClockIcon,
+  XCircleIcon,
+  ExclamationCircleIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiClient } from "@/lib/api/client";
+import { webhookApi } from "@/lib/api/webhooks";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
-
-interface WebhookApp {
-  id: number;
-  name: string;
-  signing_secret: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-interface WebhookStats {
-  total_deliveries: number;
-  success_rate: number;
-  active_endpoints: number;
-  failed_deliveries_24h: number;
-}
-
-interface WebhookStatus {
-  is_activated: boolean;
-  app: WebhookApp | null;
-  stats: WebhookStats | null;
-}
+import { Spinner } from "@/components/ui/spinner";
+import { DateRangeSelector } from "@/components/date-range-selector";
 
 export default function WebhooksPage() {
   const { deploymentId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showSecret, setShowSecret] = useState(false);
+  const [dateRange, setDateRange] = useState("24h");
+  const [dateRangeHours, setDateRangeHours] = useState(24);
+
+  // Calculate date range for API
+  const getDateRange = () => {
+    const end = new Date();
+    const start = new Date(end.getTime() - dateRangeHours * 60 * 60 * 1000);
+    return {
+      start_date: start.toISOString(),
+      end_date: end.toISOString(),
+    };
+  };
 
   // Fetch webhook status
   const { data: status, isLoading } = useQuery({
     queryKey: ["webhook-status", deploymentId],
-    queryFn: async () => {
-      const response = await apiClient.get(`/deployments/${deploymentId}/webhooks/status`);
-      return response.data as WebhookStatus;
-    },
+    queryFn: () => webhookApi.getStatus(deploymentId!),
   });
+
+  // Fetch webhook analytics with date range
+  const { data: analytics } = useQuery({
+    queryKey: ["webhook-analytics", deploymentId, dateRangeHours],
+    queryFn: () => webhookApi.getAnalytics(deploymentId!, getDateRange()),
+    enabled: !!status?.is_activated,
+  });
+
+  // Fetch webhook endpoints
+  const { data: endpointsData } = useQuery({
+    queryKey: ["webhook-endpoints", deploymentId],
+    queryFn: () => webhookApi.getEndpoints(deploymentId!),
+    enabled: status?.is_activated,
+  });
+  
+  const endpoints = endpointsData?.endpoints || [];
+
+  // Fetch recent deliveries - use unique key to avoid cache conflicts
+  const { data: deliveriesData } = useQuery({
+    queryKey: ["webhook-recent-deliveries", deploymentId],
+    queryFn: () => webhookApi.getDeliveries(deploymentId!, { limit: 5 }),
+    enabled: status?.is_activated,
+    staleTime: 30 * 1000, // Keep fresh for 30 seconds
+  });
+  
+  const recentDeliveries = deliveriesData?.deliveries;
 
   // Activate webhooks mutation
   const activateMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiClient.post(`/deployments/${deploymentId}/webhooks/activate`);
-      return response.data;
-    },
+    mutationFn: () => webhookApi.activate(deploymentId!),
     onSuccess: () => {
       toast.success("Webhooks activated successfully!");
-      queryClient.invalidateQueries({ queryKey: ["webhook-status", deploymentId] });
+      queryClient.invalidateQueries({
+        queryKey: ["webhook-status", deploymentId],
+      });
     },
     onError: () => {
       toast.error("Failed to activate webhooks");
@@ -72,13 +87,12 @@ export default function WebhooksPage() {
 
   // Rotate secret mutation
   const rotateSecretMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiClient.post(`/deployments/${deploymentId}/webhooks/rotate-secret`);
-      return response.data;
-    },
+    mutationFn: () => webhookApi.rotateSecret(deploymentId!),
     onSuccess: () => {
       toast.success("Signing secret rotated successfully!");
-      queryClient.invalidateQueries({ queryKey: ["webhook-status", deploymentId] });
+      queryClient.invalidateQueries({
+        queryKey: ["webhook-status", deploymentId],
+      });
       setShowSecret(true);
     },
     onError: () => {
@@ -88,79 +102,48 @@ export default function WebhooksPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-6 space-y-6">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-64 w-full" />
+      <div className="flex items-center justify-center min-h-[400px] w-full">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner size="lg" />
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+            Loading webhooks...
+          </span>
+        </div>
       </div>
     );
   }
 
   if (!status?.is_activated) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="max-w-3xl mx-auto">
-          <Card>
-            <CardHeader className="text-center">
-              <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <BoltIcon className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle className="text-2xl">Enable Webhooks</CardTitle>
-              <CardDescription className="text-base mt-2">
-                Receive real-time notifications about platform events for this deployment
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4">
-                <div className="flex gap-3">
-                  <CheckCircleIcon className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">Real-time Platform Events</p>
-                    <p className="text-sm text-muted-foreground">
-                      Get instant notifications when users sign up, create organizations, and more
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <ShieldCheckIcon className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">Secure & Reliable</p>
-                    <p className="text-sm text-muted-foreground">
-                      HMAC signature verification, automatic retries, and delivery guarantees
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <ChartBarIcon className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">Comprehensive Analytics</p>
-                    <p className="text-sm text-muted-foreground">
-                      Monitor delivery success rates, response times, and endpoint health
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-center pt-4">
-                <Button
-                  size="lg"
-                  onClick={() => activateMutation.mutate()}
-                  disabled={activateMutation.isPending}
-                >
-                  {activateMutation.isPending ? (
-                    <>
-                      <ArrowPathIcon className="mr-2 h-4 w-4 animate-spin" />
-                      Activating...
-                    </>
-                  ) : (
-                    <>
-                      Activate Webhooks
-                      <ArrowRightIcon className="ml-2 h-4 w-4" />
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+      <div>
+        <Heading>Webhooks</Heading>
+        <div className="text-center py-12">
+          <BoltIcon className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-2 text-sm font-semibold text-gray-900">
+            Webhooks not enabled
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Get started by enabling webhooks to receive real-time platform
+            events.
+          </p>
+          <div className="mt-6">
+            <Button
+              onClick={() => activateMutation.mutate()}
+              disabled={activateMutation.isPending}
+            >
+              {activateMutation.isPending ? (
+                <>
+                  <Spinner size="xs" className="mr-2" />
+                  Activating...
+                </>
+              ) : (
+                <>
+                  <BoltIcon className="mr-2 h-4 w-4" />
+                  Enable Webhooks
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -169,208 +152,396 @@ export default function WebhooksPage() {
   const { app, stats } = status;
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div>
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Webhooks</h1>
-          <p className="text-muted-foreground mt-1">
+          <Heading>Webhooks</Heading>
+          <p className="text-zinc-500 mt-1 dark:text-zinc-400">
             Manage webhook endpoints and monitor deliveries
           </p>
         </div>
-        <Badge variant={app?.is_active ? "default" : "secondary"}>
+        <Badge color={app?.is_active ? "green" : "zinc"}>
           {app?.is_active ? "Active" : "Inactive"}
         </Badge>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Endpoints</CardTitle>
-            <ChartBarIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.active_endpoints || 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Deliveries</CardTitle>
-            <BoltIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.total_deliveries?.toLocaleString() || 0}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-            <CheckCircleIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.success_rate ? `${(stats.success_rate * 100).toFixed(1)}%` : "N/A"}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Failed (24h)</CardTitle>
-            <ExclamationTriangleIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.failed_deliveries_24h || 0}</div>
-          </CardContent>
-        </Card>
+      {/* Date Range Selector */}
+      <div className="mt-6 flex justify-end">
+        <DateRangeSelector
+          value={dateRange}
+          onChange={(value, hours) => {
+            setDateRange(value);
+            setDateRangeHours(hours);
+          }}
+        />
+      </div>
+
+      {/* Stats */}
+      <div className="mt-4 grid gap-8 sm:grid-cols-2 xl:grid-cols-5">
+        <Stat
+          title="Active Endpoints"
+          value={stats?.active_endpoints?.toString() || "0"}
+          change=""
+          showPeriodText={false}
+        />
+        <Stat
+          title="Total Deliveries"
+          value={analytics?.total_deliveries?.toLocaleString() || stats?.total_deliveries?.toLocaleString() || "0"}
+          change=""
+          showPeriodText={false}
+        />
+        <Stat
+          title="Success Rate"
+          value={
+            analytics?.success_rate
+              ? `${analytics.success_rate.toFixed(1)}%`
+              : stats?.success_rate
+                ? `${stats.success_rate.toFixed(1)}%`
+                : "N/A"
+          }
+          change=""
+          showPeriodText={false}
+        />
+        <Stat
+          title="Failed Deliveries"
+          value={analytics?.failed_deliveries?.toString() || "0"}
+          change=""
+          showPeriodText={false}
+        />
+        <Stat
+          title="Avg Response Time"
+          value={
+            analytics?.avg_response_time_ms
+              ? `${analytics.avg_response_time_ms.toFixed(0)}ms`
+              : "N/A"
+          }
+          change=""
+          showPeriodText={false}
+        />
       </div>
 
       {/* Configuration and Navigation Tabs */}
-      <Tabs defaultIndex={0} variant="pills" size="md">
-        <TabItem label="Configuration">
-          <div className="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Webhook Configuration</CardTitle>
-                <CardDescription>
-                  Manage your webhook app settings and signing secret
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">App Name</label>
-                  <p className="text-sm text-muted-foreground mt-1">{app?.name}</p>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium">Signing Secret</label>
-                  <div className="flex items-center gap-2 mt-1">
-                    <code className="flex-1 px-3 py-2 bg-muted rounded-md text-sm font-mono">
-                      {showSecret ? app?.signing_secret : "••••••••••••••••••••••••"}
-                    </code>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowSecret(!showSecret)}
-                    >
-                      {showSecret ? "Hide" : "Show"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => rotateSecretMutation.mutate()}
-                      disabled={rotateSecretMutation.isPending}
-                    >
-                      Rotate
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Use this secret to verify webhook signatures in your application
+      <div className="mt-14">
+        <SimpleTabs>
+          <Tab label="Configuration">
+            <div className="mt-4">
+              <div className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden dark:bg-zinc-900 dark:ring-white/10">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-zinc-700">
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    Webhook Configuration
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Manage your webhook app settings and signing secret
                   </p>
                 </div>
-
-                <div>
-                  <label className="text-sm font-medium">Created</label>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {app?.created_at ? new Date(app.created_at).toLocaleDateString() : "N/A"}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabItem>
-
-        <TabItem label="Endpoints">
-          <div className="mt-4">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
+                <div className="px-6 py-4 space-y-4">
                   <div>
-                    <CardTitle>Webhook Endpoints</CardTitle>
-                    <CardDescription>
-                      Configure endpoints to receive webhook events
-                    </CardDescription>
+                    <label className="text-sm font-medium text-gray-900 dark:text-white">
+                      App Name
+                    </label>
+                    <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">{app?.name}</p>
                   </div>
-                  <Button onClick={() => navigate(`endpoints`)}>
-                    Manage Endpoints
-                    <ArrowRightIcon className="ml-2 h-4 w-4" />
-                  </Button>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-900 dark:text-white">
+                      Signing Secret
+                    </label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <code className="flex-1 px-3 py-2 bg-gray-50 rounded-md text-sm font-mono text-gray-900 dark:bg-zinc-800 dark:text-gray-100">
+                        {showSecret
+                          ? app?.signing_secret
+                          : "••••••••••••••••••••••••"}
+                      </code>
+                      <Button
+                        outline
+                        onClick={() => setShowSecret(!showSecret)}
+                      >
+                        {showSecret ? "Hide" : "Show"}
+                      </Button>
+                      <Button
+                        outline
+                        onClick={() => rotateSecretMutation.mutate()}
+                        disabled={rotateSecretMutation.isPending}
+                      >
+                        {rotateSecretMutation.isPending ? (
+                          <>
+                            <Spinner size="xs" className="mr-2" />
+                            Rotating...
+                          </>
+                        ) : (
+                          "Rotate"
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      Use this secret to verify webhook signatures in your
+                      application
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-900 dark:text-white">
+                      Created
+                    </label>
+                    <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">
+                      {app?.created_at
+                        ? new Date(app.created_at).toLocaleDateString()
+                        : "N/A"}
+                    </p>
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {stats?.active_endpoints === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p>No endpoints configured yet</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="mt-4"
-                      onClick={() => navigate(`endpoints`)}
-                    >
-                      Add First Endpoint
+              </div>
+            </div>
+          </Tab>
+
+          <Tab label="Endpoints">
+            <div className="mt-4">
+              <div className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden dark:bg-zinc-900 dark:ring-white/10">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-zinc-700">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        Webhook Endpoints
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        Configure endpoints to receive webhook events
+                      </p>
+                    </div>
+                    <Button onClick={() => navigate(`endpoints`)}>
+                      Manage Endpoints
                     </Button>
                   </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    You have {stats?.active_endpoints} active endpoint{stats?.active_endpoints !== 1 ? 's' : ''}.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabItem>
-
-        <TabItem label="Recent Deliveries">
-          <div className="mt-4">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>Recent Deliveries</CardTitle>
-                    <CardDescription>
-                      View recent webhook delivery attempts
-                    </CardDescription>
-                  </div>
-                  <Button onClick={() => navigate(`deliveries`)}>
-                    View All Deliveries
-                    <ArrowRightIcon className="ml-2 h-4 w-4" />
-                  </Button>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  Delivery history will appear here
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </TabItem>
-      </Tabs>
+                <div className="px-6 py-4">
+                  {!endpoints || endpoints.length === 0 ? (
+                    <div className="text-center py-12">
+                      <GlobeAltIcon className="mx-auto h-12 w-12 text-gray-400" />
+                      <h3 className="mt-2 text-sm font-semibold text-gray-900">
+                        No endpoints configured
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        Get started by configuring your first webhook endpoint.
+                      </p>
+                      <div className="mt-6">
+                        <Button onClick={() => navigate(`endpoints`)}>
+                          Add First Endpoint
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {endpoints.slice(0, 3).map((endpoint) => (
+                        <div
+                          key={endpoint.id}
+                          className="flex items-center justify-between py-4 px-6 bg-gray-50 rounded-lg hover:bg-gray-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors cursor-pointer border border-gray-200 dark:border-zinc-700"
+                          onClick={() => navigate(`endpoints`)}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className="flex items-center gap-2">
+                                <GlobeAltIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                                <p className="text-base font-medium text-gray-900 dark:text-gray-100 truncate">
+                                  {endpoint.url}
+                                </p>
+                              </div>
+                              <Badge
+                                color={endpoint.is_active ? "green" : "zinc"}
+                                className="flex-shrink-0"
+                              >
+                                {endpoint.is_active ? "Active" : "Inactive"}
+                              </Badge>
+                            </div>
+                            {endpoint.description && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                {endpoint.description}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
+                              <div className="flex items-center gap-1">
+                                <BoltIcon className="h-4 w-4" />
+                                <span>{endpoint.subscriptions?.length || 0} event subscription{endpoint.subscriptions?.length !== 1 ? "s" : ""}</span>
+                              </div>
+                              {endpoint.consecutive_failures && endpoint.consecutive_failures > 0 && (
+                                <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
+                                  <ExclamationCircleIcon className="h-4 w-4" />
+                                  <span>{endpoint.consecutive_failures} consecutive failures</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <ArrowRightIcon className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                        </div>
+                      ))}
+                      {endpoints.length > 3 && (
+                        <div className="pt-4 border-t border-gray-200 dark:border-zinc-700">
+                          <Button
+                            plain
+                            className="w-full py-3"
+                            onClick={() => navigate(`endpoints`)}
+                          >
+                            View all {endpoints.length} endpoints
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Tab>
+
+          <Tab label="Recent Deliveries">
+            <div className="mt-4">
+              <div className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden dark:bg-zinc-900 dark:ring-white/10">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-zinc-700">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        Recent Deliveries
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        View recent webhook delivery attempts
+                      </p>
+                    </div>
+                    <Button onClick={() => navigate(`deliveries`)}>
+                      View All Deliveries
+                    </Button>
+                  </div>
+                </div>
+                <div className="px-6 py-4">
+                  {!recentDeliveries || recentDeliveries.length === 0 ? (
+                    <div className="text-center py-12">
+                      <ClockIcon className="mx-auto h-12 w-12 text-gray-400" />
+                      <h3 className="mt-2 text-sm font-semibold text-gray-900">
+                        No deliveries yet
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        Webhook deliveries will appear here once events are
+                        triggered.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {recentDeliveries.map((delivery) => (
+                        <div
+                          key={delivery.delivery_id}
+                          className="flex items-center justify-between py-4 px-6 bg-gray-50 rounded-lg hover:bg-gray-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors cursor-pointer border border-gray-200 dark:border-zinc-700"
+                          onClick={() => navigate(`deliveries/${delivery.delivery_id}`)}
+                        >
+                          <div className="flex items-center gap-4">
+                            {delivery.status === "success" ? (
+                              <CheckCircleIcon className="h-6 w-6 text-green-500 flex-shrink-0" />
+                            ) : delivery.status === "failed" ? (
+                              <XCircleIcon className="h-6 w-6 text-red-500 flex-shrink-0" />
+                            ) : delivery.status === "retrying" ? (
+                              <ArrowPathIcon className="h-6 w-6 text-yellow-500 animate-spin flex-shrink-0" />
+                            ) : (
+                              <ExclamationCircleIcon className="h-6 w-6 text-gray-400 flex-shrink-0" />
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <p className="text-base font-medium text-gray-900 dark:text-gray-100">
+                                  {delivery.event_name}
+                                </p>
+                                <Badge
+                                  color={
+                                    delivery.status === "success"
+                                      ? "green"
+                                      : delivery.status === "failed"
+                                        ? "red"
+                                        : delivery.status === "retrying"
+                                          ? "yellow"
+                                          : "zinc"
+                                  }
+                                >
+                                  {delivery.status}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
+                                <div className="flex items-center gap-1">
+                                  <ClockIcon className="h-4 w-4" />
+                                  <span>{new Date(delivery.timestamp).toLocaleString()}</span>
+                                </div>
+                                {delivery.response_time_ms && (
+                                  <div className="flex items-center gap-1">
+                                    <span>⚡</span>
+                                    <span>{delivery.response_time_ms}ms</span>
+                                  </div>
+                                )}
+                                {delivery.http_status_code && (
+                                  <div className="flex items-center gap-1">
+                                    <span>🌐</span>
+                                    <span>HTTP {delivery.http_status_code}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <ArrowRightIcon className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                        </div>
+                      ))}
+                      {stats?.total_deliveries && stats.total_deliveries > 5 && (
+                        <div className="pt-4 border-t border-gray-200 dark:border-zinc-700">
+                          <Button
+                            plain
+                            className="w-full py-3"
+                            onClick={() => navigate(`deliveries`)}
+                          >
+                            View all {stats.total_deliveries.toLocaleString()} deliveries
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Tab>
+        </SimpleTabs>
+      </div>
 
       {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="cursor-pointer hover:bg-muted/50 transition-colors"
-              onClick={() => navigate(`endpoints`)}>
-          <CardHeader>
-            <CardTitle className="text-base">Manage Endpoints</CardTitle>
-            <CardDescription>Add, edit, or remove webhook endpoints</CardDescription>
-          </CardHeader>
-        </Card>
-        <Card className="cursor-pointer hover:bg-muted/50 transition-colors"
-              onClick={() => navigate(`deliveries`)}>
-          <CardHeader>
-            <CardTitle className="text-base">Delivery History</CardTitle>
-            <CardDescription>View and retry webhook deliveries</CardDescription>
-          </CardHeader>
-        </Card>
-        <Card className="cursor-pointer hover:bg-muted/50 transition-colors"
-              onClick={() => navigate(`analytics`)}>
-          <CardHeader>
-            <CardTitle className="text-base">Analytics</CardTitle>
-            <CardDescription>Monitor webhook performance metrics</CardDescription>
-          </CardHeader>
-        </Card>
+      <div className="mt-14">
+        <Subheading>Quick Actions</Subheading>
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <div
+            className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-50 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:ring-white/10 transition-colors"
+            onClick={() => navigate(`endpoints`)}
+          >
+            <div className="px-6 py-4">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                Manage Endpoints
+              </h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
+                Add, edit, or remove webhook endpoints
+              </p>
+            </div>
+          </div>
+          <div
+            className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-50 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:ring-white/10 transition-colors"
+            onClick={() => navigate(`deliveries`)}
+          >
+            <div className="px-6 py-4">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                Delivery History
+              </h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
+                View and retry webhook deliveries
+              </p>
+            </div>
+          </div>
+          <div
+            className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-50 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:ring-white/10 transition-colors"
+            onClick={() => navigate(`analytics`)}
+          >
+            <div className="px-6 py-4">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white">Analytics</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
+                Monitor webhook performance metrics
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

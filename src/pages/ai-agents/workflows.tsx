@@ -18,6 +18,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "../../components/ui/table";
+import { Spinner } from "../../components/ui/spinner";
 import { ConfirmationDialog } from "../../components/modals/confirmation-dialog";
 import { useWorkflows, useDeleteWorkflow } from "../../lib/api/hooks/use-workflows";
 
@@ -64,7 +65,7 @@ export default function WorkflowsPage() {
 		<div>
 			<div className="flex flex-col gap-2 mb-2">
 				<Heading>AI Workflows</Heading>
-				<p className="text-sm text-gray-600">
+				<p className="text-sm text-gray-600 dark:text-gray-400">
 					Create and manage automated workflows that combine AI agents, tools, and logic
 				</p>
 			</div>
@@ -93,20 +94,21 @@ export default function WorkflowsPage() {
 
 			<div className="mt-6">
 				{isLoading ? (
-					<div className="text-center py-12">
-						<div className="text-sm text-gray-500">Loading workflows...</div>
+					<div className="flex flex-col items-center justify-center min-h-[400px] py-12">
+						<Spinner size="lg" />
+						<p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">Loading workflows...</p>
 					</div>
 				) : error ? (
 					<div className="text-center py-12">
-						<div className="text-sm text-red-500">Failed to load workflows</div>
+						<div className="text-sm text-red-500 dark:text-red-400">Failed to load workflows</div>
 					</div>
 				) : workflows.length === 0 ? (
 					<div className="text-center py-12">
-						<FireIcon className="mx-auto h-12 w-12 text-gray-400" />
-						<h3 className="mt-2 text-sm font-semibold text-gray-900">
+						<FireIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" />
+						<h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
 							No workflows
 						</h3>
-						<p className="mt-1 text-sm text-gray-500">
+						<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
 							Get started by creating your first AI workflow.
 						</p>
 						<div className="mt-6">
@@ -130,13 +132,13 @@ export default function WorkflowsPage() {
 								<TableRow key={workflow.id}>
 									<TableCell>
 										<div className="flex items-center gap-3">
-											<div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 text-orange-600">
+											<div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
 												<FireIcon className="h-4 w-4" />
 											</div>
-											<span className="font-medium">{workflow.name}</span>
+											<span className="font-medium text-gray-900 dark:text-gray-100">{workflow.name}</span>
 										</div>
 									</TableCell>
-									<TableCell>{workflow.description || "No description"}</TableCell>
+									<TableCell className="text-gray-700 dark:text-gray-300">{workflow.description || "No description"}</TableCell>
 									<TableCell>
 										<div className="flex gap-2">
 											<Button

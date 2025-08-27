@@ -40,14 +40,14 @@ export function ConfirmationDialog({
         <div className="flex items-start gap-4">
           {isDestructive && (
             <div className="flex-shrink-0">
-              <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
+              <ExclamationTriangleIcon className="h-6 w-6 text-red-600 dark:text-red-500" />
             </div>
           )}
           <div className="flex-1">
-            <DialogTitle className={isDestructive ? "text-red-900" : ""}>
+            <DialogTitle className={isDestructive ? "text-red-900 dark:text-red-400" : ""}>
               {title}
             </DialogTitle>
-            <p className="mt-2 text-sm text-gray-600">{message}</p>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{message}</p>
           </div>
         </div>
       </DialogBody>
@@ -61,7 +61,7 @@ export function ConfirmationDialog({
           disabled={isLoading}
           className={
             isDestructive
-              ? "bg-red-600 hover:bg-red-700 text-white"
+              ? "bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500 text-white"
               : ""
           }
         >

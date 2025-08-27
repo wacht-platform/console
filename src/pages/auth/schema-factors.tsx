@@ -1,5 +1,6 @@
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { Divider } from "@/components/ui/divider";
 import {
   Dialog,
@@ -1098,7 +1099,14 @@ export default function SchemaFactorsPage() {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[400px] w-full">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner size="lg" />
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading authentication settings...</span>
+        </div>
+      </div>
+    );
   }
 
   return (

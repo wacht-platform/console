@@ -3,7 +3,8 @@ import { useParams } from "react-router";
 import { format } from "date-fns";
 import { useUserDetails } from "@/lib/api/hooks/use-user-details";
 import { useUpdateUser } from "@/lib/api/hooks/use-update-user";
-import { LoadingFallback } from "@/components/loading-fallback";
+import { useDarkMode } from "@/lib/hooks/use-dark-mode";
+import { Spinner } from "@/components/ui/spinner";
 import type { UserEmailAddress, UserPhoneNumber } from "@/types/user";
 import {
   useAddUserEmail,
@@ -42,6 +43,7 @@ export default function UserDetailsPage() {
 
   const { id } = useParams();
   const userId = id;
+  const isDarkMode = useDarkMode();
   const { data: user, isLoading, error } = useUserDetails(userId);
   const { mutateAsync: updateUser } = useUpdateUser(userId || "");
 
@@ -109,11 +111,12 @@ export default function UserDetailsPage() {
 
   if (isLoading) {
     return (
-      <LoadingFallback
-        variant="default"
-        message="Loading user details..."
-        size="lg"
-      />
+      <div className="flex items-center justify-center min-h-[400px] w-full">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner size="lg" />
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading user details...</span>
+        </div>
+      </div>
     );
   }
 
@@ -335,12 +338,12 @@ export default function UserDetailsPage() {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
-          <UserIcon className="h-6 w-6 text-gray-600" />
+          <UserIcon className="h-6 w-6 text-gray-600 dark:text-gray-400" />
           <div>
-            <h1 className="text-lg text-gray-900">
+            <h1 className="text-lg text-gray-900 dark:text-gray-100">
               {user.first_name} {user.last_name}
             </h1>
-            <p className="text-sm text-gray-500">User ID: {user.id}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">User ID: {user.id}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -369,11 +372,11 @@ export default function UserDetailsPage() {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Profile Sidebar */}
-        <div className="lg:col-span-1 lg:border-r lg:border-gray-200 lg:pr-8">
-          <div className="bg-white  rounded-lg py-6">
+        <div className="lg:col-span-1 lg:border-r lg:border-gray-200 dark:lg:border-zinc-800 lg:pr-8">
+          <div className="py-6">
             {/* Avatar */}
             <div className="flex flex-col items-center mb-6">
-              <div className="h-24 w-24 bg-gray-200 rounded-full flex items-center justify-center mb-4 overflow-hidden">
+              <div className="h-24 w-24 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4 overflow-hidden">
                 {user.profile_picture_url ? (
                   <img
                     src={user.profile_picture_url}
@@ -381,7 +384,7 @@ export default function UserDetailsPage() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="text-lg text-gray-600">
+                  <span className="text-lg text-gray-600 dark:text-gray-400">
                     {user.first_name?.[0]}
                     {user.last_name?.[0]}
                   </span>
@@ -399,23 +402,23 @@ export default function UserDetailsPage() {
 
               {/* Quick Stats */}
               <div className="w-full space-y-3 mb-6">
-                <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">Email Addresses</span>
-                  <span className="text-sm text-gray-900">
+                <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-zinc-800">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Email Addresses</span>
+                  <span className="text-sm text-gray-900 dark:text-gray-100">
                     {user.email_addresses?.length || 0}
                   </span>
                 </div>
-                <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">Phone Numbers</span>
-                  <span className="text-sm text-gray-900">
+                <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-zinc-800">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Phone Numbers</span>
+                  <span className="text-sm text-gray-900 dark:text-gray-100">
                     {user.phone_numbers?.length || 0}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
                     Social Connections
                   </span>
-                  <span className="text-sm text-gray-900">
+                  <span className="text-sm text-gray-900 dark:text-gray-100">
                     {user.social_connections?.length || 0}
                   </span>
                 </div>
@@ -424,7 +427,7 @@ export default function UserDetailsPage() {
               {/* Security Status */}
               <div className="w-full space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Password</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Password</span>
                   <div className="flex items-center gap-2">
                     {user.has_password ? (
                       <CheckCircleIcon className="h-4 w-4 text-green-500" />
@@ -441,7 +444,7 @@ export default function UserDetailsPage() {
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">2FA</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">2FA</span>
                   {user.has_otp ? (
                     <CheckCircleIcon className="h-4 w-4 text-green-500" />
                   ) : (
@@ -462,52 +465,52 @@ export default function UserDetailsPage() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="space-y-1">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Primary Email
                 </p>
-                <p className="text-sm text-gray-900">
+                <p className="text-sm text-gray-900 dark:text-gray-100">
                   {user.primary_email_address || "Not provided"}
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Primary Phone
                 </p>
-                <p className="text-sm text-gray-900">
+                <p className="text-sm text-gray-900 dark:text-gray-100">
                   {user.primary_phone_number || "Not provided"}
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-gray-500">Username</p>
-                <p className="text-sm text-gray-900">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Username</p>
+                <p className="text-sm text-gray-900 dark:text-gray-100">
                   {user.username || "Not provided"}
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-gray-500">Created</p>
-                <p className="text-sm text-gray-900">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Created</p>
+                <p className="text-sm text-gray-900 dark:text-gray-100">
                   {format(new Date(user.created_at), "MMM d, yyyy")}
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Last Updated
                 </p>
-                <p className="text-sm text-gray-900">
+                <p className="text-sm text-gray-900 dark:text-gray-100">
                   {format(new Date(user.updated_at), "MMM d, yyyy")}
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-gray-500">2FA Policy</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">2FA Policy</p>
                 <p className="text-sm text-gray-900 capitalize">
                   {user.second_factor_policy || "None"}
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Schema Version
                 </p>
-                <p className="text-sm text-gray-900">{user.schema_version}</p>
+                <p className="text-sm text-gray-900 dark:text-gray-100">{user.schema_version}</p>
               </div>
             </div>
           </div>
@@ -522,7 +525,7 @@ export default function UserDetailsPage() {
                       <h3 className="text-xs text-gray-500">
                         Primary Email
                       </h3>
-                      <p className="text-sm text-gray-900">
+                      <p className="text-sm text-gray-900 dark:text-gray-100">
                         {user.primary_email_address || "Not provided"}
                       </p>
                     </div>
@@ -530,7 +533,7 @@ export default function UserDetailsPage() {
                       <h3 className="text-xs text-gray-500">
                         Primary Phone
                       </h3>
-                      <p className="text-sm text-gray-900">
+                      <p className="text-sm text-gray-900 dark:text-gray-100">
                         {user.primary_phone_number || "Not provided"}
                       </p>
                     </div>
@@ -538,7 +541,7 @@ export default function UserDetailsPage() {
                       <h3 className="text-xs text-gray-500">
                         Username
                       </h3>
-                      <p className="text-sm text-gray-900">
+                      <p className="text-sm text-gray-900 dark:text-gray-100">
                         {user.username || "Not provided"}
                       </p>
                     </div>
@@ -546,7 +549,7 @@ export default function UserDetailsPage() {
                       <h3 className="text-xs text-gray-500">
                         Total Email Addresses
                       </h3>
-                      <p className="text-base text-gray-900">
+                      <p className="text-base text-gray-900 dark:text-gray-100">
                         {user.email_addresses ? user.email_addresses.length : 0}
                       </p>
                     </div>
@@ -554,7 +557,7 @@ export default function UserDetailsPage() {
                       <h3 className="text-xs text-gray-500">
                         Total Phone Numbers
                       </h3>
-                      <p className="text-base text-gray-900">
+                      <p className="text-base text-gray-900 dark:text-gray-100">
                         {user.phone_numbers ? user.phone_numbers.length : 0}
                       </p>
                     </div>
@@ -562,7 +565,7 @@ export default function UserDetailsPage() {
                       <h3 className="text-xs text-gray-500">
                         Social Connections
                       </h3>
-                      <p className="text-base text-gray-900">
+                      <p className="text-base text-gray-900 dark:text-gray-100">
                         {user.social_connections
                           ? user.social_connections.length
                           : 0}
@@ -575,7 +578,7 @@ export default function UserDetailsPage() {
               <Tab label="Email Addresses">
                 <div className="py-6">
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-base text-gray-900">
+                    <h3 className="text-base text-gray-900 dark:text-gray-100">
                       Email Addresses
                     </h3>
                     {user.email_addresses &&
@@ -621,7 +624,7 @@ export default function UserDetailsPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
-                                <span className="text-sm text-gray-900">
+                                <span className="text-sm text-gray-900 dark:text-gray-100">
                                   {email.email}
                                 </span>
                                 {email.is_primary && (
@@ -655,7 +658,7 @@ export default function UserDetailsPage() {
                             <div className="flex items-center gap-2">
                               <button
                                 type="button"
-                                className="p-2 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                                className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                                 onClick={() => handleEditEmail(email.id)}
                               >
                                 <PencilIcon className="h-4 w-4" />
@@ -687,7 +690,7 @@ export default function UserDetailsPage() {
               <Tab label="Phone Numbers">
                 <div className="py-6">
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-base text-gray-900">
+                    <h3 className="text-base text-gray-900 dark:text-gray-100">
                       Phone Numbers
                     </h3>
                     {user.phone_numbers && user.phone_numbers.length > 0 && (
@@ -731,7 +734,7 @@ export default function UserDetailsPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
-                                <span className="text-sm text-gray-900">
+                                <span className="text-sm text-gray-900 dark:text-gray-100">
                                   {phone.phone_number}
                                 </span>
                                 {user.primary_phone_number ===
@@ -766,7 +769,7 @@ export default function UserDetailsPage() {
                             <div className="flex items-center gap-2">
                               <button
                                 type="button"
-                                className="p-2 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                                className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                                 onClick={() => handleEditPhone(phone.id)}
                               >
                                 <PencilIcon className="h-4 w-4" />
@@ -798,7 +801,7 @@ export default function UserDetailsPage() {
               <Tab label="Social Connections">
                 <div className="py-6">
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-base text-gray-900">
+                    <h3 className="text-base text-gray-900 dark:text-gray-100">
                       Social Connections
                     </h3>
                   </div>
@@ -834,10 +837,10 @@ export default function UserDetailsPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
-                                <span className="text-sm text-gray-900">
+                                <span className="text-sm text-gray-900 dark:text-gray-100">
                                   {getSocialProviderName(connection.provider)}
                                 </span>
-                                <span className="text-sm text-gray-500">
+                                <span className="text-sm text-gray-500 dark:text-gray-400">
                                   {connection.email_address}
                                 </span>
                               </div>
@@ -876,7 +879,7 @@ export default function UserDetailsPage() {
                   {/* Public Metadata */}
                   <div>
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-base text-gray-900">
+                      <h3 className="text-base text-gray-900 dark:text-gray-100">
                         Public Metadata
                       </h3>
                       {!isEditingPublicMetadata ? (
@@ -907,13 +910,13 @@ export default function UserDetailsPage() {
                       )}
                     </div>
 
-                    <div className="rounded border border-gray-200">
+                    <div className="rounded border border-gray-200 dark:border-zinc-800">
                       <Editor
                         height="120px"
                         defaultLanguage="json"
                         value={publicMetadata}
                         onChange={(value) => setPublicMetadata(value || "{}")}
-                        theme="vs"
+                        theme={isDarkMode ? "vs-dark" : "vs"}
                         options={{
                           readOnly: !isEditingPublicMetadata,
                           minimap: { enabled: false },
@@ -939,7 +942,7 @@ export default function UserDetailsPage() {
                   {/* Private Metadata */}
                   <div>
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-base text-gray-900">
+                      <h3 className="text-base text-gray-900 dark:text-gray-100">
                         Private Metadata
                       </h3>
                       {!isEditingPrivateMetadata ? (
@@ -970,13 +973,13 @@ export default function UserDetailsPage() {
                       )}
                     </div>
 
-                    <div className="rounded border border-gray-200">
+                    <div className="rounded border border-gray-200 dark:border-zinc-800">
                       <Editor
                         height="120px"
                         defaultLanguage="json"
                         value={privateMetadata}
                         onChange={(value) => setPrivateMetadata(value || "{}")}
-                        theme="vs"
+                        theme={isDarkMode ? "vs-dark" : "vs"}
                         options={{
                           readOnly: !isEditingPrivateMetadata,
                           minimap: { enabled: false },

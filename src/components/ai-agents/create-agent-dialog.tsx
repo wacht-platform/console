@@ -246,7 +246,7 @@ export function CreateAgentDialog({
 								{errors.description && (
 									<p className="text-sm text-red-600 mt-1">{errors.description}</p>
 								)}
-								<p className="text-sm text-zinc-500 mt-1">
+								<p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
 									{formData.description.length}/500 characters
 								</p>
 							</Field>
@@ -259,8 +259,8 @@ export function CreateAgentDialog({
 					<Fieldset>
 						<div className="flex items-center justify-between mb-4">
 							<div className="flex items-center gap-2">
-								<WrenchScrewdriverIcon className="h-5 w-5 text-indigo-600" />
-								<span className="text-sm text-zinc-900">Tools ({formData.toolIds.length} selected)</span>
+								<WrenchScrewdriverIcon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+								<span className="text-sm text-zinc-900 dark:text-zinc-100">Tools ({formData.toolIds.length} selected)</span>
 							</div>
 							<InputGroup className="w-64">
 								<MagnifyingGlassIcon className="size-4" />
@@ -271,24 +271,24 @@ export function CreateAgentDialog({
 								/>
 							</InputGroup>
 						</div>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-80 overflow-y-auto border border-zinc-200 rounded-lg p-4 bg-zinc-50/30">
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-80 overflow-y-auto border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 bg-zinc-50/30 dark:bg-zinc-800/30">
 							{filteredTools.map((tool) => (
 								<div
 									key={tool.id}
 									className={`p-3 border rounded-lg cursor-pointer transition-colors ${
 										formData.toolIds.includes(tool.id)
-											? 'border-indigo-300 bg-indigo-50'
-											: 'border-zinc-200 hover:border-indigo-200 hover:bg-indigo-50/30'
+											? 'border-indigo-300 dark:border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30'
+											: 'border-zinc-200 dark:border-zinc-700 hover:border-indigo-200 dark:hover:border-indigo-500 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/20'
 									}`}
 									onClick={() => toggleSelection(tool.id, 'tools')}
 								>
 									<div className="flex items-center gap-2">
-										<div className="flex h-6 w-6 items-center justify-center rounded bg-indigo-100 text-indigo-600">
+										<div className="flex h-6 w-6 items-center justify-center rounded bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400">
 											<WrenchScrewdriverIcon className="h-3 w-3" />
 										</div>
 										<div className="flex-1 min-w-0">
-											<p className="text-sm text-zinc-900 truncate">{tool.name}</p>
-											<p className="text-xs text-zinc-500 truncate">{tool.tool_type}</p>
+											<p className="text-sm text-zinc-900 dark:text-zinc-100 truncate">{tool.name}</p>
+											<p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{tool.tool_type}</p>
 										</div>
 										{formData.toolIds.includes(tool.id) && (
 											<Badge color="indigo" className="text-xs">Selected</Badge>
@@ -297,8 +297,8 @@ export function CreateAgentDialog({
 								</div>
 							))}
 							{filteredTools.length === 0 && (
-								<div className="col-span-full text-center py-8 text-zinc-500">
-									<WrenchScrewdriverIcon className="mx-auto h-8 w-8 text-zinc-400 mb-2" />
+								<div className="col-span-full text-center py-8 text-zinc-500 dark:text-zinc-400">
+									<WrenchScrewdriverIcon className="mx-auto h-8 w-8 text-zinc-400 dark:text-zinc-600 mb-2" />
 									<p className="text-sm">
 										{toolsSearch ? "No tools match your search" : "No tools available"}
 									</p>
@@ -311,8 +311,8 @@ export function CreateAgentDialog({
 					<Fieldset>
 						<div className="flex items-center justify-between mb-4">
 							<div className="flex items-center gap-2">
-								<FireIcon className="h-5 w-5 text-orange-600" />
-								<span className="text-sm text-zinc-900">Workflows ({formData.workflowIds.length} selected)</span>
+								<FireIcon className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+								<span className="text-sm text-zinc-900 dark:text-zinc-100">Workflows ({formData.workflowIds.length} selected)</span>
 							</div>
 							<InputGroup className="w-64">
 								<MagnifyingGlassIcon className="size-4" />
@@ -323,24 +323,24 @@ export function CreateAgentDialog({
 								/>
 							</InputGroup>
 						</div>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-80 overflow-y-auto border border-zinc-200 rounded-lg p-4 bg-zinc-50/30">
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-80 overflow-y-auto border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 bg-zinc-50/30 dark:bg-zinc-800/30">
 							{filteredWorkflows.map((workflow) => (
 								<div
 									key={workflow.id}
 									className={`p-3 border rounded-lg cursor-pointer transition-colors ${
 										formData.workflowIds.includes(workflow.id)
-											? 'border-orange-300 bg-orange-50'
-											: 'border-zinc-200 hover:border-orange-200 hover:bg-orange-50/30'
+											? 'border-orange-300 dark:border-orange-500 bg-orange-50 dark:bg-orange-900/30'
+											: 'border-zinc-200 dark:border-zinc-700 hover:border-orange-200 dark:hover:border-orange-500 hover:bg-orange-50/30 dark:hover:bg-orange-900/20'
 									}`}
 									onClick={() => toggleSelection(workflow.id, 'workflows')}
 								>
 									<div className="flex items-center gap-2">
-										<div className="flex h-6 w-6 items-center justify-center rounded bg-orange-100 text-orange-600">
+										<div className="flex h-6 w-6 items-center justify-center rounded bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400">
 											<FireIcon className="h-3 w-3" />
 										</div>
 										<div className="flex-1 min-w-0">
-											<p className="text-sm text-zinc-900 truncate">{workflow.name}</p>
-											<p className="text-xs text-zinc-500 truncate">{workflow.description || 'No description'}</p>
+											<p className="text-sm text-zinc-900 dark:text-zinc-100 truncate">{workflow.name}</p>
+											<p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{workflow.description || 'No description'}</p>
 										</div>
 										{formData.workflowIds.includes(workflow.id) && (
 											<Badge color="orange" className="text-xs">Selected</Badge>
@@ -349,8 +349,8 @@ export function CreateAgentDialog({
 								</div>
 							))}
 							{filteredWorkflows.length === 0 && (
-								<div className="col-span-full text-center py-8 text-zinc-500">
-									<FireIcon className="mx-auto h-8 w-8 text-zinc-400 mb-2" />
+								<div className="col-span-full text-center py-8 text-zinc-500 dark:text-zinc-400">
+									<FireIcon className="mx-auto h-8 w-8 text-zinc-400 dark:text-zinc-600 mb-2" />
 									<p className="text-sm">
 										{workflowsSearch ? "No workflows match your search" : "No workflows available"}
 									</p>
@@ -363,8 +363,8 @@ export function CreateAgentDialog({
 					<Fieldset>
 						<div className="flex items-center justify-between mb-4">
 							<div className="flex items-center gap-2">
-								<BookOpenIcon className="h-5 w-5 text-emerald-600" />
-								<span className="text-sm text-zinc-900">Knowledge Bases ({formData.knowledgeBaseIds.length} selected)</span>
+								<BookOpenIcon className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+								<span className="text-sm text-zinc-900 dark:text-zinc-100">Knowledge Bases ({formData.knowledgeBaseIds.length} selected)</span>
 							</div>
 							<InputGroup className="w-64">
 								<MagnifyingGlassIcon className="size-4" />
@@ -375,24 +375,24 @@ export function CreateAgentDialog({
 								/>
 							</InputGroup>
 						</div>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-80 overflow-y-auto border border-zinc-200 rounded-lg p-4 bg-zinc-50/30">
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-80 overflow-y-auto border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 bg-zinc-50/30 dark:bg-zinc-800/30">
 							{filteredKnowledgeBases.map((kb) => (
 								<div
 									key={kb.id}
 									className={`p-3 border rounded-lg cursor-pointer transition-colors ${
 										formData.knowledgeBaseIds.includes(kb.id)
-											? 'border-emerald-300 bg-emerald-50'
-											: 'border-zinc-200 hover:border-emerald-200 hover:bg-emerald-50/30'
+											? 'border-emerald-300 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30'
+											: 'border-zinc-200 dark:border-zinc-700 hover:border-emerald-200 dark:hover:border-emerald-500 hover:bg-emerald-50/30 dark:hover:bg-emerald-900/20'
 									}`}
 									onClick={() => toggleSelection(kb.id, 'knowledgeBases')}
 								>
 									<div className="flex items-center gap-2">
-										<div className="flex h-6 w-6 items-center justify-center rounded bg-emerald-100 text-emerald-600">
+										<div className="flex h-6 w-6 items-center justify-center rounded bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400">
 											<BookOpenIcon className="h-3 w-3" />
 										</div>
 										<div className="flex-1 min-w-0">
-											<p className="text-sm text-zinc-900 truncate">{kb.name}</p>
-											<p className="text-xs text-zinc-500 truncate">{kb.documents_count} documents</p>
+											<p className="text-sm text-zinc-900 dark:text-zinc-100 truncate">{kb.name}</p>
+											<p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{kb.documents_count} documents</p>
 										</div>
 										{formData.knowledgeBaseIds.includes(kb.id) && (
 											<Badge color="emerald" className="text-xs">Selected</Badge>
@@ -401,8 +401,8 @@ export function CreateAgentDialog({
 								</div>
 							))}
 							{filteredKnowledgeBases.length === 0 && (
-								<div className="col-span-full text-center py-8 text-zinc-500">
-									<BookOpenIcon className="mx-auto h-8 w-8 text-zinc-400 mb-2" />
+								<div className="col-span-full text-center py-8 text-zinc-500 dark:text-zinc-400">
+									<BookOpenIcon className="mx-auto h-8 w-8 text-zinc-400 dark:text-zinc-600 mb-2" />
 									<p className="text-sm">
 										{knowledgeBasesSearch ? "No knowledge bases match your search" : "No knowledge bases available"}
 									</p>

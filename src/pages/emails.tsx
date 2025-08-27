@@ -16,15 +16,15 @@ export function EmailTemplateCard({
 	onClick
 }: EmailTemplateCardProps) {
 	const content = (
-		<div className="group relative bg-white px-6 py-4 hover:bg-gray-50 transition-all duration-200 border-b border-gray-200 last:border-0">
+		<div className="group relative bg-white dark:bg-neutral-900 px-6 py-4 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all duration-200 border-b border-gray-200 dark:border-neutral-700 last:border-0">
 			<div className="flex items-center justify-between">
 				<div>
-					<h3 className="text-sm font-normal text-gray-900 group-hover:text-indigo-600 transition-colors">
+					<h3 className="text-sm font-normal text-gray-900 dark:text-neutral-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
 						{title}
 					</h3>
-					<p className="mt-1 text-sm text-gray-500">{description}</p>
+					<p className="mt-1 text-sm text-gray-500 dark:text-neutral-400">{description}</p>
 				</div>
-				<ChevronRightIcon className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+				<ChevronRightIcon className="w-5 h-5 text-gray-400 dark:text-neutral-500 group-hover:text-gray-600 dark:group-hover:text-neutral-300 transition-colors" />
 			</div>
 		</div>
 	);
@@ -147,21 +147,21 @@ export default function EmailsPage() {
 	return (
 		<div className="max-w-7xl mx-auto">
 			<div className="mb-8">
-				<Heading className="text-2xl font-normal text-gray-900">
+				<Heading className="text-2xl font-normal text-gray-900 dark:text-neutral-100">
 					Email Templates
 				</Heading>
-				<p className="mt-1 text-sm text-gray-600">
+				<p className="mt-1 text-sm text-gray-600 dark:text-neutral-400">
 					Customize email templates for different communication scenarios
 				</p>
 			</div>
 
 			<div className="space-y-6">
-				{emailTemplateCategories.map((category, categoryIndex) => (
+				{emailTemplateCategories.map((category) => (
 					<div key={category.category}>
-						<h2 className="text-sm font-normal text-gray-500 uppercase tracking-wide mb-3">
+						<h2 className="text-sm font-normal text-gray-500 dark:text-neutral-400 uppercase tracking-wide mb-3">
 							{category.category}
 						</h2>
-						<div className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden">
+						<div className="bg-white dark:bg-neutral-900 shadow-sm ring-1 ring-gray-900/5 dark:ring-neutral-100/10 rounded-lg overflow-hidden">
 							{category.templates.map((template) => (
 								<EmailTemplateCard
 									key={template.id}

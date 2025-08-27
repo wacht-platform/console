@@ -1,60 +1,34 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { Heading } from "@/components/ui/heading";
+import { Input, InputGroup } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Listbox,
+  ListboxLabel,
+  ListboxOption,
+} from "@/components/ui/listbox";
 import { 
-  ArrowLeftIcon,
   ArrowPathIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-  ClockIcon,
-  FunnelIcon,
   MagnifyingGlassIcon,
-  XCircleIcon
+  ClockIcon,
+  ChevronRightIcon,
+  FunnelIcon
 } from "@heroicons/react/24/outline";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiClient } from "@/lib/api/client";
+import { webhookApi } from "@/lib/api/webhooks";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
 import { format } from "date-fns";
-
-interface WebhookDelivery {
-  delivery_id: number;
-  app_id: number;
-  app_name: string;
-  endpoint_id: number;
-  endpoint_url: string;
-  event_name: string;
-  status: "pending" | "success" | "failed" | "retrying" | "filtered";
-  http_status_code?: number;
-  response_time_ms?: number;
-  attempt_number: number;
-  error_message?: string;
-  filtered_reason?: string;
-  timestamp: string;
-}
-
-interface DeliveryDetails extends WebhookDelivery {
-  payload?: any;
-  response_body?: string;
-  headers_sent?: Record<string, string>;
-}
 
 export default function WebhookDeliveriesPage() {
   const { deploymentId } = useParams();
@@ -62,365 +36,287 @@ export default function WebhookDeliveriesPage() {
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [eventFilter, setEventFilter] = useState("");
-  const [selectedDelivery, setSelectedDelivery] = useState<DeliveryDetails | null>(null);
-  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const pageSize = 50;
 
-  // Fetch deliveries
-  const { data: deliveries, isLoading, refetch } = useQuery({
-    queryKey: ["webhook-deliveries", deploymentId, statusFilter, eventFilter],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (statusFilter !== "all") params.append("status", statusFilter);
-      if (eventFilter) params.append("event_name", eventFilter);
-      params.append("limit", "100");
-      
-      const response = await apiClient.get(
-        `/deployments/${deploymentId}/webhooks/deliveries?${params.toString()}`
-      );
-      return response.data.deliveries as WebhookDelivery[];
-    },
-    refetchInterval: 5000, // Auto-refresh every 5 seconds
+  // Fetch deliveries - use specific key to avoid cache conflicts
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ["webhook-deliveries-list", deploymentId, statusFilter, eventFilter, currentPage],
+    queryFn: () => webhookApi.getDeliveries(deploymentId!, {
+      status: statusFilter !== "all" ? statusFilter : undefined,
+      event_name: eventFilter || undefined,
+      limit: pageSize,
+      offset: currentPage * pageSize,
+    }),
+    // refetchInterval: 10000, // Temporarily disabled - use manual refresh button
+    staleTime: 5 * 1000, // Data is fresh for 5 seconds
+    gcTime: 30 * 1000, // Keep cache for 30 seconds
+    refetchOnMount: true,
+    refetchOnWindowFocus: false, // Prevent duplicate fetches on focus
   });
-
-  // Fetch delivery details
-  const fetchDeliveryDetails = async (deliveryId: number) => {
-    const response = await apiClient.get(
-      `/deployments/${deploymentId}/webhooks/deliveries/${deliveryId}`
-    );
-    setSelectedDelivery(response.data);
-    setShowDetailsDialog(true);
+  
+  const deliveries = data?.deliveries;
+  const hasMore = data?.has_more || false;
+  
+  // Reset page when filters change
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(0);
+  };
+  
+  const handleEventFilterChange = (value: string) => {
+    setEventFilter(value);
+    setCurrentPage(0);
   };
 
   // Retry delivery mutation
   const retryMutation = useMutation({
-    mutationFn: async (deliveryId: number) => {
-      const response = await apiClient.post(
-        `/deployments/${deploymentId}/webhooks/deliveries/${deliveryId}/retry`
-      );
-      return response.data;
-    },
+    mutationFn: (deliveryId: string) => webhookApi.retryDelivery(deploymentId!, deliveryId),
     onSuccess: () => {
       toast.success("Webhook delivery retried successfully!");
-      queryClient.invalidateQueries({ queryKey: ["webhook-deliveries"] });
+      // Invalidate the exact query to avoid cache issues
+      queryClient.invalidateQueries({ 
+        queryKey: ["webhook-deliveries-list", deploymentId, statusFilter, eventFilter, currentPage],
+        exact: true 
+      });
     },
     onError: () => {
       toast.error("Failed to retry webhook delivery");
     },
   });
 
-  const getStatusBadge = (delivery: WebhookDelivery) => {
-    switch (delivery.status) {
+  const getStatusBadge = (status: string) => {
+    switch (status) {
       case "success":
-        return (
-          <Badge variant="default" className="bg-green-500">
-            <CheckCircleIcon className="h-3 w-3 mr-1" />
-            Success
-          </Badge>
-        );
+        return <Badge color="green">Success</Badge>;
       case "failed":
-        return (
-          <Badge variant="destructive">
-            <XCircleIcon className="h-3 w-3 mr-1" />
-            Failed
-          </Badge>
-        );
+        return <Badge color="amber">Failed</Badge>;
+      case "permanently_failed":
+        return <Badge color="red">Permanently Failed</Badge>;
       case "pending":
-        return (
-          <Badge variant="secondary">
-            <ClockIcon className="h-3 w-3 mr-1" />
-            Pending
-          </Badge>
-        );
+        return <Badge color="blue">Pending</Badge>;
       case "retrying":
-        return (
-          <Badge variant="outline">
-            <ArrowPathIcon className="h-3 w-3 mr-1 animate-spin" />
-            Retrying
-          </Badge>
-        );
+        return <Badge color="amber">Retrying</Badge>;
       case "filtered":
-        return (
-          <Badge variant="secondary">
-            <FunnelIcon className="h-3 w-3 mr-1" />
-            Filtered
-          </Badge>
-        );
+        return <Badge color="zinc">Filtered</Badge>;
+      case "replayed":
+        return <Badge color="purple">Replayed</Badge>;
       default:
-        return <Badge variant="secondary">{delivery.status}</Badge>;
+        return <Badge>{status}</Badge>;
     }
   };
 
-  const getHttpStatusBadge = (code?: number) => {
-    if (!code) return null;
-    
-    const variant = code >= 200 && code < 300 ? "default" 
-                  : code >= 400 && code < 500 ? "destructive"
-                  : code >= 500 ? "destructive" 
-                  : "secondary";
-    
-    return <Badge variant={variant}>HTTP {code}</Badge>;
-  };
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto py-6 space-y-6">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-64 w-full" />
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(`/deployments/${deploymentId}/webhooks`)}
-          >
-            <ArrowLeftIcon className="h-4 w-4 mr-2" />
-            Back to Webhooks
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Delivery History</h1>
-            <p className="text-muted-foreground mt-1">
-              Monitor webhook delivery attempts and troubleshoot issues
-            </p>
-          </div>
+    <div>
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <Heading>Webhook Deliveries</Heading>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            Monitor and manage webhook delivery attempts
+          </p>
         </div>
-        <Button onClick={() => refetch()} variant="outline">
-          <ArrowPathIcon className="h-4 w-4 mr-2" />
+        <Button onClick={() => refetch()}>
+          <ArrowPathIcon className="h-4 w-4" />
           Refresh
         </Button>
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="success">Success</SelectItem>
-                <SelectItem value="failed">Failed</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="retrying">Retrying</SelectItem>
-                <SelectItem value="filtered">Filtered</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <div className="flex-1 relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Filter by event name..."
-                value={eventFilter}
-                onChange={(e) => setEventFilter(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 mb-6">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 shrink-0">
+            <FunnelIcon className="h-4 w-4" />
+            <span className="font-medium">Filters</span>
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex-1 min-w-0">
+            <InputGroup>
+              <MagnifyingGlassIcon className="size-4" />
+              <Input
+                name="search"
+                placeholder="Search by event name..."
+                value={eventFilter}
+                onChange={(e) => handleEventFilterChange(e.target.value)}
+                className="text-sm"
+              />
+            </InputGroup>
+          </div>
+          
+          <div className="shrink-0">
+            <Listbox value={statusFilter} onChange={handleStatusFilterChange}>
+              <ListboxOption value="all">
+                <ListboxLabel>All Status</ListboxLabel>
+              </ListboxOption>
+              <ListboxOption value="success">
+                <ListboxLabel>Success</ListboxLabel>
+              </ListboxOption>
+              <ListboxOption value="failed">
+                <ListboxLabel>Failed (Retryable)</ListboxLabel>
+              </ListboxOption>
+              <ListboxOption value="permanently_failed">
+                <ListboxLabel>Permanently Failed</ListboxLabel>
+              </ListboxOption>
+              <ListboxOption value="pending">
+                <ListboxLabel>Pending</ListboxLabel>
+              </ListboxOption>
+              <ListboxOption value="filtered">
+                <ListboxLabel>Filtered</ListboxLabel>
+              </ListboxOption>
+            </Listbox>
+          </div>
+        </div>
+      </div>
 
       {/* Deliveries Table */}
-      <Card>
-        <CardContent className="p-0">
-          {deliveries && deliveries.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="border-b">
-                  <tr className="text-left">
-                    <th className="p-4 font-medium text-sm">Event</th>
-                    <th className="p-4 font-medium text-sm">Endpoint</th>
-                    <th className="p-4 font-medium text-sm">Status</th>
-                    <th className="p-4 font-medium text-sm">Response</th>
-                    <th className="p-4 font-medium text-sm">Time</th>
-                    <th className="p-4 font-medium text-sm">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {deliveries.map((delivery) => (
-                    <tr key={delivery.delivery_id} className="border-b hover:bg-muted/50">
-                      <td className="p-4">
-                        <div>
-                          <p className="font-mono text-sm">{delivery.event_name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Attempt {delivery.attempt_number}
-                          </p>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <p className="text-sm truncate max-w-xs" title={delivery.endpoint_url}>
-                          {delivery.endpoint_url}
-                        </p>
-                      </td>
-                      <td className="p-4">
-                        {getStatusBadge(delivery)}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          {getHttpStatusBadge(delivery.http_status_code)}
-                          {delivery.response_time_ms && (
-                            <span className="text-xs text-muted-foreground">
-                              {delivery.response_time_ms}ms
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <p className="text-sm text-muted-foreground">
-                          {format(new Date(delivery.timestamp), "MMM d, HH:mm:ss")}
-                        </p>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => fetchDeliveryDetails(delivery.delivery_id)}
-                          >
-                            Details
-                          </Button>
-                          {(delivery.status === "failed" || delivery.status === "filtered") && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => retryMutation.mutate(delivery.delivery_id)}
-                              disabled={retryMutation.isPending}
-                            >
-                              Retry
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <ExclamationTriangleIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">No deliveries found</h3>
-              <p className="text-muted-foreground">
-                {statusFilter !== "all" || eventFilter
-                  ? "Try adjusting your filters"
-                  : "Webhook deliveries will appear here once events are triggered"}
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Delivery Details Dialog */}
-      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Delivery Details</DialogTitle>
-            <DialogDescription>
-              Full details of webhook delivery attempt
-            </DialogDescription>
-          </DialogHeader>
-          {selectedDelivery && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Delivery ID</label>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedDelivery.delivery_id}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Status</label>
-                  <div className="mt-1">{getStatusBadge(selectedDelivery)}</div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Event Name</label>
-                  <p className="text-sm text-muted-foreground font-mono">
-                    {selectedDelivery.event_name}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Endpoint</label>
-                  <p className="text-sm text-muted-foreground break-all">
-                    {selectedDelivery.endpoint_url}
-                  </p>
-                </div>
-                {selectedDelivery.http_status_code && (
-                  <div>
-                    <label className="text-sm font-medium">HTTP Status</label>
-                    <div className="mt-1">
-                      {getHttpStatusBadge(selectedDelivery.http_status_code)}
+      <div className="bg-white dark:bg-zinc-900 shadow-sm ring-1 ring-zinc-900/5 dark:ring-zinc-100/10 rounded-lg overflow-hidden">
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeader style={{ paddingLeft: '2rem', paddingRight: '1.5rem' }}>Event</TableHeader>
+              <TableHeader>Endpoint</TableHeader>
+              <TableHeader>Status</TableHeader>
+              <TableHeader>Response</TableHeader>
+              <TableHeader>Timestamp</TableHeader>
+              <TableHeader style={{ paddingLeft: '1.5rem', paddingRight: '2rem', textAlign: 'right' }}>Actions</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center px-6 py-12">
+                  <div className="flex flex-col items-center justify-center gap-3">
+                    <Spinner size="lg" />
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading deliveries...</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : !deliveries || deliveries.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center px-6 py-16">
+                  <div className="flex flex-col items-center">
+                    <ClockIcon className="h-12 w-12 text-zinc-400 mb-4" />
+                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">No deliveries found</h3>
+                    <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                      {statusFilter !== "all" || eventFilter
+                        ? "Try adjusting your filters"
+                        : "Webhook deliveries will appear here once events are triggered"}
+                    </p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              deliveries.map((delivery: any) => (
+                <TableRow 
+                  key={delivery.delivery_id}
+                  className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 cursor-pointer transition-colors"
+                  onClick={() => navigate(`/project/${deploymentId}/deployment/${deploymentId}/webhooks/deliveries/${delivery.delivery_id}${delivery.status === 'pending' ? '?status=pending' : ''}`)}
+                >
+                  <TableCell style={{ paddingLeft: '2rem', paddingRight: '1.5rem' }}>
+                    <div>
+                      <code className="text-sm font-medium text-zinc-900 dark:text-zinc-100 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">
+                        {delivery.event_name}
+                      </code>
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                        Attempt {delivery.attempt_number} of {delivery.max_attempts || 5}
+                      </div>
                     </div>
-                  </div>
-                )}
-                {selectedDelivery.response_time_ms && (
-                  <div>
-                    <label className="text-sm font-medium">Response Time</label>
-                    <p className="text-sm text-muted-foreground">
-                      {selectedDelivery.response_time_ms}ms
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {selectedDelivery.error_message && (
-                <div>
-                  <label className="text-sm font-medium">Error Message</label>
-                  <div className="mt-1 p-3 bg-destructive/10 rounded-md">
-                    <p className="text-sm text-destructive">
-                      {selectedDelivery.error_message}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {selectedDelivery.filtered_reason && (
-                <div>
-                  <label className="text-sm font-medium">Filter Reason</label>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedDelivery.filtered_reason}
-                  </p>
-                </div>
-              )}
-
-              {selectedDelivery.payload && (
-                <div>
-                  <label className="text-sm font-medium">Payload</label>
-                  <pre className="mt-1 p-3 bg-muted rounded-md overflow-x-auto text-xs">
-                    {JSON.stringify(selectedDelivery.payload, null, 2)}
-                  </pre>
-                </div>
-              )}
-
-              {selectedDelivery.response_body && (
-                <div>
-                  <label className="text-sm font-medium">Response Body</label>
-                  <pre className="mt-1 p-3 bg-muted rounded-md overflow-x-auto text-xs">
-                    {selectedDelivery.response_body}
-                  </pre>
-                </div>
-              )}
-
-              {selectedDelivery.headers_sent && (
-                <div>
-                  <label className="text-sm font-medium">Headers Sent</label>
-                  <pre className="mt-1 p-3 bg-muted rounded-md overflow-x-auto text-xs">
-                    {JSON.stringify(selectedDelivery.headers_sent, null, 2)}
-                  </pre>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+                  </TableCell>
+                  <TableCell className="px-6 py-4">
+                    <div className="max-w-xs">
+                      <div className="text-sm text-zinc-900 dark:text-zinc-100 truncate" title={delivery.endpoint_url}>
+                        {new URL(delivery.endpoint_url).hostname}
+                      </div>
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+                        {new URL(delivery.endpoint_url).pathname}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-6 py-4">
+                    {getStatusBadge(delivery.status)}
+                  </TableCell>
+                  <TableCell className="px-6 py-4">
+                    {delivery.http_status_code ? (
+                      <div className="flex items-center gap-2">
+                        <Badge color={
+                          delivery.http_status_code >= 200 && delivery.http_status_code < 300 ? "green" :
+                          delivery.http_status_code >= 400 && delivery.http_status_code < 500 ? "amber" :
+                          "red"
+                        }>
+                          {delivery.http_status_code}
+                        </Badge>
+                        {delivery.response_time_ms && (
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                            {delivery.response_time_ms}ms
+                          </span>
+                        )}
+                      </div>
+                    ) : delivery.error_message ? (
+                      <span className="text-xs text-red-600 dark:text-red-400" title={delivery.error_message}>
+                        {delivery.error_message.length > 30 
+                          ? `${delivery.error_message.substring(0, 30)}...`
+                          : delivery.error_message}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="px-6 py-4">
+                    <div className="text-sm text-zinc-900 dark:text-zinc-100">
+                      {format(new Date(delivery.timestamp), "MMM d, yyyy")}
+                    </div>
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                      {format(new Date(delivery.timestamp), "h:mm:ss a")}
+                    </div>
+                  </TableCell>
+                  <TableCell style={{ paddingLeft: '1.5rem', paddingRight: '2rem', textAlign: 'right' }}>
+                    <div className="flex items-center justify-end gap-2">
+                      {delivery.status !== "pending" && (
+                        <Button
+                          plain
+                          onClick={(e: React.MouseEvent) => {
+                            e.stopPropagation();
+                            retryMutation.mutate(delivery.delivery_id);
+                          }}
+                          disabled={retryMutation.isPending}
+                          title="Retry delivery"
+                        >
+                          <ArrowPathIcon className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <ChevronRightIcon className="h-4 w-4 text-zinc-400" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      
+      {/* Pagination Controls */}
+      {deliveries && deliveries.length > 0 && (
+        <div className="flex items-center justify-between mt-4">
+          <div className="text-sm text-zinc-500 dark:text-zinc-400">
+            Showing {currentPage * pageSize + 1} - {Math.min((currentPage + 1) * pageSize, currentPage * pageSize + deliveries.length)} of {hasMore ? 'many' : currentPage * pageSize + deliveries.length} deliveries
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              plain
+              disabled={currentPage === 0}
+              onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+            >
+              Previous
+            </Button>
+            <Button
+              plain
+              disabled={!hasMore}
+              onClick={() => setCurrentPage(p => p + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

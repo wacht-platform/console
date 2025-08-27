@@ -3,8 +3,9 @@ import { useParams, useNavigate } from "react-router";
 import { format } from "date-fns";
 import { useWorkspaceDetails } from "@/lib/api/hooks/use-workspace-details";
 import { useDeleteWorkspace, useUpdateWorkspace } from "@/lib/api/hooks/use-workspace-mutations";
+import { useDarkMode } from "@/lib/hooks/use-dark-mode";
 import { Button } from "@/components/ui/button";
-import { LoadingFallback } from "@/components/loading-fallback";
+import { Spinner } from "@/components/ui/spinner";
 import { SimpleTabs, Tab } from "@/components/ui/simple-tabs";
 import Editor from "@monaco-editor/react";
 import { DeleteConfirmationDialog } from "@/components/organizations/DeleteConfirmationDialog";
@@ -27,6 +28,7 @@ export default function WorkspaceDetailsPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const workspaceId = id;
+  const isDarkMode = useDarkMode();
   const {
     data: workspace,
     isLoading,
@@ -74,11 +76,12 @@ export default function WorkspaceDetailsPage() {
 
   if (isLoading) {
     return (
-      <LoadingFallback
-        variant="default"
-        message="Loading workspace details..."
-        size="lg"
-      />
+      <div className="flex items-center justify-center min-h-[400px] w-full">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner size="lg" />
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading workspace details...</span>
+        </div>
+      </div>
     );
   }
 
@@ -86,7 +89,7 @@ export default function WorkspaceDetailsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-red-500">
+          <p className="text-red-500 dark:text-red-400">
             {error.message || "Failed to load workspace details"}
           </p>
         </div>
@@ -213,10 +216,10 @@ export default function WorkspaceDetailsPage() {
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="text-lg text-gray-900">
+            <h1 className="text-lg text-gray-900 dark:text-gray-100">
               {workspace.name}
             </h1>
-            <p className="text-sm text-gray-500">Workspace ID: {workspace.id}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Workspace ID: {workspace.id}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -242,8 +245,8 @@ export default function WorkspaceDetailsPage() {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Profile Sidebar */}
-        <div className="lg:col-span-1 lg:border-r lg:border-gray-200 lg:pr-8">
-          <div className="bg-white rounded-lg py-6">
+        <div className="lg:col-span-1 lg:border-r lg:border-gray-200 dark:lg:border-zinc-800 lg:pr-8">
+          <div className="py-6">
             {/* Workspace Avatar */}
             <div className="flex flex-col items-center mb-6">
               <Avatar
@@ -252,24 +255,24 @@ export default function WorkspaceDetailsPage() {
                 initials={workspace.name.substring(0, 2).toUpperCase()}
                 alt={`${workspace.name} logo`}
               />
-              <h2 className="text-lg text-gray-900 text-center mb-2">
+              <h2 className="text-lg text-gray-900 dark:text-gray-100 text-center mb-2">
                 {workspace.name}
               </h2>
-              <p className="text-sm text-gray-500 mb-6">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
                 Created {format(new Date(workspace.created_at), "MMM d, yyyy")}
               </p>
 
               {/* Quick Stats */}
               <div className="w-full space-y-3 mb-6">
-                <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">Members</span>
-                  <span className="text-sm text-gray-900">
+                <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-zinc-800">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Members</span>
+                  <span className="text-sm text-gray-900 dark:text-gray-100">
                     {workspace.members ? workspace.members.length : 0}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-gray-600">Roles</span>
-                  <span className="text-sm text-gray-900">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Roles</span>
+                  <span className="text-sm text-gray-900 dark:text-gray-100">
                     {workspace.roles ? workspace.roles.length : 0}
                   </span>
                 </div>
@@ -278,24 +281,24 @@ export default function WorkspaceDetailsPage() {
               {/* Workspace Details */}
               <div className="w-full space-y-3">
                 {workspace.description && (
-                  <div className="py-2 border-b border-gray-100">
-                    <span className="text-sm text-gray-600">Description</span>
-                    <p className="text-sm text-gray-900 mt-1">{workspace.description}</p>
+                  <div className="py-2 border-b border-gray-100 dark:border-zinc-800">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Description</span>
+                    <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">{workspace.description}</p>
                   </div>
                 )}
-                <div className="py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">Organization</span>
-                  <p className="text-sm text-gray-900 mt-1">{workspace.organization_name}</p>
+                <div className="py-2 border-b border-gray-100 dark:border-zinc-800">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Organization</span>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">{workspace.organization_name}</p>
                 </div>
-                <div className="py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">Created</span>
-                  <p className="text-sm text-gray-900 mt-1">
+                <div className="py-2 border-b border-gray-100 dark:border-zinc-800">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Created</span>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
                     {format(new Date(workspace.created_at), "MMM d, yyyy 'at' h:mm a")}
                   </p>
                 </div>
                 <div className="py-2">
-                  <span className="text-sm text-gray-600">Last Updated</span>
-                  <p className="text-sm text-gray-900 mt-1">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Last Updated</span>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
                     {format(new Date(workspace.updated_at), "MMM d, yyyy 'at' h:mm a")}
                   </p>
                 </div>
@@ -306,32 +309,32 @@ export default function WorkspaceDetailsPage() {
 
         {/* Main Content Area */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg">
+          <div className="bg-white dark:bg-zinc-900 rounded-lg">
             <SimpleTabs defaultTab={0}>
               <Tab label="Overview">
                 <div className="px-4 py-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div className="space-y-2">
-                      <h3 className="text-xs text-gray-500">
+                      <h3 className="text-xs text-gray-500 dark:text-gray-400">
                         Total Members
                       </h3>
-                      <p className="text-base text-gray-900">
+                      <p className="text-base text-gray-900 dark:text-gray-100">
                         {workspace.member_count}
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xs text-gray-500">
+                      <h3 className="text-xs text-gray-500 dark:text-gray-400">
                         Total Roles
                       </h3>
-                      <p className="text-base text-gray-900">
+                      <p className="text-base text-gray-900 dark:text-gray-100">
                         {workspace.roles.length}
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xs text-gray-500">
+                      <h3 className="text-xs text-gray-500 dark:text-gray-400">
                         Parent Organization
                       </h3>
-                      <p className="text-base text-gray-900">
+                      <p className="text-base text-gray-900 dark:text-gray-100">
                         {workspace.organization_name}
                       </p>
                     </div>
@@ -353,10 +356,10 @@ export default function WorkspaceDetailsPage() {
                                 alt={`${member.first_name} ${member.last_name}`}
                               />
                               <div>
-                                <p className="text-sm text-gray-900">
+                                <p className="text-sm text-gray-900 dark:text-gray-100">
                                   {member.first_name} {member.last_name}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
                                   {member.roles.length > 0 ? member.roles[0].name : 'No role'}
                                 </p>
                               </div>
@@ -392,7 +395,7 @@ export default function WorkspaceDetailsPage() {
               <Tab label="Roles">
                 <div className="px-4 py-6">
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-base text-gray-900">Workspace Roles</h3>
+                    <h3 className="text-base text-gray-900 dark:text-gray-100">Workspace Roles</h3>
                     <Button
                       onClick={() => setCreateRoleModalOpen(true)}
                       className="flex items-center gap-2"
@@ -407,9 +410,9 @@ export default function WorkspaceDetailsPage() {
                       {workspace.roles.map((role) => (
                         <div key={role.id} className="py-4 first:pt-0 last:pb-0">
                           <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-sm text-gray-900">{role.name}</h3>
+                            <h3 className="text-sm text-gray-900 dark:text-gray-100">{role.name}</h3>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-500">{role.permissions.length} permissions</span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">{role.permissions.length} permissions</span>
                               {!role.is_deployment_level && (
                                 <div className="flex items-center gap-1">
                                   <Button
@@ -422,7 +425,7 @@ export default function WorkspaceDetailsPage() {
                                   <Button
                                     outline
                                     onClick={() => handleDeleteRole(role)}
-                                    className="p-1 text-red-600 hover:text-red-700"
+                                    className="p-1 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
                                   >
                                     <TrashIcon className="h-3 w-3" />
                                   </Button>
@@ -432,7 +435,7 @@ export default function WorkspaceDetailsPage() {
                           </div>
                           <div className="flex flex-wrap gap-2">
                             {role.permissions.map((permission, index) => (
-                              <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                              <span key={index} className="px-2 py-1 bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 text-xs rounded">
                                 {permission}
                               </span>
                             ))}
@@ -469,7 +472,7 @@ export default function WorkspaceDetailsPage() {
                    {/* Public Metadata */}
                    <div>
                      <div className="flex items-center justify-between mb-4">
-                       <h3 className="text-base text-gray-900">Public Metadata</h3>
+                       <h3 className="text-base text-gray-900 dark:text-gray-100">Public Metadata</h3>
                        <div className="flex gap-2">
                          {isEditingPublicMetadata ? (
                            <>
@@ -497,13 +500,13 @@ export default function WorkspaceDetailsPage() {
                          )}
                        </div>
                      </div>
-                     <div className="border border-gray-200 rounded-lg overflow-hidden">
+                     <div className="border border-gray-200 dark:border-zinc-800 rounded-lg overflow-hidden">
                        <Editor
                          height="200px"
                          language="json"
                          value={publicMetadata}
                          onChange={(value) => setPublicMetadata(value || "{}")}
-                         theme="vs"
+                         theme={isDarkMode ? "vs-dark" : "vs"}
                          options={{
                            readOnly: !isEditingPublicMetadata,
                            minimap: { enabled: false },
@@ -529,7 +532,7 @@ export default function WorkspaceDetailsPage() {
                    {/* Private Metadata */}
                    <div>
                      <div className="flex items-center justify-between mb-4">
-                       <h3 className="text-lg text-gray-900">Private Metadata</h3>
+                       <h3 className="text-lg text-gray-900 dark:text-gray-100">Private Metadata</h3>
                        <div className="flex gap-2">
                          {isEditingPrivateMetadata ? (
                            <>
@@ -557,13 +560,13 @@ export default function WorkspaceDetailsPage() {
                          )}
                        </div>
                      </div>
-                     <div className="border border-gray-200 rounded-lg overflow-hidden">
+                     <div className="border border-gray-200 dark:border-zinc-800 rounded-lg overflow-hidden">
                        <Editor
                          height="200px"
                          language="json"
                          value={privateMetadata}
                          onChange={(value) => setPrivateMetadata(value || "{}")}
-                         theme="vs"
+                         theme={isDarkMode ? "vs-dark" : "vs"}
                          options={{
                            readOnly: !isEditingPrivateMetadata,
                            minimap: { enabled: false },

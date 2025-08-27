@@ -20,7 +20,12 @@ interface PhoneData {
 interface EditPhoneModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (id: string, phoneNumber: string, verified: boolean, isPrimary: boolean) => void;
+  onSubmit: (
+    id: string,
+    phoneNumber: string,
+    verified: boolean,
+    isPrimary: boolean,
+  ) => void;
   phoneData: PhoneData | null;
 }
 
@@ -35,7 +40,6 @@ export function EditPhoneModal({
   const [isPrimary, setIsPrimary] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Update form when phoneData changes
   useEffect(() => {
     if (phoneData) {
       setPhoneNumber(phoneData.phone_number);
@@ -112,7 +116,12 @@ export function EditPhoneModal({
         </form>
       </DialogBody>
       <DialogActions>
-        <Button type="button" outline onClick={handleClose} disabled={isLoading}>
+        <Button
+          type="button"
+          outline
+          onClick={handleClose}
+          disabled={isLoading}
+        >
           Cancel
         </Button>
         <Button

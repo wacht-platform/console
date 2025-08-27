@@ -12,7 +12,7 @@ async function deleteDeployment(
   request: DeleteDeploymentRequest,
 ): Promise<void> {
   await apiClient.delete(
-    `/project/${request.projectId}/deployments/${request.deploymentId}`,
+    `/project/${request.projectId}/deployment/${request.deploymentId}`,
   );
 }
 

@@ -29,14 +29,14 @@ export const SimpleTabs: React.FC<TabsProps> = ({
 
   return (
     <div>
-      <div className="flex border-b border-gray-200">
+      <div className="flex border-b border-gray-200 dark:border-zinc-700">
         {tabs.map((tab, index) => (
           <button
             key={index}
-            className={`px-4 py-2.5 text-xs relative ${
+            className={`px-4 py-2.5 text-sm relative font-medium ${
               activeTab === index
-                ? "text-blue-600"
-                : "text-gray-500 hover:text-gray-700"
+                ? "text-blue-600 dark:text-blue-400"
+                : "text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
             }`}
             onClick={() => setActiveTab(index)}
             style={{
@@ -46,14 +46,14 @@ export const SimpleTabs: React.FC<TabsProps> = ({
             {tab.props.label}
             {activeTab === index && (
               <div
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"
+                className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400"
                 style={{ bottom: "-1px" }}
               />
             )}
           </button>
         ))}
       </div>
-      <div>{tabs[activeTab] ? tabs[activeTab].props.children : null}</div>
+      <div key={activeTab}>{tabs[activeTab] ? tabs[activeTab].props.children : null}</div>
     </div>
   );
 };

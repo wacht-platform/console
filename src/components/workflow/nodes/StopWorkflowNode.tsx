@@ -7,21 +7,15 @@ export interface StopWorkflowNodeData extends BaseNodeData {
 
 const StopWorkflowNode = ({ data }: { data: StopWorkflowNodeData }) => {
   return (
-    <div className="output stop-workflow border-2 border-red-600 rounded-lg p-3 shadow-lg bg-red-50 min-w-[180px] hover:border-red-700 transition-colors duration-200 ease-in-out">
-      {/* Input handle at the top */}
+    <div className="relative border border-dashed border-red-400 bg-red-50 text-red-800 dark:border-red-500 dark:bg-red-900/20 dark:text-red-300 rounded p-0.5 text-center cursor-grab transition-colors hover:bg-red-100 dark:hover:bg-red-900/30 w-12 h-8">
       <Handle
         type="target"
         position={Position.Top}
-        className="w-3 h-3 bg-red-600!"
+        className="w-1.5 h-1.5 !bg-red-600 !border-0"
       />
 
-      <div className="text-center text-sm text-red-800">{data.label}</div>
-
-      {data.description && (
-        <div className="text-sm text-red-700 text-center">
-          {data.description}
-        </div>
-      )}
+      <div className="font-medium text-xs truncate leading-tight">{data.label}</div>
+      <div className="text-xs opacity-75 leading-tight">End execution</div>
     </div>
   );
 };

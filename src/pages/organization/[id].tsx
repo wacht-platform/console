@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { format } from "date-fns";
 import { useOrganizationDetails } from "@/lib/api/hooks/use-organization-details";
+import { useDarkMode } from "@/lib/hooks/use-dark-mode";
 import {
 	useUpdateOrganization,
 	useDeleteOrganization,
@@ -22,7 +23,7 @@ import { EditMemberDialog } from "@/components/organizations/EditMemberDialog";
 import { CreateRoleDialog } from "@/components/organizations/CreateRoleDialog";
 import { EditRoleDialog } from "@/components/organizations/EditRoleDialog";
 import { DeleteConfirmationDialog } from "@/components/organizations/DeleteConfirmationDialog";
-import { LoadingFallback } from "@/components/loading-fallback";
+import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/empty-state";
 import type {
 	OrganizationMemberDetails,
@@ -53,6 +54,7 @@ export default function OrganizationDetailsPage() {
 	const navigate = useNavigate();
 	const { id } = useParams();
 	const organizationId = id;
+	const isDarkMode = useDarkMode();
 	const {
 		data: organization,
 		isLoading,
@@ -94,7 +96,6 @@ export default function OrganizationDetailsPage() {
 	const [deleteRoleModalOpen, setDeleteRoleModalOpen] = useState(false);
 
 	// Workspace management modal states
-	const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
 	const [deleteWorkspaceModalOpen, setDeleteWorkspaceModalOpen] = useState(false);
 
 	// Mutations
@@ -124,11 +125,12 @@ export default function OrganizationDetailsPage() {
 
 	if (isLoading) {
 		return (
-			<LoadingFallback
-				variant="default"
-				message="Loading organization details..."
-				size="lg"
-			/>
+			<div className="flex items-center justify-center min-h-[400px] w-full">
+				<div className="flex flex-col items-center gap-4">
+					<Spinner size="lg" />
+					<span className="text-sm text-zinc-600 dark:text-zinc-400">Loading organization details...</span>
+				</div>
+			</div>
 		);
 	}
 
@@ -309,10 +311,10 @@ export default function OrganizationDetailsPage() {
 			<div className="flex justify-between items-center mb-6">
 				<div className="flex items-center gap-4">
 					<div>
-						<h1 className="text-lg text-gray-900">
+						<h1 className="text-lg text-gray-900 dark:text-gray-100">
 							{organization.name}
 						</h1>
-						<p className="text-sm text-gray-500">Organization ID: {organization.id}</p>
+						<p className="text-sm text-gray-500 dark:text-gray-400">Organization ID: {organization.id}</p>
 					</div>
 				</div>
 				<div className="flex items-center gap-3">
@@ -338,8 +340,8 @@ export default function OrganizationDetailsPage() {
 			{/* Main Content Grid */}
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 				{/* Profile Sidebar */}
-				<div className="lg:col-span-1 lg:border-r lg:border-gray-200 lg:pr-8">
-					<div className="bg-white rounded-lg py-6">
+				<div className="lg:col-span-1 lg:border-r lg:border-gray-200 dark:lg:border-zinc-800 lg:pr-8">
+					<div className="py-6">
 						{/* Avatar */}
 						<div className="flex flex-col items-center mb-6">
 							<Avatar
@@ -362,21 +364,21 @@ export default function OrganizationDetailsPage() {
 
 							{/* Quick Stats */}
 							<div className="w-full space-y-3 mb-6">
-								<div className="flex justify-between items-center py-2 border-b border-gray-100">
-									<span className="text-sm text-gray-600">Members</span>
-									<span className="text-sm text-gray-900">
+								<div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-zinc-800">
+									<span className="text-sm text-gray-600 dark:text-gray-400">Members</span>
+									<span className="text-sm text-gray-900 dark:text-gray-100">
 										{organization.member_count}
 									</span>
 								</div>
-								<div className="flex justify-between items-center py-2 border-b border-gray-100">
-									<span className="text-sm text-gray-600">Roles</span>
-									<span className="text-sm text-gray-900">
+								<div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-zinc-800">
+									<span className="text-sm text-gray-600 dark:text-gray-400">Roles</span>
+									<span className="text-sm text-gray-900 dark:text-gray-100">
 										{organization.roles?.length || 0}
 									</span>
 								</div>
 								<div className="flex justify-between items-center py-2">
-									<span className="text-sm text-gray-600">Workspaces</span>
-									<span className="text-sm text-gray-900">
+									<span className="text-sm text-gray-600 dark:text-gray-400">Workspaces</span>
+									<span className="text-sm text-gray-900 dark:text-gray-100">
 										{organization.workspaces?.length || 0}
 									</span>
 								</div>
@@ -394,42 +396,42 @@ export default function OrganizationDetailsPage() {
 						</h2>
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 							<div className="space-y-1">
-								<p className="text-xs text-gray-500">
+								<p className="text-xs text-gray-500 dark:text-gray-400">
 									Organization ID
 								</p>
 								<p className="text-sm text-gray-900 font-mono">{organization.id}</p>
 							</div>
 							<div className="space-y-1">
-								<p className="text-xs text-gray-500">
+								<p className="text-xs text-gray-500 dark:text-gray-400">
 									Member Count
 								</p>
-								<p className="text-sm text-gray-900">{organization.member_count}</p>
+								<p className="text-sm text-gray-900 dark:text-gray-100">{organization.member_count}</p>
 							</div>
 							<div className="space-y-1">
-								<p className="text-xs text-gray-500">Created</p>
-								<p className="text-sm text-gray-900">
+								<p className="text-xs text-gray-500 dark:text-gray-400">Created</p>
+								<p className="text-sm text-gray-900 dark:text-gray-100">
 									{format(new Date(organization.created_at), "MMM d, yyyy")}
 								</p>
 							</div>
 							<div className="space-y-1">
-								<p className="text-xs text-gray-500">
+								<p className="text-xs text-gray-500 dark:text-gray-400">
 									Last Updated
 								</p>
-								<p className="text-sm text-gray-900">
+								<p className="text-sm text-gray-900 dark:text-gray-100">
 									{format(new Date(organization.updated_at), "MMM d, yyyy")}
 								</p>
 							</div>
 							<div className="space-y-1">
-								<p className="text-xs text-gray-500">
+								<p className="text-xs text-gray-500 dark:text-gray-400">
 									Total Roles
 								</p>
-								<p className="text-sm text-gray-900">{organization.roles?.length || 0}</p>
+								<p className="text-sm text-gray-900 dark:text-gray-100">{organization.roles?.length || 0}</p>
 							</div>
 							<div className="space-y-1">
-								<p className="text-xs text-gray-500">
+								<p className="text-xs text-gray-500 dark:text-gray-400">
 									Total Workspaces
 								</p>
-								<p className="text-sm text-gray-900">{organization.workspaces?.length || 0}</p>
+								<p className="text-sm text-gray-900 dark:text-gray-100">{organization.workspaces?.length || 0}</p>
 							</div>
 						</div>
 					</div>
@@ -441,26 +443,26 @@ export default function OrganizationDetailsPage() {
 								<div className="px-4 py-6">
 									<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 										<div className="space-y-2">
-											<h3 className="text-xs text-gray-500">
+											<h3 className="text-xs text-gray-500 dark:text-gray-400">
 												Total Members
 											</h3>
-											<p className="text-base text-gray-900">
+											<p className="text-base text-gray-900 dark:text-gray-100">
 												{organization.member_count}
 											</p>
 										</div>
 										<div className="space-y-2">
-											<h3 className="text-xs text-gray-500">
+											<h3 className="text-xs text-gray-500 dark:text-gray-400">
 												Total Roles
 											</h3>
-											<p className="text-base text-gray-900">
+											<p className="text-base text-gray-900 dark:text-gray-100">
 												{organization.roles?.length || 0}
 											</p>
 										</div>
 										<div className="space-y-2">
-											<h3 className="text-xs text-gray-500">
+											<h3 className="text-xs text-gray-500 dark:text-gray-400">
 												Total Workspaces
 											</h3>
-											<p className="text-base text-gray-900">
+											<p className="text-base text-gray-900 dark:text-gray-100">
 												{organization.workspaces?.length || 0}
 											</p>
 										</div>
@@ -471,7 +473,7 @@ export default function OrganizationDetailsPage() {
 						<Tab label="Members">
 							<div className="px-4 py-6">
 								<div className="flex justify-between items-center mb-6">
-									<h3 className="text-base text-gray-900">Organization Members</h3>
+									<h3 className="text-base text-gray-900 dark:text-gray-100">Organization Members</h3>
 									{organization.members && organization.members.length > 0 && (
 										<Button
 											onClick={() => setAddMemberModalOpen(true)}
@@ -499,16 +501,16 @@ export default function OrganizationDetailsPage() {
 												<div className="flex items-center justify-between">
 													<div className="flex-1">
 														<div className="flex items-center gap-3 mb-1">
-															<span className="text-sm text-gray-900">
+															<span className="text-sm text-gray-900 dark:text-gray-100">
 																{member.first_name} {member.last_name}
 															</span>
 															{member.username && (
-																<span className="text-xs text-gray-500">
+																<span className="text-xs text-gray-500 dark:text-gray-400">
 																	@{member.username}
 																</span>
 															)}
 														</div>
-														<div className="text-xs text-gray-500">
+														<div className="text-xs text-gray-500 dark:text-gray-400">
 															{member.primary_email_address}
 														</div>
 													</div>
@@ -541,7 +543,7 @@ export default function OrganizationDetailsPage() {
 						<Tab label="Roles">
 							<div className="px-4 py-6">
 								<div className="flex justify-between items-center mb-6">
-									<h3 className="text-base text-gray-900">Organization Roles</h3>
+									<h3 className="text-base text-gray-900 dark:text-gray-100">Organization Roles</h3>
 									{organization.roles && organization.roles.length > 0 && (
 										<Button
 											onClick={() => setCreateRoleModalOpen(true)}
@@ -583,7 +585,7 @@ export default function OrganizationDetailsPage() {
 												<div className="flex items-center justify-between">
 													<div className="flex-1">
 														<div className="flex items-center gap-3 mb-2">
-															<span className="text-sm text-gray-900">
+															<span className="text-sm text-gray-900 dark:text-gray-100">
 																{role.name}
 															</span>
 															{role.is_deployment_level && (
@@ -592,7 +594,7 @@ export default function OrganizationDetailsPage() {
 																</span>
 															)}
 														</div>
-														<div className="text-xs text-gray-500">
+														<div className="text-xs text-gray-500 dark:text-gray-400">
 															{role.permissions.length} permissions
 															{role.is_deployment_level && " • Cannot be edited or deleted"}
 														</div>
@@ -630,7 +632,7 @@ export default function OrganizationDetailsPage() {
 						<Tab label="Workspaces">
 							<div className="px-4 py-6">
 								<div className="flex justify-between items-center mb-6">
-									<h3 className="text-base text-gray-900">
+									<h3 className="text-base text-gray-900 dark:text-gray-100">
 										Organization Workspaces
 									</h3>
 									{organization.workspaces && organization.workspaces.length > 0 && (
@@ -694,10 +696,10 @@ export default function OrganizationDetailsPage() {
 																alt={`${workspace.name} logo`}
 															/>
 															<div className="flex items-center gap-2">
-																<span className="text-sm text-gray-900">
+																<span className="text-sm text-gray-900 dark:text-gray-100">
 																	{workspace.name}
 																</span>
-																<span className="text-xs text-gray-500">
+																<span className="text-xs text-gray-500 dark:text-gray-400">
 																	• {workspace.member_count} members
 																</span>
 															</div>
@@ -738,7 +740,7 @@ export default function OrganizationDetailsPage() {
 								{/* Public Metadata */}
 								<div>
 									<div className="flex justify-between items-center mb-4">
-										<h3 className="text-base text-gray-900">Public Metadata</h3>
+										<h3 className="text-base text-gray-900 dark:text-gray-100">Public Metadata</h3>
 										{!isEditingPublicMetadata ? (
 											<Button
 												outline
@@ -763,13 +765,13 @@ export default function OrganizationDetailsPage() {
 										)}
 									</div>
 
-									<div className="rounded-lg overflow-hidden bg-gray-50 border border-gray-200">
+									<div className="rounded-lg overflow-hidden bg-gray-50 border border-gray-200 dark:border-zinc-800">
 										<Editor
 											height="120px"
 											defaultLanguage="json"
 											value={publicMetadata}
 											onChange={(value) => setPublicMetadata(value || "{}")}
-											theme="vs"
+											theme={isDarkMode ? "vs-dark" : "vs"}
 											options={{
 												readOnly: !isEditingPublicMetadata,
 												minimap: { enabled: false },
@@ -795,7 +797,7 @@ export default function OrganizationDetailsPage() {
 								{/* Private Metadata */}
 								<div>
 									<div className="flex justify-between items-center mb-4">
-										<h3 className="text-base text-gray-900">Private Metadata</h3>
+										<h3 className="text-base text-gray-900 dark:text-gray-100">Private Metadata</h3>
 										{!isEditingPrivateMetadata ? (
 											<Button
 												outline
@@ -820,13 +822,13 @@ export default function OrganizationDetailsPage() {
 										)}
 									</div>
 
-									<div className="rounded-lg overflow-hidden bg-gray-50 border border-gray-200">
+									<div className="rounded-lg overflow-hidden bg-gray-50 border border-gray-200 dark:border-zinc-800">
 										<Editor
 											height="120px"
 											defaultLanguage="json"
 											value={privateMetadata}
 											onChange={(value) => setPrivateMetadata(value || "{}")}
-											theme="vs"
+											theme={isDarkMode ? "vs-dark" : "vs"}
 											options={{
 												readOnly: !isEditingPrivateMetadata,
 												minimap: { enabled: false },

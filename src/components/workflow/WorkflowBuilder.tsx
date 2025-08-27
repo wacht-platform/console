@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useMemo, type DragEvent } from "react";
+import { useState, useRef, useCallback, useEffect, type DragEvent } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -36,8 +36,9 @@ import NodeEditModal from "./modals/NodeEditModal";
 import { DnDProvider } from "../../contexts/DnDContext";
 import { useDnD } from "@/hooks/useDnD";
 import { Subheading } from "../ui/heading";
+import { NodeContextMenu } from "./NodeContextMenu";
 
-const Sidebar = () => {
+const TopToolbar = () => {
   const [, setType] = useDnD();
 
   const onDragStart = (event: DragEvent, nodeType: string) => {
@@ -45,53 +46,66 @@ const Sidebar = () => {
     event.dataTransfer.effectAllowed = "move";
   };
 
-  return (
-    <aside className="flex flex-col gap-4 pt-4">
-      <Subheading className="text-base!">Workflow Blocks</Subheading>
+  const workflowBlocks = [
+    {
+      type: "try-catch",
+      label: "Try/Catch",
+      description: "Error handling",
+      color: "border-yellow-400 bg-yellow-50 text-yellow-800 hover:bg-yellow-100"
+    },
+    {
+      type: "llm-call",
+      label: "LLM Call",
+      description: "AI processing",
+      color: "border-purple-400 bg-purple-50 text-purple-800 hover:bg-purple-100"
+    },
+    {
+      type: "switch-case",
+      label: "Switch/Case",
+      description: "Conditional logic",
+      color: "border-indigo-400 bg-indigo-50 text-indigo-800 hover:bg-indigo-100"
+    },
+    {
+      type: "tool-call",
+      label: "Tool Call",
+      description: "Execute tools",
+      color: "border-blue-400 bg-blue-50 text-blue-800 hover:bg-blue-100"
+    },
+    {
+      type: "user-input",
+      label: "User Input",
+      description: "Get user data",
+      color: "border-cyan-400 bg-cyan-50 text-cyan-800 hover:bg-cyan-100"
+    },
+    {
+      type: "stop-workflow",
+      label: "Stop Workflow",
+      description: "End execution",
+      color: "border-red-400 bg-red-50 text-red-800 hover:bg-red-100"
+    }
+  ];
 
-      <div
-        className="dndnode try-catch p-3 border border-yellow-400 rounded-md cursor-grab text-center text-sm font-medium bg-yellow-100 text-yellow-800"
-        onDragStart={(event) => onDragStart(event, "try-catch")}
-        draggable
-      >
-        Try/Catch
+  return (
+    <div className="bg-white border-b border-gray-200 p-4">
+      <div className="flex items-center justify-between mb-4">
+        <Subheading className="text-base font-medium">Workflow Components</Subheading>
+        <div className="text-sm text-gray-500">Drag & Drop to Add</div>
       </div>
-      <div
-        className="dndnode llm-call p-3 border border-purple-400 rounded-md cursor-grab text-center text-sm font-medium bg-purple-100 text-purple-800"
-        onDragStart={(event) => onDragStart(event, "llm-call")}
-        draggable
-      >
-        LLM Call
+      
+      <div className="grid grid-cols-6 gap-3">
+        {workflowBlocks.map((block) => (
+          <div
+            key={block.type}
+            className={`dndnode ${block.type} p-2 border border-dashed rounded cursor-grab text-center transition-colors ${block.color}`}
+            onDragStart={(event) => onDragStart(event, block.type)}
+            draggable
+          >
+            <div className="font-medium text-sm mb-1">{block.label}</div>
+            <div className="text-xs opacity-75">{block.description}</div>
+          </div>
+        ))}
       </div>
-      <div
-        className="dndnode switch-case p-3 border border-indigo-400 rounded-md cursor-grab text-center text-sm font-medium bg-indigo-100 text-indigo-800"
-        onDragStart={(event) => onDragStart(event, "switch-case")}
-        draggable
-      >
-        Switch/Case
-      </div>
-      <div
-        className="dndnode tool-call p-3 border border-indigo-400 rounded-md cursor-grab text-center text-sm font-medium bg-indigo-100 text-indigo-800"
-        onDragStart={(event) => onDragStart(event, "tool-call")}
-        draggable
-      >
-        Tool Call
-      </div>
-      <div
-        className="dndnode user-input p-3 border border-cyan-400 rounded-md cursor-grab text-center text-sm font-medium bg-cyan-100 text-cyan-800"
-        onDragStart={(event) => onDragStart(event, "user-input")}
-        draggable
-      >
-        User Input
-      </div>
-      <div
-        className="dndnode action stop p-3 border border-red-400 rounded-md cursor-grab text-center text-sm font-medium bg-red-100 text-red-800"
-        onDragStart={(event) => onDragStart(event, "stop-workflow")}
-        draggable
-      >
-        Stop Workflow
-      </div>
-    </aside>
+    </div>
   );
 };
 
@@ -217,6 +231,19 @@ const DnDFlow = ({
   const [selectedNode, setSelectedNode] = useState<Node<BaseNodeData> | null>(
     null,
   );
+  
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    nodeId: string | null;
+  }>({
+    visible: false,
+    x: 0,
+    y: 0,
+    nodeId: null,
+  });
 
 
   // Center the initial trigger node when component mounts and on window resize
@@ -644,6 +671,32 @@ const DnDFlow = ({
     [setNodes, closeModal],
   );
 
+  // Context menu handlers
+  const handleEditNode = useCallback(() => {
+    if (contextMenu.nodeId) {
+      const node = nodes.find(n => n.id === contextMenu.nodeId);
+      if (node) {
+        setSelectedNode(node as Node<BaseNodeData>);
+        setIsModalOpen(true);
+      }
+    }
+    setContextMenu({ visible: false, x: 0, y: 0, nodeId: null });
+  }, [contextMenu.nodeId, nodes]);
+
+  const handleDeleteNode = useCallback(() => {
+    if (contextMenu.nodeId) {
+      setNodes((nds) => nds.filter(node => node.id !== contextMenu.nodeId));
+      setEdges((eds) => eds.filter(edge => 
+        edge.source !== contextMenu.nodeId && edge.target !== contextMenu.nodeId
+      ));
+    }
+    setContextMenu({ visible: false, x: 0, y: 0, nodeId: null });
+  }, [contextMenu.nodeId, setNodes, setEdges]);
+
+  const handleCloseContextMenu = useCallback(() => {
+    setContextMenu({ visible: false, x: 0, y: 0, nodeId: null });
+  }, []);
+
   // Manual containment detection on node drop/move (debounced to prevent infinite loops)
   const updateTryCatchContainment = useCallback(() => {
     setNodes((currentNodes) => {
@@ -705,11 +758,10 @@ const DnDFlow = ({
 
 
   return (
-    <div className="flex h-[calc(100vh-200px)] w-full">
-      <aside className="w-75 border-r border-gray-200 pr-4 flex flex-col gap-8 overflow-y-auto flex-shrink-0">
-        <Sidebar />
-      </aside>
-      <div className="flex-1 h-full">
+    <div className="flex flex-col h-[calc(100vh-200px)] w-full">
+      <TopToolbar />
+      
+      <div className="flex-1 bg-gray-50">
         <div className="reactflow-wrapper h-full" ref={reactFlowWrapper}>
           <ReactFlow
             nodes={nodes}
@@ -721,28 +773,50 @@ const DnDFlow = ({
             }}
             onEdgesChange={onEdgesChange}
             nodeTypes={nodeTypes}
-            minZoom={0.2}
-            defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+            minZoom={0.1}
+            maxZoom={2}
+            defaultViewport={{ x: 0, y: 0, zoom: 0.04 }}
             onConnect={onConnect}
             onDrop={onDrop}
             onDragOver={onDragOver}
-            onNodeClick={(_, node) => {
-              setSelectedNode(node as Node<BaseNodeData>);
-              setIsModalOpen(true);
+            onNodeClick={() => {
+              // Prevent context menu from opening on regular click
+              setContextMenu({ visible: false, x: 0, y: 0, nodeId: null });
             }}
-            style={{ backgroundColor: "#F7F9FB" }}
+            onNodeContextMenu={(event, node) => {
+              event.preventDefault();
+              setContextMenu({
+                visible: true,
+                x: event.clientX,
+                y: event.clientY,
+                nodeId: node.id,
+              });
+            }}
+            style={{ backgroundColor: "transparent" }}
             proOptions={{ hideAttribution: true }}
+            fitView
+            fitViewOptions={{ padding: 0.2 }}
           >
-            <Background />
+            <Background color="#e2e8f0" gap={20} size={1} />
           </ReactFlow>
         </div>
       </div>
+      
       <NodeEditModal
         isOpen={isModalOpen}
         onClose={closeModal}
         node={selectedNode}
         onSave={onSaveNode}
         availableNodes={nodes.filter(n => n.data && typeof n.data === 'object') as Node<BaseNodeData>[]}
+      />
+      
+      <NodeContextMenu
+        visible={contextMenu.visible}
+        x={contextMenu.x}
+        y={contextMenu.y}
+        onEdit={handleEditNode}
+        onDelete={handleDeleteNode}
+        onClose={handleCloseContextMenu}
       />
     </div>
   );

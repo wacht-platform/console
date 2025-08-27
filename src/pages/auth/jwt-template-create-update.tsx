@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Heading } from "@/components/ui/heading";
 import { Switch, SwitchField } from "@/components/ui/switch";
+import { useDarkMode } from "@/lib/hooks/use-dark-mode";
 import {
   Field,
   FieldGroup,
@@ -25,6 +26,7 @@ export default function JWTTemplateCreateUpdatePage() {
   const { templateId } = useParams();
   const { selectedDeployment } = useProjects();
   const navigate = useNavigate();
+  const isDarkMode = useDarkMode();
   const {
     createJWTTemplate,
     isCreatingJWTTemplate,
@@ -477,7 +479,7 @@ export default function JWTTemplateCreateUpdatePage() {
                     defaultLanguage="json"
                     value={claims}
                     onChange={handleClaimsChange}
-                    theme="vs-light"
+                    theme={isDarkMode ? "vs-dark" : "vs"}
                     options={{
                       minimap: { enabled: false },
                       fontSize: 14,
