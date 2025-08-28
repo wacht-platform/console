@@ -143,6 +143,7 @@ export default function BillingPage() {
         plan_id: selectedPlan,
         email,
         name,
+        user_id: 0, // TODO: Get actual user ID from auth context
       });
       
       window.location.href = result.checkout_url;
