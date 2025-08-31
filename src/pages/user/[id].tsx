@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import { format } from "date-fns";
 import { useUserDetails } from "@/lib/api/hooks/use-user-details";
 import { useUpdateUser } from "@/lib/api/hooks/use-update-user";
@@ -17,6 +17,7 @@ import {
   useDeleteUserPhone,
 } from "@/lib/api/hooks/use-user-phone-mutations";
 import { useDeleteUserSocialConnection } from "@/lib/api/hooks/use-user-social-mutations";
+import { useDeleteUser } from "@/lib/api/hooks/use-deployment-user-mutations";
 import { Button } from "@/components/ui/button";
 
 
@@ -43,6 +44,7 @@ export default function UserDetailsPage() {
 
   const { id } = useParams();
   const userId = id;
+  const navigate = useNavigate();
   const isDarkMode = useDarkMode();
   const { data: user, isLoading, error } = useUserDetails(userId);
   const { mutateAsync: updateUser } = useUpdateUser(userId || "");
@@ -61,6 +63,9 @@ export default function UserDetailsPage() {
   const { mutateAsync: deleteSocialConnection } = useDeleteUserSocialConnection(
     userId || ""
   );
+
+  // User deletion mutation
+  const { mutateAsync: deleteUser } = useDeleteUser();
 
   // Modal states
   const [addEmailModalOpen, setAddEmailModalOpen] = useState(false);
@@ -256,6 +261,12 @@ export default function UserDetailsPage() {
           case "social":
             await deleteSocialConnection(deleteItem.id);
             console.log("Social connection deleted successfully");
+            break;
+          case "user":
+            await deleteUser(deleteItem.id);
+            console.log("User deleted successfully");
+            // Navigate back to users list after successful deletion
+            navigate("/users");
             break;
           default:
             console.error("Unknown delete type:", deleteItem.type);

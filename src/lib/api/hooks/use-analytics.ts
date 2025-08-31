@@ -37,7 +37,7 @@ export interface RecentSignupsResponse {
 }
 
 export const useAnalyticsStats = (
-  deploymentId: number,
+  deploymentId: string,
   from: string,
   to: string,
   enabled = true,
@@ -58,7 +58,7 @@ export const useAnalyticsStats = (
 };
 
 export const useRecentSignups = (
-  deploymentId: number,
+  deploymentId: string,
   limit = 10,
   enabled = true,
 ) => {

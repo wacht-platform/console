@@ -12,7 +12,7 @@ import { useRecentSignups } from "@/lib/api/hooks/use-analytics";
 import { format } from "date-fns";
 
 interface RecentSignupsTableProps {
-	deploymentId: number;
+	deploymentId: string;
 	limit?: number;
 	enabled?: boolean;
 }

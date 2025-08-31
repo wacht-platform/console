@@ -32,8 +32,10 @@ import {
 } from "@/lib/api/hooks/use-projects";
 
 import { CreateProjectDialog } from "./create-project-dialog";
+import { BillingSetupDialog } from "./billing-setup-dialog";
 import { CreateProductionDeploymentDialog } from "./create-production-deployment-dialog";
 import { CreateStagingDeploymentDialog } from "./create-staging-deployment-dialog";
+import { useBillingAccount } from "@/lib/api/hooks/use-billing";
 import {
   OrganizationSwitcher,
   UserButton,
@@ -57,6 +59,8 @@ export function ApplicationLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCreateProjectDialogOpen, setIsCreateProjectDialogOpen] =
     useState(false);
+  const [isBillingSetupDialogOpen, setIsBillingSetupDialogOpen] =
+    useState(false);
   const [isCreateProductionDialogOpen, setIsCreateProductionDialogOpen] =
     useState(false);
   const [isCreateStagingDialogOpen, setIsCreateStagingDialogOpen] =
@@ -71,8 +75,21 @@ export function ApplicationLayout() {
     initializeFromUrl,
   } = useProjects();
 
+  const { data: billingAccount } = useBillingAccount();
   const { createStagingDeployment, isLoading: isCreatingStagingDeployment } =
     useCreateStagingDeployment();
+
+  const handleCreateProject = () => {
+    if (!billingAccount) {
+      setIsBillingSetupDialogOpen(true);
+    } else {
+      setIsCreateProjectDialogOpen(true);
+    }
+  };
+
+  const handleBillingSetupSuccess = () => {
+    setIsBillingSetupDialogOpen(false);
+  };
 
   // Initialize navigation function for the store
   useEffect(() => {
@@ -566,7 +583,7 @@ export function ApplicationLayout() {
               onDeploymentSelect={(deployment) =>
                 setSelectedDeployment(deployment as unknown as Deployment, true)
               }
-              onCreateProject={() => setIsCreateProjectDialogOpen(true)}
+              onCreateProject={handleCreateProject}
               onCreateStaging={() => setIsCreateStagingDialogOpen(true)}
               onCreateProduction={() => setIsCreateProductionDialogOpen(true)}
               canCreateStaging={canCreateStagingDeployment}
@@ -635,6 +652,11 @@ export function ApplicationLayout() {
           />
         </>
       )}
+      <BillingSetupDialog
+        open={isBillingSetupDialogOpen}
+        onClose={() => setIsBillingSetupDialogOpen(false)}
+        onSuccess={handleBillingSetupSuccess}
+      />
       <AgentPopup />
     </>
   );

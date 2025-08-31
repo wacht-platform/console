@@ -1,21 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
-  useSubscription,
-  useCreateCheckout,
+  useBillingAccount,
   useCustomerPortal,
   useCancelSubscription,
+  useInvoices,
+  useChangePlan,
 } from "@/lib/api/hooks/use-billing";
+import { BillingSetupDialog } from "@/components/billing-setup-dialog";
 import { 
   CheckIcon,
   ArrowRightIcon,
   SparklesIcon,
+  CreditCardIcon,
+  DocumentTextIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import { Dialog, DialogTitle, DialogDescription, DialogBody, DialogActions } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/fieldset";
+import { Dialog, DialogTitle, DialogDescription, DialogActions } from "@/components/ui/dialog";
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Stat } from "@/components/stat";
 import {
@@ -112,15 +115,24 @@ const usageBasedPricing = [
 
 export default function BillingPage() {
   const [selectedPlan, setSelectedPlan] = useState<string>("");
-  const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false);
+  const [billingSetupOpen, setBillingSetupOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
 
-  const { data: subscription, isLoading } = useSubscription();
-  const createCheckout = useCreateCheckout();
+  const { data: billingAccount, isLoading, refetch } = useBillingAccount();
   const customerPortal = useCustomerPortal();
   const cancelSubscription = useCancelSubscription();
+  const { data: invoicesData } = useInvoices();
+  const changePlan = useChangePlan();
+
+  // Check if we're returning from checkout
+  useEffect(() => {
+    const checkoutInitiated = sessionStorage.getItem('billing_checkout_initiated');
+    if (checkoutInitiated) {
+      sessionStorage.removeItem('billing_checkout_initiated');
+      // Refetch billing data to get updated subscription
+      refetch();
+    }
+  }, [refetch]);
 
   const handleSelectPlan = (planId: string) => {
     if (planId === "enterprise") {
@@ -128,28 +140,11 @@ export default function BillingPage() {
       return;
     }
     if (planId === "starter") {
-      // Starter is free, no checkout needed
-      return;
+      setSelectedPlan("starter_monthly");
+    } else if (planId === "growth") {
+      setSelectedPlan("growth_monthly");
     }
-    setSelectedPlan(planId);
-    setCheckoutDialogOpen(true);
-  };
-
-  const handleCreateCheckout = async () => {
-    if (!email || !selectedPlan) return;
-
-    try {
-      const result = await createCheckout.mutateAsync({
-        plan_id: selectedPlan,
-        email,
-        name,
-        user_id: 0, // TODO: Get actual user ID from auth context
-      });
-      
-      window.location.href = result.checkout_url;
-    } catch (error) {
-      console.error("Failed to create checkout:", error);
-    }
+    setBillingSetupOpen(true);
   };
 
   const handleOpenPortal = async () => {
@@ -178,6 +173,7 @@ export default function BillingPage() {
     );
   }
 
+  const subscription = billingAccount?.subscription;
   const currentPlan = subscription?.status === "active" 
     ? plans.find(p => p.id === subscription.chargebee_subscription_id?.split('_')[0]) || plans[0]
     : plans[0];
@@ -246,6 +242,41 @@ export default function BillingPage() {
               <Stat key={stat.title} {...stat} />
             ))}
           </div>
+          
+          {/* Quick Actions */}
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button
+              onClick={handleOpenPortal}
+              disabled={customerPortal.isPending}
+            >
+              <CreditCardIcon className="h-4 w-4 mr-2" />
+              Update Payment Method
+            </Button>
+            <Button
+              outline
+              onClick={handleOpenPortal}
+              disabled={customerPortal.isPending}
+            >
+              <DocumentTextIcon className="h-4 w-4 mr-2" />
+              View Invoices
+            </Button>
+            {billingAccount?.billing_account?.status === 'failed' && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                <ExclamationTriangleIcon className="h-4 w-4 text-red-600 dark:text-red-400" />
+                <Text className="text-sm text-red-800 dark:text-red-200">
+                  Payment failed. Please update your payment method to restore service.
+                </Text>
+              </div>
+            )}
+            {billingAccount?.billing_account?.status === 'paused' && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                <ExclamationTriangleIcon className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                <Text className="text-sm text-yellow-800 dark:text-yellow-200">
+                  Your subscription is paused. Contact support to resume.
+                </Text>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -311,14 +342,35 @@ export default function BillingPage() {
                 <TableCell>
                   {currentPlan.id === plan.id ? (
                     <Badge>Current</Badge>
+                  ) : subscription?.status === "active" ? (
+                    // For active subscriptions, show change plan button
+                    <Button
+                      plain
+                      onClick={() => {
+                        if (plan.id === "enterprise") {
+                          window.open("mailto:sales@wacht.dev?subject=Enterprise Plan Inquiry", "_blank");
+                        } else {
+                          // Use change plan API for existing subscriptions
+                          const planId = plan.id === "starter" ? "starter_monthly" : "growth_monthly";
+                          if (window.confirm(`Change to ${plan.name} plan? Your plan will be updated at the next billing cycle.`)) {
+                            changePlan.mutate(planId);
+                          }
+                        }
+                      }}
+                      className="text-sm"
+                    >
+                      {plan.id === "enterprise" ? "Contact Sales" : 
+                       plan.price < currentPlan.price ? "Downgrade" : "Upgrade"}
+                      <ArrowRightIcon className="ml-1 h-3 w-3" />
+                    </Button>
                   ) : (
+                    // For new subscriptions, show regular select button
                     <Button
                       plain
                       onClick={() => handleSelectPlan(plan.id)}
                       className="text-sm"
                     >
-                      {plan.id === "enterprise" ? "Contact Sales" : 
-                       plan.id === "starter" ? "Downgrade" : "Upgrade"}
+                      {plan.id === "enterprise" ? "Contact Sales" : "Select"}
                       <ArrowRightIcon className="ml-1 h-3 w-3" />
                     </Button>
                   )}
@@ -395,54 +447,16 @@ export default function BillingPage() {
         </Table>
       </div>
 
-      {/* Checkout Dialog */}
-      <Dialog open={checkoutDialogOpen} onClose={() => setCheckoutDialogOpen(false)}>
-        <DialogTitle>Upgrade to {plans.find(p => p.id === selectedPlan)?.name}</DialogTitle>
-        <DialogDescription>
-          Enter your billing details to complete the upgrade
-        </DialogDescription>
-        <DialogBody>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="billing@company.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="John Doe"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-          </div>
-        </DialogBody>
-        <DialogActions>
-          <Button
-            plain
-            onClick={() => setCheckoutDialogOpen(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleCreateCheckout}
-            disabled={!email || createCheckout.isPending}
-          >
-            {createCheckout.isPending ? <Spinner size="sm" /> : "Continue to Checkout"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Billing Setup Dialog */}
+      <BillingSetupDialog
+        open={billingSetupOpen}
+        onClose={() => setBillingSetupOpen(false)}
+        onSuccess={() => {
+          setBillingSetupOpen(false);
+          refetch();
+        }}
+        planId={selectedPlan}
+      />
 
       {/* Cancel Subscription Dialog */}
       <Dialog open={cancelDialogOpen} onClose={() => setCancelDialogOpen(false)}>

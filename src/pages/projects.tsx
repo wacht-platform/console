@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router";
 import { useProjectStore } from "@/lib/store/project";
 import { CreateProjectDialog } from "@/components/create-project-dialog";
+import { BillingSetupDialog } from "@/components/billing-setup-dialog";
 import { useState } from "react";
 import { UserButton, OrganizationSwitcher } from "@snipextt/wacht";
+import { useBillingAccount } from "@/lib/api/hooks/use-billing";
 import { Tab, SimpleTabs } from "@/components/ui/simple-tabs";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Spinner } from "@/components/ui/spinner";
@@ -17,7 +19,25 @@ import { PlusIcon, GlobeAltIcon, ClockIcon } from "@heroicons/react/24/outline";
 
 export default function ProjectsPage() {
   const { projects, isLoading } = useProjects();
+  const { data: billingAccount } = useBillingAccount();
   const [createProjectDialogOpen, setCreateProjectDialogOpen] = useState(false);
+  const [billingSetupDialogOpen, setBillingSetupDialogOpen] = useState(false);
+
+  const handleCreateProject = () => {
+    if (!billingAccount) {
+      // No billing account exists, show billing setup first
+      setBillingSetupDialogOpen(true);
+    } else {
+      // Billing account exists, proceed with project creation
+      setCreateProjectDialogOpen(true);
+    }
+  };
+
+  const handleBillingSetupSuccess = () => {
+    setBillingSetupDialogOpen(false);
+    // After billing is set up, you might want to automatically open project creation
+    // or just close and let user click create project again
+  };
 
   if (isLoading) {
     return (
@@ -65,7 +85,7 @@ export default function ProjectsPage() {
               </p>
             </div>
             <Button
-              onClick={() => setCreateProjectDialogOpen(true)}
+              onClick={handleCreateProject}
               className="flex items-center gap-2"
             >
               <PlusIcon className="w-4 h-4" />
@@ -94,7 +114,7 @@ export default function ProjectsPage() {
                     title="No projects yet"
                     description="Create your first project to get started"
                     actionLabel="New project"
-                    onAction={() => setCreateProjectDialogOpen(true)}
+                    onAction={handleCreateProject}
                   />
                 )}
               </div>
@@ -150,6 +170,12 @@ export default function ProjectsPage() {
       <CreateProjectDialog
         open={createProjectDialogOpen}
         onClose={() => setCreateProjectDialogOpen(false)}
+      />
+
+      <BillingSetupDialog
+        open={billingSetupDialogOpen}
+        onClose={() => setBillingSetupDialogOpen(false)}
+        onSuccess={handleBillingSetupSuccess}
       />
     </div>
   );

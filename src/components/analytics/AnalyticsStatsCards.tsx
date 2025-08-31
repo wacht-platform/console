@@ -3,7 +3,7 @@ import { Stat } from "../stat";
 import { useAnalyticsStats } from "@/lib/api/hooks/use-analytics";
 
 interface AnalyticsStatsCardsProps {
-	deploymentId: number;
+	deploymentId: string;
 	from: string;
 	to: string;
 	enabled?: boolean;

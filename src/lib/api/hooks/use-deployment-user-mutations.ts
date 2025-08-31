@@ -79,6 +79,13 @@ export function useInviteUser() {
   });
 }
 
+async function deleteUser(deploymentId: string, userId: string) {
+  const response = await apiClient.delete(
+    `/deployments/${deploymentId}/users/${userId}`
+  );
+  return response.data;
+}
+
 async function approveWaitlistUser(
   deploymentId: string,
   waitlistUserId: string
@@ -87,6 +94,28 @@ async function approveWaitlistUser(
     `/deployments/${deploymentId}/user-waitlist/${waitlistUserId}/approve`
   );
   return response.data.data;
+}
+
+export function useDeleteUser() {
+  const queryClient = useQueryClient();
+  const { selectedDeployment } = useProjects();
+
+  return useMutation({
+    mutationFn: (userId: string) => {
+      if (!selectedDeployment?.id) {
+        throw new Error("No deployment selected");
+      }
+      return deleteUser(selectedDeployment.id.toString(), userId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["user-details"] });
+      toast.success("User deleted successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to delete user. Please try again.");
+    },
+  });
 }
 
 export function useApproveWaitlistUser() {

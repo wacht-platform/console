@@ -92,7 +92,7 @@ export function CreateProjectDialog({
 
 	return (
 		<Dialog size="3xl" open={open} onClose={onClose}>
-			<div className="md:col-span-3 border-dashed border-zinc-200 dark:border-zinc-700">
+			<div className="md:col-span-3 border-dashed border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">
 				<div className="space-y-4">
 					<Field>
 						<Label className="font-normal">Project name</Label>
@@ -138,7 +138,7 @@ export function CreateProjectDialog({
 					</Field>
 
 					<div className="space-y-4">
-						<h2 className="text-sm font-medium">
+						<h2 className="text-sm font-medium text-zinc-900 dark:text-white">
 							Allowed Authentication Methods
 						</h2>
 
@@ -298,7 +298,7 @@ function AuthMethodItem({
 					{icon}
 				</span>
 				<div>
-					<h3 className="text-sm font-medium">{label}</h3>
+					<h3 className="text-sm font-medium text-zinc-900 dark:text-white">{label}</h3>
 					<p className="text-sm text-zinc-500 dark:text-zinc-400">
 						{description}
 					</p>

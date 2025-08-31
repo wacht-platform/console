@@ -1,53 +1,51 @@
 import { useEffect } from "react";
-import { useNavigate, useParams } from "react-router";
-import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import { useNavigate } from "react-router-dom";
+import { CheckCircleIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Heading, Subheading } from "@/components/ui/heading";
+import { Text } from "@/components/ui/text";
 
 export default function BillingSuccessPage() {
   const navigate = useNavigate();
-  const { projectId, deploymentId } = useParams();
 
   useEffect(() => {
-    // Auto-redirect to billing page after 5 seconds
+    // Auto-redirect after 5 seconds
     const timer = setTimeout(() => {
-      navigate(`/project/${projectId}/deployment/${deploymentId}/billing`);
+      navigate("/billing");
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [navigate, projectId, deploymentId]);
+  }, [navigate]);
 
   return (
     <div className="flex items-center justify-center min-h-[600px]">
-      <Card className="max-w-md w-full">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4">
-            <CheckCircleIcon className="h-16 w-16 text-green-500" />
-          </div>
-          <CardTitle className="text-2xl">Subscription Activated!</CardTitle>
-          <CardDescription>
-            Your subscription has been successfully activated. You now have access to all premium features.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="text-center space-y-4">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            You will be redirected to the billing page in a few seconds...
-          </p>
-          <div className="flex gap-3 justify-center">
-            <Button
-              outline
-              onClick={() => navigate(`/project/${projectId}/deployment/${deploymentId}/`)}
-            >
-              Go to Dashboard
-            </Button>
-            <Button
-              onClick={() => navigate(`/project/${projectId}/deployment/${deploymentId}/billing`)}
-            >
-              View Subscription
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="text-center max-w-md mx-auto">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20 mb-6">
+          <CheckCircleIcon className="h-10 w-10 text-green-600 dark:text-green-400" />
+        </div>
+        
+        <Heading className="mb-2">Payment Successful!</Heading>
+        <Subheading className="mb-6">
+          Your subscription has been activated successfully.
+        </Subheading>
+        
+        <Text className="mb-8">
+          Thank you for subscribing to Wacht. Your account has been upgraded and you now have access to all premium features.
+        </Text>
+        
+        <div className="space-y-3">
+          <Button onClick={() => navigate("/billing")}>
+            View Billing Details
+          </Button>
+          <Button outline onClick={() => navigate("/")}>
+            Go to Dashboard
+          </Button>
+        </div>
+        
+        <Text className="text-sm text-zinc-500 dark:text-zinc-400 mt-6">
+          Redirecting to billing page in 5 seconds...
+        </Text>
+      </div>
     </div>
   );
 }
