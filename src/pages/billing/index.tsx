@@ -121,7 +121,7 @@ export default function BillingPage() {
   const { data: billingAccount, isLoading, refetch } = useBillingAccount();
   const customerPortal = useCustomerPortal();
   const cancelSubscription = useCancelSubscription();
-  const { data: invoicesData } = useInvoices();
+  const { } = useInvoices(); // Invoices loaded via portal
   const changePlan = useChangePlan();
 
   // Check if we're returning from checkout
@@ -260,7 +260,7 @@ export default function BillingPage() {
               <DocumentTextIcon className="h-4 w-4 mr-2" />
               View Invoices
             </Button>
-            {billingAccount?.billing_account?.status === 'failed' && (
+            {(billingAccount?.billing_account as any)?.status === 'failed' && (
               <div className="flex items-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
                 <ExclamationTriangleIcon className="h-4 w-4 text-red-600 dark:text-red-400" />
                 <Text className="text-sm text-red-800 dark:text-red-200">
@@ -268,7 +268,7 @@ export default function BillingPage() {
                 </Text>
               </div>
             )}
-            {billingAccount?.billing_account?.status === 'paused' && (
+            {(billingAccount?.billing_account as any)?.status === 'paused' && (
               <div className="flex items-center gap-2 px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                 <ExclamationTriangleIcon className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
                 <Text className="text-sm text-yellow-800 dark:text-yellow-200">
@@ -360,7 +360,7 @@ export default function BillingPage() {
                       className="text-sm"
                     >
                       {plan.id === "enterprise" ? "Contact Sales" : 
-                       plan.price < currentPlan.price ? "Downgrade" : "Upgrade"}
+                       (plan.price ?? 0) < (currentPlan.price ?? 0) ? "Downgrade" : "Upgrade"}
                       <ArrowRightIcon className="ml-1 h-3 w-3" />
                     </Button>
                   ) : (
