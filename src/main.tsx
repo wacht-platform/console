@@ -5,11 +5,15 @@ import { createReactRouterAdapter } from "@snipextt/wacht-react-router";
 import "./index.css";
 import App from "./App.tsx";
 
+if (!import.meta.env.VITE_WACHT_PUBLISHABLE_KEY) {
+  console.error("Wacht publishable key is not defined");
+}
+
 // biome-ignore lint/style/noNonNullAssertion: <explanation>
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <DeploymentProvider
-      publicKey="pk_test_aHR0cHM6Ly9kaW13aXR0ZWQtYXhpcy0xLmZyb250ZW5kLWFwaS5zZXJ2aWNlcw=="
+      publicKey={import.meta.env.VITE_WACHT_PUBLISHABLE_KEY}
       adapter={createReactRouterAdapter()}
     >
       <App />
