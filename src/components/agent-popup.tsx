@@ -86,7 +86,7 @@ export function AgentPopup() {
             <div className="flex-1 overflow-hidden">
               <ContextManager
                 api={contextAPI}
-                agentName="DART Analyzer - DARTBundle_0806_0832_Atul"
+                agentName="ddd"
                 onTokenNeeded={getAgentToken}
                 platformAdapter={{
                   onPlatformEvent: (eventName, eventData) => {

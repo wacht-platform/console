@@ -188,15 +188,15 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onClose={onClose}>
-      <DialogTitle>
+    <Dialog open={isOpen} onClose={onClose} size="4xl">
+      <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-3">
         Edit {formData.node_type === "trigger" ? "Trigger" : formData.node_type === "action" ? "Action" : "Node"}
       </DialogTitle>
-      <DialogBody>
+      <DialogBody className="max-h-[75vh] overflow-y-auto">
         <div className="space-y-4">
           {/* Basic node information */}
           <Field>
-            <Label htmlFor="label">Node Label:</Label>
+            <Label htmlFor="label" className="text-sm font-medium text-gray-700 dark:text-gray-300">Node Label:</Label>
             <Input
               id="label"
               name="label"
@@ -212,7 +212,7 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
           </Field>
 
           <Field>
-            <Label htmlFor="description">Description:</Label>
+            <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">Description:</Label>
             <Textarea
               id="description"
               name="description"
@@ -226,9 +226,9 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
           {/* Trigger Node Configuration */}
           {formData.node_type === "trigger" && (
             <div className="space-y-4">
-              <h4 className="font-medium">Trigger Configuration</h4>
+              <h4 className="font-medium text-gray-900 dark:text-gray-100">Trigger Configuration</h4>
               <Field>
-                <Label htmlFor="condition">Trigger Condition:</Label>
+                <Label htmlFor="condition" className="text-sm font-medium text-gray-700 dark:text-gray-300">Trigger Condition:</Label>
                 <Textarea
                   id="condition"
                   name="condition"
@@ -238,7 +238,7 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                   className="h-20"
                 />
               </Field>
-              <div className="text-xs text-gray-600 bg-blue-50 p-3 rounded">
+              <div className="text-xs text-gray-600 dark:text-gray-400 p-3 rounded border border-blue-200 dark:border-blue-800">
                 <strong>Note:</strong> Leave empty for manual triggers. Describe the condition in natural language for automatic triggers.
               </div>
             </div>
@@ -247,9 +247,9 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
           {/* Conditional Node Configuration */}
           {formData.node_type === "condition" && (
             <div className="space-y-4">
-              <h4 className="font-medium">Conditional Configuration</h4>
+              <h4 className="font-medium text-gray-900 dark:text-gray-100">Conditional Configuration</h4>
               <Field>
-                <Label htmlFor="condition">Condition Description:</Label>
+                <Label htmlFor="condition" className="text-sm font-medium text-gray-700 dark:text-gray-300">Condition Description:</Label>
                 <Textarea
                   id="condition"
                   name="condition"
@@ -263,7 +263,7 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                   <div className="mt-1 text-sm text-red-600">{fieldErrors.condition}</div>
                 )}
               </Field>
-              <div className="text-xs text-gray-600 bg-blue-50 p-3 rounded">
+              <div className="text-xs text-gray-600 dark:text-gray-400 p-3 rounded border border-gray-200 dark:border-gray-700">
                 <strong>Note:</strong> Describe the condition in natural language. The workflow will follow the True or False path based on this condition.
               </div>
             </div>
@@ -273,100 +273,108 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
 
           {/* Try/Catch Configuration */}
           {formData.node_type === "try-catch" && (
-            <div className="space-y-4">
-              <h4 className="font-medium">Error Handling Configuration</h4>
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <h4 className="font-medium text-gray-900 dark:text-gray-100 text-lg mb-4">Error Handling Configuration</h4>
 
-              <div className="space-y-2">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.enable_retry !== false}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      enable_retry: e.target.checked
-                    })}
-                  />
-                  <span className="text-sm font-medium text-gray-700">Enable Retry on Error</span>
-                </label>
-              </div>
+              <div className="grid grid-cols-2 gap-6">
+                {/* Left Column - Retry Settings */}
+                <div className="space-y-4">
+                  <div className="rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-md transition-colors">
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-700"
+                        checked={formData.enable_retry !== false}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          enable_retry: e.target.checked
+                        })}
+                      />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Enable Retry on Error</span>
+                    </label>
+                  </div>
 
-              {formData.enable_retry && (
-                <>
+                  {formData.enable_retry && (
+                    <div className="space-y-4">
+                      <Field>
+                        <Label htmlFor="max_retries" className="text-sm font-medium text-gray-700 dark:text-gray-300">Max Retries:</Label>
+                        <Input
+                          id="max_retries"
+                          name="max_retries"
+                          type="number"
+                          value={formData.max_retries || ""}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            max_retries: e.target.value ? parseInt(e.target.value) : undefined
+                          })}
+                          placeholder="3"
+                          min="1"
+                          max="10"
+                        />
+                      </Field>
+
+                      <Field>
+                        <Label htmlFor="retry_delay_seconds" className="text-sm font-medium text-gray-700 dark:text-gray-300">Retry Delay (seconds):</Label>
+                        <Input
+                          id="retry_delay_seconds"
+                          name="retry_delay_seconds"
+                          type="number"
+                          value={formData.retry_delay_seconds || ""}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            retry_delay_seconds: e.target.value ? parseInt(e.target.value) : undefined
+                          })}
+                          placeholder="5"
+                          min="1"
+                          max="300"
+                        />
+                      </Field>
+                    </div>
+                  )}
+
+                  <div className="rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-md transition-colors">
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-700"
+                        checked={formData.log_errors !== false}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          log_errors: e.target.checked
+                        })}
+                      />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Log Errors</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Right Column - Error Message & Protected Node */}
+                <div className="space-y-4">
                   <Field>
-                    <Label htmlFor="max_retries">Max Retries:</Label>
+                    <Label htmlFor="custom_error_message" className="text-sm font-medium text-gray-700 dark:text-gray-300">Custom Error Message:</Label>
                     <Input
-                      id="max_retries"
-                      name="max_retries"
-                      type="number"
-                      value={formData.max_retries || ""}
+                      id="custom_error_message"
+                      name="custom_error_message"
+                      type="text"
+                      value={formData.custom_error_message || ""}
                       onChange={(e) => setFormData({
                         ...formData,
-                        max_retries: e.target.value ? parseInt(e.target.value) : undefined
+                        custom_error_message: e.target.value
                       })}
-                      placeholder="3"
-                      min="1"
-                      max="10"
+                      placeholder="Optional custom error message"
                     />
                   </Field>
 
-                  <Field>
-                    <Label htmlFor="retry_delay_seconds">Retry Delay (seconds):</Label>
-                    <Input
-                      id="retry_delay_seconds"
-                      name="retry_delay_seconds"
-                      type="number"
-                      value={formData.retry_delay_seconds || ""}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        retry_delay_seconds: e.target.value ? parseInt(e.target.value) : undefined
-                      })}
-                      placeholder="5"
-                      min="1"
-                      max="300"
-                    />
-                  </Field>
-                </>
-              )}
-
-              <div className="space-y-2">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.log_errors !== false}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      log_errors: e.target.checked
-                    })}
-                  />
-                  <span className="text-sm font-medium text-gray-700">Log Errors</span>
-                </label>
-              </div>
-
-              <Field>
-                <Label htmlFor="custom_error_message">Custom Error Message:</Label>
-                <Input
-                  id="custom_error_message"
-                  name="custom_error_message"
-                  type="text"
-                  value={formData.custom_error_message || ""}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    custom_error_message: e.target.value
-                  })}
-                  placeholder="Optional custom error message"
-                />
-              </Field>
-
-              {/* Protected Node Management (SINGLE NODE ONLY) */}
-              <div>
-                <h5 className="font-medium mb-2">Protected Node</h5>
-                <div className="text-sm text-gray-600 mb-3">
+                  {/* Protected Node Management */}
+                  <div className="mt-6">
+                <h5 className="font-medium mb-2 text-gray-900 dark:text-gray-100">Protected Node</h5>
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                   Select ONE node to be protected by this Try/Catch block:
                 </div>
 
                 {/* Single node selection */}
-                <Field>
-                  <Label htmlFor="protected_node">Protected Node:</Label>
+                    <Field>
+                      <Label htmlFor="protected_node" className="text-sm font-medium text-gray-700 dark:text-gray-300">Protected Node:</Label>
                   <Select
                     id="protected_node"
                     name="protected_node"
@@ -389,10 +397,10 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                         </option>
                       ))}
                   </Select>
-                </Field>
+                    </Field>
 
-                {/* Currently protected node display */}
-                <div className="border rounded p-3 bg-gray-50">
+                    {/* Currently protected node display */}
+                <div className="border border-gray-200 dark:border-gray-700 rounded p-3 mt-2">
                   {formData.contained_nodes && formData.contained_nodes.length > 0 ? (
                     (() => {
                       const nodeId = formData.contained_nodes[0];
@@ -403,12 +411,12 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                       const nodeType = protectedNode?.type || "unknown";
 
                       return (
-                        <div className="flex items-center justify-between text-sm bg-white p-3 rounded border">
+                        <div className="flex items-center justify-between text-sm p-3 rounded">
                           <div>
-                            <div className="font-medium text-green-700">✅ Protected Node</div>
-                            <div className="text-gray-700">
+                            <div className="font-medium text-green-700 dark:text-green-400">✅ Protected Node</div>
+                            <div className="text-gray-700 dark:text-gray-300">
                               <span className="font-medium">{nodeLabel}</span>
-                              <span className="text-gray-500 ml-2">({nodeType})</span>
+                              <span className="text-gray-500 dark:text-gray-400 ml-2">({nodeType})</span>
                             </div>
                           </div>
                           <button
@@ -416,7 +424,7 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                             onClick={() => {
                               setFormData({ ...formData, contained_nodes: [] });
                             }}
-                            className="text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded border border-red-300 hover:border-red-500"
+                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs px-2 py-1 rounded border border-red-300 dark:border-red-700 hover:border-red-500 dark:hover:border-red-600 transition-colors"
                           >
                             Remove
                           </button>
@@ -424,16 +432,17 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                       );
                     })()
                   ) : (
-                    <div className="text-sm text-gray-500 italic p-2 text-center">
+                    <div className="text-sm text-gray-500 dark:text-gray-400 italic p-2 text-center">
                       <div className="mb-1">No protected node selected</div>
-                      <div className="text-xs">Select a node above or drop one in the container</div>
+                      <div className="text-xs opacity-75">Select a node above or drop one in the container</div>
                     </div>
                   )}
                 </div>
 
-                <div className="text-xs text-blue-600 mt-2 p-2 bg-blue-50 rounded">
-                  💡 <strong>Single Node Protection:</strong> Try/Catch blocks can only protect one node at a time.
-                  Drop a node in the container or select one above.
+                    <div className="text-xs text-blue-600 dark:text-blue-400 mt-2 p-2 rounded border border-blue-200 dark:border-blue-800">
+                      💡 <strong>Single Node Protection:</strong> Try/Catch blocks can only protect one node at a time.
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -442,10 +451,10 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
           {/* LLM Call Configuration */}
           {formData.node_type === "llm-call" && (
             <div className="space-y-4">
-              <h4 className="font-medium">LLM Configuration</h4>
+              <h4 className="font-medium text-gray-900 dark:text-gray-100">LLM Configuration</h4>
 
               <Field>
-                <Label htmlFor="prompt_template">Prompt Template:</Label>
+                <Label htmlFor="prompt_template" className="text-sm font-medium text-gray-700 dark:text-gray-300">Prompt Template:</Label>
                 <Textarea
                   id="prompt_template"
                   name="prompt_template"
@@ -464,7 +473,7 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
               </Field>
 
               <Field>
-                <Label htmlFor="response_format">Response Format:</Label>
+                <Label htmlFor="response_format" className="text-sm font-medium text-gray-700 dark:text-gray-300">Response Format:</Label>
                 <Select
                   id="response_format"
                   name="response_format"
@@ -481,8 +490,8 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
 
               {formData.response_format === "json" && (
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">JSON Response Schema:</label>
-                  <div className="text-xs text-gray-600 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">JSON Response Schema:</label>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">
                     Define the structure of the expected JSON response from the LLM.
                   </div>
                   {fieldErrors.json_schema && (
@@ -490,15 +499,15 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                   )}
                   <div className="space-y-2 max-h-32 overflow-y-auto">
                     {(formData.json_schema || []).length === 0 && (
-                      <div className="text-xs text-gray-500 italic p-2 text-center bg-gray-50 rounded">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 italic p-2 text-center rounded">
                         No response fields defined. Click "Add Response Field" to add one.
                       </div>
                     )}
                     {(formData.json_schema || []).map((field, index) => (
-                      <div key={index} className="p-2 bg-gray-50 rounded">
+                      <div key={index} className="p-2 border border-gray-200 dark:border-gray-700 rounded">
                         <div className="flex gap-2 items-center">
                           <div className="flex-1">
-                            <label className="block text-xs font-medium text-gray-600 mb-1">JSON Key Name</label>
+                            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">JSON Key Name</label>
                             <Input
                               placeholder="result, status, data, etc."
                               value={field.name}
@@ -510,7 +519,7 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                             />
                           </div>
                           <div className="w-24">
-                            <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
+                            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Type</label>
                             <Select
                               value={field.type}
                               onChange={(e) => {
@@ -527,10 +536,11 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                             </Select>
                           </div>
                           <div className="w-20 flex flex-col">
-                            <label className="block text-xs font-medium text-gray-600 mb-1">Required</label>
+                            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Required</label>
                             <div className="flex items-center justify-center h-9">
                               <input
                                 type="checkbox"
+                                className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-700"
                                 checked={field.required}
                                 onChange={(e) => {
                                   const newFields = [...(formData.json_schema || [])];
@@ -549,7 +559,7 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                                   const newFields = (formData.json_schema || []).filter((_, i) => i !== index);
                                   setFormData({ ...formData, json_schema: newFields });
                                 }}
-                                className="text-red-500 hover:text-red-700 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50"
+                                className="text-red-500 hover:text-red-700 dark:hover:text-red-400 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50 dark:hover:bg-red-900/20"
                               >
                                 ×
                               </button>
@@ -576,11 +586,13 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
 
           {/* Switch/Case Configuration */}
           {formData.node_type === "switch-case" && (
-            <div className="space-y-4">
-              <h4 className="font-medium">Switch/Case Configuration</h4>
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <h4 className="font-medium text-gray-900 dark:text-gray-100 text-lg mb-4">Switch/Case Configuration</h4>
 
-              <Field>
-                <Label htmlFor="switch_condition">Switch Condition:</Label>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <Field>
+                    <Label htmlFor="switch_condition" className="text-sm font-medium text-gray-700 dark:text-gray-300">Switch Condition:</Label>
                 <Textarea
                   id="switch_condition"
                   name="switch_condition"
@@ -599,26 +611,28 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                 <div className="mt-1 text-xs text-gray-500">
                   Describe in natural language what condition should be evaluated for the switch
                 </div>
-              </Field>
+                  </Field>
 
-              <div className="space-y-2">
-                <label className="flex items-center space-x-2">
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-md transition-colors">
                   <input
                     type="checkbox"
+                    className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-700"
                     checked={formData.default_case !== false}
                     onChange={(e) => setFormData({
                       ...formData,
                       default_case: e.target.checked
                     })}
                   />
-                  <span className="text-sm font-medium text-gray-700">Enable Default Case</span>
-                </label>
-              </div>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Enable Default Case</span>
+                    </label>
+                  </div>
+                </div>
 
-              {/* Case Definitions */}
-              <div>
+                {/* Case Definitions */}
+                <div className="space-y-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h5 className="font-medium">Case Definitions</h5>
+                  <h5 className="font-medium text-gray-900 dark:text-gray-100">Case Definitions</h5>
                   <Button
                     type="button"
                     onClick={() => {
@@ -634,7 +648,7 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                     Add Case
                   </Button>
                 </div>
-                <div className="space-y-6 max-h-64 overflow-y-auto">
+                  <div className="space-y-6 max-h-64 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-3">
                   {(formData.cases || []).map((caseData, index) => (
                     <div key={index}>
                       <div className="flex items-center justify-between mb-3">
@@ -695,11 +709,12 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
                       )}
                     </div>
                   ))}
-                  {(!formData.cases || formData.cases.length === 0) && (
-                    <div className="text-center py-4 text-gray-500 text-sm">
-                      No cases defined. Click "Add Case" to create your first case.
-                    </div>
-                  )}
+                    {(!formData.cases || formData.cases.length === 0) && (
+                      <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
+                        No cases defined. Click "Add Case" to create your first case.
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -708,7 +723,7 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
           {/* Tool Call Configuration */}
           {formData.node_type === "tool-call" && (
             <div className="space-y-4">
-              <h4 className="font-medium">Tool Call Configuration</h4>
+              <h4 className="font-medium text-gray-900 dark:text-gray-100">Tool Call Configuration</h4>
               <div className={fieldErrors.tool_id ? "border border-red-300 rounded-md p-3 bg-red-50" : ""}>
                 <ToolSelector
                   selectedToolId={formData.tool_id}
@@ -738,10 +753,10 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
           {/* User Input Configuration */}
           {formData.node_type === "user-input" && (
             <div className="space-y-4">
-              <h4 className="font-medium">User Input Configuration</h4>
+              <h4 className="font-medium text-gray-900 dark:text-gray-100">User Input Configuration</h4>
 
               <Field>
-                <Label htmlFor="prompt">Prompt:</Label>
+                <Label htmlFor="prompt" className="text-sm font-medium text-gray-700 dark:text-gray-300">Prompt:</Label>
                 <Textarea
                   id="prompt"
                   name="prompt"
@@ -760,7 +775,7 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
               </Field>
 
               <Field>
-                <Label htmlFor="input_type">Input Type:</Label>
+                <Label htmlFor="input_type" className="text-sm font-medium text-gray-700 dark:text-gray-300">Input Type:</Label>
                 <Select
                   id="input_type"
                   name="input_type"
@@ -780,7 +795,7 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
               </Field>
 
               <Field>
-                <Label htmlFor="default_value">Default Value:</Label>
+                <Label htmlFor="default_value" className="text-sm font-medium text-gray-700 dark:text-gray-300">Default Value:</Label>
                 <Input
                   id="default_value"
                   name="default_value"
@@ -842,19 +857,20 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
           {/* Store Context Configuration */}
           {formData.node_type === "store-context" && (
             <div className="space-y-4">
-              <h4 className="font-medium">Store Context Configuration</h4>
+              <h4 className="font-medium text-gray-900 dark:text-gray-100">Store Context Configuration</h4>
 
               <div className="space-y-2">
-                <label className="flex items-center space-x-2">
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-md transition-colors">
                   <input
                     type="checkbox"
+                    className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-700"
                     checked={formData.use_llm === true}
                     onChange={(e) => setFormData({
                       ...formData,
                       use_llm: e.target.checked
                     })}
                   />
-                  <span className="text-sm font-medium text-gray-700">Use LLM for dynamic context</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Use LLM for dynamic context</span>
                 </label>
               </div>
 
@@ -873,7 +889,7 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
               )}
 
               {formData.use_llm && (
-                <div className="text-xs text-blue-600 bg-blue-50 p-3 rounded">
+                <div className="text-xs text-blue-600 dark:text-blue-400 p-3 rounded border border-blue-200 dark:border-blue-800">
                   <strong>LLM Mode:</strong> Context will be determined dynamically using LLM with static/dynamic parameters during workflow execution.
                 </div>
               )}
@@ -883,25 +899,26 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
           {/* Fetch Context Configuration */}
           {formData.node_type === "fetch-context" && (
             <div className="space-y-4">
-              <h4 className="font-medium">Fetch Context Configuration</h4>
+              <h4 className="font-medium text-gray-900 dark:text-gray-100">Fetch Context Configuration</h4>
 
               <div className="space-y-2">
-                <label className="flex items-center space-x-2">
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-md transition-colors">
                   <input
                     type="checkbox"
+                    className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-700"
                     checked={formData.use_llm === true}
                     onChange={(e) => setFormData({
                       ...formData,
                       use_llm: e.target.checked
                     })}
                   />
-                  <span className="text-sm font-medium text-gray-700">Use LLM for dynamic context</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Use LLM for dynamic context</span>
                 </label>
               </div>
 
               {!formData.use_llm && (
                 <Field>
-                  <Label htmlFor="context_data">Context Query:</Label>
+                  <Label htmlFor="context_data" className="text-sm font-medium text-gray-700 dark:text-gray-300">Context Query:</Label>
                   <Textarea
                     id="context_data"
                     name="context_data"
@@ -914,7 +931,7 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
               )}
 
               {formData.use_llm && (
-                <div className="text-xs text-blue-600 bg-blue-50 p-3 rounded">
+                <div className="text-xs text-blue-600 dark:text-blue-400 p-3 rounded border border-blue-200 dark:border-blue-800">
                   <strong>LLM Mode:</strong> Context will be fetched dynamically using LLM with static/dynamic parameters during workflow execution.
                 </div>
               )}
@@ -927,16 +944,16 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
         {/* Validation Summary */}
         {validationErrors.length > 0 && (
           <div className="flex-1 mr-4">
-            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+            <div className="p-3 border border-red-200 dark:border-red-700 rounded-md">
               <div className="flex items-center mb-2">
-                <svg className="w-4 h-4 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4 text-red-600 dark:text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
-                <span className="text-sm font-medium text-red-800">
+                <span className="text-sm font-medium text-red-800 dark:text-red-300">
                   {validationErrors.length} validation error{validationErrors.length > 1 ? 's' : ''}
                 </span>
               </div>
-              <ul className="text-xs text-red-700 space-y-1">
+              <ul className="text-xs text-red-700 dark:text-red-400 space-y-1">
                 {validationErrors.slice(0, 3).map((error, index) => (
                   <li key={index}>• {error.message}</li>
                 ))}
