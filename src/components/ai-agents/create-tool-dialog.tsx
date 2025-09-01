@@ -313,9 +313,9 @@ export function CreateToolDialog({
               </Field>
             </div>
 
-            <div className="bg-gray-50 rounded-lg py-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg py-4">
               <div className="flex items-center justify-between px-4">
-                <label className="text-sm font-medium text-gray-700">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Authorize as user
                 </label>
                 <Switch
@@ -775,9 +775,9 @@ export function CreateToolDialog({
               </Field>
             </div>
 
-            <div className="bg-gray-50 rounded-lg py-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg py-4">
               <div className="flex items-center justify-between px-4">
-                <label className="text-sm font-medium text-gray-700">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Include metadata
                 </label>
                 <Switch
@@ -797,7 +797,7 @@ export function CreateToolDialog({
                 />
               </div>
               <div className="flex items-center justify-between px-4 pt-4">
-                <label className="text-sm font-medium text-gray-700">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Sort by relevance
                 </label>
                 <Switch
