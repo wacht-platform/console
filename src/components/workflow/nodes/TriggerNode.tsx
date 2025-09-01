@@ -9,23 +9,23 @@ export interface TriggerNodeData extends BaseNodeData {
 
 const TriggerNode = ({ data }: { data: TriggerNodeData }) => {
   return (
-    <div className="relative border border-dashed border-blue-400 bg-blue-50 text-blue-800 dark:border-blue-500 dark:bg-blue-900/20 dark:text-blue-300 rounded p-0.5 text-center cursor-grab transition-colors hover:bg-blue-100 dark:hover:bg-blue-900/30 w-12 h-8">
+    <div className="relative border-2 border-dashed border-green-400 bg-green-50 text-green-800 dark:border-green-500 dark:bg-green-900/20 dark:text-green-300 rounded-lg p-3 text-center cursor-grab transition-colors hover:bg-green-100 dark:hover:bg-green-900/30 min-w-[140px]">
       {data.outputNode && (
         <Handle
           type="target"
           position={Position.Top}
-          className="w-1.5 h-1.5 !bg-blue-600 !border-0"
+          className="w-2 h-2 !bg-green-600 !border-2 !border-white dark:!border-zinc-800"
         />
       )}
 
-      <div className="font-medium text-xs truncate leading-tight">{data.label}</div>
-      <div className="text-xs opacity-75 leading-tight">Trigger</div>
+      <div className="font-semibold text-sm mb-1">{data.label}</div>
+      <div className="text-xs opacity-75">Start workflow</div>
 
       {!data.outputNode && (
         <Handle
           type="source"
           position={Position.Bottom}
-          className="w-1.5 h-1.5 !bg-blue-600 !border-0"
+          className="w-2 h-2 !bg-green-600 !border-2 !border-white dark:!border-zinc-800"
         />
       )}
     </div>

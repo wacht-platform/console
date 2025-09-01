@@ -41,7 +41,7 @@ import {
   NotificationBell,
 } from "@snipextt/wacht";
 import { setNavigationFunction } from "@/lib/store/project";
-import { AgentPopup } from "./agent-popup";
+// import { AgentPopup } from "./agent-popup";
 import { ProjectDeploymentSelector } from "./project-deployment-selector";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { ProjectWithDeployments } from "@/types/project";
@@ -656,7 +656,7 @@ export function ApplicationLayout() {
         onClose={() => setIsBillingSetupDialogOpen(false)}
         onSuccess={handleBillingSetupSuccess}
       />
-      <AgentPopup />
+      {/*<AgentPopup />*/}
     </>
   );
 }

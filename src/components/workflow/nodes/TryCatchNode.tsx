@@ -23,8 +23,8 @@ const TryCatchNode = memo(({ data, selected }: TryCatchNodeProps) => {
 
   return (
     <div
-      className={`relative shadow-xl rounded-2xl bg-gradient-to-br from-yellow-50 to-amber-50 border-3 min-w-[520px] min-h-[420px] transition-all duration-300 hover:shadow-2xl ${
-        selected ? "border-yellow-500 ring-4 ring-yellow-200" : "border-yellow-400 hover:border-yellow-500"
+      className={`relative shadow-xl rounded-2xl bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border-3 min-w-[520px] min-h-[420px] transition-all duration-300 hover:shadow-2xl ${
+        selected ? "border-yellow-500 ring-4 ring-yellow-200 dark:ring-yellow-800" : "border-yellow-400 hover:border-yellow-500 dark:border-yellow-600 dark:hover:border-yellow-500"
       }`}
       style={{ zIndex: 0 }}
       data-node-type="try-catch"
@@ -46,15 +46,15 @@ const TryCatchNode = memo(({ data, selected }: TryCatchNodeProps) => {
       />
 
       {/* Enhanced Header */}
-      <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-yellow-100 to-amber-100 border-b-2 border-yellow-300 px-6 py-4 rounded-t-2xl z-10 shadow-sm">
+      <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-yellow-100 to-amber-100 dark:from-yellow-900/30 dark:to-amber-900/30 border-b-2 border-yellow-300 dark:border-yellow-700 px-6 py-4 rounded-t-2xl z-10 shadow-sm">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center shadow-md">
               <ExclamationTriangleIcon className="w-4 h-4 text-white" />
             </div>
             <div>
-              <div className="font-semibold text-gray-900 text-sm">{data.label}</div>
-              <div className="text-xs text-yellow-600 font-medium">TRY/CATCH CONTAINER</div>
+              <div className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{data.label}</div>
+              <div className="text-xs text-yellow-600 dark:text-yellow-400 font-medium">TRY/CATCH CONTAINER</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -99,15 +99,15 @@ const TryCatchNode = memo(({ data, selected }: TryCatchNodeProps) => {
 
       {/* Enhanced Container Drop Zone */}
       <div
-        className="absolute top-24 left-8 right-8 bottom-24 border-4 border-dashed border-yellow-400 rounded-2xl bg-gradient-to-br from-yellow-25 to-amber-25 flex items-center justify-center hover:border-yellow-500 hover:from-yellow-50 hover:to-amber-50 transition-all duration-300 shadow-inner"
+        className="absolute top-24 left-8 right-8 bottom-24 border-4 border-dashed border-yellow-400 dark:border-yellow-600 rounded-2xl bg-gradient-to-br from-yellow-25 to-amber-25 dark:from-yellow-900/10 dark:to-amber-900/10 flex items-center justify-center hover:border-yellow-500 hover:from-yellow-50 hover:to-amber-50 dark:hover:from-yellow-900/20 dark:hover:to-amber-900/20 transition-all duration-300 shadow-inner"
         style={{ zIndex: 1 }}
       >
         {containedNodesCount === 0 ? (
-          <div className="text-center text-yellow-600 pointer-events-none p-8">
+          <div className="text-center text-yellow-600 dark:text-yellow-400 pointer-events-none p-8">
             <div className="w-16 h-16 bg-gradient-to-br from-yellow-200 to-amber-200 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
               <PlusIcon className="w-8 h-8 text-yellow-700" />
             </div>
-            <div className="text-xl font-bold mb-3 text-gray-800">Error Protection Zone</div>
+            <div className="text-xl font-bold mb-3 text-gray-800 dark:text-gray-200">Error Protection Zone</div>
             <div className="text-sm opacity-90 mb-2 leading-relaxed">Drop <strong>one workflow node</strong> here to protect it</div>
             <div className="text-sm opacity-90 mb-6 leading-relaxed">with advanced error handling and retry logic</div>
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-200 to-amber-200 rounded-xl px-4 py-3 shadow-md">
@@ -119,11 +119,11 @@ const TryCatchNode = memo(({ data, selected }: TryCatchNodeProps) => {
             </div>
           </div>
         ) : (
-          <div className="text-center text-yellow-700 pointer-events-none p-8">
+          <div className="text-center text-yellow-700 dark:text-yellow-300 pointer-events-none p-8">
             <div className="w-16 h-16 bg-gradient-to-br from-green-200 to-emerald-200 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
               <ExclamationTriangleIcon className="w-8 h-8 text-green-700" />
             </div>
-            <div className="text-xl font-bold mb-3 text-gray-800">Node Protected</div>
+            <div className="text-xl font-bold mb-3 text-gray-800 dark:text-gray-200">Node Protected</div>
             <div className="text-sm opacity-90 mb-2 leading-relaxed">Error handling and retry logic are <strong>active</strong></div>
             <div className="text-sm opacity-90 mb-6 leading-relaxed">Your workflow node is safely protected</div>
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-200 to-emerald-200 rounded-xl px-4 py-3 shadow-md">

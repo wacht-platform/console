@@ -14,6 +14,7 @@ import { toast } from "sonner";
 
 import DiscordIcon from "@/assets/discord.svg";
 import GithubIcon from "@/assets/github.svg";
+import GitlabIcon from "@/assets/gitlab.svg";
 import GoogleIcon from "@/assets/google.svg";
 import LinkedInIcon from "@/assets/linkedin.svg";
 import MicrosoftIcon from "@/assets/microsoft.svg";
@@ -370,6 +371,11 @@ const PROVIDERS: {
     name: "GitHub",
     icon: GithubIcon,
     provider: SocialConnectionProvider.GithubOauth,
+  },
+  {
+    name: "GitLab",
+    icon: GitlabIcon,
+    provider: SocialConnectionProvider.GitlabOauth,
   },
   {
     name: "Microsoft",
