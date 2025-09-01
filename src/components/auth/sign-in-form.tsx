@@ -37,9 +37,6 @@ const socialAuthProviders = {
 		fullLabel: "Continue with GitHub",
 		icon: GithubIcon,
 	},
-		fullLabel: "Continue with Apple",
-		icon: AppleIcon,
-	},
 	discord: {
 		shortLabel: "Discord",
 		fullLabel: "Continue with Discord",
