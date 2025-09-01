@@ -2,8 +2,6 @@
 import GoogleIcon from "@/assets/google.svg";
 import MicrosoftIcon from "@/assets/microsoft.svg";
 import GithubIcon from "@/assets/github.svg";
-import FacebookIcon from "@/assets/facebook.svg";
-import AppleIcon from "@/assets/apple.svg";
 import DiscordIcon from "@/assets/discord.svg";
 import LinkedInIcon from "@/assets/linkedin.svg";
 
@@ -12,8 +10,6 @@ type AuthMethod =
 	| "phone"
 	| "username"
 	| "google"
-	| "apple"
-	| "facebook"
 	| "github"
 	| "microsoft"
 	| "discord"
@@ -41,13 +37,6 @@ const socialAuthProviders = {
 		fullLabel: "Continue with GitHub",
 		icon: GithubIcon,
 	},
-	facebook: {
-		shortLabel: "Facebook",
-		fullLabel: "Continue with Facebook",
-		icon: FacebookIcon,
-	},
-	apple: {
-		shortLabel: "Apple",
 		fullLabel: "Continue with Apple",
 		icon: AppleIcon,
 	},

@@ -326,15 +326,12 @@ export interface Deployment {
 }
 
 export enum SocialConnectionProvider {
-	XOauth = "x_oauth",
 	GithubOauth = "github_oauth",
 	GitlabOauth = "gitlab_oauth",
 	GoogleOauth = "google_oauth",
-	FacebookOauth = "facebook_oauth",
 	MicrosoftOauth = "microsoft_oauth",
 	LinkedinOauth = "linkedin_oauth",
 	DiscordOauth = "discord_oauth",
-	AppleOauth = "apple_oauth",
 }
 
 export interface DeploymentSocialConnection {

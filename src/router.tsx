@@ -67,8 +67,8 @@ const WebhookDeliveryDetailsPage = lazy(
 );
 const WebhookAnalyticsPage = lazy(() => import("./pages/webhooks/analytics"));
 const ApiKeysPage = lazy(() => import("./pages/api-keys"));
-const BillingPage = lazy(() => import("./pages/billing"));
-const BillingSuccessPage = lazy(() => import("./pages/billing/success"));
+// const BillingPage = lazy(() => import("./pages/billing"));
+// const BillingSuccessPage = lazy(() => import("./pages/billing/success"));
 
 export const router = createBrowserRouter([
   {
@@ -120,22 +120,22 @@ export const router = createBrowserRouter([
           },
         ],
       },
-      {
-        path: "billing",
-        element: (
-          <Suspense fallback={<SimpleFallback />}>
-            <BillingPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "billing/success",
-        element: (
-          <Suspense fallback={<SimpleFallback />}>
-            <BillingSuccessPage />
-          </Suspense>
-        ),
-      },
+      // {
+      //   path: "billing",
+      //   element: (
+      //     <Suspense fallback={<SimpleFallback />}>
+      //       <BillingPage />
+      //     </Suspense>
+      //   ),
+      // },
+      // {
+      //   path: "billing/success",
+      //   element: (
+      //     <Suspense fallback={<SimpleFallback />}>
+      //       <BillingSuccessPage />
+      //     </Suspense>
+      //   ),
+      // },
       {
         path: "user/:id",
         element: (

@@ -169,12 +169,12 @@ export function ApplicationLayout() {
       icon: KeyIcon,
       current: pathname.includes("/api-keys"),
     },
-    {
-      name: "Billing",
-      href: createNavigationLink("billing"),
-      icon: CreditCardIcon,
-      current: pathname.includes("/billing"),
-    },
+    // {
+    //   name: "Billing",
+    //   href: createNavigationLink("billing"),
+    //   icon: CreditCardIcon,
+    //   current: pathname.includes("/billing"),
+    // },
   ];
 
   const sidebarSections = [

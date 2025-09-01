@@ -42,7 +42,7 @@ import {
 
 export default function UserDetailsPage() {
 
-  const { id } = useParams();
+  const { id, projectId, deploymentId } = useParams();
   const userId = id;
   const navigate = useNavigate();
   const isDarkMode = useDarkMode();
@@ -266,7 +266,7 @@ export default function UserDetailsPage() {
             await deleteUser(deleteItem.id);
             console.log("User deleted successfully");
             // Navigate back to users list after successful deletion
-            navigate("/users");
+            navigate(`/project/${projectId}/deployment/${deploymentId}/users`);
             break;
           default:
             console.error("Unknown delete type:", deleteItem.type);

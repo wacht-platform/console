@@ -5,9 +5,7 @@ import {
 	DevicePhoneMobileIcon,
 	UserCircleIcon,
 } from "@heroicons/react/24/outline";
-import AppleIcon from "@/assets/apple.svg";
 import DiscordIcon from "@/assets/discord.svg";
-import FacebookIcon from "@/assets/facebook.svg";
 import GithubIcon from "@/assets/github.svg";
 import GitlabIcon from "@/assets/gitlab.svg";
 import GoogleIcon from "@/assets/google.svg";
@@ -140,15 +138,6 @@ export function CreateStagingDeploymentDialog({
 							/>
 
 							<AuthMethodItem
-								method="apple_oauth"
-								icon={<img src={AppleIcon} alt="Apple" className="h-5 w-5" />}
-								label="Apple"
-								description="Allow users to sign in with Apple"
-								selected={selectedMethods.includes("apple_oauth")}
-								onClick={() => toggleAuthMethod("apple_oauth")}
-							/>
-
-							<AuthMethodItem
 								method="microsoft_oauth"
 								icon={
 									<img
@@ -196,17 +185,6 @@ export function CreateStagingDeploymentDialog({
 								description="Allow users to sign in with GitHub"
 								selected={selectedMethods.includes("github_oauth")}
 								onClick={() => toggleAuthMethod("github_oauth")}
-							/>
-
-							<AuthMethodItem
-								method="facebook_oauth"
-								icon={
-									<img src={FacebookIcon} alt="Facebook" className="h-5 w-5" />
-								}
-								label="Facebook"
-								description="Allow users to sign in with Facebook"
-								selected={selectedMethods.includes("facebook_oauth")}
-								onClick={() => toggleAuthMethod("facebook_oauth")}
 							/>
 
 							<AuthMethodItem

@@ -10,15 +10,12 @@ import { Dialog, DialogActions } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/fieldset";
 import { Field } from "@/components/ui/fieldset";
 import { Switch } from "@/components/ui/switch";
-import AppleIcon from "@/assets/apple.svg";
 import DiscordIcon from "@/assets/discord.svg";
-import FacebookIcon from "@/assets/facebook.svg";
 import GithubIcon from "@/assets/github.svg";
 import GitlabIcon from "@/assets/gitlab.svg";
 import GoogleIcon from "@/assets/google.svg";
 import LinkedInIcon from "@/assets/linkedin.svg";
 import MicrosoftIcon from "@/assets/microsoft.svg";
-import XIcon from "@/assets/x.svg";
 import { Button } from "./ui/button";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 
@@ -27,14 +24,11 @@ type AuthMethod =
 	| "phone"
 	| "username"
 	| "google_oauth"
-	| "apple_oauth"
-	| "facebook_oauth"
 	| "microsoft_oauth"
 	| "linkedin_oauth"
 	| "discord_oauth"
 	| "github_oauth"
-	| "gitlab_oauth"
-	| "x_oauth";
+	| "gitlab_oauth";
 
 interface CreateProjectDialogProps {
 	open: boolean;
@@ -180,15 +174,6 @@ export function CreateProjectDialog({
 							/>
 
 							<AuthMethodItem
-								method="apple_oauth"
-								icon={<img src={AppleIcon} alt="Apple" className="h-5 w-5" />}
-								label="Apple"
-								description="Allow users to sign in with Apple"
-								selected={selectedMethods.includes("apple_oauth")}
-								onClick={() => toggleAuthMethod("apple_oauth")}
-							/>
-
-							<AuthMethodItem
 								method="microsoft_oauth"
 								icon={
 									<img
@@ -235,32 +220,12 @@ export function CreateProjectDialog({
 							/>
 
 							<AuthMethodItem
-								method="facebook_oauth"
-								icon={
-									<img src={FacebookIcon} alt="Facebook" className="h-5 w-5" />
-								}
-								label="Facebook"
-								description="Allow users to sign in with Facebook"
-								selected={selectedMethods.includes("facebook_oauth")}
-								onClick={() => toggleAuthMethod("facebook_oauth")}
-							/>
-
-							<AuthMethodItem
 								method="gitlab_oauth"
 								icon={<img src={GitlabIcon} alt="GitLab" className="h-5 w-5" />}
 								label="GitLab"
 								description="Allow users to sign in with GitLab"
 								selected={selectedMethods.includes("gitlab_oauth")}
 								onClick={() => toggleAuthMethod("gitlab_oauth")}
-							/>
-
-							<AuthMethodItem
-								method="x_oauth"
-								icon={<img src={XIcon} alt="X" className="h-5 w-5" />}
-								label="X (Twitter)"
-								description="Allow users to sign in with X"
-								selected={selectedMethods.includes("x_oauth")}
-								onClick={() => toggleAuthMethod("x_oauth")}
 							/>
 						</div>
 					</div>

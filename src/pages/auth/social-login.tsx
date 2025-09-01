@@ -12,9 +12,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import AppleIcon from "@/assets/apple.svg";
 import DiscordIcon from "@/assets/discord.svg";
-import FacebookIcon from "@/assets/facebook.svg";
 import GithubIcon from "@/assets/github.svg";
 import GoogleIcon from "@/assets/google.svg";
 import LinkedInIcon from "@/assets/linkedin.svg";
@@ -372,16 +370,6 @@ const PROVIDERS: {
     name: "GitHub",
     icon: GithubIcon,
     provider: SocialConnectionProvider.GithubOauth,
-  },
-  {
-    name: "Facebook",
-    icon: FacebookIcon,
-    provider: SocialConnectionProvider.FacebookOauth,
-  },
-  {
-    name: "Apple",
-    icon: AppleIcon,
-    provider: SocialConnectionProvider.AppleOauth,
   },
   {
     name: "Microsoft",
