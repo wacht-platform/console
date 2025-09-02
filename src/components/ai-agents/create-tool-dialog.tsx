@@ -313,9 +313,9 @@ export function CreateToolDialog({
               </Field>
             </div>
 
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg py-4">
+            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg py-4 border border-gray-200 dark:border-gray-800">
               <div className="flex items-center justify-between px-4">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   Authorize as user
                 </label>
                 <Switch
@@ -373,7 +373,7 @@ export function CreateToolDialog({
             {/* URL Parameters Schema */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   URL & Query Parameters
                 </label>
                 <button
@@ -396,22 +396,22 @@ export function CreateToolDialog({
                       },
                     });
                   }}
-                  className="text-blue-600 hover:text-blue-800 text-sm"
+                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
                 >
                   + Add Parameter
                 </button>
               </div>
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {(apiConfig.url_params_schema || []).length === 0 && (
-                  <div className="text-xs text-gray-500 italic p-2 text-center bg-gray-50 rounded">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 italic p-2 text-center bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-800">
                     No parameters defined. Click "Add Parameter" to add URL path or query parameters.
                   </div>
                 )}
                 {(apiConfig.url_params_schema || []).map((param, index) => (
-                  <div key={index} className="p-2 bg-gray-50 rounded">
+                  <div key={index} className="p-2 bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-800">
                     <div className="flex gap-2 items-center">
                       <div className="flex-1">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                           Parameter Name
                         </label>
                         <Input
@@ -436,7 +436,7 @@ export function CreateToolDialog({
                         />
                       </div>
                       <div className="w-24">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                           Type
                         </label>
                         <Select
@@ -464,7 +464,7 @@ export function CreateToolDialog({
                         </Select>
                       </div>
                       <div className="w-16 flex flex-col">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                           Required
                         </label>
                         <div className="flex items-center justify-center h-9">
@@ -507,7 +507,7 @@ export function CreateToolDialog({
                                 },
                               });
                             }}
-                            className="text-red-500 hover:text-red-700 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50"
+                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50 dark:hover:bg-red-900/20"
                           >
                             ×
                           </button>
@@ -523,7 +523,7 @@ export function CreateToolDialog({
             {/* Request Body Schema */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Request Body Schema
                 </label>
                 <button
@@ -546,22 +546,22 @@ export function CreateToolDialog({
                       },
                     });
                   }}
-                  className="text-blue-600 hover:text-blue-800 text-sm"
+                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
                 >
                   + Add Body Field
                 </button>
               </div>
               <div className="space-y-2 max-h-40 overflow-y-auto">
                 {(apiConfig.request_body_schema || []).length === 0 && (
-                  <div className="text-xs text-gray-500 italic p-2 text-center bg-gray-50 rounded">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 italic p-2 text-center bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-800">
                     No body fields defined. Click "Add Body Field" to add one.
                   </div>
                 )}
                 {(apiConfig.request_body_schema || []).map((field, index) => (
-                  <div key={index} className="p-2 bg-gray-50 rounded">
+                  <div key={index} className="p-2 bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-800">
                     <div className="flex gap-2 items-center">
                       <div className="flex-1">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                           JSON Key Name
                         </label>
                         <Input
@@ -586,7 +586,7 @@ export function CreateToolDialog({
                         />
                       </div>
                       <div className="w-24">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                           Type
                         </label>
                         <Select
@@ -616,7 +616,7 @@ export function CreateToolDialog({
                         </Select>
                       </div>
                       <div className="w-16 flex flex-col">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                           Required
                         </label>
                         <div className="flex items-center justify-center h-9">
@@ -659,7 +659,7 @@ export function CreateToolDialog({
                                 },
                               });
                             }}
-                            className="text-red-500 hover:text-red-700 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50"
+                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50 dark:hover:bg-red-900/20"
                           >
                             ×
                           </button>
@@ -690,13 +690,13 @@ export function CreateToolDialog({
               <Field>
                 <Label>Knowledge Bases</Label>
                 <div className="space-y-2">
-                  <div className="text-sm text-gray-600">Select one or more knowledge bases to search</div>
-                  <div className="max-h-32 overflow-y-auto border rounded-md p-2 bg-white">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Select one or more knowledge bases to search</div>
+                  <div className="max-h-32 overflow-y-auto border border-gray-300 dark:border-gray-700 rounded-md p-2 bg-white dark:bg-gray-900">
                     {knowledgeBases.length === 0 ? (
-                      <div className="text-sm text-gray-500 italic">No knowledge bases available</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400 italic">No knowledge bases available</div>
                     ) : (
                       knowledgeBases.map((kb) => (
-                        <label key={kb.id} className="flex items-center space-x-2 py-1 hover:bg-gray-50 px-1 rounded cursor-pointer">
+                        <label key={kb.id} className="flex items-center space-x-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-800 px-1 rounded cursor-pointer">
                           <input
                             type="checkbox"
                             checked={(kbConfig.knowledge_base_ids || []).includes(kb.id.toString())}
@@ -775,9 +775,9 @@ export function CreateToolDialog({
               </Field>
             </div>
 
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg py-4">
+            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg py-4 border border-gray-200 dark:border-gray-800">
               <div className="flex items-center justify-between px-4">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   Include metadata
                 </label>
                 <Switch
@@ -797,7 +797,7 @@ export function CreateToolDialog({
                 />
               </div>
               <div className="flex items-center justify-between px-4 pt-4">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   Sort by relevance
                 </label>
                 <Switch
@@ -916,7 +916,7 @@ export function CreateToolDialog({
             {/* Input Parameters Schema */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Input Parameters
                 </label>
                 <button
@@ -939,23 +939,23 @@ export function CreateToolDialog({
                       },
                     });
                   }}
-                  className="text-blue-600 hover:text-blue-800 text-sm"
+                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
                 >
                   + Add Input Parameter
                 </button>
               </div>
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {(functionConfig.input_schema || []).length === 0 && (
-                  <div className="text-xs text-gray-500 italic p-2 text-center bg-gray-50 rounded">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 italic p-2 text-center bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-800">
                     No input parameters defined. Click "Add Input Parameter" to
                     add one.
                   </div>
                 )}
                 {(functionConfig.input_schema || []).map((param, index) => (
-                  <div key={index} className="p-2 bg-gray-50 rounded">
+                  <div key={index} className="p-2 bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-800">
                     <div className="flex gap-2 items-center">
                       <div className="flex-1">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                           Parameter Name
                         </label>
                         <Input
@@ -980,7 +980,7 @@ export function CreateToolDialog({
                         />
                       </div>
                       <div className="w-24">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                           Type
                         </label>
                         <Select
@@ -1010,7 +1010,7 @@ export function CreateToolDialog({
                         </Select>
                       </div>
                       <div className="w-16 flex flex-col">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                           Required
                         </label>
                         <div className="flex items-center justify-center h-9">
@@ -1053,7 +1053,7 @@ export function CreateToolDialog({
                                 },
                               });
                             }}
-                            className="text-red-500 hover:text-red-700 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50"
+                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50 dark:hover:bg-red-900/20"
                           >
                             ×
                           </button>
@@ -1068,7 +1068,7 @@ export function CreateToolDialog({
             {/* Output Parameters Schema */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Output Parameters
                 </label>
                 <button
@@ -1091,23 +1091,23 @@ export function CreateToolDialog({
                       },
                     });
                   }}
-                  className="text-blue-600 hover:text-blue-800 text-sm"
+                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
                 >
                   + Add Output Parameter
                 </button>
               </div>
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {(functionConfig.output_schema || []).length === 0 && (
-                  <div className="text-xs text-gray-500 italic p-2 text-center bg-gray-50 rounded">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 italic p-2 text-center bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-800">
                     No output parameters defined. Click "Add Output Parameter"
                     to add one.
                   </div>
                 )}
                 {(functionConfig.output_schema || []).map((param, index) => (
-                  <div key={index} className="p-2 bg-gray-50 rounded">
+                  <div key={index} className="p-2 bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-800">
                     <div className="flex gap-2 items-center">
                       <div className="flex-1">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                           Parameter Name
                         </label>
                         <Input
@@ -1132,7 +1132,7 @@ export function CreateToolDialog({
                         />
                       </div>
                       <div className="w-24">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                           Type
                         </label>
                         <Select
@@ -1162,7 +1162,7 @@ export function CreateToolDialog({
                         </Select>
                       </div>
                       <div className="w-16 flex flex-col">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                           Required
                         </label>
                         <div className="flex items-center justify-center h-9">
@@ -1205,7 +1205,7 @@ export function CreateToolDialog({
                                 },
                               });
                             }}
-                            className="text-red-500 hover:text-red-700 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50"
+                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50 dark:hover:bg-red-900/20"
                           >
                             ×
                           </button>
@@ -1235,11 +1235,11 @@ export function CreateToolDialog({
       <form onSubmit={handleSubmit}>
         <DialogBody>
           {validationErrors.length > 0 && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <h4 className="text-sm font-medium text-red-800 mb-2">
+            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+              <h4 className="text-sm font-medium text-red-800 dark:text-red-300 mb-2">
                 Please fix the following errors:
               </h4>
-              <ul className="text-sm text-red-700 space-y-1">
+              <ul className="text-sm text-red-700 dark:text-red-400 space-y-1">
                 {validationErrors.map((error, index) => (
                   <li key={index} className="flex items-start">
                     <span className="mr-2">•</span>
