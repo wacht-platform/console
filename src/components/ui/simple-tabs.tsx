@@ -12,11 +12,13 @@ export const Tab: React.FC<TabProps> = ({ children }) => {
 interface TabsProps {
   children: ReactNode;
   defaultTab?: number;
+  onChange?: (index: number) => void;
 }
 
 export const SimpleTabs: React.FC<TabsProps> = ({
   children,
   defaultTab = 0,
+  onChange,
 }) => {
   const [activeTab, setActiveTab] = useState(defaultTab);
 
@@ -38,7 +40,10 @@ export const SimpleTabs: React.FC<TabsProps> = ({
                 ? "text-blue-600 dark:text-blue-400"
                 : "text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
             }`}
-            onClick={() => setActiveTab(index)}
+            onClick={() => {
+              setActiveTab(index);
+              onChange?.(index);
+            }}
             style={{
               marginBottom: "-1px", // Align the border with the bottom border
             }}

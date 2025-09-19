@@ -14,6 +14,9 @@ import { useUpdateDeploymentB2bSettings } from "@/lib/api/hooks/use-update-deplo
 import { useDeploymentOrgRoles } from "@/lib/api/hooks/use-deployment-org-roles";
 import SavePopup from "@/components/save-popup";
 import { DeploymentB2bSettings } from "@/types/deployment";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 interface B2BSettingsState {
   organizations_enabled: boolean;
@@ -27,6 +30,7 @@ interface B2BSettingsState {
   org_creation_per_user_count: number | string;
   custom_org_role_enabled: boolean;
   ip_allowlist_per_org_enabled: boolean;
+  organization_permissions: string[];
 }
 
 const initialSettingsState: B2BSettingsState = {
@@ -41,6 +45,7 @@ const initialSettingsState: B2BSettingsState = {
   org_creation_per_user_count: "",
   custom_org_role_enabled: false,
   ip_allowlist_per_org_enabled: false,
+  organization_permissions: [],
 };
 
 export default function ManageOrganizationsPage() {
@@ -57,6 +62,7 @@ export default function ManageOrganizationsPage() {
     useState<B2BSettingsState>(initialSettingsState);
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [newPermission, setNewPermission] = useState("");
 
   const populateSettings = useCallback((b2bSettings: DeploymentB2bSettings) => {
     setSettingsState({
@@ -86,6 +92,7 @@ export default function ManageOrganizationsPage() {
       custom_org_role_enabled: b2bSettings.custom_org_role_enabled ?? false,
       ip_allowlist_per_org_enabled:
         b2bSettings.ip_allowlist_per_org_enabled ?? false,
+      organization_permissions: b2bSettings.organization_permissions ?? [],
     });
   }, []);
 
@@ -334,6 +341,79 @@ export default function ManageOrganizationsPage() {
                     </Select>
                   </div>
                 </section>
+
+                <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
+                  <div className="space-y-1">
+                    <Subheading>
+                      <Strong>Available Permissions</Strong>
+                    </Subheading>
+                    <Text>
+                      Define the permissions that can be assigned to organization roles.
+                      These permissions will be available when creating custom roles.
+                    </Text>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        placeholder="e.g., organization:billing"
+                        value={newPermission}
+                        onChange={(e) => setNewPermission(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const permission = newPermission.trim();
+                            if (permission && !settingsState.organization_permissions.includes(permission)) {
+                              handleSettingChange("organization_permissions", [...settingsState.organization_permissions, permission]);
+                              setNewPermission("");
+                            }
+                          }
+                        }}
+                        className="flex-1"
+                      />
+                      <Button 
+                        onClick={() => {
+                          const permission = newPermission.trim();
+                          if (permission && !settingsState.organization_permissions.includes(permission)) {
+                            handleSettingChange("organization_permissions", [...settingsState.organization_permissions, permission]);
+                            setNewPermission("");
+                          }
+                        }}
+                        outline
+                      >
+                        <PlusIcon className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {settingsState.organization_permissions.length === 0 ? (
+                        <span className="text-sm text-gray-500 dark:text-gray-400 italic">
+                          No permissions configured
+                        </span>
+                      ) : (
+                        settingsState.organization_permissions.map((permission) => (
+                          <Badge 
+                            key={permission} 
+                            color="blue"
+                            className="flex items-center gap-1"
+                          >
+                            {permission}
+                            <button
+                              onClick={() => {
+                                handleSettingChange(
+                                  "organization_permissions", 
+                                  settingsState.organization_permissions.filter(p => p !== permission)
+                                );
+                              }}
+                              className="ml-1 hover:text-red-500"
+                            >
+                              <XMarkIcon className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </section>
               </div>
 
               <Divider className="my-10" soft />
@@ -484,6 +564,7 @@ export default function ManageOrganizationsPage() {
                   />
                 </div>
               </section>
+
             </div>
           </div>
         </div>

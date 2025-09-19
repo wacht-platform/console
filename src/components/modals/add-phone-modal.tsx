@@ -16,7 +16,7 @@ interface AddPhoneModalProps {
   onSubmit: (
     phoneNumber: string,
     verified: boolean,
-    isPrimary: boolean
+    isPrimary: boolean,
   ) => void;
 }
 

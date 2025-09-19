@@ -14,6 +14,9 @@ import { useUpdateDeploymentB2bSettings } from "@/lib/api/hooks/use-update-deplo
 import { useDeploymentWorkspaceRoles } from "@/lib/api/hooks/use-deployment-workspace-roles";
 import SavePopup from "@/components/save-popup";
 import { DeploymentB2bSettings } from "@/types/deployment";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 interface WorkspaceSettingsState {
   workspaces_enabled: boolean;
@@ -27,6 +30,7 @@ interface WorkspaceSettingsState {
   ip_allowlist_per_workspace_enabled: boolean;
   custom_workspace_role_enabled: boolean;
   default_workspace_creator_role_id: string;
+  workspace_permissions: string[];
 }
 
 const initialSettingsState: WorkspaceSettingsState = {
@@ -41,6 +45,7 @@ const initialSettingsState: WorkspaceSettingsState = {
   ip_allowlist_per_workspace_enabled: false,
   custom_workspace_role_enabled: false,
   default_workspace_creator_role_id: "",
+  workspace_permissions: [],
 };
 
 export default function ManageWorkspacesPage() {
@@ -57,6 +62,7 @@ export default function ManageWorkspacesPage() {
     useState<WorkspaceSettingsState>(initialSettingsState);
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [newPermission, setNewPermission] = useState("");
 
   // Populate state from API data
   const populateSettings = useCallback((b2bSettings: DeploymentB2bSettings) => {
@@ -92,6 +98,7 @@ export default function ManageWorkspacesPage() {
         b2bSettings.custom_workspace_role_enabled ?? false,
       default_workspace_creator_role_id:
         b2bSettings.default_workspace_creator_role?.id ?? "",
+      workspace_permissions: b2bSettings.workspace_permissions ?? [],
     });
   }, []);
 
@@ -330,6 +337,79 @@ export default function ManageWorkspacesPage() {
                           </option>
                         ))}
                     </Select>
+                  </div>
+                </section>
+
+                <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
+                  <div className="space-y-1">
+                    <Subheading>
+                      <Strong>Available Permissions</Strong>
+                    </Subheading>
+                    <Text>
+                      Define the permissions that can be assigned to workspace roles.
+                      These permissions will be available when creating custom roles.
+                    </Text>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        placeholder="e.g., workspace:deploy"
+                        value={newPermission}
+                        onChange={(e) => setNewPermission(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const permission = newPermission.trim();
+                            if (permission && !settingsState.workspace_permissions.includes(permission)) {
+                              handleSettingChange("workspace_permissions", [...settingsState.workspace_permissions, permission]);
+                              setNewPermission("");
+                            }
+                          }
+                        }}
+                        className="flex-1"
+                      />
+                      <Button 
+                        onClick={() => {
+                          const permission = newPermission.trim();
+                          if (permission && !settingsState.workspace_permissions.includes(permission)) {
+                            handleSettingChange("workspace_permissions", [...settingsState.workspace_permissions, permission]);
+                            setNewPermission("");
+                          }
+                        }}
+                        outline
+                      >
+                        <PlusIcon className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {settingsState.workspace_permissions.length === 0 ? (
+                        <span className="text-sm text-gray-500 dark:text-gray-400 italic">
+                          No permissions configured
+                        </span>
+                      ) : (
+                        settingsState.workspace_permissions.map((permission) => (
+                          <Badge 
+                            key={permission} 
+                            color="green"
+                            className="flex items-center gap-1"
+                          >
+                            {permission}
+                            <button
+                              onClick={() => {
+                                handleSettingChange(
+                                  "workspace_permissions", 
+                                  settingsState.workspace_permissions.filter(p => p !== permission)
+                                );
+                              }}
+                              className="ml-1 hover:text-red-500"
+                            >
+                              <XMarkIcon className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))
+                      )}
+                    </div>
                   </div>
                 </section>
               </div>

@@ -20,6 +20,8 @@ interface B2bSettingsUpdate {
     allow_users_to_create_orgs?: boolean;
     limit_org_creation_per_user?: boolean;
     org_creation_per_user_count?: number;
+    workspace_permissions?: string[];
+    organization_permissions?: string[];
 }
 
 async function updateDeploymentB2bSettings(

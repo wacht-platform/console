@@ -1,7 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { DeploymentProvider } from "@snipextt/wacht";
-import { createReactRouterAdapter } from "@snipextt/wacht-react-router";
+import { DeploymentProvider } from "@snipextt/wacht-react-router";
 import "./index.css";
 import App from "./App.tsx";
 
@@ -14,7 +13,6 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <DeploymentProvider
       publicKey={import.meta.env.VITE_WACHT_PUBLISHABLE_KEY}
-      adapter={createReactRouterAdapter()}
     >
       <App />
     </DeploymentProvider>

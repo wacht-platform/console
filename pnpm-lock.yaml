@@ -17,12 +17,9 @@ importers:
       '@monaco-editor/react':
         specifier: ^4.7.0
         version: 4.7.0(monaco-editor@0.52.2)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@snipextt/wacht':
-        specifier: 0.0.1-alpha.59
-        version: 0.0.1-alpha.59(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1)
       '@snipextt/wacht-react-router':
-        specifier: 0.0.1-alpha.2
-        version: 0.0.1-alpha.2(@snipextt/wacht@0.0.1-alpha.59(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1))(react-dom@19.0.0(react@19.0.0))(react-router@7.1.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)(rollup@4.32.1)
+        specifier: 0.0.1-alpha.5
+        version: 0.0.1-alpha.5(@snipextt/wacht@0.0.1-alpha.68(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1))(react-dom@19.0.0(react@19.0.0))(react-router@7.1.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)(rollup@4.32.1)
       '@tailwindcss/vite':
         specifier: ^4.0.1
         version: 4.0.1(vite@6.0.11(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(sass-embedded@1.86.3))
@@ -598,19 +595,19 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@snipextt/wacht-react-router@0.0.1-alpha.2':
-    resolution: {integrity: sha512-yzq1Ob/gOyqanU9y82KTMwZAKdsmOaAxosWTs3nvSX2myg6vjtU+4morKEvuNiUVo2BgNeshUubs+ZOypNrtLw==}
+  '@snipextt/wacht-react-router@0.0.1-alpha.5':
+    resolution: {integrity: sha512-LLh/HX+IrWwv0nC4L2p3HOLJufXmy6lcXEu6p5q4zlqdXU1xklsJL1ANOsdrYEev2gSXy0gALZ9DmXKwhzy4OQ==}
     peerDependencies:
-      '@snipextt/wacht': 0.0.1-alpha.54
+      '@snipextt/wacht': 0.0.1-alpha.68
       react: ^19.0.0
       react-dom: ^19.0.0
       react-router: ^7.0.0
 
-  '@snipextt/wacht-types@0.0.1':
-    resolution: {integrity: sha512-NWxh47Xou0hMr1mga1YJPRwL7gnTo/5/eAPVm2LFUHtCXpAhWG3nk++Wl8Q1vlUB7suExd05REVKvWX49wcsig==}
+  '@snipextt/wacht-types@0.0.4':
+    resolution: {integrity: sha512-ZtJqlTqfjsdUywij2H7fBUXmBturRWwtZc1RA5gqrFAN3k7nSoGjE+DUt9zElDMMpbZ3ZsjB0u2WRJ1DkhPStA==}
 
-  '@snipextt/wacht@0.0.1-alpha.59':
-    resolution: {integrity: sha512-VjPZXkLc+D4iIgaABRjJqFNnS0gTC0XgZfmz0cupha/2mxqNAK0qW2jjxUcVSOYhED9ZV3Qdpj+8dhdHH5ShrQ==}
+  '@snipextt/wacht@0.0.1-alpha.68':
+    resolution: {integrity: sha512-cJysSjDNvdZ0UOTGTZQ0rrkSJgX9DFFTM+djMGnUjJFX/8/LcLcAOr+n06SeX3AloDzHUgs5rTspMSrNu+mK9Q==}
     peerDependencies:
       react: ^19.0.0
       react-dom: ^19.0.0
@@ -2487,9 +2484,9 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.32.1':
     optional: true
 
-  '@snipextt/wacht-react-router@0.0.1-alpha.2(@snipextt/wacht@0.0.1-alpha.59(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1))(react-dom@19.0.0(react@19.0.0))(react-router@7.1.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)(rollup@4.32.1)':
+  '@snipextt/wacht-react-router@0.0.1-alpha.5(@snipextt/wacht@0.0.1-alpha.68(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1))(react-dom@19.0.0(react@19.0.0))(react-router@7.1.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)(rollup@4.32.1)':
     dependencies:
-      '@snipextt/wacht': 0.0.1-alpha.59(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1)
+      '@snipextt/wacht': 0.0.1-alpha.68(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1)
       react: 19.0.0
       react-dom: 19.0.0(react@19.0.0)
       react-router: 7.1.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -2497,11 +2494,11 @@ snapshots:
     transitivePeerDependencies:
       - rollup
 
-  '@snipextt/wacht-types@0.0.1': {}
+  '@snipextt/wacht-types@0.0.4': {}
 
-  '@snipextt/wacht@0.0.1-alpha.59(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1)':
+  '@snipextt/wacht@0.0.1-alpha.68(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.32.1)':
     dependencies:
-      '@snipextt/wacht-types': 0.0.1
+      '@snipextt/wacht-types': 0.0.4
       lucide-react: 0.474.0(react@19.0.0)
       qrcode.react: 4.2.0(react@19.0.0)
       react: 19.0.0

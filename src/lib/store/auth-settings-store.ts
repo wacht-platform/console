@@ -1,3 +1,4 @@
+import React from "react";
 import { create } from "zustand";
 import type {
   DeploymentAuthSettings,
@@ -41,6 +42,9 @@ interface AuthSettingsState {
   updatePasskeySettings: (settings: Partial<PasskeySettings>) => void;
   updateSecondFactorPolicy: (
     policy: DeploymentAuthSettings["second_factor_policy"]
+  ) => void;
+  updateFirstFactor: (
+    factor: DeploymentAuthSettings["first_factor"]
   ) => void;
   updateAuthFactorsEnabled: (settings: Partial<AuthFactorsEnabled>) => void;
   updateWeb3WalletSettings: (settings: Partial<IndividualAuthSettings>) => void;
@@ -92,6 +96,7 @@ export const useAuthSettingsStore = create<AuthSettingsState>((set, get) => ({
 
   initializeSettings: (settings) => {
     originalSettings = JSON.parse(JSON.stringify(settings));
+    console.log('Initialized originalSettings:', originalSettings);
     set(() => ({
       settings,
       isLoaded: true,
@@ -233,16 +238,21 @@ export const useAuthSettingsStore = create<AuthSettingsState>((set, get) => ({
   },
 
   updateMagicLinkSettings: (magicLinkSettings) => {
-    set((state) => ({
-      settings: {
-        ...state.settings,
-        magic_link: {
-          ...state.settings.magic_link,
-          ...magicLinkSettings,
-        } as EmailLinkSettings,
-      },
-      isDirty: true,
-    }));
+    console.log('updateMagicLinkSettings called with:', magicLinkSettings);
+    set((state) => {
+      const newMagicLink = {
+        ...state.settings.magic_link,
+        ...magicLinkSettings,
+      } as EmailLinkSettings;
+      console.log('New magic_link state:', newMagicLink);
+      return {
+        settings: {
+          ...state.settings,
+          magic_link: newMagicLink,
+        },
+        isDirty: true,
+      };
+    });
   },
 
   updatePasskeySettings: (passkeySettings) => {
@@ -263,6 +273,16 @@ export const useAuthSettingsStore = create<AuthSettingsState>((set, get) => ({
       settings: {
         ...state.settings,
         second_factor_policy: policy,
+      },
+      isDirty: true,
+    }));
+  },
+
+  updateFirstFactor: (factor) => {
+    set((state) => ({
+      settings: {
+        ...state.settings,
+        first_factor: factor,
       },
       isDirty: true,
     }));
@@ -375,6 +395,16 @@ export const useAuthSettingsStore = create<AuthSettingsState>((set, get) => ({
     const authFactorsPayload: AuthenticationFactorSettings = {};
     let authFactorsHasChanges = false;
 
+    if (areDifferent(["auth_factors_enabled", "email_password"])) {
+      authFactorsPayload.email_password_enabled =
+        currentSettings.auth_factors_enabled?.email_password;
+      authFactorsHasChanges = true;
+    }
+    if (areDifferent(["auth_factors_enabled", "username_password"])) {
+      authFactorsPayload.username_password_enabled =
+        currentSettings.auth_factors_enabled?.username_password;
+      authFactorsHasChanges = true;
+    }
     if (areDifferent(["auth_factors_enabled", "sso"])) {
       authFactorsPayload.sso_enabled =
         currentSettings.auth_factors_enabled?.sso;
@@ -405,20 +435,35 @@ export const useAuthSettingsStore = create<AuthSettingsState>((set, get) => ({
         currentSettings.auth_factors_enabled?.backup_code;
       authFactorsHasChanges = true;
     }
+    const magicLinkCurrent = getNested(currentSettings, ["magic_link"] as any);
+    const magicLinkOriginal = getNested(originalSettings, ["magic_link"] as any);
+    console.log('Magic link comparison:', {
+      current: magicLinkCurrent,
+      original: magicLinkOriginal,
+      areDifferent: areDifferent(["magic_link"]),
+      stringified: {
+        current: JSON.stringify(magicLinkCurrent),
+        original: JSON.stringify(magicLinkOriginal)
+      }
+    });
+    
     if (areDifferent(["magic_link"])) {
       authFactorsPayload.magic_link = {
-        ...currentSettings.magic_link,
-      } as EmailLinkSettings;
+        enabled: currentSettings.magic_link?.enabled ?? false,
+        require_same_device: currentSettings.magic_link?.require_same_device ?? false,
+      };
       authFactorsHasChanges = true;
     }
     if (areDifferent(["passkey"])) {
       authFactorsPayload.passkey = {
-        ...currentSettings.passkey,
-      } as PasskeySettings;
+        enabled: currentSettings.passkey?.enabled ?? false,
+        allow_autofill: currentSettings.passkey?.allow_autofill ?? false,
+      };
       authFactorsHasChanges = true;
     }
 
     if (authFactorsHasChanges) {
+      console.log('authFactorsPayload before assignment:', authFactorsPayload);
       updates.authentication_factors =
         authFactorsPayload as unknown as AuthenticationFactorSettings;
       hasChanges = true;
@@ -426,6 +471,11 @@ export const useAuthSettingsStore = create<AuthSettingsState>((set, get) => ({
 
     if (areDifferent(["second_factor_policy"])) {
       updates.second_factor_policy = currentSettings.second_factor_policy;
+      hasChanges = true;
+    }
+    
+    if (areDifferent(["first_factor"])) {
+      updates.first_factor = currentSettings.first_factor;
       hasChanges = true;
     }
 
@@ -450,6 +500,8 @@ export const useAuthSettingsStore = create<AuthSettingsState>((set, get) => ({
       hasChanges = true;
     }
 
+    console.log('hasChanges:', hasChanges, 'updates:', JSON.stringify(updates, null, 2));
+    
     if (!hasChanges && get().isDirty) {
       console.warn(
         "Form is dirty, but no specific changes detected by diffing logic. Sending empty update."
@@ -457,9 +509,13 @@ export const useAuthSettingsStore = create<AuthSettingsState>((set, get) => ({
     }
 
     try {
+      console.log('About to call updateAuthSettingsMethod');
       await updateAuthSettingsMethod(updates);
+      console.log('updateAuthSettingsMethod completed successfully');
       originalSettings = JSON.parse(JSON.stringify(get().settings));
+      console.log('Updated originalSettings after save');
       set({ isDirty: false });
+      console.log('Set isDirty to false');
       return true;
     } catch (error) {
       console.error("Error saving settings:", error);
@@ -482,13 +538,18 @@ export const useInitializeAuthSettings = () => {
   const { initializeSettings, isLoaded } = useAuthSettingsStore();
   const updateMutation = useUpdateDeploymentAuthSettings();
 
-  if (updateMutation && !updateAuthSettingsMethod) {
-    setUpdateAuthSettingsMethod(updateMutation);
-  }
+  React.useEffect(() => {
+    if (updateMutation && !updateAuthSettingsMethod) {
+      setUpdateAuthSettingsMethod(updateMutation);
+    }
+  }, [updateMutation]);
 
-  if (!isLoading && deploymentSettings?.auth_settings && !isLoaded) {
-    initializeSettings(deploymentSettings.auth_settings);
-  }
+  React.useEffect(() => {
+    if (!isLoading && deploymentSettings?.auth_settings && !isLoaded) {
+      initializeSettings(deploymentSettings.auth_settings);
+    }
+  }, [isLoading, deploymentSettings, isLoaded, initializeSettings]);
 
-  return { isLoading };
+  // Return loading as true if either the deployment is loading or settings haven't been loaded yet
+  return { isLoading: isLoading || !isLoaded };
 };

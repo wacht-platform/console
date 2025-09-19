@@ -223,6 +223,13 @@ export function useAddOrganizationMember() {
 					organizationId,
 				],
 			});
+			queryClient.invalidateQueries({
+				queryKey: [
+					"organization-members",
+					selectedDeployment?.id,
+					organizationId,
+				],
+			});
 		},
 	});
 }
@@ -259,6 +266,13 @@ export function useUpdateOrganizationMember() {
 					organizationId,
 				],
 			});
+			queryClient.invalidateQueries({
+				queryKey: [
+					"organization-members",
+					selectedDeployment?.id,
+					organizationId,
+				],
+			});
 		},
 	});
 }
@@ -288,6 +302,13 @@ export function useRemoveOrganizationMember() {
 			queryClient.invalidateQueries({
 				queryKey: [
 					"organization-details",
+					selectedDeployment?.id,
+					organizationId,
+				],
+			});
+			queryClient.invalidateQueries({
+				queryKey: [
+					"organization-members",
 					selectedDeployment?.id,
 					organizationId,
 				],

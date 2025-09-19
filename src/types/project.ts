@@ -1,5 +1,6 @@
 import type {
   Deployment,
+  FirstFactor,
   IndividualAuthSettings,
   MultiSessionSupport,
   SecondFactorPolicy,
@@ -23,6 +24,8 @@ interface NameSettings {
 }
 
 export interface AuthenticationFactorSettings {
+  email_password_enabled?: boolean;
+  username_password_enabled?: boolean;
   sso_enabled?: boolean;
   web3_wallet_enabled?: boolean;
   magic_link?: {
@@ -74,6 +77,7 @@ export interface DeploymentAuthSettingsUpdates {
   name?: NameSettings;
   authentication_factors?: AuthenticationFactorSettings;
   second_factor_policy?: SecondFactorPolicy;
+  first_factor?: FirstFactor;
   multi_session_support?: MultiSessionSupport;
   session_token_lifetime?: number;
   session_validity_period?: number;

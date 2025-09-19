@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useUpdateOrganizationMember } from "@/lib/api/hooks/use-organization-mutations";
+import { useUpdateWorkspaceMember } from "@/lib/api/hooks/use-workspace-mutations";
 import {
 	Dialog,
 	DialogTitle,
@@ -9,29 +9,42 @@ import {
 import { Button } from "@/components/ui/button";
 import { MultiSelect } from "@/components/ui/multi-select";
 
-import type {
-	OrganizationMemberDetails,
-	OrganizationRoleSimple,
-} from "@/types/organization";
-
-interface EditMemberDialogProps {
-	isOpen: boolean;
-	onClose: () => void;
-	organizationId: string;
-	member: OrganizationMemberDetails;
-	availableRoles: OrganizationRoleSimple[];
+interface WorkspaceMember {
+	id: string;
+	first_name: string;
+	last_name: string;
+	primary_email_address: string;
+	roles: Array<{
+		id: string;
+		name: string;
+	}>;
 }
 
-export function EditMemberDialog({
+interface WorkspaceRole {
+	id: string;
+	name: string;
+	permissions: string[];
+	is_deployment_level?: boolean;
+}
+
+interface EditWorkspaceMemberDialogProps {
+	isOpen: boolean;
+	onClose: () => void;
+	workspaceId: string;
+	member: WorkspaceMember;
+	availableRoles: WorkspaceRole[];
+}
+
+export function EditWorkspaceMemberDialog({
 	isOpen,
 	onClose,
-	organizationId,
+	workspaceId,
 	member,
 	availableRoles,
-}: EditMemberDialogProps) {
+}: EditWorkspaceMemberDialogProps) {
 	const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
-	const updateMember = useUpdateOrganizationMember();
+	const updateMember = useUpdateWorkspaceMember();
 
 	useEffect(() => {
 		if (member) {
@@ -44,7 +57,7 @@ export function EditMemberDialog({
 
 		try {
 			await updateMember.mutateAsync({
-				organizationId,
+				workspaceId,
 				membershipId: member.id,
 				data: {
 					role_ids: selectedRoles,
@@ -55,8 +68,6 @@ export function EditMemberDialog({
 			console.error("Failed to update member:", error);
 		}
 	};
-
-
 
 	return (
 		<Dialog open={isOpen} onClose={onClose}>

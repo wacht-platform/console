@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useAddOrganizationMember } from "@/lib/api/hooks/use-organization-mutations";
+import { useAddWorkspaceMember } from "@/lib/api/hooks/use-workspace-mutations";
 import { useDeploymentUsers } from "@/lib/api/hooks/use-deployment-users";
 import {
 	Dialog,
@@ -11,22 +11,22 @@ import { Button } from "@/components/ui/button";
 import { Field, Label } from "@/components/ui/fieldset";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { ModalCombobox } from "@/components/ui/modal-combobox";
-import type { OrganizationRoleSimple } from "@/types/organization";
+import type { WorkspaceRole } from "@/types/organization";
 import type { UserWithIdentifiers } from "@/types/user";
 
-interface AddMemberDialogProps {
+interface AddWorkspaceMemberDialogProps {
 	isOpen: boolean;
 	onClose: () => void;
-	organizationId: string;
-	availableRoles: OrganizationRoleSimple[];
+	workspaceId: string;
+	availableRoles: WorkspaceRole[];
 }
 
-export function AddMemberDialog({
+export function AddWorkspaceMemberDialog({
 	isOpen,
 	onClose,
-	organizationId,
+	workspaceId,
 	availableRoles,
-}: AddMemberDialogProps) {
+}: AddWorkspaceMemberDialogProps) {
 	const [selectedUser, setSelectedUser] = useState<UserWithIdentifiers | null>(null);
 	const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
@@ -36,7 +36,7 @@ export function AddMemberDialog({
 		enabled: isOpen,
 	});
 
-	const addMember = useAddOrganizationMember();
+	const addMember = useAddWorkspaceMember();
 
 	// Reset state when dialog closes
 	useEffect(() => {
@@ -55,7 +55,7 @@ export function AddMemberDialog({
 
 		try {
 			await addMember.mutateAsync({
-				organizationId,
+				workspaceId,
 				data: {
 					user_id: selectedUser.id,
 					role_ids: selectedRoles,
@@ -86,7 +86,7 @@ export function AddMemberDialog({
 
 	return (
 		<Dialog open={isOpen} onClose={onClose}>
-			<DialogTitle>Add Organization Member</DialogTitle>
+			<DialogTitle>Add Workspace Member</DialogTitle>
 
 			<DialogBody>
 				<form onSubmit={handleSubmit} className="space-y-6">

@@ -38,10 +38,9 @@ import { useBillingAccount } from "@/lib/api/hooks/use-billing";
 import {
   OrganizationSwitcher,
   UserButton,
-  NotificationBell,
-} from "@snipextt/wacht";
+  // NotificationBell,
+} from "@snipextt/wacht-react-router";
 import { setNavigationFunction } from "@/lib/store/project";
-// import { AgentPopup } from "./agent-popup";
 import { ProjectDeploymentSelector } from "./project-deployment-selector";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { ProjectWithDeployments } from "@/types/project";
@@ -119,7 +118,7 @@ export function ApplicationLayout() {
     selectedProject?.deployments.filter(
       (deployment) => deployment.mode === "staging",
     ).length || 0;
-  const canCreateStagingDeployment = stagingDeploymentCount < 3;
+  const canCreateStagingDeployment = stagingDeploymentCount === 0;
   const canCreateProductionDeployment = !hasProductionDeployment;
 
   // Sync store with URL parameters when they change
@@ -593,7 +592,7 @@ export function ApplicationLayout() {
 
             <div className="flex items-center gap-x-4">
               <ThemeToggle />
-              <NotificationBell />
+              {/*<NotificationBell />*/}
             </div>
           </div>
 
@@ -656,7 +655,6 @@ export function ApplicationLayout() {
         onClose={() => setIsBillingSetupDialogOpen(false)}
         onSuccess={handleBillingSetupSuccess}
       />
-      {/*<AgentPopup />*/}
     </>
   );
 }

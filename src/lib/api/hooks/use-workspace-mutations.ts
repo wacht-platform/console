@@ -11,6 +11,15 @@ interface CreateWorkspaceRequest {
 	private_metadata?: Record<string, unknown>;
 }
 
+interface AddWorkspaceMemberRequest {
+	user_id: string;
+	role_ids?: string[];
+}
+
+interface UpdateWorkspaceMemberRequest {
+	role_ids: string[];
+}
+
 
 
 interface Workspace {
@@ -30,9 +39,24 @@ async function createWorkspace(
 	organizationId: string,
 	data: CreateWorkspaceRequest,
 ): Promise<Workspace> {
+	const formData = new FormData();
+	formData.append('name', data.name);
+	if (data.description) {
+		formData.append('description', data.description);
+	}
+	if (data.image_url) {
+		formData.append('image_url', data.image_url);
+	}
+	if (data.public_metadata) {
+		formData.append('public_metadata', JSON.stringify(data.public_metadata));
+	}
+	if (data.private_metadata) {
+		formData.append('private_metadata', JSON.stringify(data.private_metadata));
+	}
+
 	const response = await apiClient.post(
 		`/deployments/${deploymentId}/organizations/${organizationId}/workspaces`,
-		data,
+		formData,
 	);
 	return response.data.data;
 }
@@ -55,6 +79,39 @@ async function deleteWorkspace(
 ): Promise<void> {
 	await apiClient.delete(
 		`/deployments/${deploymentId}/workspaces/${workspaceId}`,
+	);
+}
+
+async function addWorkspaceMember(
+	deploymentId: string,
+	workspaceId: string,
+	data: AddWorkspaceMemberRequest,
+): Promise<void> {
+	await apiClient.post(
+		`/deployments/${deploymentId}/workspaces/${workspaceId}/members`,
+		data,
+	);
+}
+
+async function updateWorkspaceMember(
+	deploymentId: string,
+	workspaceId: string,
+	membershipId: string,
+	data: UpdateWorkspaceMemberRequest,
+): Promise<void> {
+	await apiClient.patch(
+		`/deployments/${deploymentId}/workspaces/${workspaceId}/members/${membershipId}`,
+		data,
+	);
+}
+
+async function removeWorkspaceMember(
+	deploymentId: string,
+	workspaceId: string,
+	membershipId: string,
+): Promise<void> {
+	await apiClient.delete(
+		`/deployments/${deploymentId}/workspaces/${workspaceId}/members/${membershipId}`,
 	);
 }
 
@@ -140,6 +197,117 @@ export function useDeleteWorkspace() {
 		},
 		onError: () => {
 			toast.error("Failed to delete workspace. Please try again.");
+		},
+	});
+}
+
+export function useAddWorkspaceMember() {
+	const queryClient = useQueryClient();
+	const { selectedDeployment } = useProjects();
+
+	return useMutation({
+		mutationFn: ({
+			workspaceId,
+			data,
+		}: {
+			workspaceId: string;
+			data: AddWorkspaceMemberRequest;
+		}) => {
+			if (!selectedDeployment?.id) {
+				throw new Error("No deployment selected");
+			}
+			return addWorkspaceMember(
+				selectedDeployment.id.toString(),
+				workspaceId,
+				data,
+			);
+		},
+		onSuccess: (_, { workspaceId }) => {
+			queryClient.invalidateQueries({
+				queryKey: ["workspace-details", selectedDeployment?.id, workspaceId],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["workspace-members", selectedDeployment?.id, workspaceId],
+			});
+			toast.success("Member added to workspace successfully!");
+		},
+		onError: () => {
+			toast.error("Failed to add member to workspace. Please try again.");
+		},
+	});
+}
+
+export function useUpdateWorkspaceMember() {
+	const queryClient = useQueryClient();
+	const { selectedDeployment } = useProjects();
+
+	return useMutation({
+		mutationFn: ({
+			workspaceId,
+			membershipId,
+			data,
+		}: {
+			workspaceId: string;
+			membershipId: string;
+			data: UpdateWorkspaceMemberRequest;
+		}) => {
+			if (!selectedDeployment?.id) {
+				throw new Error("No deployment selected");
+			}
+			return updateWorkspaceMember(
+				selectedDeployment.id.toString(),
+				workspaceId,
+				membershipId,
+				data,
+			);
+		},
+		onSuccess: (_, { workspaceId }) => {
+			queryClient.invalidateQueries({
+				queryKey: ["workspace-details", selectedDeployment?.id, workspaceId],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["workspace-members", selectedDeployment?.id, workspaceId],
+			});
+			toast.success("Member roles updated successfully!");
+		},
+		onError: () => {
+			toast.error("Failed to update member roles. Please try again.");
+		},
+	});
+}
+
+export function useRemoveWorkspaceMember() {
+	const queryClient = useQueryClient();
+	const { selectedDeployment } = useProjects();
+
+	return useMutation({
+		mutationFn: ({
+			workspaceId,
+			membershipId,
+		}: {
+			workspaceId: string;
+			membershipId: string;
+		}) => {
+			if (!selectedDeployment?.id) {
+				throw new Error("No deployment selected");
+			}
+			return removeWorkspaceMember(
+				selectedDeployment.id.toString(),
+				workspaceId,
+				membershipId,
+			);
+		},
+		onSuccess: (_, { workspaceId }) => {
+			queryClient.invalidateQueries({
+				queryKey: ["workspace-details", selectedDeployment?.id, workspaceId],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["workspace-members", selectedDeployment?.id, workspaceId],
+			});
+			toast.success("Member removed from workspace successfully!");
+		},
+		onError: () => {
+			toast.error("Failed to remove member from workspace. Please try again.");
 		},
 	});
 }

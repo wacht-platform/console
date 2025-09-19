@@ -67,14 +67,6 @@ export function ProjectDeploymentSelector({
       
       // Toggle expansion
       toggleProjectExpanded(project.id);
-      
-      // Select project and first deployment if different project
-      if (selectedProject?.id !== project.id) {
-        onProjectSelect(project);
-        if (project.deployments.length > 0) {
-          onDeploymentSelect(project.deployments[0]);
-        }
-      }
     } else {
       // If no deployments, select the project and close
       onProjectSelect(project);
@@ -118,7 +110,7 @@ export function ProjectDeploymentSelector({
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <Headless.MenuItems className="absolute left-0 z-50 mt-2 w-80 py-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800/60 rounded-md shadow-sm max-h-96 overflow-y-auto">
+            <Headless.MenuItems className="absolute left-0 z-50 mt-2 w-80 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800/60 rounded-md shadow-sm max-h-96 overflow-y-auto">
               {() => (
                 <>
                   {projects.map((project) => {
@@ -238,7 +230,7 @@ export function ProjectDeploymentSelector({
                     );
                   })}
 
-                  <div className="border-t border-gray-200 dark:border-zinc-800 mt-1 pt-1">
+                  <div className="border-t border-gray-200 dark:border-zinc-800">
                     <Headless.MenuItem>
                       {({ active }) => (
                         <button

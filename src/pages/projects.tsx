@@ -10,7 +10,7 @@ import { useProjectStore } from "@/lib/store/project";
 import { CreateProjectDialog } from "@/components/create-project-dialog";
 import { BillingSetupDialog } from "@/components/billing-setup-dialog";
 import { useState } from "react";
-import { UserButton, OrganizationSwitcher } from "@snipextt/wacht";
+import { UserButton, OrganizationSwitcher } from "@snipextt/wacht-react-router";
 import { useBillingAccount } from "@/lib/api/hooks/use-billing";
 import { Tab, SimpleTabs } from "@/components/ui/simple-tabs";
 import { EmptyState } from "@/components/ui/empty-state";

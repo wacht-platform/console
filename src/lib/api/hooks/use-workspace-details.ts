@@ -3,21 +3,6 @@ import { apiClient } from "../client";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { WorkspaceRole } from "@/types/organization";
 
-interface WorkspaceMemberDetails {
-	id: string;
-	created_at: string;
-	updated_at: string;
-	workspace_id: string;
-	user_id: string;
-	roles: WorkspaceRole[];
-	first_name: string;
-	last_name: string;
-	username: string | null;
-	primary_email_address: string | null;
-	primary_phone_number: string | null;
-	user_created_at: string;
-}
-
 interface WorkspaceDetails {
 	id: string;
 	created_at: string;
@@ -30,7 +15,6 @@ interface WorkspaceDetails {
 	private_metadata: Record<string, unknown>;
 	organization_id: string;
 	organization_name: string;
-	members: WorkspaceMemberDetails[];
 	roles: WorkspaceRole[];
 }
 

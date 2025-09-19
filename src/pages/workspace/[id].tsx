@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { format } from "date-fns";
 import { useWorkspaceDetails } from "@/lib/api/hooks/use-workspace-details";
+import { useWorkspaceMembers } from "@/lib/api/hooks/use-workspace-members";
 import { useDeleteWorkspace, useUpdateWorkspace } from "@/lib/api/hooks/use-workspace-mutations";
 import { useDarkMode } from "@/lib/hooks/use-dark-mode";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,10 @@ import { DeleteConfirmationDialog } from "@/components/organizations/DeleteConfi
 import { EditWorkspaceDialog } from "@/components/workspaces/EditWorkspaceDialog";
 import { CreateWorkspaceRoleDialog } from "@/components/workspaces/CreateWorkspaceRoleDialog";
 import { EditWorkspaceRoleDialog } from "@/components/workspaces/EditWorkspaceRoleDialog";
+import { AddWorkspaceMemberDialog } from "@/components/workspaces/AddWorkspaceMemberDialog";
+import { EditWorkspaceMemberDialog } from "@/components/workspaces/EditWorkspaceMemberDialog";
 import { useDeleteWorkspaceRole } from "@/lib/api/hooks/use-workspace-role-mutations";
+import { useRemoveWorkspaceMember } from "@/lib/api/hooks/use-workspace-mutations";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Avatar } from "@/components/ui/avatar";
 import { WorkspaceRole } from "@/types/organization";
@@ -29,6 +33,10 @@ export default function WorkspaceDetailsPage() {
   const { id } = useParams();
   const workspaceId = id;
   const isDarkMode = useDarkMode();
+  
+  // Tab state - needs to be declared before use
+  const [activeTab, setActiveTab] = useState(0);
+  
   const {
     data: workspace,
     isLoading,
@@ -36,8 +44,15 @@ export default function WorkspaceDetailsPage() {
   } = useWorkspaceDetails(workspaceId);
 
   const deleteWorkspace = useDeleteWorkspace();
+  const removeMember = useRemoveWorkspaceMember();
   const deleteWorkspaceRole = useDeleteWorkspaceRole();
   const updateWorkspace = useUpdateWorkspace();
+
+  // Fetch members only when Members tab is active (tab index 1)
+  const {
+    data: membersData,
+    isLoading: membersLoading,
+  } = useWorkspaceMembers(workspaceId, 0, 100, activeTab === 1);
 
   // Metadata editor states
   const [publicMetadata, setPublicMetadata] = useState<string>("");
@@ -55,6 +70,12 @@ export default function WorkspaceDetailsPage() {
   const [editRoleModalOpen, setEditRoleModalOpen] = useState(false);
   const [deleteRoleModalOpen, setDeleteRoleModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<WorkspaceRole | null>(null);
+  
+  // Member management states
+  const [addMemberModalOpen, setAddMemberModalOpen] = useState(false);
+  const [editMemberModalOpen, setEditMemberModalOpen] = useState(false);
+  const [deleteMemberModalOpen, setDeleteMemberModalOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<any>(null);
 
   // Initialize metadata when workspace data loads
   useEffect(() => {
@@ -267,7 +288,7 @@ export default function WorkspaceDetailsPage() {
                 <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-zinc-800">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Members</span>
                   <span className="text-sm text-gray-900 dark:text-gray-100">
-                    {workspace.members ? workspace.members.length : 0}
+                    {workspace.member_count ?? 0}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2">
@@ -309,8 +330,7 @@ export default function WorkspaceDetailsPage() {
 
         {/* Main Content Area */}
         <div className="lg:col-span-2">
-          <div className="bg-white dark:bg-zinc-900 rounded-lg">
-            <SimpleTabs defaultTab={0}>
+          <SimpleTabs defaultTab={0} onChange={setActiveTab}>
               <Tab label="Overview">
                 <div className="px-4 py-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -344,9 +364,23 @@ export default function WorkspaceDetailsPage() {
 
               <Tab label="Members">
                 <div className="px-4 py-6">
-                  {workspace.members && workspace.members.length > 0 ? (
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-base text-gray-900 dark:text-gray-100">Workspace Members</h3>
+                    <Button
+                      onClick={() => setAddMemberModalOpen(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <PlusIcon className="h-4 w-4" />
+                      Add Member
+                    </Button>
+                  </div>
+                  {membersLoading ? (
+                    <div className="flex justify-center py-8">
+                      <Spinner className="h-6 w-6" />
+                    </div>
+                  ) : membersData?.data && membersData.data.length > 0 ? (
                     <div className="divide-y divide-gray-200">
-                      {workspace.members.map((member) => (
+                      {membersData.data.map((member) => (
                         <div key={member.id} className="py-4 first:pt-0 last:pb-0">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -363,6 +397,30 @@ export default function WorkspaceDetailsPage() {
                                   {member.roles.length > 0 ? member.roles[0].name : 'No role'}
                                 </p>
                               </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                outline
+                                onClick={() => {
+                                  setSelectedMember(member);
+                                  setEditMemberModalOpen(true);
+                                }}
+                                className="p-1.5"
+                              >
+                                <PencilIcon className="h-3.5 w-3.5" />
+                                <span className="sr-only">Edit Member</span>
+                              </Button>
+                              <Button
+                                outline
+                                onClick={() => {
+                                  setSelectedMember(member);
+                                  setDeleteMemberModalOpen(true);
+                                }}
+                                className="p-1.5 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                              >
+                                <TrashIcon className="h-3.5 w-3.5" />
+                                <span className="sr-only">Remove Member</span>
+                              </Button>
                             </div>
                           </div>
                         </div>
@@ -396,57 +454,20 @@ export default function WorkspaceDetailsPage() {
                 <div className="px-4 py-6">
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-base text-gray-900 dark:text-gray-100">Workspace Roles</h3>
-                    <Button
-                      onClick={() => setCreateRoleModalOpen(true)}
-                      className="flex items-center gap-2"
-                    >
-                      <PlusIcon className="h-4 w-4" />
-                      Add Role
-                    </Button>
+                    {workspace.roles && workspace.roles.length > 0 && (
+                      <Button
+                        onClick={() => setCreateRoleModalOpen(true)}
+                      >
+                        Create Role
+                      </Button>
+                    )}
                   </div>
-
-                  {workspace.roles && workspace.roles.length > 0 ? (
-                    <div className="divide-y divide-gray-200">
-                      {workspace.roles.map((role) => (
-                        <div key={role.id} className="py-4 first:pt-0 last:pb-0">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-sm text-gray-900 dark:text-gray-100">{role.name}</h3>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-500 dark:text-gray-400">{role.permissions.length} permissions</span>
-                              {!role.is_deployment_level && (
-                                <div className="flex items-center gap-1">
-                                  <Button
-                                    outline
-                                    onClick={() => handleEditRole(role)}
-                                    className="p-1"
-                                  >
-                                    <PencilIcon className="h-3 w-3" />
-                                  </Button>
-                                  <Button
-                                    outline
-                                    onClick={() => handleDeleteRole(role)}
-                                    className="p-1 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-                                  >
-                                    <TrashIcon className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {role.permissions.map((permission, index) => (
-                              <span key={index} className="px-2 py-1 bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 text-xs rounded">
-                                {permission}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
+                  {!workspace.roles || workspace.roles.length === 0 ? (
                     <EmptyState
-                      title="No roles found"
-                      description="This workspace doesn't have any custom roles yet."
+                      title="No custom roles created yet"
+                      description="Create custom roles to manage permissions within your workspace."
+                      actionLabel="Create Role"
+                      onAction={() => setCreateRoleModalOpen(true)}
                       icon={
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -463,6 +484,56 @@ export default function WorkspaceDetailsPage() {
                         </svg>
                       }
                     />
+                  ) : (
+                    <div className="divide-y divide-gray-200 dark:divide-zinc-800">
+                      {workspace.roles.map((role) => (
+                        <div
+                          key={role.id}
+                          className="py-4 first:pt-0 last:pb-0"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <span className="text-sm text-gray-900 dark:text-gray-100">
+                                  {role.name}
+                                </span>
+                                {role.is_deployment_level && (
+                                  <span className="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-900/20 px-2 py-1 text-xs font-medium text-blue-700 dark:text-blue-400 ring-1 ring-inset ring-blue-700/10 dark:ring-blue-400/20">
+                                    Default
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                {role.permissions.length} permissions
+                                {role.is_deployment_level && " • Cannot be edited or deleted"}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {!role.is_deployment_level && (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                    onClick={() => handleEditRole(role)}
+                                  >
+                                    <PencilIcon className="h-4 w-4" />
+                                    <span className="sr-only">Edit</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                                    onClick={() => handleDeleteRole(role)}
+                                  >
+                                    <TrashIcon className="h-4 w-4" />
+                                    <span className="sr-only">Delete</span>
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               </Tab>
@@ -591,7 +662,6 @@ export default function WorkspaceDetailsPage() {
                  </div>
                </Tab>
             </SimpleTabs>
-          </div>
         </div>
       </div>
 
@@ -641,6 +711,57 @@ export default function WorkspaceDetailsPage() {
         description={`Are you sure you want to delete the role "${selectedRole?.name}"? This action cannot be undone.`}
         confirmText="Delete Role"
         isLoading={deleteWorkspaceRole.isPending}
+      />
+      
+      {/* Add Workspace Member Dialog */}
+      {workspaceId && (
+        <AddWorkspaceMemberDialog
+          isOpen={addMemberModalOpen}
+          onClose={() => setAddMemberModalOpen(false)}
+          workspaceId={workspaceId}
+          availableRoles={workspace?.roles || []}
+        />
+      )}
+
+      {/* Edit Workspace Member Dialog */}
+      {workspaceId && selectedMember && (
+        <EditWorkspaceMemberDialog
+          isOpen={editMemberModalOpen}
+          onClose={() => {
+            setEditMemberModalOpen(false);
+            setSelectedMember(null);
+          }}
+          workspaceId={workspaceId}
+          member={selectedMember}
+          availableRoles={workspace?.roles || []}
+        />
+      )}
+
+      {/* Delete Member Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={deleteMemberModalOpen}
+        onClose={() => {
+          setDeleteMemberModalOpen(false);
+          setSelectedMember(null);
+        }}
+        onConfirm={async () => {
+          if (selectedMember && workspaceId) {
+            try {
+              await removeMember.mutateAsync({
+                workspaceId,
+                membershipId: selectedMember.id,
+              });
+              setDeleteMemberModalOpen(false);
+              setSelectedMember(null);
+            } catch (error) {
+              console.error("Failed to remove member:", error);
+            }
+          }
+        }}
+        title="Remove Member"
+        description={`Are you sure you want to remove ${selectedMember?.first_name} ${selectedMember?.last_name} from this workspace? This action cannot be undone.`}
+        confirmText="Remove Member"
+        isLoading={removeMember.isPending}
       />
     </div>
   );

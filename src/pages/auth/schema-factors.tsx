@@ -780,6 +780,114 @@ function PasskeySettingsDialog({ open, onClose }: DialogProps) {
   );
 }
 
+function FirstFactorDialog({ open, onClose }: DialogProps) {
+  const { settings } = useAuthSettingsStore();
+  const { updateFirstFactor } = useAuthSettingsStore();
+  
+  const handleFirstFactorChange = (
+    factor: DeploymentAuthSettings["first_factor"],
+  ) => {
+    updateFirstFactor(factor);
+  };
+
+  // Build list of available options based on what's enabled
+  const availableOptions = [];
+  
+  // Check if email_password is enabled (toggle is on)
+  if (settings.auth_factors_enabled?.email_password) {
+    availableOptions.push({
+      value: "email_password",
+      label: "Email + Password",
+      description: "Users sign in with email and password"
+    });
+  }
+  
+  // Check if username_password is enabled (toggle is on)
+  if (settings.auth_factors_enabled?.username_password) {
+    availableOptions.push({
+      value: "username_password",
+      label: "Username + Password",
+      description: "Users sign in with username and password"
+    });
+  }
+  
+  // Check if email_otp is enabled (toggle is on)
+  if (settings.auth_factors_enabled?.email_otp) {
+    availableOptions.push({
+      value: "email_otp",
+      label: "Email OTP",
+      description: "Users sign in with email and receive a one-time password"
+    });
+  }
+  
+  // Check if email_magic_link is enabled (toggle is on)
+  if (settings.auth_factors_enabled?.email_magic_link) {
+    availableOptions.push({
+      value: "email_magic_link",
+      label: "Email Magic Link",
+      description: "Users sign in by clicking a link sent to their email"
+    });
+  }
+  
+  // Check if phone_otp is enabled (toggle is on)
+  if (settings.auth_factors_enabled?.phone_otp) {
+    availableOptions.push({
+      value: "phone_otp",
+      label: "Phone OTP",
+      description: "Users sign in with phone number and receive an SMS code"
+    });
+  }
+
+  return (
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>Default Sign-in Method</DialogTitle>
+      <DialogDescription>
+        Select which authentication method users will see by default. Only enabled methods are shown.
+      </DialogDescription>
+      <DialogBody className="space-y-4">
+        {availableOptions.length === 0 ? (
+          <div className="py-6 text-center">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              No authentication methods are currently enabled. Please enable at least one method first.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {availableOptions.map((option) => (
+              <div key={option.value} className="relative">
+                <div className="flex items-start space-x-3 p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer"
+                     onClick={() => handleFirstFactorChange(option.value as DeploymentAuthSettings["first_factor"])}>
+                  <input
+                    type="radio"
+                    id={option.value}
+                    name="first_factor"
+                    checked={settings.first_factor === option.value}
+                    onChange={() => handleFirstFactorChange(option.value as DeploymentAuthSettings["first_factor"])}
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <label htmlFor={option.value} className="text-sm font-medium text-zinc-900 dark:text-zinc-100 cursor-pointer">
+                      {option.label}
+                    </label>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                      {option.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </DialogBody>
+      <DialogActions>
+        <Button onClick={onClose} disabled={availableOptions.length === 0}>
+          Continue
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
   const { settings } = useAuthSettingsStore();
   const { updateSecondFactorPolicy } = useAuthSettingsStore();
@@ -798,7 +906,7 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
       </DialogDescription>
       <DialogBody className="space-y-3">
         <div className="mb-4">
-          <h3 className="text-sm font-medium mb-2">Policy</h3>
+          <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-2">Policy</h3>
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <input
@@ -808,7 +916,7 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
                 checked={settings.second_factor_policy === "none"}
                 onChange={() => handlePolicyChange("none")}
               />
-              <label htmlFor="none" className="text-sm font-medium">
+              <label htmlFor="none" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 None
               </label>
             </div>
@@ -824,7 +932,7 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
                 checked={settings.second_factor_policy === "optional"}
                 onChange={() => handlePolicyChange("optional")}
               />
-              <label htmlFor="optional" className="text-sm font-medium">
+              <label htmlFor="optional" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 Optional
               </label>
             </div>
@@ -840,7 +948,7 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
                 checked={settings.second_factor_policy === "enforced"}
                 onChange={() => handlePolicyChange("enforced")}
               />
-              <label htmlFor="enforced" className="text-sm font-medium">
+              <label htmlFor="enforced" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 Enforced
               </label>
             </div>
@@ -866,6 +974,7 @@ export default function SchemaFactorsPage() {
   const [lastNameSettingsOpen, setLastNameSettingsOpen] = useState(false);
   const [emailLinkSettingsOpen, setEmailLinkSettingsOpen] = useState(false);
   const [passkeySettingsOpen, setPasskeySettingsOpen] = useState(false);
+  const [firstFactorOpen, setFirstFactorOpen] = useState(false);
   const [secondFactorPolicyOpen, setSecondFactorPolicyOpen] = useState(false);
   const [multiSessionSettingsOpen, setMultiSessionSettingsOpen] =
     useState(false);
@@ -883,9 +992,12 @@ export default function SchemaFactorsPage() {
   >("days");
 
   const { isLoading } = useInitializeAuthSettings();
-  const { settings } = useAuthSettingsStore();
-  const { isDirty, isSaving, saveSettings, resetSettings } =
+  const { settings, isDirty: isFormDirty } = useAuthSettingsStore();
+  const { isSaving, saveSettings, resetSettings } =
     useSaveAuthSettings();
+  
+  // Use isDirty directly from the store for reactive updates
+  const isDirty = isFormDirty;
 
   const {
     updateEmailSettings,
@@ -896,6 +1008,7 @@ export default function SchemaFactorsPage() {
     updateLastNameSettings,
     updateAuthFactorsEnabled,
     updatePasskeySettings,
+    updateMagicLinkSettings,
     updateMultiSessionSupport,
     updateSessionTokenLifetime,
     updateSessionValidityPeriod,
@@ -930,6 +1043,8 @@ export default function SchemaFactorsPage() {
         break;
       case "email_link_enabled":
         updateAuthFactorsEnabled({ email_magic_link: value });
+        // Also update magic_link settings to ensure they're in sync
+        updateMagicLinkSettings({ enabled: value });
         break;
       case "email_otp_enabled":
         updateAuthFactorsEnabled({ email_otp: value });
@@ -939,6 +1054,8 @@ export default function SchemaFactorsPage() {
         break;
       case "passkey_enabled":
         updatePasskeySettings({ enabled: value });
+        // Also update auth_factors_enabled to ensure they're in sync
+        updateAuthFactorsEnabled({ passkey: value });
         break;
       case "sso_enabled":
         updateAuthFactorsEnabled({ sso: value });
@@ -1143,6 +1260,10 @@ export default function SchemaFactorsPage() {
         open={passkeySettingsOpen}
         onClose={() => setPasskeySettingsOpen(false)}
       />
+      <FirstFactorDialog
+        open={firstFactorOpen}
+        onClose={() => setFirstFactorOpen(false)}
+      />
       <SecondFactorPolicyDialog
         open={secondFactorPolicyOpen}
         onClose={() => setSecondFactorPolicyOpen(false)}
@@ -1312,6 +1433,23 @@ export default function SchemaFactorsPage() {
             <Divider soft />
 
             <div className="space-y-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Default Sign-in Method</h3>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                    Choose which method is shown by default
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded">
+                    {settings.first_factor?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Email Password'}
+                  </span>
+                  <Button plain onClick={() => setFirstFactorOpen(true)}>
+                    <Cog6ToothIcon />
+                  </Button>
+                </div>
+              </div>
+
               <SwitchField>
                 <Label>Email Password</Label>
                 <Description>

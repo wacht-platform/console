@@ -95,7 +95,6 @@ export interface OrganizationDetails {
   member_count: number;
   public_metadata: Record<string, unknown>;
   private_metadata: Record<string, unknown>;
-  members: OrganizationMemberDetails[];
   roles: OrganizationRole[];
   workspaces: Workspace[];
 }

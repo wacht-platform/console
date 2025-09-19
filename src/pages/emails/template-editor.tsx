@@ -244,8 +244,8 @@ export default function EmailTemplateEditor() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-visible">
+                  <div className="overflow-visible pr-2">
                     <label
                       htmlFor="from"
                       className="block text-sm font-normal text-gray-700 dark:text-gray-300"
@@ -253,23 +253,24 @@ export default function EmailTemplateEditor() {
                       From Address
                     </label>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">The sender name for this email</p>
-                    <div className="mt-2 flex rounded-md shadow-sm">
-                      <Input
+                    <div className="mt-2 inline-flex rounded-md border border-gray-300 dark:border-zinc-600 focus-within:border-indigo-500">
+                      <input
                         id="from"
+                        type="text"
                         value={formData.template_from}
                         onChange={(e) =>
                           handleInputChange("template_from", e.target.value)
                         }
-                        className="flex-1 rounded-r-none"
+                        className="w-32 rounded-l-md border-0 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
                         placeholder="noreply"
                       />
-                      <span className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 sm:text-sm">
+                      <span className="inline-flex items-center px-1.5 py-2 rounded-r-md border-0 bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 text-xs whitespace-nowrap">
                         @{deploymentSettings?.mail_from_host}
                       </span>
                     </div>
                   </div>
 
-                  <div>
+                  <div className="overflow-visible pr-2">
                     <label
                       htmlFor="reply-to"
                       className="block text-sm font-normal text-gray-700 dark:text-gray-300"
@@ -277,17 +278,18 @@ export default function EmailTemplateEditor() {
                       Reply-To Address
                     </label>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Where replies should be sent</p>
-                    <div className="mt-2 flex rounded-md shadow-sm">
-                      <Input
+                    <div className="mt-2 inline-flex rounded-md border border-gray-300 dark:border-zinc-600 focus-within:border-indigo-500">
+                      <input
                         id="reply-to"
+                        type="text"
                         value={formData.template_reply_to}
                         onChange={(e) =>
                           handleInputChange("template_reply_to", e.target.value)
                         }
-                        className="flex-1 rounded-r-none"
+                        className="w-32 rounded-l-md border-0 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
                         placeholder="support"
                       />
-                      <span className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 sm:text-sm">
+                      <span className="inline-flex items-center px-1.5 py-2 rounded-r-md border-0 bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 text-xs whitespace-nowrap">
                         @{deploymentSettings?.mail_from_host}
                       </span>
                     </div>

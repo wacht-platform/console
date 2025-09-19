@@ -8,4 +8,5 @@ export interface QueryParams {
   sort_key?: string;
   sort_order?: string;
   limit?: number;
+  search?: string;
 }

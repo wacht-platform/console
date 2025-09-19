@@ -1,3 +1,4 @@
+import React, { useEffect } from "react";
 import { RouterProvider } from "react-router";
 import { router } from "./router";
 import { QueryProvider } from "./lib/providers/query";
@@ -9,27 +10,47 @@ import {
   SignedOut,
   NavigateToSignIn,
   useSession,
-} from "@snipextt/wacht";
+} from "@snipextt/wacht-react-router";
 import { Spinner } from "./components/ui/spinner";
-import { useEffect } from "react";
 import { apiClient } from "./lib/api/client";
 import { Toaster } from "sonner";
 import { useTheme } from "./lib/providers/theme";
 
 function SignedInRoutes() {
   const { getToken } = useSession();
+  const [interceptorReady, setInterceptorReady] = React.useState(false);
 
   useEffect(() => {
-    apiClient.interceptors.request.use(async (config) => {
+    const interceptorId = apiClient.interceptors.request.use(async (config) => {
       const token = await getToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
       return config;
     });
+    
+    setInterceptorReady(true);
+    
+    // Cleanup interceptor on unmount
+    return () => {
+      apiClient.interceptors.request.eject(interceptorId);
+    };
   }, [getToken]);
 
-  return <RouterProvider router={router} />;
+  // Don't render QueryProvider until interceptor is ready
+  if (!interceptorReady) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Spinner className="h-8 w-8" />
+      </div>
+    );
+  }
+
+  return (
+    <QueryProvider>
+      <RouterProvider router={router} />
+    </QueryProvider>
+  );
 }
 
 function AppContent() {
@@ -39,9 +60,7 @@ function AppContent() {
     <div className="text-zinc-950 antialiased lg:bg-zinc-50 dark:bg-zinc-900 dark:text-white h-screen">
       <DeploymentInitialized>
         <SignedIn>
-          <QueryProvider>
-            <SignedInRoutes />
-          </QueryProvider>
+          <SignedInRoutes />
         </SignedIn>
         <SignedOut>
           <NavigateToSignIn />

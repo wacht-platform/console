@@ -49,7 +49,7 @@ export function useCreateUser() {
       return createUser(selectedDeployment.id.toString(), data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["users", selectedDeployment?.id] });
       toast.success("User created successfully!");
     },
     onError: () => {
@@ -108,7 +108,7 @@ export function useDeleteUser() {
       return deleteUser(selectedDeployment.id.toString(), userId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["users", selectedDeployment?.id] });
       queryClient.invalidateQueries({ queryKey: ["user-details"] });
       toast.success("User deleted successfully!");
     },
@@ -133,8 +133,8 @@ export function useApproveWaitlistUser() {
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-waitlist"] });
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["user-waitlist", selectedDeployment?.id] });
+      queryClient.invalidateQueries({ queryKey: ["users", selectedDeployment?.id] });
     },
   });
 }
