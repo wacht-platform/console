@@ -5,14 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Heading } from "@/components/ui/heading";
 import { Stat } from "@/components/stat";
 import {
-  ArrowRightIcon,
-  CheckCircleIcon,
   BoltIcon,
-  GlobeAltIcon,
-  ClockIcon,
-  XCircleIcon,
-  ExclamationCircleIcon,
-  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { webhookApi } from "@/lib/api/webhooks";
@@ -22,13 +15,11 @@ import { DateRangeSelector } from "@/components/date-range-selector";
 
 export default function WebhooksPage() {
   const { deploymentId } = useParams();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showSecret, setShowSecret] = useState(false);
   const [dateRange, setDateRange] = useState("24h");
   const [dateRangeHours, setDateRangeHours] = useState(24);
 
-  // Calculate date range for API - memoize to prevent unnecessary recalculations
   const getDateRange = () => {
     const end = new Date();
     const start = new Date(end.getTime() - dateRangeHours * 60 * 60 * 1000);
@@ -38,40 +29,18 @@ export default function WebhooksPage() {
     };
   };
 
-  // Fetch webhook status
   const { data: status, isLoading } = useQuery({
     queryKey: ["webhook-status", deploymentId],
     queryFn: () => webhookApi.getStatus(deploymentId!),
   });
 
-  // Fetch webhook analytics with date range
   const { data: analytics, isLoading: isAnalyticsLoading } = useQuery({
     queryKey: ["webhook-analytics", deploymentId, dateRangeHours],
     queryFn: () => webhookApi.getAnalytics(deploymentId!, getDateRange()),
     enabled: !!status?.is_activated,
-    staleTime: 30 * 1000, // Keep data fresh for 30 seconds to reduce flicker
+    staleTime: 30 * 1000, 
   });
 
-  // Fetch webhook endpoints
-  const { data: endpointsData } = useQuery({
-    queryKey: ["webhook-endpoints", deploymentId],
-    queryFn: () => webhookApi.getEndpoints(deploymentId!),
-    enabled: status?.is_activated,
-  });
-  
-  const endpoints = endpointsData?.endpoints || [];
-
-  // Fetch recent deliveries - use unique key to avoid cache conflicts
-  const { data: deliveriesData } = useQuery({
-    queryKey: ["webhook-recent-deliveries", deploymentId],
-    queryFn: () => webhookApi.getDeliveries(deploymentId!, { limit: 5 }),
-    enabled: status?.is_activated,
-    staleTime: 30 * 1000, // Keep fresh for 30 seconds
-  });
-  
-  const recentDeliveries = deliveriesData?.deliveries;
-
-  // Activate webhooks mutation
   const activateMutation = useMutation({
     mutationFn: () => webhookApi.activate(deploymentId!),
     onSuccess: () => {
@@ -150,8 +119,6 @@ export default function WebhooksPage() {
   }
 
   const { app, stats } = status;
-
-
 
   return (
     <div>
@@ -296,52 +263,6 @@ export default function WebhooksPage() {
                 {app?.created_at
                   ? new Date(app.created_at).toLocaleDateString()
                   : "N/A"}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="mt-8">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-          Quick Actions
-        </h3>
-        <div className="grid gap-4 md:grid-cols-3">
-          <div
-            className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-50 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:ring-white/10 transition-colors"
-            onClick={() => navigate(`endpoints`)}
-          >
-            <div className="px-6 py-4">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                Manage Endpoints
-              </h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
-                Add, edit, or remove webhook endpoints
-              </p>
-            </div>
-          </div>
-          <div
-            className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-50 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:ring-white/10 transition-colors"
-            onClick={() => navigate(`deliveries`)}
-          >
-            <div className="px-6 py-4">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                Delivery History
-              </h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
-                View and retry webhook deliveries
-              </p>
-            </div>
-          </div>
-          <div
-            className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-50 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:ring-white/10 transition-colors"
-            onClick={() => navigate(`analytics`)}
-          >
-            <div className="px-6 py-4">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white">Analytics</h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
-                Monitor webhook performance metrics
               </p>
             </div>
           </div>
