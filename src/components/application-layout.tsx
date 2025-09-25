@@ -39,7 +39,6 @@ import {
   NotificationBell,
   OrganizationSwitcher,
   UserButton,
-  // NotificationBell,
 } from "@snipextt/wacht-react-router";
 import { setNavigationFunction } from "@/lib/store/project";
 import { ProjectDeploymentSelector } from "./project-deployment-selector";
@@ -308,7 +307,12 @@ export function ApplicationLayout() {
     {
       name: "Overview",
       href: createNavigationLink("webhooks"),
-      current: pathname === createNavigationLink("webhooks") || (pathname.includes("webhooks") && !pathname.includes("webhooks/endpoints") && !pathname.includes("webhooks/deliveries") && !pathname.includes("webhooks/analytics")),
+      current:
+        pathname === createNavigationLink("webhooks") ||
+        (pathname.includes("webhooks") &&
+          !pathname.includes("webhooks/endpoints") &&
+          !pathname.includes("webhooks/deliveries") &&
+          !pathname.includes("webhooks/analytics")),
     },
     {
       name: "Endpoints",
