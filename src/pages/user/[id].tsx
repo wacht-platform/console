@@ -406,7 +406,7 @@ export default function UserDetailsPage() {
                   </span>
                 )}
               </div>
-              <h2 className="text-base text-gray-900 text-center mb-2">
+              <h2 className="text-base text-gray-900 dark:text-gray-100 text-center mb-2">
                 {user.first_name} {user.last_name}
               </h2>
               {user.username && (
@@ -643,8 +643,8 @@ export default function UserDetailsPage() {
                                 <span className="text-sm text-gray-900 dark:text-gray-100">
                                   {email.email}
                                 </span>
-                                {email.is_primary && (
-                                  <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                                {user.primary_email_address_id === email.id && (
+                                  <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 rounded-full">
                                     Primary
                                   </span>
                                 )}
@@ -754,9 +754,8 @@ export default function UserDetailsPage() {
                                 <span className="text-sm text-gray-900 dark:text-gray-100">
                                   {phone.country_code} {phone.phone_number}
                                 </span>
-                                {user.primary_phone_number ===
-                                  phone.phone_number && (
-                                  <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                                {user.primary_phone_number_id === phone.id && (
+                                  <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 rounded-full">
                                     Primary
                                   </span>
                                 )}
@@ -1043,6 +1042,7 @@ export default function UserDetailsPage() {
         onClose={() => setEditEmailModalOpen(false)}
         onSubmit={handleUpdateEmail}
         emailData={selectedEmail}
+        userData={user ? { primary_email_address_id: user.primary_email_address_id } : null}
       />
 
       <EditPhoneModal
@@ -1050,6 +1050,7 @@ export default function UserDetailsPage() {
         onClose={() => setEditPhoneModalOpen(false)}
         onSubmit={handleUpdatePhone}
         phoneData={selectedPhone}
+        userData={user ? { primary_phone_number_id: user.primary_phone_number_id } : null}
       />
 
       <EditProfileModal

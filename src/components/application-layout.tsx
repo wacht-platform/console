@@ -304,6 +304,29 @@ export function ApplicationLayout() {
     },
   ];
 
+  const webhookSections = [
+    {
+      name: "Overview",
+      href: createNavigationLink("webhooks"),
+      current: pathname === createNavigationLink("webhooks") || (pathname.includes("webhooks") && !pathname.includes("webhooks/endpoints") && !pathname.includes("webhooks/deliveries") && !pathname.includes("webhooks/analytics")),
+    },
+    {
+      name: "Endpoints",
+      href: createNavigationLink("webhooks/endpoints"),
+      current: pathname.includes("webhooks/endpoints"),
+    },
+    {
+      name: "Deliveries",
+      href: createNavigationLink("webhooks/deliveries"),
+      current: pathname.includes("webhooks/deliveries"),
+    },
+    {
+      name: "Analytics",
+      href: createNavigationLink("webhooks/analytics"),
+      current: pathname.includes("webhooks/analytics"),
+    },
+  ];
+
   // Get current section for horizontal navigation
   const getCurrentSection = () => {
     if (pathname.includes("users")) return "users";
@@ -312,6 +335,7 @@ export function ApplicationLayout() {
     if (pathname.includes("manage-")) return "b2b";
     if (pathname.includes("deployment-settings") || pathname.includes("emails"))
       return "customization";
+    if (pathname.includes("webhooks")) return "webhooks";
     return "main";
   };
 
@@ -329,6 +353,8 @@ export function ApplicationLayout() {
         return b2bSections;
       case "customization":
         return customizationSections;
+      case "webhooks":
+        return webhookSections;
       default:
         return [];
     }

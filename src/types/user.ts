@@ -110,7 +110,9 @@ export interface UserDetails {
 
 	// Primary identifiers
 	primary_email_address: string | null;
+	primary_email_address_id: string | null;
 	primary_phone_number: string | null;
+	primary_phone_number_id: string | null;
 
 	// All identifiers
 	email_addresses: UserEmailAddress[];

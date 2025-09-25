@@ -17,6 +17,10 @@ interface PhoneData {
   is_primary: boolean;
 }
 
+interface UserData {
+  primary_phone_number_id: string | null;
+}
+
 interface EditPhoneModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -27,6 +31,7 @@ interface EditPhoneModalProps {
     isPrimary: boolean,
   ) => void;
   phoneData: PhoneData | null;
+  userData: UserData | null;
 }
 
 export function EditPhoneModal({
@@ -34,19 +39,29 @@ export function EditPhoneModal({
   onClose,
   onSubmit,
   phoneData,
+  userData,
 }: EditPhoneModalProps) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verified, setVerified] = useState(false);
   const [isPrimary, setIsPrimary] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
+  // Only reset form when modal opens or phoneData changes, not when userData updates
   useEffect(() => {
-    if (phoneData) {
+    if (phoneData && userData && isOpen && !hasUserInteracted) {
       setPhoneNumber(phoneData.phone_number);
       setVerified(phoneData.verified);
-      setIsPrimary(phoneData.is_primary);
+      setIsPrimary(userData.primary_phone_number_id === phoneData.id);
     }
-  }, [phoneData]);
+  }, [phoneData, userData, isOpen, hasUserInteracted]);
+
+  // Reset interaction flag when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setHasUserInteracted(false);
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,10 +79,11 @@ export function EditPhoneModal({
   };
 
   const handleClose = () => {
-    if (phoneData) {
+    if (phoneData && userData) {
       setPhoneNumber(phoneData.phone_number);
       setVerified(phoneData.verified);
-      setIsPrimary(phoneData.is_primary);
+      setIsPrimary(userData.primary_phone_number_id === phoneData.id);
+      setHasUserInteracted(false);
     }
     onClose();
   };
@@ -107,10 +123,19 @@ export function EditPhoneModal({
                   Primary
                 </label>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Set as primary phone number
+                  {isPrimary && userData?.primary_phone_number_id === phoneData?.id 
+                    ? "This is the primary phone number" 
+                    : "Set as primary phone number"}
                 </p>
               </div>
-              <Switch checked={isPrimary} onChange={setIsPrimary} />
+              <Switch 
+                checked={isPrimary} 
+                disabled={isPrimary && userData?.primary_phone_number_id === phoneData?.id}
+                onChange={(checked) => {
+                  setIsPrimary(checked);
+                  setHasUserInteracted(true);
+                }} 
+              />
             </div>
           </div>
         </form>

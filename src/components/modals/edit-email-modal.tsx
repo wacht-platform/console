@@ -17,6 +17,10 @@ interface EmailData {
   is_primary: boolean;
 }
 
+interface UserData {
+  primary_email_address_id: string | null;
+}
+
 interface EditEmailModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -27,6 +31,7 @@ interface EditEmailModalProps {
     isPrimary: boolean,
   ) => void;
   emailData: EmailData | null;
+  userData: UserData | null;
 }
 
 export function EditEmailModal({
@@ -34,19 +39,29 @@ export function EditEmailModal({
   onClose,
   onSubmit,
   emailData,
+  userData,
 }: EditEmailModalProps) {
   const [email, setEmail] = useState("");
   const [verified, setVerified] = useState(false);
   const [isPrimary, setIsPrimary] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
+  // Only reset form when modal opens or emailData changes, not when userData updates
   useEffect(() => {
-    if (emailData) {
+    if (emailData && userData && isOpen && !hasUserInteracted) {
       setEmail(emailData.email);
       setVerified(emailData.verified);
-      setIsPrimary(emailData.is_primary);
+      setIsPrimary(userData.primary_email_address_id === emailData.id);
     }
-  }, [emailData]);
+  }, [emailData, userData, isOpen, hasUserInteracted]);
+
+  // Reset interaction flag when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setHasUserInteracted(false);
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,10 +79,11 @@ export function EditEmailModal({
   };
 
   const handleClose = () => {
-    if (emailData) {
+    if (emailData && userData) {
       setEmail(emailData.email);
       setVerified(emailData.verified);
-      setIsPrimary(emailData.is_primary);
+      setIsPrimary(userData.primary_email_address_id === emailData.id);
+      setHasUserInteracted(false);
     }
     onClose();
   };
@@ -107,10 +123,19 @@ export function EditEmailModal({
                   Primary
                 </label>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Set as primary email address
+                  {isPrimary && userData?.primary_email_address_id === emailData?.id 
+                    ? "This is the primary email address" 
+                    : "Set as primary email address"}
                 </p>
               </div>
-              <Switch checked={isPrimary} onChange={setIsPrimary} />
+              <Switch 
+                checked={isPrimary} 
+                disabled={isPrimary && userData?.primary_email_address_id === emailData?.id}
+                onChange={(checked) => {
+                  setIsPrimary(checked);
+                  setHasUserInteracted(true);
+                }} 
+              />
             </div>
           </div>
         </form>
