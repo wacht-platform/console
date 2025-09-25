@@ -26,9 +26,6 @@ import {
   useInitializeAuthSettings,
 } from "@/lib/store/auth-settings-store";
 import { useSaveAuthSettings } from "@/lib/api/hooks/use-save-auth-settings";
-import { ListboxLabel } from "@/components/ui/listbox";
-import { ListboxOption } from "@/components/ui/listbox";
-import { Listbox } from "@/components/ui/listbox";
 import { Text } from "@/components/ui/text";
 
 interface DialogProps {
@@ -625,7 +622,7 @@ function FirstNameSettings({ open, onClose }: DialogProps) {
 }
 
 function LastNameSettings({ open, onClose }: DialogProps) {
-  const { updateLastNameSettings } = useAuthSettingsStore();
+  const { settings, updateLastNameSettings } = useAuthSettingsStore();
 
   const handleLastNameSettingChange = (settingName: string, value: boolean) => {
     const updateData: { [key: string]: boolean } = {};
@@ -644,7 +641,7 @@ function LastNameSettings({ open, onClose }: DialogProps) {
             <Description>Users can add last names to their account</Description>
             <Switch
               name="last_name_enabled"
-              // Use handler
+              checked={settings.last_name?.enabled}
               onChange={(checked) =>
                 handleLastNameSettingChange("enabled", checked)
               }
@@ -656,7 +653,7 @@ function LastNameSettings({ open, onClose }: DialogProps) {
             <Description>Users must provide a last name to sign up</Description>
             <Switch
               name="last_name_required"
-              // Use handler
+              checked={settings.last_name?.required}
               onChange={(checked) =>
                 handleLastNameSettingChange("required", checked)
               }
@@ -783,7 +780,7 @@ function PasskeySettingsDialog({ open, onClose }: DialogProps) {
 function FirstFactorDialog({ open, onClose }: DialogProps) {
   const { settings } = useAuthSettingsStore();
   const { updateFirstFactor } = useAuthSettingsStore();
-  
+
   const handleFirstFactorChange = (
     factor: DeploymentAuthSettings["first_factor"],
   ) => {
@@ -792,49 +789,49 @@ function FirstFactorDialog({ open, onClose }: DialogProps) {
 
   // Build list of available options based on what's enabled
   const availableOptions = [];
-  
+
   // Check if email_password is enabled (toggle is on)
   if (settings.auth_factors_enabled?.email_password) {
     availableOptions.push({
       value: "email_password",
       label: "Email + Password",
-      description: "Users sign in with email and password"
+      description: "Users sign in with email and password",
     });
   }
-  
+
   // Check if username_password is enabled (toggle is on)
   if (settings.auth_factors_enabled?.username_password) {
     availableOptions.push({
       value: "username_password",
       label: "Username + Password",
-      description: "Users sign in with username and password"
+      description: "Users sign in with username and password",
     });
   }
-  
+
   // Check if email_otp is enabled (toggle is on)
   if (settings.auth_factors_enabled?.email_otp) {
     availableOptions.push({
       value: "email_otp",
       label: "Email OTP",
-      description: "Users sign in with email and receive a one-time password"
+      description: "Users sign in with email and receive a one-time password",
     });
   }
-  
+
   // Check if email_magic_link is enabled (toggle is on)
   if (settings.auth_factors_enabled?.email_magic_link) {
     availableOptions.push({
       value: "email_magic_link",
       label: "Email Magic Link",
-      description: "Users sign in by clicking a link sent to their email"
+      description: "Users sign in by clicking a link sent to their email",
     });
   }
-  
+
   // Check if phone_otp is enabled (toggle is on)
   if (settings.auth_factors_enabled?.phone_otp) {
     availableOptions.push({
       value: "phone_otp",
       label: "Phone OTP",
-      description: "Users sign in with phone number and receive an SMS code"
+      description: "Users sign in with phone number and receive an SMS code",
     });
   }
 
@@ -842,31 +839,46 @@ function FirstFactorDialog({ open, onClose }: DialogProps) {
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Default Sign-in Method</DialogTitle>
       <DialogDescription>
-        Select which authentication method users will see by default. Only enabled methods are shown.
+        Select which authentication method users will see by default. Only
+        enabled methods are shown.
       </DialogDescription>
       <DialogBody className="space-y-4">
         {availableOptions.length === 0 ? (
           <div className="py-6 text-center">
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              No authentication methods are currently enabled. Please enable at least one method first.
+              No authentication methods are currently enabled. Please enable at
+              least one method first.
             </p>
           </div>
         ) : (
           <div className="space-y-3">
             {availableOptions.map((option) => (
               <div key={option.value} className="relative">
-                <div className="flex items-start space-x-3 p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer"
-                     onClick={() => handleFirstFactorChange(option.value as DeploymentAuthSettings["first_factor"])}>
+                <div
+                  className="flex items-start space-x-3 p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer"
+                  onClick={() =>
+                    handleFirstFactorChange(
+                      option.value as DeploymentAuthSettings["first_factor"],
+                    )
+                  }
+                >
                   <input
                     type="radio"
                     id={option.value}
                     name="first_factor"
                     checked={settings.first_factor === option.value}
-                    onChange={() => handleFirstFactorChange(option.value as DeploymentAuthSettings["first_factor"])}
+                    onChange={() =>
+                      handleFirstFactorChange(
+                        option.value as DeploymentAuthSettings["first_factor"],
+                      )
+                    }
                     className="mt-1"
                   />
                   <div className="flex-1">
-                    <label htmlFor={option.value} className="text-sm font-medium text-zinc-900 dark:text-zinc-100 cursor-pointer">
+                    <label
+                      htmlFor={option.value}
+                      className="text-sm font-medium text-zinc-900 dark:text-zinc-100 cursor-pointer"
+                    >
                       {option.label}
                     </label>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
@@ -906,7 +918,9 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
       </DialogDescription>
       <DialogBody className="space-y-3">
         <div className="mb-4">
-          <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-2">Policy</h3>
+          <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-2">
+            Policy
+          </h3>
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <input
@@ -916,7 +930,10 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
                 checked={settings.second_factor_policy === "none"}
                 onChange={() => handlePolicyChange("none")}
               />
-              <label htmlFor="none" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+              <label
+                htmlFor="none"
+                className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
+              >
                 None
               </label>
             </div>
@@ -932,7 +949,10 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
                 checked={settings.second_factor_policy === "optional"}
                 onChange={() => handlePolicyChange("optional")}
               />
-              <label htmlFor="optional" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+              <label
+                htmlFor="optional"
+                className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
+              >
                 Optional
               </label>
             </div>
@@ -948,7 +968,10 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
                 checked={settings.second_factor_policy === "enforced"}
                 onChange={() => handlePolicyChange("enforced")}
               />
-              <label htmlFor="enforced" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+              <label
+                htmlFor="enforced"
+                className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
+              >
                 Enforced
               </label>
             </div>
@@ -978,24 +1001,12 @@ export default function SchemaFactorsPage() {
   const [secondFactorPolicyOpen, setSecondFactorPolicyOpen] = useState(false);
   const [multiSessionSettingsOpen, setMultiSessionSettingsOpen] =
     useState(false);
-  const [sessionValidityPeriod, setSessionValidityPeriod] = useState("30");
-  const [sessionTokenLifetime, setSessionTokenLifetime] = useState("30");
-  const [sessionInactiveTimeout, setSessionInactiveTimeout] = useState("7");
-  const [sessionValidityUnit, setSessionValidityUnit] = useState<
-    "days" | "hours" | "minutes"
-  >("days");
-  const [sessionTokenLifetimeUnit, setSessionTokenLifetimeUnit] = useState<
-    "hours" | "minutes"
-  >("minutes");
-  const [sessionInactiveTimeoutUnit, setSessionInactiveTimeoutUnit] = useState<
-    "days" | "hours" | "minutes"
-  >("days");
+
 
   const { isLoading } = useInitializeAuthSettings();
   const { settings, isDirty: isFormDirty } = useAuthSettingsStore();
-  const { isSaving, saveSettings, resetSettings } =
-    useSaveAuthSettings();
-  
+  const { isSaving, saveSettings, resetSettings } = useSaveAuthSettings();
+
   // Use isDirty directly from the store for reactive updates
   const isDirty = isFormDirty;
 
@@ -1010,9 +1021,7 @@ export default function SchemaFactorsPage() {
     updatePasskeySettings,
     updateMagicLinkSettings,
     updateMultiSessionSupport,
-    updateSessionTokenLifetime,
-    updateSessionValidityPeriod,
-    updateSessionInactiveTimeout,
+
   } = useAuthSettingsStore();
 
   const handleToggle = (settingType: string, value: boolean) => {
@@ -1080,125 +1089,10 @@ export default function SchemaFactorsPage() {
     }
   };
 
-  useEffect(() => {
-    if (isDirty) return;
-    const sessionValidityPeriod = settings.session_validity_period;
-    const sessionTokenLifetime = settings.session_token_lifetime;
-    const sessionInactiveTimeout = settings.session_inactive_timeout;
 
-    // find closest unit
-    const sessionValidityPeriodUnit =
-      sessionValidityPeriod / 86400 > 1
-        ? "days"
-        : sessionValidityPeriod / 3600 > 1
-          ? "hours"
-          : "minutes";
-    const sessionTokenLifetimeUnit =
-      sessionTokenLifetime / 3600 > 1 ? "hours" : "minutes";
-    const sessionInactiveTimeoutUnit =
-      sessionInactiveTimeout / 86400 > 1
-        ? "days"
-        : sessionInactiveTimeout / 3600 > 1
-          ? "hours"
-          : "minutes";
 
-    if (sessionValidityPeriodUnit === "days") {
-      const sessionValidityPeriodInDays = sessionValidityPeriod / 86400;
-      setSessionValidityPeriod(sessionValidityPeriodInDays.toString());
-      setSessionValidityUnit("days");
-    } else if (sessionValidityPeriodUnit === "hours") {
-      const sessionValidityPeriodInHours = sessionValidityPeriod / 3600;
-      setSessionValidityPeriod(sessionValidityPeriodInHours.toString());
-      setSessionValidityUnit("hours");
-    } else {
-      const sessionValidityPeriodInMinutes = sessionValidityPeriod / 60;
-      setSessionValidityPeriod(sessionValidityPeriodInMinutes.toString());
-      setSessionValidityUnit("minutes");
-    }
 
-    if (sessionTokenLifetimeUnit === "hours") {
-      const sessionTokenLifetimeInHours = sessionTokenLifetime / 3600;
-      setSessionTokenLifetime(sessionTokenLifetimeInHours.toString());
-      setSessionTokenLifetimeUnit("hours");
-    } else {
-      const sessionTokenLifetimeInMinutes = sessionTokenLifetime / 60;
-      setSessionTokenLifetime(sessionTokenLifetimeInMinutes.toString());
-      setSessionTokenLifetimeUnit("minutes");
-    }
 
-    if (sessionInactiveTimeoutUnit === "days") {
-      const sessionInactiveTimeoutInDays = sessionInactiveTimeout / 86400;
-      setSessionInactiveTimeout(sessionInactiveTimeoutInDays.toString());
-      setSessionInactiveTimeoutUnit("days");
-    } else if (sessionInactiveTimeoutUnit === "hours") {
-      const sessionInactiveTimeoutInHours = sessionInactiveTimeout / 3600;
-      setSessionInactiveTimeout(sessionInactiveTimeoutInHours.toString());
-      setSessionInactiveTimeoutUnit("hours");
-    } else {
-      const sessionInactiveTimeoutInMinutes = sessionInactiveTimeout / 60;
-      setSessionInactiveTimeout(sessionInactiveTimeoutInMinutes.toString());
-      setSessionInactiveTimeoutUnit("minutes");
-    }
-  }, [settings, isDirty]);
-
-  const handleSessionValidityPeriodChange = (
-    value: string,
-    unit: "days" | "hours" | "minutes",
-  ) => {
-    if (value === "") {
-      setSessionValidityPeriod("");
-      setSessionValidityUnit(unit);
-      updateSessionValidityPeriod(0);
-      return;
-    }
-
-    setSessionValidityPeriod(value);
-    setSessionValidityUnit(unit);
-
-    const period = parseInt(value);
-    const valueInSeconds =
-      period * (unit === "days" ? 86400 : unit === "hours" ? 3600 : 60);
-    updateSessionValidityPeriod(valueInSeconds);
-  };
-
-  const handleSessionTokenLifetimeChange = (
-    value: string,
-    unit: "hours" | "minutes",
-  ) => {
-    if (value === "") {
-      setSessionTokenLifetime("");
-      setSessionTokenLifetimeUnit(unit);
-      updateSessionTokenLifetime(0);
-      return;
-    }
-
-    setSessionTokenLifetime(value);
-    setSessionTokenLifetimeUnit(unit);
-
-    const period = parseInt(value);
-    const valueInSeconds = period * (unit === "hours" ? 3600 : 60);
-    updateSessionTokenLifetime(valueInSeconds);
-  };
-
-  const handleSessionInactiveTimeoutChange = (
-    value: string,
-    unit: "days" | "hours" | "minutes",
-  ) => {
-    if (value === "") {
-      setSessionInactiveTimeout("");
-      setSessionInactiveTimeoutUnit(unit);
-      updateSessionInactiveTimeout(0);
-      return;
-    }
-
-    setSessionInactiveTimeout(value);
-    setSessionInactiveTimeoutUnit(unit);
-
-    const period = parseInt(value);
-    const valueInSeconds =
-      period * (unit === "days" ? 86400 : unit === "hours" ? 3600 : 60);
-    updateSessionInactiveTimeout(valueInSeconds);
-  };
 
   const handleSaveSettings = async () => {
     try {
@@ -1220,7 +1114,9 @@ export default function SchemaFactorsPage() {
       <div className="flex items-center justify-center min-h-[400px] w-full">
         <div className="flex flex-col items-center gap-4">
           <Spinner size="lg" />
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading authentication settings...</span>
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+            Loading authentication settings...
+          </span>
         </div>
       </div>
     );
@@ -1435,14 +1331,19 @@ export default function SchemaFactorsPage() {
             <div className="space-y-6">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Default Sign-in Method</h3>
+                  <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                    Default Sign-in Method
+                  </h3>
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">
                     Choose which method is shown by default
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded">
-                    {settings.first_factor?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Email Password'}
+                    {settings.first_factor
+                      ?.replace(/_/g, " ")
+                      .replace(/\b\w/g, (l) => l.toUpperCase()) ||
+                      "Email Password"}
                   </span>
                   <Button plain onClick={() => setFirstFactorOpen(true)}>
                     <Cog6ToothIcon />
@@ -1479,8 +1380,8 @@ export default function SchemaFactorsPage() {
               </SwitchField>
 
               <SwitchField>
-                <Label>SSO</Label>
-                <Description>Users can sign in with SSO</Description>
+                <Label>SSO Authentication</Label>
+                <Description>Users can sign in external accounts</Description>
                 <Switch
                   name="sso_enabled"
                   checked={settings.auth_factors_enabled?.sso}
@@ -1488,7 +1389,7 @@ export default function SchemaFactorsPage() {
                 />
               </SwitchField>
 
-              <SwitchField>
+              {/*<SwitchField>
                 <Label>Web3 Wallet</Label>
                 <Description>Users can sign in with a Web3 wallet</Description>
                 <Switch
@@ -1498,7 +1399,7 @@ export default function SchemaFactorsPage() {
                     handleToggle("web3_wallet_enabled", checked)
                   }
                 />
-              </SwitchField>
+              </SwitchField>*/}
 
               <div className="flex items-start justify-between">
                 <div>
@@ -1549,7 +1450,7 @@ export default function SchemaFactorsPage() {
                 />
               </SwitchField>
 
-              <div className="flex items-start justify-between">
+              {/*<div className="flex items-start justify-between">
                 <div>
                   <h3 className="text-sm font-medium">Passkeys</h3>
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -1568,7 +1469,7 @@ export default function SchemaFactorsPage() {
                     }
                   />
                 </div>
-              </div>
+              </div>*/}
             </div>
           </div>
 
@@ -1632,173 +1533,34 @@ export default function SchemaFactorsPage() {
 
             <Divider soft />
 
-            <div className="space-y-6">
-              <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
-                <div className="space-y-1 col-span-2">
-                  <Subheading>Session Validity</Subheading>
-                  <Text>
-                    The maximum lifetime of a session, regardless of user
-                    activity. After that, the session will be expired and the
-                    user will need to log in again.
-                  </Text>
-                </div>
-                <Field className="flex items-center gap-x-4">
-                  <FieldGroup>
-                    <Input
-                      aria-label="Duration"
-                      name="duration"
-                      inputClassName="text-right"
-                      value={sessionValidityPeriod || ""}
-                      onChange={(e) =>
-                        handleSessionValidityPeriodChange(
-                          e.target.value,
-                          sessionValidityUnit,
-                        )
-                      }
-                    />
-                  </FieldGroup>
-                  <FieldGroup className="flex-1">
-                    <Listbox
-                      name="unit"
-                      value={sessionValidityUnit}
-                      onChange={(value) =>
-                        handleSessionValidityPeriodChange(
-                          sessionValidityPeriod,
-                          value,
-                        )
-                      }
-                    >
-                      <ListboxOption value="minutes">
-                        <ListboxLabel>Minutes</ListboxLabel>
-                      </ListboxOption>
-                      <ListboxOption value="hours">
-                        <ListboxLabel>Hours</ListboxLabel>
-                      </ListboxOption>
-                      <ListboxOption value="days">
-                        <ListboxLabel>Days</ListboxLabel>
-                      </ListboxOption>
-                    </Listbox>
-                  </FieldGroup>
-                </Field>
-              </section>
 
-              <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
-                <div className="space-y-1 col-span-2">
-                  <Subheading>Inactivity Timeout</Subheading>
-                  <Text>
-                    The maximum period of inactivity after which a session is
-                    terminated.
-                  </Text>
-                </div>
-                <Field className="flex items-center gap-x-4">
-                  <FieldGroup>
-                    <Input
-                      aria-label="Duration"
-                      inputClassName="text-right"
-                      name="duration"
-                      value={sessionInactiveTimeout}
-                      onChange={(e) =>
-                        setSessionInactiveTimeout(e.target.value)
-                      }
-                    />
-                  </FieldGroup>
-                  <FieldGroup className="flex-1">
-                    <Listbox
-                      name="unit"
-                      value={sessionInactiveTimeoutUnit}
-                      onChange={(value) =>
-                        handleSessionInactiveTimeoutChange(
-                          sessionInactiveTimeout,
-                          value,
-                        )
-                      }
-                    >
-                      <ListboxOption value="minutes">
-                        <ListboxLabel>Minutes</ListboxLabel>
-                      </ListboxOption>
-                      <ListboxOption value="hours">
-                        <ListboxLabel>Hours</ListboxLabel>
-                      </ListboxOption>
-                      <ListboxOption value="days">
-                        <ListboxLabel>Days</ListboxLabel>
-                      </ListboxOption>
-                    </Listbox>
-                  </FieldGroup>
-                </Field>
-              </section>
 
-              <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
-                <div className="space-y-1 col-span-2">
-                  <Subheading>Token Expiration</Subheading>
-                  <Text>
-                    The maximum lifetime of a token. After that, the token will
-                    be expired and the token with be revalidated.
-                  </Text>
-                </div>
-                <Field className="flex items-center gap-x-4">
-                  <FieldGroup>
-                    <Input
-                      aria-label="Duration"
-                      name="duration"
-                      inputClassName="text-right"
-                      value={sessionTokenLifetime}
-                      onChange={(e) =>
-                        handleSessionTokenLifetimeChange(
-                          e.target.value,
-                          sessionTokenLifetimeUnit,
-                        )
-                      }
-                    />
-                  </FieldGroup>
-                  <FieldGroup className="flex-1">
-                    <Listbox
-                      name="unit"
-                      value={sessionTokenLifetimeUnit}
-                      onChange={(value) =>
-                        handleSessionTokenLifetimeChange(
-                          sessionTokenLifetime,
-                          value,
-                        )
-                      }
-                    >
-                      <ListboxOption value="minutes">
-                        <ListboxLabel>Minutes</ListboxLabel>
-                      </ListboxOption>
-                      <ListboxOption value="hours">
-                        <ListboxLabel>Hours</ListboxLabel>
-                      </ListboxOption>
-                    </Listbox>
-                  </FieldGroup>
-                </Field>
-              </section>
+            <div className="flex items-start justify-between">
+              <div>
+                <Subheading className="text-sm font-medium">
+                  Multi Session Support
+                </Subheading>
+                <Text className="text-sm text-zinc-500 dark:text-zinc-400">
+                  Enable multi-session support to allow users to have multiple
+                  sessions at the same time.
+                </Text>
+              </div>
+              <div className="flex items-center gap-2 h-[48px]">
+                <Button
+                  plain
+                  type="button"
+                  onClick={() => setMultiSessionSettingsOpen(true)}
+                >
+                  <Cog6ToothIcon />
+                </Button>
 
-              <div className="flex items-start justify-between">
-                <div>
-                  <Subheading className="text-sm font-medium">
-                    Multi Session Support
-                  </Subheading>
-                  <Text className="text-sm text-zinc-500 dark:text-zinc-400">
-                    Enable multi-session support to allow users to have multiple
-                    sessions at the same time.
-                  </Text>
-                </div>
-                <div className="flex items-center gap-2 h-[48px]">
-                  <Button
-                    plain
-                    type="button"
-                    onClick={() => setMultiSessionSettingsOpen(true)}
-                  >
-                    <Cog6ToothIcon />
-                  </Button>
-
-                  <Switch
-                    name="email_enabled"
-                    checked={settings.multi_session_support.enabled}
-                    onChange={(checked) =>
-                      handleToggle("multi_session_support_enabled", checked)
-                    }
-                  />
-                </div>
+                <Switch
+                  name="email_enabled"
+                  checked={settings.multi_session_support.enabled}
+                  onChange={(checked) =>
+                    handleToggle("multi_session_support_enabled", checked)
+                  }
+                />
               </div>
             </div>
           </div>

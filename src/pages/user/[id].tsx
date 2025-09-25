@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { format } from "date-fns";
+import { toast } from "sonner";
 import { useUserDetails } from "@/lib/api/hooks/use-user-details";
 import { useUpdateUser } from "@/lib/api/hooks/use-update-user";
 import { useDarkMode } from "@/lib/hooks/use-dark-mode";
@@ -19,7 +20,7 @@ import {
 import { useDeleteUserSocialConnection } from "@/lib/api/hooks/use-user-social-mutations";
 import { useDeleteUser } from "@/lib/api/hooks/use-deployment-user-mutations";
 import { Button } from "@/components/ui/button";
-
+import { getCountryFlag } from "@/lib/constants/countries";
 
 import { SimpleTabs, Tab } from "@/components/ui/simple-tabs";
 import { AddEmailModal } from "@/components/modals/add-email-modal";
@@ -187,12 +188,14 @@ export default function UserDetailsPage() {
 
   const handleAddPhone = async (
     phoneNumber: string,
+    countryCode: string,
     verified: boolean,
     isPrimary: boolean
   ) => {
     try {
       await addPhone({
         phone_number: phoneNumber,
+        country_code: countryCode,
         verified,
         is_primary: isPrimary,
       });
@@ -286,9 +289,10 @@ export default function UserDetailsPage() {
         public_metadata: parsedMetadata,
       });
       setIsEditingPublicMetadata(false);
-      console.log("Public metadata updated successfully");
+      toast.success("Public metadata updated successfully");
     } catch (error) {
       console.error("Failed to save public metadata:", error);
+      toast.error("Failed to update public metadata. Please check the JSON format.");
     }
   };
 
@@ -299,9 +303,10 @@ export default function UserDetailsPage() {
         private_metadata: parsedMetadata,
       });
       setIsEditingPrivateMetadata(false);
-      console.log("Private metadata updated successfully");
+      toast.success("Private metadata updated successfully");
     } catch (error) {
       console.error("Failed to save private metadata:", error);
+      toast.error("Failed to update private metadata. Please check the JSON format.");
     }
   };
 
@@ -626,7 +631,7 @@ export default function UserDetailsPage() {
                       }
                     />
                   ) : (
-                    <div className="divide-y divide-gray-200">
+                    <div className="divide-y divide-gray-200 dark:divide-gray-700">
                       {user.email_addresses.map((email) => (
                         <div
                           key={email.id}
@@ -736,7 +741,7 @@ export default function UserDetailsPage() {
                       }
                     />
                   ) : (
-                    <div className="divide-y divide-gray-200">
+                    <div className="divide-y divide-gray-200 dark:divide-gray-700">
                       {user.phone_numbers.map((phone) => (
                         <div
                           key={phone.id}
@@ -745,8 +750,9 @@ export default function UserDetailsPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
+                                <span className="text-lg">{getCountryFlag(phone.country_code)}</span>
                                 <span className="text-sm text-gray-900 dark:text-gray-100">
-                                  {phone.phone_number}
+                                  {phone.country_code} {phone.phone_number}
                                 </span>
                                 {user.primary_phone_number ===
                                   phone.phone_number && (
@@ -839,7 +845,7 @@ export default function UserDetailsPage() {
                       }
                     />
                   ) : (
-                    <div className="divide-y divide-gray-200">
+                    <div className="divide-y divide-gray-200 dark:divide-gray-700">
                       {user.social_connections.map((connection) => (
                         <div
                           key={connection.id}

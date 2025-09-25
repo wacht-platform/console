@@ -5,6 +5,7 @@ import { UserPhoneNumber } from "@/types/user";
 
 interface AddPhoneRequest {
   phone_number: string;
+  country_code: string;
   verified?: boolean;
   is_primary?: boolean;
 }

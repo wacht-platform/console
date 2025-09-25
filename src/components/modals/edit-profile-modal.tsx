@@ -10,9 +10,7 @@ import {
 import { Field, Label } from "@/components/ui/fieldset";
 import { PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { toast } from "sonner";
-import { apiClient } from "@/lib/api/client";
-import { useProjects } from "@/lib/api/hooks/use-projects";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useUpdateUser } from "@/lib/api/hooks/use-update-user";
 
 interface ProfileData {
   first_name?: string;
@@ -42,27 +40,7 @@ export function EditProfileModal({
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { selectedDeployment } = useProjects();
-  const queryClient = useQueryClient();
-
-  const updateUserMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      if (!selectedDeployment) {
-        throw new Error("No deployment selected");
-      }
-
-      const response = await apiClient.patch(
-        `/deployments/${selectedDeployment.id}/users/${userId}`,
-        formData,
-      );
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["user-details", selectedDeployment?.id, userId],
-      });
-    },
-  });
+  const { mutateAsync: updateUser } = useUpdateUser(userId);
 
   useEffect(() => {
     if (profileData) {
@@ -109,13 +87,12 @@ export function EditProfileModal({
 
     setIsLoading(true);
     try {
-      const formData = new FormData();
-      if (firstName.trim()) formData.append("first_name", firstName.trim());
-      if (lastName.trim()) formData.append("last_name", lastName.trim());
-      if (username.trim()) formData.append("username", username.trim());
-      if (selectedImage) formData.append("profile_image", selectedImage);
-
-      await updateUserMutation.mutateAsync(formData);
+      await updateUser({
+        first_name: firstName.trim() || undefined,
+        last_name: lastName.trim() || undefined,
+        username: username.trim() || undefined,
+        profile_image: selectedImage || undefined,
+      });
       toast.success("Profile updated successfully!");
       onClose();
     } catch (error) {
@@ -189,7 +166,7 @@ export function EditProfileModal({
                 >
                   {imagePreview ? "Change Image" : "Upload Image"}
                 </Button>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   Recommended: Square PNG or JPG, max 2MB
                 </p>
               </div>

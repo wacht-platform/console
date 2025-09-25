@@ -9,6 +9,7 @@ interface UpdateUserRequest {
 	username?: string;
 	public_metadata?: Record<string, unknown>;
 	private_metadata?: Record<string, unknown>;
+	profile_image?: File;
 }
 
 async function updateUser(
@@ -16,9 +17,31 @@ async function updateUser(
 	userId: string,
 	data: UpdateUserRequest,
 ): Promise<UserDetails> {
+	// Create FormData for multipart request
+	const formData = new FormData();
+
+	if (data.first_name !== undefined) {
+		formData.append("first_name", data.first_name);
+	}
+	if (data.last_name !== undefined) {
+		formData.append("last_name", data.last_name);
+	}
+	if (data.username !== undefined) {
+		formData.append("username", data.username);
+	}
+	if (data.public_metadata !== undefined) {
+		formData.append("public_metadata", JSON.stringify(data.public_metadata));
+	}
+	if (data.private_metadata !== undefined) {
+		formData.append("private_metadata", JSON.stringify(data.private_metadata));
+	}
+	if (data.profile_image !== undefined) {
+		formData.append("profile_image", data.profile_image);
+	}
+
 	const response = await apiClient.patch(
 		`/deployments/${deploymentId}/users/${userId}`,
-		data,
+		formData,
 	);
 	return response.data.data;
 }

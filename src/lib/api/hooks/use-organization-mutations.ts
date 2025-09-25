@@ -30,9 +30,28 @@ async function updateOrganization(
 	organizationId: string,
 	data: UpdateOrganizationRequest,
 ): Promise<Organization> {
+	// Create FormData for multipart request
+	const formData = new FormData();
+
+	if (data.name !== undefined) {
+		formData.append("name", data.name);
+	}
+	if (data.description !== undefined) {
+		formData.append("description", data.description);
+	}
+	if (data.image_url !== undefined) {
+		formData.append("image_url", data.image_url);
+	}
+	if (data.public_metadata !== undefined) {
+		formData.append("public_metadata", JSON.stringify(data.public_metadata));
+	}
+	if (data.private_metadata !== undefined) {
+		formData.append("private_metadata", JSON.stringify(data.private_metadata));
+	}
+
 	const response = await apiClient.patch(
 		`/deployments/${deploymentId}/organizations/${organizationId}`,
-		data,
+		formData,
 	);
 	return response.data.data;
 }

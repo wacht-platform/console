@@ -70,10 +70,10 @@ export function AddEmailModal({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <label className="text-sm font-medium text-gray-900">
+                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   Verified
                 </label>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Mark this email as verified
                 </p>
               </div>
@@ -82,10 +82,10 @@ export function AddEmailModal({
 
             <div className="flex items-center justify-between">
               <div>
-                <label className="text-sm font-medium text-gray-900">
+                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   Primary
                 </label>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Set as primary email address
                 </p>
               </div>

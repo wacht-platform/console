@@ -216,10 +216,10 @@ export default function JWTTemplateCreateUpdatePage() {
       <div className="mb-8">
         <div className="flex justify-between items-start">
           <div>
-            <Heading className="text-2xl font-normal text-gray-900">
+            <Heading className="text-2xl font-normal text-gray-900 dark:text-zinc-100">
               {isEditMode ? "Edit JWT Template" : "Create JWT Template"}
             </Heading>
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
               {isEditMode 
                 ? "Update your JWT template configuration and claims" 
                 : "Configure a new JWT template for token generation"}
@@ -258,7 +258,7 @@ export default function JWTTemplateCreateUpdatePage() {
       </div>
 
       {validationError && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center">
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-lg flex items-center">
           <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
           </svg>
@@ -267,9 +267,9 @@ export default function JWTTemplateCreateUpdatePage() {
       )}
 
       <div className="space-y-8">
-        <div className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
+        <div className="bg-white dark:bg-zinc-900 shadow-sm ring-1 ring-gray-900/5 dark:ring-zinc-800 sm:rounded-xl">
           <div className="px-6 py-6">
-            <h3 className="text-base font-normal leading-6 text-gray-900 mb-4">Basic Information</h3>
+            <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100 mb-4">Basic Information</h3>
             <Field>
               <Label>Template Name</Label>
               <Description>A unique name to identify this JWT template</Description>
@@ -284,10 +284,10 @@ export default function JWTTemplateCreateUpdatePage() {
           </div>
         </div>
 
-        <div className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
+        <div className="bg-white dark:bg-zinc-900 shadow-sm ring-1 ring-gray-900/5 dark:ring-zinc-800 sm:rounded-xl">
           <div className="px-6 py-6">
-            <h3 className="text-base font-normal leading-6 text-gray-900 mb-4 flex items-center">
-              <ClockIcon className="w-5 h-5 mr-2 text-gray-400" />
+            <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100 mb-4 flex items-center">
+              <ClockIcon className="w-5 h-5 mr-2 text-gray-400 dark:text-zinc-500" />
               Token Configuration
             </h3>
             <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -304,7 +304,7 @@ export default function JWTTemplateCreateUpdatePage() {
                     className="pr-20"
                   />
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <span className="text-gray-500 sm:text-sm">seconds</span>
+                    <span className="text-gray-500 dark:text-zinc-400 sm:text-sm">seconds</span>
                   </div>
                 </div>
               </Field>
@@ -322,7 +322,7 @@ export default function JWTTemplateCreateUpdatePage() {
                     className="pr-20"
                   />
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <span className="text-gray-500 sm:text-sm">seconds</span>
+                    <span className="text-gray-500 dark:text-zinc-400 sm:text-sm">seconds</span>
                   </div>
                 </div>
               </Field>
@@ -330,10 +330,10 @@ export default function JWTTemplateCreateUpdatePage() {
           </div>
         </div>
 
-        <div className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
+        <div className="bg-white dark:bg-zinc-900 shadow-sm ring-1 ring-gray-900/5 dark:ring-zinc-800 sm:rounded-xl">
           <div className="px-6 py-6">
-            <h3 className="text-base font-normal leading-6 text-gray-900 mb-4 flex items-center">
-              <KeyIcon className="w-5 h-5 mr-2 text-gray-400" />
+            <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100 mb-4 flex items-center">
+              <KeyIcon className="w-5 h-5 mr-2 text-gray-400 dark:text-zinc-500" />
               Signing Configuration
             </h3>
             <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -403,10 +403,10 @@ export default function JWTTemplateCreateUpdatePage() {
           </div>
         </div>
 
-        <div className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
+        <div className="bg-white dark:bg-zinc-900 shadow-sm ring-1 ring-gray-900/5 dark:ring-zinc-800 sm:rounded-xl">
           <div className="px-6 py-6">
-            <h3 className="text-base font-normal leading-6 text-gray-900 mb-4 flex items-center">
-              <CpuChipIcon className="w-5 h-5 mr-2 text-gray-400" />
+            <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100 mb-4 flex items-center">
+              <CpuChipIcon className="w-5 h-5 mr-2 text-gray-400 dark:text-zinc-500" />
               Token Endpoints
             </h3>
             <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -418,11 +418,11 @@ export default function JWTTemplateCreateUpdatePage() {
                     name="issuer"
                     value={selectedDeployment?.backend_host}
                     disabled
-                    className="pr-16 bg-gray-50"
+                    className="pr-16 bg-gray-50 dark:bg-zinc-800"
                   />
                   <button
                     type="button"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 inline-flex items-center px-2.5 py-1.5 text-xs font-normal text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 inline-flex items-center px-2.5 py-1.5 text-xs font-normal text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded hover:bg-gray-50 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     onClick={() => {
                       navigator.clipboard.writeText(
                         selectedDeployment?.backend_host || "",
@@ -444,11 +444,11 @@ export default function JWTTemplateCreateUpdatePage() {
                     name="jwks_endpoint"
                     value={`https://${selectedDeployment?.backend_host}/.well-known/jwks.json`}
                     disabled
-                    className="pr-16 bg-gray-50 text-sm"
+                    className="pr-16 bg-gray-50 dark:bg-zinc-800 text-sm"
                   />
                   <button
                     type="button"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 inline-flex items-center px-2.5 py-1.5 text-xs font-normal text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 inline-flex items-center px-2.5 py-1.5 text-xs font-normal text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded hover:bg-gray-50 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     onClick={() => {
                       navigator.clipboard.writeText(
                         `https://${selectedDeployment?.backend_host}/.well-known/jwks.json`,
@@ -465,15 +465,15 @@ export default function JWTTemplateCreateUpdatePage() {
           </div>
         </div>
 
-        <div className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
+        <div className="bg-white dark:bg-zinc-900 shadow-sm ring-1 ring-gray-900/5 dark:ring-zinc-800 sm:rounded-xl">
           <div className="px-6 py-6">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               <div className="lg:col-span-8 space-y-4">
                 <div>
-                  <h3 className="text-base font-normal leading-6 text-gray-900">JWT Claims</h3>
-                  <p className="mt-1 text-sm text-gray-600">Define the payload data to include in your JWT tokens</p>
+                  <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100">JWT Claims</h3>
+                  <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">Define the payload data to include in your JWT tokens</p>
                 </div>
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="border border-gray-200 dark:border-zinc-700 rounded-lg overflow-hidden">
                   <Editor
                     height="400px"
                     defaultLanguage="json"
@@ -497,72 +497,72 @@ export default function JWTTemplateCreateUpdatePage() {
 
               <div className="lg:col-span-4 space-y-4">
                 <div>
-                  <h3 className="text-base font-normal leading-6 text-gray-900">Available Variables</h3>
-                  <p className="mt-1 text-sm text-gray-600">Click to insert user attributes</p>
+                  <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100">Available Variables</h3>
+                  <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">Click to insert user attributes</p>
                 </div>
                 <div className="space-y-2">
-                  <div className="text-xs font-normal text-gray-500 uppercase tracking-wide">User Properties</div>
+                  <div className="text-xs font-normal text-gray-500 dark:text-zinc-400 uppercase tracking-wide">User Properties</div>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => insertShortcode("user.id")}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                       user.id
                     </button>
                     <button
                       type="button"
                       onClick={() => insertShortcode("user.external_id")}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                       user.external_id
                     </button>
                     <button
                       type="button"
                       onClick={() => insertShortcode("user.first_name")}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                       user.first_name
                     </button>
                     <button
                       type="button"
                       onClick={() => insertShortcode("user.last_name")}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                       user.last_name
                     </button>
                     <button
                       type="button"
                       onClick={() => insertShortcode("user.full_name")}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                       user.full_name
                     </button>
                     <button
                       type="button"
                       onClick={() => insertShortcode("user.username")}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                       user.username
                     </button>
                     <button
                       type="button"
                       onClick={() => insertShortcode("user.created_at")}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                       user.created_at
                     </button>
                     <button
                       type="button"
                       onClick={() => insertShortcode("user.updated_at")}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                       user.updated_at
                     </button>
                     <button
                       type="button"
                       onClick={() => insertShortcode("user.last_sign_in_at")}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                       user.last_sign_in_at
                     </button>
@@ -571,7 +571,7 @@ export default function JWTTemplateCreateUpdatePage() {
                       onClick={() =>
                         insertShortcode("user.primary_email_address")
                       }
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 col-span-2"
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 col-span-2"
                     >
                       user.primary_email_address
                     </button>

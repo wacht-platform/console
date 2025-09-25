@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { format } from "date-fns";
+import { toast } from "sonner";
 import { useOrganizationDetails } from "@/lib/api/hooks/use-organization-details";
 import { useOrganizationMembers } from "@/lib/api/hooks/use-organization-members";
 import { useDarkMode } from "@/lib/hooks/use-dark-mode";
@@ -164,8 +165,10 @@ export default function OrganizationDetailsPage() {
         },
       });
       setIsEditingPublicMetadata(false);
+      toast.success("Public metadata updated successfully");
     } catch (error) {
       console.error("Failed to save public metadata:", error);
+      toast.error("Failed to update public metadata. Please check the JSON format.");
     }
   };
 
@@ -178,8 +181,10 @@ export default function OrganizationDetailsPage() {
         },
       });
       setIsEditingPrivateMetadata(false);
+      toast.success("Private metadata updated successfully");
     } catch (error) {
       console.error("Failed to save private metadata:", error);
+      toast.error("Failed to update private metadata. Please check the JSON format.");
     }
   };
 

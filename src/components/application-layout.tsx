@@ -36,6 +36,7 @@ import { CreateProductionDeploymentDialog } from "./create-production-deployment
 import { CreateStagingDeploymentDialog } from "./create-staging-deployment-dialog";
 import { useBillingAccount } from "@/lib/api/hooks/use-billing";
 import {
+  NotificationBell,
   OrganizationSwitcher,
   UserButton,
   // NotificationBell,
@@ -548,6 +549,7 @@ export function ApplicationLayout() {
                 <li className="-mx-4 mt-auto">
                   <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 dark:border-gray-800">
                     <UserButton showName={true} />
+                    <NotificationBell showBadge />
                   </div>
                 </li>
               </ul>

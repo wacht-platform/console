@@ -73,6 +73,7 @@ export interface UserPhoneNumber {
 	updated_at: string;
 	user_id: string;
 	phone_number: string;
+	country_code: string;
 	is_primary: boolean;
 	verified: boolean;
 	verified_at: string;

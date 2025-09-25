@@ -141,13 +141,15 @@ export default function WorkspaceDetailsPage() {
         workspaceId: workspaceId!,
         data: formData,
       });
-      
+
       setIsEditingPublicMetadata(false);
+      toast.success("Public metadata updated successfully");
     } catch (error) {
       if (error instanceof SyntaxError) {
         toast.error("Invalid JSON format in public metadata");
       } else {
         console.error("Failed to save public metadata:", error);
+        toast.error("Failed to update public metadata");
       }
     }
   };
@@ -165,13 +167,15 @@ export default function WorkspaceDetailsPage() {
         workspaceId: workspaceId!,
         data: formData,
       });
-      
+
       setIsEditingPrivateMetadata(false);
+      toast.success("Private metadata updated successfully");
     } catch (error) {
       if (error instanceof SyntaxError) {
         toast.error("Invalid JSON format in private metadata");
       } else {
         console.error("Failed to save private metadata:", error);
+        toast.error("Failed to update private metadata");
       }
     }
   };

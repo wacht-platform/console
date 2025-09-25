@@ -7,11 +7,9 @@ import { Field, FieldGroup } from "@/components/ui/fieldset";
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import { Switch } from "@/components/ui/switch";
 import {
-  PencilSquareIcon,
-  TrashIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogActions,
@@ -19,90 +17,173 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Select } from "@/components/ui/select";
+import { useAuthSettingsStore, useInitializeAuthSettings } from "@/lib/store/auth-settings-store";
+import { useSaveAuthSettings } from "@/lib/api/hooks/use-save-auth-settings";
+import { Spinner } from "@/components/ui/spinner";
+
 
 export default function SessionsPage() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isOpenJWT, setIsOpenJWT] = useState(false);
-  const [isSwitchOn, setIsSwitchOn] = useState(true);
+  const { isLoading } = useInitializeAuthSettings();
+  const { 
+    settings, 
+    isDirty,
+    updateSessionValidityPeriod,
+    updateSessionInactiveTimeout,
+    updateSessionTokenLifetime,
+    updateMultiSessionSupport
+  } = useAuthSettingsStore();
+  const { isSaving, saveSettings, resetSettings } = useSaveAuthSettings();
 
-  const SHORTCODES = [
-    "user.id",
-    "user.username",
-    "user.email_verified",
-    "user.image_url",
-    "org.id",
-    "org.name",
-    "org.public_metadata",
-    "session.actor",
-    "source.platform",
-  ];
+  // Form state
+  const [sessionValidityValue, setSessionValidityValue] = useState(30);
+  const [sessionValidityUnit, setSessionValidityUnit] = useState("days");
+  const [inactivityTimeoutValue, setInactivityTimeoutValue] = useState(7);
+  const [inactivityTimeoutUnit, setInactivityTimeoutUnit] = useState("days");
+  const [tokenExpirationValue, setTokenExpirationValue] = useState(30);
+  const [tokenExpirationUnit, setTokenExpirationUnit] = useState("minutes");
+  const [multiSessionEnabled, setMultiSessionEnabled] = useState(false);
+  const [maxAccountsPerSession, setMaxAccountsPerSession] = useState(1);
+  const [maxSessionsPerAccount, setMaxSessionsPerAccount] = useState(1);
+  
+  // Flag to prevent store updates during form reset
+  const [isResetting, setIsResetting] = useState(false);
 
-  const [jwtTemplates, setJwtTemplates] = useState([
-    { id: 1, name: "Default Template", claims: "{}" },
-    { id: 2, name: "Custom Template 1", claims: '{"role": "admin"}' },
-  ]);
+  // Load data from backend when available
+  useEffect(() => {
+    if (isDirty) return; // Don't override user changes
+    if (settings) {
+      setIsResetting(true); // Prevent store updates during reset
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState<{
-    id: number;
-    name: string;
-    claims: string;
-  } | null>(null);
-  const [templateName, setTemplateName] = useState("");
-  const [claims, setClaims] = useState("");
+      // Convert session_validity_period from seconds to appropriate unit (matching auth settings logic)
+      const validitySeconds = settings.session_validity_period || 2592000; // 30 days default
+      const validityUnit = validitySeconds / 86400 > 1 ? "days" : validitySeconds / 3600 > 1 ? "hours" : "minutes";
 
-  const openModal = (
-    template: { id: number; name: string; claims: string } | null = null,
-  ) => {
-    if (template) {
-      setEditingTemplate(template);
-      setTemplateName(template.name);
-      setClaims(template.claims);
-    } else {
-      setEditingTemplate(null);
-      setTemplateName("");
-      setClaims("");
+      if (validityUnit === "days") {
+        setSessionValidityValue(Math.floor(validitySeconds / 86400));
+        setSessionValidityUnit("days");
+      } else if (validityUnit === "hours") {
+        setSessionValidityValue(Math.floor(validitySeconds / 3600));
+        setSessionValidityUnit("hours");
+      } else {
+        setSessionValidityValue(Math.floor(validitySeconds / 60));
+        setSessionValidityUnit("minutes");
+      }
+
+      // Convert session_inactive_timeout from seconds to appropriate unit (matching auth settings logic)
+      const inactivitySeconds = settings.session_inactive_timeout || 604800; // 7 days default
+      const inactivityUnit = inactivitySeconds / 86400 > 1 ? "days" : inactivitySeconds / 3600 > 1 ? "hours" : "minutes";
+
+      if (inactivityUnit === "days") {
+        setInactivityTimeoutValue(Math.floor(inactivitySeconds / 86400));
+        setInactivityTimeoutUnit("days");
+      } else if (inactivityUnit === "hours") {
+        setInactivityTimeoutValue(Math.floor(inactivitySeconds / 3600));
+        setInactivityTimeoutUnit("hours");
+      } else {
+        setInactivityTimeoutValue(Math.floor(inactivitySeconds / 60));
+        setInactivityTimeoutUnit("minutes");
+      }
+
+      // Convert session_token_lifetime from seconds to appropriate unit (matching auth settings logic)
+      const tokenSeconds = settings.session_token_lifetime || 1800; // 30 minutes default
+      const tokenUnit = tokenSeconds / 3600 > 1 ? "hours" : "minutes"; // Note: token lifetime only uses hours/minutes
+
+      if (tokenUnit === "hours") {
+        setTokenExpirationValue(Math.floor(tokenSeconds / 3600));
+        setTokenExpirationUnit("hours");
+      } else {
+        setTokenExpirationValue(Math.floor(tokenSeconds / 60));
+        setTokenExpirationUnit("minutes");
+      }
+
+      // Multi-session settings
+      setMultiSessionEnabled(settings.multi_session_support?.enabled || false);
+      setMaxAccountsPerSession(settings.multi_session_support?.max_accounts_per_session || 1);
+      setMaxSessionsPerAccount(settings.multi_session_support?.max_sessions_per_account || 1);
+      
+      // Re-enable store updates after reset is complete
+      setTimeout(() => setIsResetting(false), 0);
     }
-    setIsModalOpen(true);
-  };
+  }, [settings, isDirty]);
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
-
-  const handleSave = () => {
-    if (editingTemplate) {
-      setJwtTemplates((prev) =>
-        prev.map((t) =>
-          t.id === editingTemplate.id
-            ? { ...t, name: templateName, claims }
-            : t,
-        ),
-      );
-    } else {
-      setJwtTemplates((prev) => [
-        ...prev,
-        { id: Date.now(), name: templateName, claims },
-      ]);
+  const convertToSeconds = (value: number, unit: string): number => {
+    switch (unit) {
+      case "minutes": return value * 60;
+      case "hours": return value * 3600;
+      case "days": return value * 86400;
+      default: return value * 60;
     }
-    closeModal();
   };
 
-  interface JwtTemplate {
-    id: number;
-    name: string;
-    claims: string;
+  // Update store when form values change
+  const handleSessionValidityChange = (value: number, unit: string) => {
+    setSessionValidityValue(value);
+    setSessionValidityUnit(unit);
+    if (!isResetting) {
+      updateSessionValidityPeriod(convertToSeconds(value, unit));
+    }
+  };
+
+  const handleInactivityTimeoutChange = (value: number, unit: string) => {
+    setInactivityTimeoutValue(value);
+    setInactivityTimeoutUnit(unit);
+    if (!isResetting) {
+      updateSessionInactiveTimeout(convertToSeconds(value, unit));
+    }
+  };
+
+  const handleTokenExpirationChange = (value: number, unit: string) => {
+    setTokenExpirationValue(value);
+    setTokenExpirationUnit(unit);
+    if (!isResetting) {
+      updateSessionTokenLifetime(convertToSeconds(value, unit));
+    }
+  };
+
+  const handleMultiSessionChange = (enabled: boolean) => {
+    setMultiSessionEnabled(enabled);
+    if (!isResetting) {
+      updateMultiSessionSupport({ enabled });
+    }
+  };
+
+  const handleMaxAccountsChange = (maxAccounts: number) => {
+    setMaxAccountsPerSession(maxAccounts);
+    if (!isResetting) {
+      updateMultiSessionSupport({ max_accounts_per_session: maxAccounts });
+    }
+  };
+
+  const handleMaxSessionsChange = (maxSessions: number) => {
+    setMaxSessionsPerAccount(maxSessions);
+    if (!isResetting) {
+      updateMultiSessionSupport({ max_sessions_per_account: maxSessions });
+    }
+  };
+
+  const handleSave = async () => {
+    await saveSettings();
+  };
+
+  const handleReset = () => {
+    resetSettings();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] w-full">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner size="lg" />
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading session settings...</span>
+        </div>
+      </div>
+    );
   }
 
-  const handleDelete = (id: number) => {
-    setJwtTemplates((prev: JwtTemplate[]) => prev.filter((t) => t.id !== id));
-  };
 
-  const insertShortcode = (code: string) => {
-    setClaims((prev: string) => prev + (prev ? ", " : "") + `"${code}": ""`);
-  };
+
+
 
   return (
     <div>
@@ -121,13 +202,16 @@ export default function SessionsPage() {
             <FieldGroup>
               <Input
                 aria-label="Duration"
-                name="duration"
+                name="sessionValidityValue"
                 inputClassName="text-right"
-                defaultValue="30"
+                type="number"
+                min="1"
+                value={sessionValidityValue}
+                onChange={(e) => handleSessionValidityChange(parseInt(e.target.value) || 1, sessionValidityUnit)}
               />
             </FieldGroup>
             <FieldGroup className="flex-1">
-              <Listbox name="unit" defaultValue="days">
+              <Listbox name="sessionValidityUnit" value={sessionValidityUnit} onChange={(unit) => handleSessionValidityChange(sessionValidityValue, unit)}>
                 <ListboxOption value="minutes">
                   <ListboxLabel>Minutes</ListboxLabel>
                 </ListboxOption>
@@ -136,9 +220,6 @@ export default function SessionsPage() {
                 </ListboxOption>
                 <ListboxOption value="days">
                   <ListboxLabel>Days</ListboxLabel>
-                </ListboxOption>
-                <ListboxOption value="weeks">
-                  <ListboxLabel>Weeks</ListboxLabel>
                 </ListboxOption>
               </Listbox>
             </FieldGroup>
@@ -158,12 +239,15 @@ export default function SessionsPage() {
               <Input
                 aria-label="Duration"
                 inputClassName="text-right"
-                name="duration"
-                defaultValue="7"
+                name="inactivityTimeoutValue"
+                type="number"
+                min="1"
+                value={inactivityTimeoutValue}
+                onChange={(e) => handleInactivityTimeoutChange(parseInt(e.target.value) || 1, inactivityTimeoutUnit)}
               />
             </FieldGroup>
             <FieldGroup className="flex-1">
-              <Listbox name="unit" defaultValue="days">
+              <Listbox name="inactivityTimeoutUnit" value={inactivityTimeoutUnit} onChange={(unit) => handleInactivityTimeoutChange(inactivityTimeoutValue, unit)}>
                 <ListboxOption value="minutes">
                   <ListboxLabel>Minutes</ListboxLabel>
                 </ListboxOption>
@@ -172,9 +256,6 @@ export default function SessionsPage() {
                 </ListboxOption>
                 <ListboxOption value="days">
                   <ListboxLabel>Days</ListboxLabel>
-                </ListboxOption>
-                <ListboxOption value="weeks">
-                  <ListboxLabel>Weeks</ListboxLabel>
                 </ListboxOption>
               </Listbox>
             </FieldGroup>
@@ -193,24 +274,21 @@ export default function SessionsPage() {
             <FieldGroup>
               <Input
                 aria-label="Duration"
-                name="duration"
+                name="tokenExpirationValue"
                 inputClassName="text-right"
-                defaultValue="30"
+                type="number"
+                min="1"
+                value={tokenExpirationValue}
+                onChange={(e) => handleTokenExpirationChange(parseInt(e.target.value) || 1, tokenExpirationUnit)}
               />
             </FieldGroup>
             <FieldGroup className="flex-1">
-              <Listbox name="unit" defaultValue="minutes">
+              <Listbox name="tokenExpirationUnit" value={tokenExpirationUnit} onChange={(unit) => handleTokenExpirationChange(tokenExpirationValue, unit)}>
                 <ListboxOption value="minutes">
                   <ListboxLabel>Minutes</ListboxLabel>
                 </ListboxOption>
                 <ListboxOption value="hours">
                   <ListboxLabel>Hours</ListboxLabel>
-                </ListboxOption>
-                <ListboxOption value="days">
-                  <ListboxLabel>Days</ListboxLabel>
-                </ListboxOption>
-                <ListboxOption value="weeks">
-                  <ListboxLabel>Weeks</ListboxLabel>
                 </ListboxOption>
               </Listbox>
             </FieldGroup>
@@ -236,7 +314,7 @@ export default function SessionsPage() {
               plain
               type="button"
               onClick={() => setIsOpen(true)}
-              disabled={!isSwitchOn}
+              disabled={!multiSessionEnabled}
             >
               <Cog6ToothIcon />
             </Button>
@@ -268,7 +346,11 @@ export default function SessionsPage() {
                             aria-label="Max accounts"
                             name="maxAccounts"
                             inputClassName="text-right"
-                            defaultValue="1"
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={maxAccountsPerSession}
+                            onChange={(e) => handleMaxAccountsChange(parseInt(e.target.value) || 1)}
                           />
                         </FieldGroup>
                       </Field>
@@ -293,7 +375,11 @@ export default function SessionsPage() {
                             aria-label="Max user logins"
                             name="maxUserLogins"
                             inputClassName="text-right"
-                            defaultValue="1"
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={maxSessionsPerAccount}
+                            onChange={(e) => handleMaxSessionsChange(parseInt(e.target.value) || 1)}
                           />
                         </FieldGroup>
                       </Field>
@@ -312,9 +398,9 @@ export default function SessionsPage() {
               </>
             </Dialog>
             <Switch
-              name="email_enabled"
-              checked={isSwitchOn}
-              onChange={setIsSwitchOn}
+              name="multi_session_enabled"
+              checked={multiSessionEnabled}
+              onChange={handleMultiSessionChange}
             />
           </div>
         </div>
@@ -322,151 +408,23 @@ export default function SessionsPage() {
 
       <Divider className="my-10" soft />
 
-      <section className="space-y-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <Subheading>JWT Templates</Subheading>
-            <Text className="text-sm text-zinc-500 dark:text-zinc-400">
-              Manage and configure JWT tokens for authentication.
-            </Text>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button plain onClick={() => setIsOpenJWT(true)}>
-              <Cog6ToothIcon />
-            </Button>
-            <Dialog open={isOpenJWT} onClose={setIsOpenJWT}>
-              <DialogTitle>JWT Templates</DialogTitle>
-              <DialogDescription>
-                Manage JWT Tokens efficiently.
-              </DialogDescription>
-              <DialogBody className="space-y-6">
-                <section className="space-y-4">
-                  <div className="space-y-1">
-                    {jwtTemplates.map((template) => (
-                      <div
-                        key={template.id}
-                        className="flex items-center justify-between"
-                      >
-                        <div>
-                          <h4 className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
-                            {template.name}
-                          </h4>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button outline onClick={() => openModal(template)}>
-                            <PencilSquareIcon className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            outline
-                            onClick={() => handleDelete(template.id)}
-                          >
-                            <TrashIcon className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <Button outline className="w-40" onClick={() => openModal()}>
-                    Add JWT Template
-                  </Button>
-
-                  {isModalOpen && (
-                    <Dialog
-                      open={isModalOpen}
-                      onClose={closeModal}
-                      className="rounded-xl p-6 max-w-md"
-                    >
-                      <DialogTitle className="mb-2 text-lg font-semibold">
-                        {editingTemplate
-                          ? "Edit JWT Template"
-                          : "Add JWT Template"}
-                      </DialogTitle>
-                      <DialogBody>
-                        <div>
-                          <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
-                            Template Name
-                          </label>
-                          <Input
-                            value={templateName}
-                            onChange={(e) => setTemplateName(e.target.value)}
-                            placeholder="Enter template name"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
-                            Claims
-                          </label>
-                          <Textarea
-                            className="mt-2 w-full h-40 p-3 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200"
-                            value={claims}
-                            onChange={(e) => setClaims(e.target.value)}
-                            placeholder="Enter claims JSON with shortcodes"
-                          />
-                        </div>
-                        <Divider className="my-4" soft />
-                        <div>
-                          <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
-                            Insert shortcodes
-                          </label>
-                          <div className="grid grid-cols-3 gap-2 mt-2">
-                            {SHORTCODES.map((code) => (
-                              <Button
-                                outline
-                                key={code}
-                                onClick={() => insertShortcode(code)}
-                              >
-                                {code}
-                              </Button>
-                            ))}
-                          </div>
-                        </div>
-                      </DialogBody>
-                      <DialogActions>
-                        <Button plain onClick={closeModal}>
-                          Cancel
-                        </Button>
-                        <Button onClick={handleSave}>
-                          {editingTemplate ? "Save Changes" : "Create"}
-                        </Button>
-                      </DialogActions>
-                    </Dialog>
-                  )}
-                </section>
-              </DialogBody>
-              <DialogActions className="flex justify-end gap-4 mt-4">
-                <Button plain onClick={() => setIsOpenJWT(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={() => setIsOpenJWT(false)}>OK</Button>
-              </DialogActions>
-            </Dialog>
-            <Select
-              aria-label="tokens"
-              name="jwt_tokens"
-              defaultValue="default"
-            >
-              <option value="default" disabled>
-                Select a template
-              </option>
-              {jwtTemplates.map((template) => (
-                <option key={template.id} value={template.id}>
-                  {template.name}
-                </option>
-              ))}
-            </Select>
+      {isDirty && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-zinc-200 bg-white p-4 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+              You have unsaved changes.
+            </p>
+            <div className="flex gap-3">
+              <Button outline onClick={handleReset} disabled={isSaving}>
+                Discard
+              </Button>
+              <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
           </div>
         </div>
-      </section>
-
-      <Divider className="my-10" soft />
-
-      <div className="flex justify-end gap-4">
-        <Button type="reset" plain>
-          Reset
-        </Button>
-        <Button type="submit">Save changes</Button>
-      </div>
+      )}
     </div>
   );
 }

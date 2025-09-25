@@ -85,7 +85,7 @@ export function ModalCombobox<T extends { id: string }>({
         >
           {filteredOptions.length === 0 && query !== "" ? (
             <div className="relative cursor-default select-none px-4 py-2 text-zinc-500 dark:text-zinc-400">
-              No users found
+              No results found
             </div>
           ) : (
             filteredOptions.map((option) => (
@@ -101,9 +101,23 @@ export function ModalCombobox<T extends { id: string }>({
               >
                 {({ active, selected }) => (
                   <>
-                    <span className={clsx("block truncate", selected && "font-semibold")}>
-                      {displayValue(option)}
-                    </span>
+                    <div className={clsx("block truncate", selected && "font-semibold")}>
+                      {/* Check if this looks like a country object */}
+                      {(option as any).flag && (option as any).name && (option as any).dialCode ? (
+                        <div className="flex items-center gap-2">
+                          <span>{(option as any).flag}</span>
+                          <span className="flex-1">{(option as any).name}</span>
+                          <span className={clsx(
+                            "text-sm",
+                            active ? "text-white/80" : "text-zinc-500 dark:text-zinc-400"
+                          )}>
+                            {(option as any).dialCode}
+                          </span>
+                        </div>
+                      ) : (
+                        displayValue(option)
+                      )}
+                    </div>
                     {selected && (
                       <span
                         className={clsx(
