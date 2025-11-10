@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { DeploymentProvider } from "@snipextt/wacht-react-router";
+import { DeploymentProvider } from "@wacht/react-router";
 import "./index.css";
 import App from "./App.tsx";
 
@@ -11,9 +11,7 @@ if (!import.meta.env.VITE_WACHT_PUBLISHABLE_KEY) {
 // biome-ignore lint/style/noNonNullAssertion: <explanation>
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <DeploymentProvider
-      publicKey={import.meta.env.VITE_WACHT_PUBLISHABLE_KEY}
-    >
+    <DeploymentProvider publicKey={import.meta.env.VITE_WACHT_PUBLISHABLE_KEY}>
       <App />
     </DeploymentProvider>
   </StrictMode>,

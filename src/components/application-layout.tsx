@@ -39,7 +39,7 @@ import {
   NotificationBell,
   OrganizationSwitcher,
   UserButton,
-} from "@snipextt/wacht-react-router";
+} from "@wacht/react-router";
 import { setNavigationFunction } from "@/lib/store/project";
 import { ProjectDeploymentSelector } from "./project-deployment-selector";
 import { ThemeToggle } from "./ui/theme-toggle";

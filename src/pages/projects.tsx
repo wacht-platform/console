@@ -10,7 +10,7 @@ import { useProjectStore } from "@/lib/store/project";
 import { CreateProjectDialog } from "@/components/create-project-dialog";
 import { BillingSetupDialog } from "@/components/billing-setup-dialog";
 import { useState } from "react";
-import { UserButton, OrganizationSwitcher } from "@snipextt/wacht-react-router";
+import { UserButton, OrganizationSwitcher } from "@wacht/react-router";
 import { useBillingAccount } from "@/lib/api/hooks/use-billing";
 import { Tab, SimpleTabs } from "@/components/ui/simple-tabs";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -44,7 +44,9 @@ export default function ProjectsPage() {
       <div className="flex items-center justify-center min-h-[400px] w-full">
         <div className="flex flex-col items-center gap-4">
           <Spinner size="lg" />
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading your projects...</span>
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+            Loading your projects...
+          </span>
         </div>
       </div>
     );
@@ -79,7 +81,9 @@ export default function ProjectsPage() {
         <div className="py-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg text-neutral-900 dark:text-neutral-100">Projects</h1>
+              <h1 className="text-lg text-neutral-900 dark:text-neutral-100">
+                Projects
+              </h1>
               <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
                 Manage your applications and deployments
               </p>
@@ -237,7 +241,9 @@ function ProjectItem({
             src={image_url}
           />
           <div className="space-y-1">
-            <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100">{name}</h3>
+            <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+              {name}
+            </h3>
             <div className="flex items-center gap-4 text-xs text-neutral-500 dark:text-neutral-400">
               <div className="flex items-center gap-1">
                 <ClockIcon className="w-3 h-3" />

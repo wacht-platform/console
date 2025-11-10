@@ -10,7 +10,7 @@ import {
   SignedOut,
   NavigateToSignIn,
   useSession,
-} from "@snipextt/wacht-react-router";
+} from "@wacht/react-router";
 import { Spinner } from "./components/ui/spinner";
 import { apiClient } from "./lib/api/client";
 import { Toaster } from "sonner";
@@ -28,9 +28,9 @@ function SignedInRoutes() {
       }
       return config;
     });
-    
+
     setInterceptorReady(true);
-    
+
     // Cleanup interceptor on unmount
     return () => {
       apiClient.interceptors.request.eject(interceptorId);
@@ -55,7 +55,7 @@ function SignedInRoutes() {
 
 function AppContent() {
   const { actualTheme } = useTheme();
-  
+
   return (
     <div className="text-zinc-950 antialiased lg:bg-zinc-50 dark:bg-zinc-900 dark:text-white h-screen">
       <DeploymentInitialized>
@@ -76,14 +76,17 @@ function AppContent() {
           </div>
         </div>
       </DeploymentInitializing>
-      <Toaster 
+      <Toaster
         theme={actualTheme}
         toastOptions={{
           style: {
-            background: actualTheme === 'dark' ? '#262626' : '#ffffff',
-            color: actualTheme === 'dark' ? '#fafafa' : '#171717',
-            border: actualTheme === 'dark' ? '1px solid #404040' : '1px solid #e5e5e5',
-          }
+            background: actualTheme === "dark" ? "#262626" : "#ffffff",
+            color: actualTheme === "dark" ? "#fafafa" : "#171717",
+            border:
+              actualTheme === "dark"
+                ? "1px solid #404040"
+                : "1px solid #e5e5e5",
+          },
         }}
       />
     </div>

@@ -13,7 +13,7 @@ import {
 import { DnsVerificationPanel } from "../components/dns-verification-panel";
 import { useProjects } from "../lib/api/hooks/use-projects";
 import { useVerifyDnsRecords } from "../lib/api/hooks/use-dns-verification";
-import { useAnalyticsStats, useRecentSignups } from "../lib/api/hooks/use-analytics";
+import { useAnalyticsStats, useRecentSignups, useRecentSignins } from "../lib/api/hooks/use-analytics";
 import { useState } from "react";
 import { format } from "date-fns";
 
@@ -72,6 +72,12 @@ export default function OverviewPage() {
 	);
 
 	const { data: recentSignupsData, isLoading: signupsLoading } = useRecentSignups(
+		selectedDeployment?.id || "",
+		10,
+		!!selectedDeployment?.id
+	);
+
+	const { data: recentSigninsData, isLoading: signinsLoading } = useRecentSignins(
 		selectedDeployment?.id || "",
 		10,
 		!!selectedDeployment?.id
@@ -210,6 +216,51 @@ export default function OverviewPage() {
 						<TableRow>
 							<TableCell colSpan={4} className="text-center py-8 text-gray-500">
 								No recent signups found
+							</TableCell>
+						</TableRow>
+					)}
+				</TableBody>
+			</Table>
+
+			<Subheading className="mt-14">Recent Sign-ins</Subheading>
+			<Table className="mt-4 [--gutter:--spacing(6)] lg:[--gutter:--spacing(10)]">
+				<TableHead>
+					<TableRow>
+						<TableHeader>Name</TableHeader>
+						<TableHeader>Email</TableHeader>
+						<TableHeader>Method</TableHeader>
+						<TableHeader>Date</TableHeader>
+					</TableRow>
+				</TableHead>
+				<TableBody>
+					{signinsLoading ? (
+						<TableRow>
+							<TableCell colSpan={4} className="text-center py-8">
+								Loading recent sign-ins...
+							</TableCell>
+						</TableRow>
+					) : recentSigninsData?.signups?.length ? (
+						recentSigninsData.signups.map((user, index) => (
+							<TableRow key={`signin-${user.email}-${index}`}>
+								<TableCell>
+									<span>{user.name || "Anonymous"}</span>
+								</TableCell>
+								<TableCell>{user.email || "N/A"}</TableCell>
+								<TableCell>
+									<div className="flex items-center gap-2">
+										<FingerPrintIcon className="size-4" />
+										<span>{user.method || "Email"}</span>
+									</div>
+								</TableCell>
+								<TableCell>
+									{format(new Date(user.date), "EEE MMM dd, HH:mm")}
+								</TableCell>
+							</TableRow>
+						))
+					) : (
+						<TableRow>
+							<TableCell colSpan={4} className="text-center py-8 text-gray-500">
+								No recent sign-ins found
 							</TableCell>
 						</TableRow>
 					)}

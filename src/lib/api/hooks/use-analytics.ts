@@ -76,3 +76,23 @@ export const useRecentSignups = (
     enabled,
   });
 };
+
+export const useRecentSignins = (
+  deploymentId: string,
+  limit = 10,
+  enabled = true,
+) => {
+  return useQuery({
+    queryKey: ["analytics", "recent-signins", deploymentId, limit],
+    queryFn: async (): Promise<RecentSignupsResponse> => {
+      const response = await apiClient.get(
+        `/deployments/${deploymentId}/analytics/recent-signins`,
+        {
+          params: { limit },
+        },
+      );
+      return response.data;
+    },
+    enabled,
+  });
+};
