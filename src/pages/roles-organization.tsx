@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 
 export function OrganizationRolesTab() {
   const [roles, setRoles] = useState([
@@ -64,8 +65,21 @@ export function OrganizationRolesTab() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {roles.map((role) => (
-            <TableRow key={role.id}>
+          {roles.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={2} className="text-center py-12">
+                <ShieldCheckIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
+                <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                  No roles found
+                </h3>
+                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                  Add a role using the form above to get started.
+                </p>
+              </TableCell>
+            </TableRow>
+          ) : (
+            roles.map((role) => (
+              <TableRow key={role.id}>
               <TableCell>
                 {editingRole === role.id ? (
                   <Input
@@ -91,7 +105,8 @@ export function OrganizationRolesTab() {
                 </Button>
               </TableCell>
             </TableRow>
-          ))}
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

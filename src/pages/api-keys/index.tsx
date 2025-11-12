@@ -25,6 +25,7 @@ import { Field, Label } from "@/components/ui/fieldset";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { SkeletonTableRows } from "@/components/ui/skeleton";
 
 export default function ApiKeysPage() {
   const { deploymentId } = useParams();
@@ -42,7 +43,7 @@ export default function ApiKeysPage() {
   });
 
   // Fetch API keys
-  const { data: keys = [], refetch: refetchKeys } = useQuery({
+  const { data: keys = [], refetch: refetchKeys, isLoading: keysLoading } = useQuery({
     queryKey: ["api-keys", deploymentId],
     queryFn: () => apiKeysApi.getKeys(deploymentId!),
     enabled: !!status?.is_activated,
@@ -238,38 +239,42 @@ export default function ApiKeysPage() {
                     </Button>
                   </div>
                 </div>
-                {activeKeys.length === 0 ? (
-                  <div className="text-center py-12">
-                    <KeyIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
-                    <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                      No active keys
-                    </h3>
-                    <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                      Create your first API key to get started.
-                    </p>
-                    <div className="mt-6">
-                      <Button onClick={() => setShowCreateModal(true)}>
-                        <PlusIcon className="mr-2 h-4 w-4" />
-                        Create First Key
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="px-6 pb-4">
-                    <Table>
-                    <TableHead>
+                <div className="px-6 pb-4">
+                  <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>Name</TableHeader>
+                      <TableHeader>Key</TableHeader>
+                      <TableHeader>Created</TableHeader>
+                      <TableHeader>Last Used</TableHeader>
+                      <TableHeader>Expires</TableHeader>
+                      <TableHeader>Status</TableHeader>
+                      <TableHeader className="text-right">Actions</TableHeader>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {keysLoading ? (
+                      <SkeletonTableRows rows={5} columns={7} withAvatar={false} />
+                    ) : activeKeys.length === 0 ? (
                       <TableRow>
-                        <TableHeader>Name</TableHeader>
-                        <TableHeader>Key</TableHeader>
-                        <TableHeader>Created</TableHeader>
-                        <TableHeader>Last Used</TableHeader>
-                        <TableHeader>Expires</TableHeader>
-                        <TableHeader>Status</TableHeader>
-                        <TableHeader className="text-right">Actions</TableHeader>
+                        <TableCell colSpan={7} className="text-center py-12">
+                          <KeyIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
+                          <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                            No active keys
+                          </h3>
+                          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                            Create your first API key to get started.
+                          </p>
+                          <div className="mt-6">
+                            <Button onClick={() => setShowCreateModal(true)}>
+                              <PlusIcon className="mr-2 h-4 w-4" />
+                              Create First Key
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {activeKeys.map((key) => (
+                    ) : (
+                      activeKeys.map((key) => (
                         <TableRow key={key.id}>
                           <TableCell className="font-medium">{key.name}</TableCell>
                           <TableCell>
@@ -320,11 +325,11 @@ export default function ApiKeysPage() {
                             </div>
                           </TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  </div>
-                )}
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+                </div>
               </div>
             </div>
           </Tab>
@@ -340,27 +345,35 @@ export default function ApiKeysPage() {
                     Keys that have been revoked and can no longer access your deployment
                   </p>
                 </div>
-                {revokedKeys.length === 0 ? (
-                  <div className="text-center py-12">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      No revoked keys
-                    </p>
-                  </div>
-                ) : (
-                  <div className="px-6 pb-4">
-                    <Table>
-                    <TableHead>
+                <div className="px-6 pb-4">
+                  <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>Name</TableHeader>
+                      <TableHeader>Key</TableHeader>
+                      <TableHeader>Created</TableHeader>
+                      <TableHeader>Revoked</TableHeader>
+                      <TableHeader>Reason</TableHeader>
+                      <TableHeader>Status</TableHeader>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {keysLoading ? (
+                      <SkeletonTableRows rows={5} columns={6} withAvatar={false} />
+                    ) : revokedKeys.length === 0 ? (
                       <TableRow>
-                        <TableHeader>Name</TableHeader>
-                        <TableHeader>Key</TableHeader>
-                        <TableHeader>Created</TableHeader>
-                        <TableHeader>Revoked</TableHeader>
-                        <TableHeader>Reason</TableHeader>
-                        <TableHeader>Status</TableHeader>
+                        <TableCell colSpan={6} className="text-center py-12">
+                          <KeyIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
+                          <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                            No revoked keys
+                          </h3>
+                          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                            Revoked API keys will appear here.
+                          </p>
+                        </TableCell>
                       </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {revokedKeys.map((key) => (
+                    ) : (
+                      revokedKeys.map((key) => (
                         <TableRow key={key.id} className="opacity-60">
                           <TableCell className="font-medium">{key.name}</TableCell>
                           <TableCell>
@@ -383,11 +396,11 @@ export default function ApiKeysPage() {
                             <Badge color="red">Revoked</Badge>
                           </TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  </div>
-                )}
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+                </div>
               </div>
             </div>
           </Tab>

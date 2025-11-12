@@ -1,4 +1,4 @@
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { MagnifyingGlassIcon, BuildingOffice2Icon } from "@heroicons/react/24/outline";
 import { Avatar } from "@/components/ui/avatar";
 import { Heading } from "../components/ui/heading";
 import { Input, InputGroup } from "../components/ui/input";
@@ -96,8 +96,14 @@ export default function WorkspacesPage() {
 							<SkeletonTableRows rows={10} columns={4} withAvatar={true} />
 						) : data?.data.length === 0 ? (
 							<TableRow>
-								<TableCell colSpan={5} className="text-center">
-									No workspaces found
+								<TableCell colSpan={4} className="text-center py-12">>
+									<BuildingOffice2Icon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
+									<h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+										No workspaces found
+									</h3>
+									<p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+										Workspaces will appear here once they're created.
+									</p>
 								</TableCell>
 							</TableRow>
 						) : (

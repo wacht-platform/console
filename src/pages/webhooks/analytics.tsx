@@ -307,8 +307,12 @@ export default function WebhookAnalyticsPage() {
             </Table>
           ) : (
             <div className="mt-4 text-center py-12 border border-zinc-950/10 dark:border-white/10 rounded-lg">
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              <ChartBarIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
+              <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 No events triggered yet
+              </h3>
+              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                Event data will appear once webhooks are triggered.
               </p>
             </div>
           )}
@@ -340,8 +344,12 @@ export default function WebhookAnalyticsPage() {
             </Table>
           ) : (
             <div className="mt-4 text-center py-12 border border-zinc-950/10 dark:border-white/10 rounded-lg">
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              <ChartBarIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
+              <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 No failures recorded
+              </h3>
+              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                This is good! Your webhooks are performing well.
               </p>
             </div>
           )}
