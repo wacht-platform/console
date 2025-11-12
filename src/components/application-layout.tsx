@@ -489,8 +489,11 @@ export function ApplicationLayout() {
                     </li>
 
                     <li className="-mx-6 mt-auto">
-                      <div className="flex items-center justify-between px-6 py-3">
-                        <UserButton showName={true} />
+                      <div className="border-t border-gray-100 dark:border-gray-800 pt-3 pb-3 px-6 space-y-3">
+                        <ThemeToggle />
+                        <div className="flex items-center justify-between">
+                          <UserButton showName={true} />
+                        </div>
                       </div>
                     </li>
                   </ul>
@@ -577,9 +580,12 @@ export function ApplicationLayout() {
                 </li>
 
                 <li className="-mx-4 mt-auto">
-                  <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 dark:border-gray-800">
-                    <UserButton showName={true} />
-                    <NotificationBell showBadge />
+                  <div className="border-t border-gray-100 dark:border-gray-800 pt-3 pb-3 px-4 space-y-3">
+                    <ThemeToggle />
+                    <div className="flex items-center justify-between">
+                      <UserButton showName={true} />
+                      <NotificationBell showBadge />
+                    </div>
                   </div>
                 </li>
               </ul>
@@ -623,7 +629,6 @@ export function ApplicationLayout() {
             <div className="flex-1"></div>
 
             <div className="flex items-center gap-x-4">
-              <ThemeToggle />
               {/*<NotificationBell />*/}
             </div>
           </div>
