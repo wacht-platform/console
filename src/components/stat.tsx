@@ -1,11 +1,9 @@
-import { Badge } from "@/components/ui/badge";
 import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/outline";
 
 export function Stat({
   title,
   value,
   change,
-  showPeriodText = true,
 }: {
   title: string;
   value: string;
@@ -18,8 +16,12 @@ export function Stat({
 
   return (
     <div>
-      <div className="text-sm font-normal text-zinc-500 dark:text-zinc-400">{title}</div>
-      <div className="mt-2 text-3xl font-normal text-zinc-900 dark:text-zinc-50">{value}</div>
+      <div className="text-sm font-normal text-zinc-500 dark:text-zinc-400">
+        {title}
+      </div>
+      <div className="mt-2 text-3xl font-normal text-zinc-900 dark:text-zinc-50">
+        {value}
+      </div>
       <div className="mt-2 flex items-center gap-2 text-sm">
         {hasChange ? (
           <>
@@ -35,10 +37,14 @@ export function Stat({
                 <span className="font-normal">{change}</span>
               </div>
             )}
-            <span className="text-zinc-500 dark:text-zinc-400 font-normal">vs last period</span>
+            <span className="text-zinc-500 dark:text-zinc-400 font-normal">
+              vs last period
+            </span>
           </>
         ) : (
-          <span className="text-zinc-400 dark:text-zinc-500 font-normal">No data for comparison</span>
+          <span className="text-zinc-400 dark:text-zinc-500 font-normal">
+            No data for comparison
+          </span>
         )}
       </div>
     </div>
