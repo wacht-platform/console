@@ -133,7 +133,7 @@ export function ImageUpload({
               className={`w-20 h-20 rounded-full border-2 border-dashed transition-all duration-200 cursor-pointer overflow-hidden ${
                 isUploading
                   ? 'border-blue-300 bg-blue-50'
-                  : 'border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100'
+                  : 'border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800'
               } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
               onClick={!disabled ? handleUploadClick : undefined}
             >
@@ -148,7 +148,7 @@ export function ImageUpload({
                   {isUploading ? (
                     <Spinner className="w-6 h-6 text-blue-500" />
                   ) : (
-                    <PhotoIcon className="w-6 h-6 text-gray-400" />
+                    <PhotoIcon className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
                   )}
                 </div>
               )}
@@ -180,7 +180,7 @@ export function ImageUpload({
                 {isUploading ? "Uploading..." : previewUrl ? "Change Image" : "Upload Image"}
               </Button>
             )}
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Recommended: Square SVG, PNG, or JPG, max 2MB
             </p>
           </div>
@@ -211,7 +211,7 @@ export function ImageUpload({
           className={`relative w-full h-36 border-2 border-dashed rounded-lg transition-all duration-200 cursor-pointer ${
             isUploading
               ? 'border-blue-300 bg-blue-50'
-              : 'border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100'
+              : 'border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800'
           } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
           onClick={!disabled ? handleUploadClick : undefined}
         >
@@ -245,9 +245,9 @@ export function ImageUpload({
                 </>
               ) : (
                 <>
-                  <PhotoIcon className="w-8 h-8 text-gray-400 mb-2" />
-                  <div className="text-sm text-gray-600 mb-1">Upload logo</div>
-                  <div className="text-xs text-gray-500">
+                  <PhotoIcon className="w-8 h-8 text-zinc-400 dark:text-zinc-500 mb-2" />
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Upload logo</div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">
                     Recommended: Square SVG, PNG, or JPG, max 2MB
                   </div>
                 </>

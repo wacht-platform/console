@@ -28,6 +28,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { webhookApi } from "@/lib/api/webhooks";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { SkeletonTableRows } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 
 export default function WebhookDeliveriesPage() {
@@ -182,14 +183,7 @@ export default function WebhookDeliveriesPage() {
           </TableHead>
           <TableBody>
             {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center px-6 py-12">
-                  <div className="flex flex-col items-center justify-center gap-3">
-                    <Spinner size="lg" />
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading deliveries...</span>
-                  </div>
-                </TableCell>
-              </TableRow>
+              <SkeletonTableRows rows={10} columns={6} withAvatar={false} />
             ) : !deliveries || deliveries.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center px-6 py-16">

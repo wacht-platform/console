@@ -147,12 +147,12 @@ export const SidebarItem = forwardRef(function SidebarItem(
     // Direct SVG targeting for Heroicons
     "[&>svg]:h-5 [&>svg]:w-5 [&>svg]:stroke-zinc-700 [&>svg]:stroke-[1.5]",
     "hover:[&>svg]:stroke-zinc-900",
-    "dark:[&>svg]:stroke-zinc-400 dark:hover:[&>svg]:stroke-white",
+    "dark:[&>svg]:stroke-zinc-400 dark:hover:[&>svg]:stroke-zinc-200",
     // Dark mode
-    "dark:text-white",
+    "dark:text-zinc-100",
     "dark:data-hover:bg-white/5",
     "dark:data-active:bg-white/5",
-    "dark:data-current:[&>svg]:stroke-white",
+    "dark:data-current:[&>svg]:stroke-zinc-200",
   );
 
   return (
@@ -160,7 +160,7 @@ export const SidebarItem = forwardRef(function SidebarItem(
       {current && (
         <motion.span
           layoutId="current-indicator"
-          className="absolute inset-y-2 -left-4 w-0.5 rounded-full bg-zinc-950 dark:bg-white"
+          className="absolute inset-y-2 -left-4 w-0.5 rounded-full bg-zinc-950 dark:bg-zinc-100"
         />
       )}
       {"href" in props ? (

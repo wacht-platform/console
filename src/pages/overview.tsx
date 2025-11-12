@@ -1,4 +1,4 @@
-import { FingerPrintIcon } from "@heroicons/react/24/outline";
+import { FingerPrintIcon, UserPlusIcon, ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
 import { Heading, Subheading } from "../components/ui/heading";
 import { Select } from "../components/ui/select";
 import { Stat } from "../components/stat";
@@ -10,6 +10,8 @@ import {
 	TableHeader,
 	TableRow,
 } from "../components/ui/table";
+import { EmptyState } from "../components/ui/empty-state";
+import { SkeletonTableRows } from "../components/ui/skeleton";
 import { DnsVerificationPanel } from "../components/dns-verification-panel";
 import { useProjects } from "../lib/api/hooks/use-projects";
 import { useVerifyDnsRecords } from "../lib/api/hooks/use-dns-verification";
@@ -122,24 +124,22 @@ export default function OverviewPage() {
 	};
 
 	return (
-		<div>
+		<div className="space-y-8">
 			<Heading>Good afternoon, Saurav</Heading>
 
 			{/* DNS Configuration Section - Show when pending */}
 			{shouldShowDnsVerification() && (
-				<div className="mt-8">
-					<DnsVerificationPanel
-						domainRecords={selectedDeployment?.domain_verification_records}
-						emailRecords={selectedDeployment?.email_verification_records}
-						verificationStatus={selectedDeployment?.verification_status}
-						onVerify={handleVerifyDns}
-						isVerifying={isVerifying}
-						compact={true}
-					/>
-				</div>
+				<DnsVerificationPanel
+					domainRecords={selectedDeployment?.domain_verification_records}
+					emailRecords={selectedDeployment?.email_verification_records}
+					verificationStatus={selectedDeployment?.verification_status}
+					onVerify={handleVerifyDns}
+					isVerifying={isVerifying}
+					compact={true}
+				/>
 			)}
 
-			<div className="mt-8 flex items-end justify-between">
+			<div className="flex items-end justify-between">
 				<Subheading>Overview</Subheading>
 				<div>
 					<Select
@@ -154,7 +154,7 @@ export default function OverviewPage() {
 					</Select>
 				</div>
 			</div>
-			<div className="mt-4 grid gap-8 sm:grid-cols-2 xl:grid-cols-4">
+			<div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
 				<Stat
 					title="Unique Sign Ins"
 					value={statsLoading ? "..." : (stats?.unique_signins?.toString() || "0")}
@@ -177,95 +177,103 @@ export default function OverviewPage() {
 				/>
 			</div>
 
-			<Subheading className="mt-14">Recent Signups</Subheading>
-			<Table className="mt-4 [--gutter:--spacing(6)] lg:[--gutter:--spacing(10)]">
-				<TableHead>
-					<TableRow>
-						<TableHeader>Name</TableHeader>
-						<TableHeader>Email</TableHeader>
-						<TableHeader>Method</TableHeader>
-						<TableHeader>Date</TableHeader>
-					</TableRow>
-				</TableHead>
-				<TableBody>
-					{signupsLoading ? (
+			<div>
+				<div className="mb-4">
+					<h3 className="text-base font-normal text-zinc-900 dark:text-zinc-100">Recent Signups</h3>
+				</div>
+				<Table>
+					<TableHead>
 						<TableRow>
-							<TableCell colSpan={4} className="text-center py-8">
-								Loading recent signups...
-							</TableCell>
+							<TableHeader>Name</TableHeader>
+							<TableHeader>Email</TableHeader>
+							<TableHeader>Method</TableHeader>
+							<TableHeader>Date</TableHeader>
 						</TableRow>
-					) : recentSignupsData?.signups?.length ? (
-						recentSignupsData.signups.map((user, index) => (
-							<TableRow key={`${user.email}-${index}`}>
-								<TableCell>
-									<span>{user.name || "Anonymous"}</span>
-								</TableCell>
-								<TableCell>{user.email || "N/A"}</TableCell>
-								<TableCell>
-									<div className="flex items-center gap-2">
-										<FingerPrintIcon className="size-4" />
-										<span>{user.method || "Email"}</span>
-									</div>
-								</TableCell>
-								<TableCell>
-									{format(new Date(user.date), "EEE MMM dd, HH:mm")}
+					</TableHead>
+					<TableBody>
+						{signupsLoading ? (
+							<SkeletonTableRows rows={5} columns={4} withAvatar={false} />
+						) : recentSignupsData?.signups?.length ? (
+							recentSignupsData.signups.map((user, index) => (
+								<TableRow key={`${user.email}-${index}`}>
+									<TableCell>
+										<span className="font-normal">{user.name || "Anonymous"}</span>
+									</TableCell>
+									<TableCell className="text-zinc-600 dark:text-zinc-400">{user.email || "N/A"}</TableCell>
+									<TableCell>
+										<div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
+											<FingerPrintIcon className="size-4" />
+											<span>{user.method || "Email"}</span>
+										</div>
+									</TableCell>
+									<TableCell className="text-zinc-600 dark:text-zinc-400">
+										{format(new Date(user.date), "MMM dd, HH:mm")}
+									</TableCell>
+								</TableRow>
+							))
+						) : (
+							<TableRow>
+								<TableCell colSpan={4} className="p-0">
+									<EmptyState
+										icon={<UserPlusIcon className="w-12 h-12" />}
+										title="No signups yet"
+										description="When users sign up for your application, they will appear here."
+									/>
 								</TableCell>
 							</TableRow>
-						))
-					) : (
-						<TableRow>
-							<TableCell colSpan={4} className="text-center py-8 text-gray-500">
-								No recent signups found
-							</TableCell>
-						</TableRow>
-					)}
-				</TableBody>
-			</Table>
+						)}
+					</TableBody>
+				</Table>
+			</div>
 
-			<Subheading className="mt-14">Recent Sign-ins</Subheading>
-			<Table className="mt-4 [--gutter:--spacing(6)] lg:[--gutter:--spacing(10)]">
-				<TableHead>
-					<TableRow>
-						<TableHeader>Name</TableHeader>
-						<TableHeader>Email</TableHeader>
-						<TableHeader>Method</TableHeader>
-						<TableHeader>Date</TableHeader>
-					</TableRow>
-				</TableHead>
-				<TableBody>
-					{signinsLoading ? (
+			<div>
+				<div className="mb-4">
+					<h3 className="text-base font-normal text-zinc-900 dark:text-zinc-100">Recent Sign-ins</h3>
+				</div>
+				<Table>
+					<TableHead>
 						<TableRow>
-							<TableCell colSpan={4} className="text-center py-8">
-								Loading recent sign-ins...
-							</TableCell>
+							<TableHeader>Name</TableHeader>
+							<TableHeader>Email</TableHeader>
+							<TableHeader>Method</TableHeader>
+							<TableHeader>Date</TableHeader>
 						</TableRow>
-					) : recentSigninsData?.signups?.length ? (
-						recentSigninsData.signups.map((user, index) => (
-							<TableRow key={`signin-${user.email}-${index}`}>
-								<TableCell>
-									<span>{user.name || "Anonymous"}</span>
-								</TableCell>
-								<TableCell>{user.email || "N/A"}</TableCell>
-								<TableCell>
-									<div className="flex items-center gap-2">
-										<FingerPrintIcon className="size-4" />
-										<span>{user.method || "Email"}</span>
-									</div>
-								</TableCell>
-								<TableCell>
-									{format(new Date(user.date), "EEE MMM dd, HH:mm")}
+					</TableHead>
+					<TableBody>
+						{signinsLoading ? (
+							<SkeletonTableRows rows={5} columns={4} withAvatar={false} />
+						) : recentSigninsData?.signups?.length ? (
+							recentSigninsData.signups.map((user, index) => (
+								<TableRow key={`signin-${user.email}-${index}`}>
+									<TableCell>
+										<span className="font-normal">{user.name || "Anonymous"}</span>
+									</TableCell>
+									<TableCell className="text-zinc-600 dark:text-zinc-400">{user.email || "N/A"}</TableCell>
+									<TableCell>
+										<div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
+											<FingerPrintIcon className="size-4" />
+											<span>{user.method || "Email"}</span>
+										</div>
+									</TableCell>
+									<TableCell className="text-zinc-600 dark:text-zinc-400">
+										{format(new Date(user.date), "MMM dd, HH:mm")}
+									</TableCell>
+								</TableRow>
+							))
+						) : (
+							<TableRow>
+								<TableCell colSpan={4} className="p-0">
+									<EmptyState
+										icon={<ArrowRightOnRectangleIcon className="w-12 h-12" />}
+										title="No sign-ins yet"
+										description="User sign-in activity will be displayed here once users start authenticating."
+									/>
 								</TableCell>
 							</TableRow>
-						))
-					) : (
-						<TableRow>
-							<TableCell colSpan={4} className="text-center py-8 text-gray-500">
-								No recent sign-ins found
-							</TableCell>
-						</TableRow>
-					)}
-				</TableBody>
-			</Table>
+						)}
+					</TableBody>
+				</Table>
+			</div>
 		</div>
 	);
 }

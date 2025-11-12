@@ -241,10 +241,10 @@ export default function WorkspaceDetailsPage() {
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="text-lg text-gray-900 dark:text-gray-100">
+            <h1 className="text-lg text-zinc-900 dark:text-zinc-100">
               {workspace.name}
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Workspace ID: {workspace.id}</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Workspace ID: {workspace.id}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -280,24 +280,24 @@ export default function WorkspaceDetailsPage() {
                 initials={workspace.name.substring(0, 2).toUpperCase()}
                 alt={`${workspace.name} logo`}
               />
-              <h2 className="text-lg text-gray-900 dark:text-gray-100 text-center mb-2">
+              <h2 className="text-lg text-zinc-900 dark:text-zinc-100 text-center mb-2">
                 {workspace.name}
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
                 Created {format(new Date(workspace.created_at), "MMM d, yyyy")}
               </p>
 
               {/* Quick Stats */}
               <div className="w-full space-y-3 mb-6">
                 <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-zinc-800">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Members</span>
-                  <span className="text-sm text-gray-900 dark:text-gray-100">
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">Members</span>
+                  <span className="text-sm text-zinc-900 dark:text-zinc-100">
                     {workspace.member_count ?? 0}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Roles</span>
-                  <span className="text-sm text-gray-900 dark:text-gray-100">
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">Roles</span>
+                  <span className="text-sm text-zinc-900 dark:text-zinc-100">
                     {workspace.roles ? workspace.roles.length : 0}
                   </span>
                 </div>
@@ -307,23 +307,23 @@ export default function WorkspaceDetailsPage() {
               <div className="w-full space-y-3">
                 {workspace.description && (
                   <div className="py-2 border-b border-gray-100 dark:border-zinc-800">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Description</span>
-                    <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">{workspace.description}</p>
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Description</span>
+                    <p className="text-sm text-zinc-900 dark:text-zinc-100 mt-1">{workspace.description}</p>
                   </div>
                 )}
                 <div className="py-2 border-b border-gray-100 dark:border-zinc-800">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Organization</span>
-                  <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">{workspace.organization_name}</p>
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">Organization</span>
+                  <p className="text-sm text-zinc-900 dark:text-zinc-100 mt-1">{workspace.organization_name}</p>
                 </div>
                 <div className="py-2 border-b border-gray-100 dark:border-zinc-800">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Created</span>
-                  <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">Created</span>
+                  <p className="text-sm text-zinc-900 dark:text-zinc-100 mt-1">
                     {format(new Date(workspace.created_at), "MMM d, yyyy 'at' h:mm a")}
                   </p>
                 </div>
                 <div className="py-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Last Updated</span>
-                  <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">Last Updated</span>
+                  <p className="text-sm text-zinc-900 dark:text-zinc-100 mt-1">
                     {format(new Date(workspace.updated_at), "MMM d, yyyy 'at' h:mm a")}
                   </p>
                 </div>
@@ -339,26 +339,26 @@ export default function WorkspaceDetailsPage() {
                 <div className="px-4 py-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div className="space-y-2">
-                      <h3 className="text-xs text-gray-500 dark:text-gray-400">
+                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
                         Total Members
                       </h3>
-                      <p className="text-base text-gray-900 dark:text-gray-100">
+                      <p className="text-base text-zinc-900 dark:text-zinc-100">
                         {workspace.member_count}
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xs text-gray-500 dark:text-gray-400">
+                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
                         Total Roles
                       </h3>
-                      <p className="text-base text-gray-900 dark:text-gray-100">
+                      <p className="text-base text-zinc-900 dark:text-zinc-100">
                         {workspace.roles.length}
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xs text-gray-500 dark:text-gray-400">
+                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
                         Parent Organization
                       </h3>
-                      <p className="text-base text-gray-900 dark:text-gray-100">
+                      <p className="text-base text-zinc-900 dark:text-zinc-100">
                         {workspace.organization_name}
                       </p>
                     </div>
@@ -369,7 +369,7 @@ export default function WorkspaceDetailsPage() {
               <Tab label="Members">
                 <div className="px-4 py-6">
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-base text-gray-900 dark:text-gray-100">Workspace Members</h3>
+                    <h3 className="text-base text-zinc-900 dark:text-zinc-100">Workspace Members</h3>
                     <Button
                       onClick={() => setAddMemberModalOpen(true)}
                       className="flex items-center gap-2"
@@ -394,10 +394,10 @@ export default function WorkspaceDetailsPage() {
                                 alt={`${member.first_name} ${member.last_name}`}
                               />
                               <div>
-                                <p className="text-sm text-gray-900 dark:text-gray-100">
+                                <p className="text-sm text-zinc-900 dark:text-zinc-100">
                                   {member.first_name} {member.last_name}
                                 </p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400">
                                   {member.roles.length > 0 ? member.roles[0].name : 'No role'}
                                 </p>
                               </div>
@@ -457,7 +457,7 @@ export default function WorkspaceDetailsPage() {
               <Tab label="Roles">
                 <div className="px-4 py-6">
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-base text-gray-900 dark:text-gray-100">Workspace Roles</h3>
+                    <h3 className="text-base text-zinc-900 dark:text-zinc-100">Workspace Roles</h3>
                     {workspace.roles && workspace.roles.length > 0 && (
                       <Button
                         onClick={() => setCreateRoleModalOpen(true)}
@@ -498,7 +498,7 @@ export default function WorkspaceDetailsPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
-                                <span className="text-sm text-gray-900 dark:text-gray-100">
+                                <span className="text-sm text-zinc-900 dark:text-zinc-100">
                                   {role.name}
                                 </span>
                                 {role.is_deployment_level && (
@@ -507,7 +507,7 @@ export default function WorkspaceDetailsPage() {
                                   </span>
                                 )}
                               </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                              <div className="text-xs text-zinc-500 dark:text-zinc-400">
                                 {role.permissions.length} permissions
                                 {role.is_deployment_level && " • Cannot be edited or deleted"}
                               </div>
@@ -547,7 +547,7 @@ export default function WorkspaceDetailsPage() {
                    {/* Public Metadata */}
                    <div>
                      <div className="flex items-center justify-between mb-4">
-                       <h3 className="text-base text-gray-900 dark:text-gray-100">Public Metadata</h3>
+                       <h3 className="text-base text-zinc-900 dark:text-zinc-100">Public Metadata</h3>
                        <div className="flex gap-2">
                          {isEditingPublicMetadata ? (
                            <>
@@ -607,7 +607,7 @@ export default function WorkspaceDetailsPage() {
                    {/* Private Metadata */}
                    <div>
                      <div className="flex items-center justify-between mb-4">
-                       <h3 className="text-lg text-gray-900 dark:text-gray-100">Private Metadata</h3>
+                       <h3 className="text-lg text-zinc-900 dark:text-zinc-100">Private Metadata</h3>
                        <div className="flex gap-2">
                          {isEditingPrivateMetadata ? (
                            <>

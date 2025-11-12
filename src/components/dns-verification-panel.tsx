@@ -93,7 +93,7 @@ function DnsRecordRow({ record }: { record: DnsRecord }) {
 					{getStatusBadge()}
 				</div>
 			</TableCell>
-			<TableCell className="text-sm text-gray-500 w-[10%] min-w-[80px] max-w-0">
+			<TableCell className="text-sm text-zinc-500 dark:text-zinc-400 w-[10%] min-w-[80px] max-w-0">
 				<div className="truncate" title={
 					record.last_verified_at
 						? new Date(record.last_verified_at).toLocaleString()
@@ -129,7 +129,7 @@ function DnsRecordSection({
 		<div className="space-y-4">
 			<div>
 				<h3 className="text-lg font-medium">{title}</h3>
-				<Text className="text-sm text-gray-500">{description}</Text>
+				<Text className="text-sm text-zinc-500 dark:text-zinc-400">{description}</Text>
 			</div>
 
 			<div className="w-full max-w-full overflow-hidden">
@@ -232,7 +232,7 @@ export function DnsVerificationPanel({
 						</div>
 						<div>
 							<Heading className="text-lg">DNS Configuration Required</Heading>
-							<Text className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+							<Text className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
 								Your production deployment requires DNS configuration to be
 								fully functional.
 							</Text>
@@ -270,7 +270,7 @@ export function DnsVerificationPanel({
 			<div className="flex items-center justify-between">
 				<div>
 					<Heading>DNS Configuration</Heading>
-					<Text className="text-sm text-gray-500 mt-1">
+					<Text className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
 						Configure these DNS records to enable your domain and email
 						functionality
 					</Text>
@@ -315,7 +315,7 @@ export function DnsVerificationPanel({
 
 			{allDomainRecords.length === 0 && allEmailRecords.length === 0 && (
 				<div className="text-center py-12">
-					<Text className="text-gray-500">
+					<Text className="text-zinc-500 dark:text-zinc-400">
 						No DNS records found. Create a production deployment to generate
 						configuration records.
 					</Text>

@@ -240,11 +240,11 @@ export default function ApiKeysPage() {
                 </div>
                 {activeKeys.length === 0 ? (
                   <div className="text-center py-12">
-                    <KeyIcon className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-semibold text-gray-900">
+                    <KeyIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
+                    <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                       No active keys
                     </h3>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
+                    <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                       Create your first API key to get started.
                     </p>
                     <div className="mt-6">
@@ -291,7 +291,7 @@ export default function ApiKeysPage() {
                                 {format(new Date(key.expires_at), "MMM d, yyyy")}
                               </span>
                             ) : (
-                              <span className="text-gray-400">Never</span>
+                              <span className="text-zinc-400 dark:text-zinc-500">Never</span>
                             )}
                           </TableCell>
                           <TableCell>

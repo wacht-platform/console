@@ -8,7 +8,7 @@ const styles = {
   base: [
     "relative isolate inline-flex items-center justify-center gap-x-2 rounded-lg border text-base/6 font-semibold",
     "px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)] sm:text-sm/6",
-    "focus:outline-hidden data-focus:outline data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-blue-500",
+    "focus:outline-hidden data-focus:outline data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-indigo-500 dark:data-focus:outline-indigo-400",
     "data-disabled:opacity-50",
     "*:data-[slot=icon]:-mx-0.5 *:data-[slot=icon]:my-0.5 *:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0 *:data-[slot=icon]:text-(--btn-icon) sm:*:data-[slot=icon]:my-1 sm:*:data-[slot=icon]:size-4 forced-colors:[--btn-icon:ButtonText] forced-colors:data-hover:[--btn-icon:ButtonText]",
   ],
@@ -67,7 +67,8 @@ const styles = {
       "[--btn-icon:var(--color-zinc-400)] data-active:[--btn-icon:var(--color-zinc-300)] data-hover:[--btn-icon:var(--color-zinc-300)]",
     ],
     indigo: [
-      "text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-indigo-500)] [--btn-border:var(--color-indigo-600)]/90",
+      "text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-indigo-600)] [--btn-border:var(--color-indigo-700)]/90",
+      "dark:[--btn-bg:var(--color-indigo-500)] dark:[--btn-border:var(--color-indigo-600)]/90",
       "[--btn-icon:var(--color-indigo-300)] data-active:[--btn-icon:var(--color-indigo-200)] data-hover:[--btn-icon:var(--color-indigo-200)]",
     ],
     cyan: [
@@ -157,7 +158,7 @@ export const Button = forwardRef(function Button(
       ? styles.outline
       : plain
         ? styles.plain
-        : clsx(styles.solid, styles.colors[color ?? "violet"]),
+        : clsx(styles.solid, styles.colors[color ?? "indigo"]),
   );
 
   return "href" in props ? (

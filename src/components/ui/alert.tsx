@@ -38,7 +38,7 @@ export function Alert({
             className={clsx(
               className,
               sizes[size],
-              'row-start-2 w-full rounded-2xl bg-white p-8 ring-1 shadow-lg ring-zinc-950/10 sm:rounded-2xl sm:p-6 dark:bg-zinc-900 dark:ring-white/10 forced-colors:outline',
+              'row-start-2 w-full rounded-2xl bg-white p-8 ring-1 shadow-lg ring-zinc-950/10 sm:rounded-2xl sm:p-6 dark:bg-zinc-850 dark:ring-white/10 forced-colors:outline',
               'transition duration-100 will-change-transform data-closed:opacity-0 data-enter:ease-out data-closed:data-enter:scale-95 data-leave:ease-in'
             )}
           >
@@ -59,7 +59,7 @@ export function AlertTitle({
       {...props}
       className={clsx(
         className,
-        'text-center text-base/6 font-semibold text-balance text-zinc-950 sm:text-left sm:text-sm/6 sm:text-wrap dark:text-white'
+        'text-center text-base/6 font-semibold text-balance text-zinc-950 sm:text-left sm:text-sm/6 sm:text-wrap dark:text-zinc-50'
       )}
     />
   )

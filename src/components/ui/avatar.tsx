@@ -78,7 +78,7 @@ export const AvatarButton = forwardRef(function AvatarButton(
   const classes = clsx(
     className,
     square ? "rounded-[20%]" : "rounded-full",
-    "relative inline-grid focus:outline-hidden data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-blue-500",
+    "relative inline-grid focus:outline-hidden data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-indigo-500 dark:data-focus:outline-indigo-400",
   );
 
   return "href" in props ? (

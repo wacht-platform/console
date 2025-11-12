@@ -138,7 +138,7 @@ export function EditWorkspaceDialog({
 							<div className="flex items-center space-x-4">
 								{/* Avatar Preview */}
 								<div
-									className="relative w-20 h-20 rounded-full border-2 border-dashed border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100 transition-all duration-200 cursor-pointer overflow-hidden"
+									className="relative w-20 h-20 rounded-full border-2 border-dashed border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200 cursor-pointer overflow-hidden"
 									onClick={() => fileInputRef.current?.click()}
 								>
 									{imagePreview ? (
@@ -161,8 +161,8 @@ export function EditWorkspaceDialog({
 										</>
 									) : (
 										<div className="flex flex-col items-center justify-center h-full">
-											<PhotoIcon className="w-8 h-8 text-gray-400 mb-1" />
-											<span className="text-xs text-gray-500 text-center px-1">
+											<PhotoIcon className="w-8 h-8 text-zinc-400 dark:text-zinc-500 mb-1" />
+											<span className="text-xs text-zinc-500 dark:text-zinc-400 text-center px-1">
 												Click to upload
 											</span>
 										</div>
@@ -180,10 +180,10 @@ export function EditWorkspaceDialog({
 
 								{/* Upload instructions */}
 								<div className="flex-1">
-									<p className="text-sm text-gray-600">
+									<p className="text-sm text-zinc-600 dark:text-zinc-400">
 										Upload a workspace logo. Recommended size: 200x200px.
 									</p>
-									<p className="text-xs text-gray-500 mt-1">
+									<p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
 										Supports: JPG, PNG, GIF, WEBP (max 5MB)
 									</p>
 								</div>

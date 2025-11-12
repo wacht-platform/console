@@ -89,7 +89,7 @@ export default function WebhookDeliveryDetailsPage() {
       case "retrying":
         return <ArrowPathIcon className="h-6 w-6 text-yellow-500 animate-spin" />;
       default:
-        return <ExclamationCircleIcon className="h-6 w-6 text-gray-400" />;
+        return <ExclamationCircleIcon className="h-6 w-6 text-zinc-400 dark:text-zinc-500" />;
     }
   };
 

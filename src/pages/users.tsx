@@ -28,6 +28,7 @@ import { useApproveWaitlistUser } from "@/lib/api/hooks/use-deployment-user-muta
 import { useNavigate, useLocation, useParams } from "react-router";
 import { Spinner } from "@/components/ui/spinner";
 import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
+import { SkeletonTableRows } from "@/components/ui/skeleton";
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
 
@@ -236,14 +237,11 @@ export default function UsersPage() {
 					</TableHead>
 					<TableBody>
 						{isLoading ? (
-							<tr>
-								<td colSpan={6} className="p-8 text-center">
-									<div className="flex items-center justify-center gap-3">
-										<Spinner size="sm" />
-										<span className="text-sm text-zinc-600 dark:text-zinc-400">Loading users...</span>
-									</div>
-								</td>
-							</tr>
+							<SkeletonTableRows
+								rows={10}
+								columns={selectedTabKey === "Active" ? 5 : selectedTabKey === "Waitlist" ? 4 : 4}
+								withAvatar={true}
+							/>
 						) : selectedTabKey === "Active" &&
 							activeUsers?.data.length === 0 ? (
 							null
@@ -257,33 +255,33 @@ export default function UsersPage() {
 							activeUsers?.data.map((user) => (
 								<TableRow
 									key={user.id}
-									className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+									className="cursor-pointer"
 									onClick={() => handleViewUserDetails(user)}
 								>
 									<TableCell>
 										<div className="flex items-center gap-3">
 											<Avatar
-												className="size-5"
+												className="size-8"
 												src={user.profile_picture_url || undefined}
 												initials={`${user.first_name[0]}${user.last_name[0]}`}
 											/>
-											<span>{`${user.first_name} ${user.last_name}`}</span>
+											<span className="font-medium">{`${user.first_name} ${user.last_name}`}</span>
 										</div>
 									</TableCell>
-									<TableCell>
+									<TableCell className="text-zinc-600 dark:text-zinc-400">
 										{user.primary_email_address || (
 											<span className="text-zinc-400 dark:text-zinc-500">-</span>
 										)}
 									</TableCell>
-									<TableCell>
+									<TableCell className="text-zinc-600 dark:text-zinc-400">
 										{user.username || <span className="text-zinc-400 dark:text-zinc-500">-</span>}
 									</TableCell>
-									<TableCell>
+									<TableCell className="text-zinc-600 dark:text-zinc-400">
 										{user.primary_phone_number || (
 											<span className="text-zinc-400 dark:text-zinc-500">-</span>
 										)}
 									</TableCell>
-									<TableCell>
+									<TableCell className="text-zinc-600 dark:text-zinc-400">
 										{format(new Date(user.created_at), "MMM d, yyyy")}
 									</TableCell>
 								</TableRow>
@@ -294,17 +292,17 @@ export default function UsersPage() {
 									<TableCell>
 										<div className="flex items-center gap-3">
 											<Avatar
-												className="size-5"
+												className="size-8"
 												initials={`${invitation.first_name[0]}${invitation.last_name[0]}`}
 											/>
-											<span>{`${invitation.first_name} ${invitation.last_name}`}</span>
+											<span className="font-medium">{`${invitation.first_name} ${invitation.last_name}`}</span>
 										</div>
 									</TableCell>
-									<TableCell>{invitation.email_address}</TableCell>
-									<TableCell>
+									<TableCell className="text-zinc-600 dark:text-zinc-400">{invitation.email_address}</TableCell>
+									<TableCell className="text-zinc-600 dark:text-zinc-400">
 										{format(new Date(invitation.expiry), "MMM d, yyyy")}
 									</TableCell>
-									<TableCell>
+									<TableCell className="text-zinc-600 dark:text-zinc-400">
 										{format(new Date(invitation.created_at), "MMM d, yyyy")}
 									</TableCell>
 								</TableRow>
@@ -315,22 +313,22 @@ export default function UsersPage() {
 									<TableCell>
 										<div className="flex items-center gap-3">
 											<Avatar
-												className="size-5"
+												className="size-8"
 												initials={
 													waitlistUser.first_name && waitlistUser.last_name
 														? `${waitlistUser.first_name[0]}${waitlistUser.last_name[0]}`
 														: waitlistUser.email_address[0].toUpperCase()
 												}
 											/>
-											<span>
+											<span className="font-medium">
 												{waitlistUser.first_name && waitlistUser.last_name
 													? `${waitlistUser.first_name} ${waitlistUser.last_name}`
 													: waitlistUser.email_address}
 											</span>
 										</div>
 									</TableCell>
-									<TableCell>{waitlistUser.email_address}</TableCell>
-									<TableCell>
+									<TableCell className="text-zinc-600 dark:text-zinc-400">{waitlistUser.email_address}</TableCell>
+									<TableCell className="text-zinc-600 dark:text-zinc-400">
 										{format(new Date(waitlistUser.created_at), "MMM d, yyyy")}
 									</TableCell>
 									<TableCell>
@@ -350,13 +348,13 @@ export default function UsersPage() {
 				{/* Empty States */}
 				{!isLoading && !hasUsersInCurrentTab() && (
 					<div className="text-center py-12">
-						<UserGroupIcon className="mx-auto h-12 w-12 text-gray-400" />
-						<h3 className="mt-2 text-sm font-semibold text-gray-900">
+						<UserGroupIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
+						<h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
 							{selectedTabKey === "Active" && "No active users"}
 							{selectedTabKey === "Invited" && "No invited users"}
 							{selectedTabKey === "Waitlist" && "No users in waitlist"}
 						</h3>
-						<p className="mt-1 text-sm text-gray-500">
+						<p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
 							{selectedTabKey === "Active" && "Get started by creating your first user."}
 							{selectedTabKey === "Invited" && "Get started by inviting your first user."}
 							{selectedTabKey === "Waitlist" && "No users have joined the waitlist yet."}

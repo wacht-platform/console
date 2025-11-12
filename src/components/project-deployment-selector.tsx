@@ -143,7 +143,7 @@ export function ProjectDeploymentSelector({
                               />
                               <span className={clsx(
                                 'flex-1 text-left',
-                                isProjectSelected ? 'font-medium text-gray-900 dark:text-zinc-100' : 'text-gray-700 dark:text-zinc-300'
+                                isProjectSelected ? 'font-medium text-zinc-900 dark:text-zinc-100' : 'text-zinc-700 dark:text-zinc-300'
                               )}>
                                 {project.name}
                               </span>
@@ -175,7 +175,7 @@ export function ProjectDeploymentSelector({
                                       )} />
                                       <span className={clsx(
                                         'flex-1 text-left',
-                                        isDeploymentSelected ? 'font-medium text-gray-900 dark:text-zinc-100' : 'text-gray-600 dark:text-zinc-400'
+                                        isDeploymentSelected ? 'font-medium text-zinc-900 dark:text-zinc-100' : 'text-zinc-600 dark:text-zinc-400'
                                       )}>
                                         {deployment.name || capitalize(deployment.mode)}
                                       </span>
@@ -197,7 +197,7 @@ export function ProjectDeploymentSelector({
                                         onClick={() => onCreateStaging()}
                                         className={clsx(
                                           active ? 'bg-gray-50 dark:bg-zinc-800' : '',
-                                          'w-full flex items-center pl-12 pr-4 py-2.5 text-sm text-gray-500 dark:text-zinc-400 transition-colors'
+                                          'w-full flex items-center pl-12 pr-4 py-2.5 text-sm text-zinc-500 dark:text-zinc-400 transition-colors'
                                         )}
                                       >
                                         <PlusIcon className="mr-2 h-3 w-3" />
@@ -213,7 +213,7 @@ export function ProjectDeploymentSelector({
                                         onClick={() => onCreateProduction()}
                                         className={clsx(
                                           active ? 'bg-gray-50 dark:bg-zinc-800' : '',
-                                          'w-full flex items-center pl-12 pr-4 py-2.5 text-sm text-gray-500 dark:text-zinc-400 transition-colors'
+                                          'w-full flex items-center pl-12 pr-4 py-2.5 text-sm text-zinc-500 dark:text-zinc-400 transition-colors'
                                         )}
                                       >
                                         <PlusIcon className="mr-2 h-3 w-3" />
@@ -237,7 +237,7 @@ export function ProjectDeploymentSelector({
                           onClick={() => onCreateProject()}
                           className={clsx(
                             active ? 'bg-gray-50 dark:bg-gray-800' : '',
-                            'w-full flex items-center px-4 py-3 text-sm text-gray-600 dark:text-zinc-400 transition-colors'
+                            'w-full flex items-center px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400 transition-colors'
                           )}
                         >
                           <div className="h-5 w-5 rounded-full border border-dashed border-gray-400 flex items-center justify-center mr-2">

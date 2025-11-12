@@ -2,6 +2,23 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Custom colors for softer dark mode and better accents */
+@theme {
+  --color-zinc-850: #27272a;
+
+  /* Primary accent color - indigo for light mode, lighter indigo for dark mode */
+  --color-primary-light: #4f46e5; /* indigo-600 */
+  --color-primary-dark: #818cf8; /* indigo-400 */
+
+  /* Success color - emerald */
+  --color-success-light: #059669; /* emerald-600 */
+  --color-success-dark: #34d399; /* emerald-400 */
+
+  /* Danger color - red */
+  --color-danger-light: #dc2626; /* red-600 */
+  --color-danger-dark: #f87171; /* red-400 */
+}
+
 /* Tab animations */
 @keyframes fadeIn {
     from {
@@ -116,7 +133,7 @@
 
 /* Dark mode loading animations */
 .dark .loading-shimmer {
-    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background: linear-gradient(90deg, #52525b 25%, #71717a 50%, #52525b 75%);
     background-size: 200px 100%;
 }
 
@@ -126,7 +143,7 @@
 }
 
 .dark * {
-    scrollbar-color: #4b5563 #1f2937;
+    scrollbar-color: #52525b #3f3f46;
 }
 
 *::-webkit-scrollbar {
@@ -138,7 +155,7 @@
 }
 
 .dark *::-webkit-scrollbar-track {
-    background: #1f2937;
+    background: #3f3f46;
 }
 
 *::-webkit-scrollbar-thumb {
@@ -147,7 +164,7 @@
 }
 
 .dark *::-webkit-scrollbar-thumb {
-    background: #4b5563;
+    background: #52525b;
 }
 
 *::-webkit-scrollbar-thumb:hover {
@@ -155,7 +172,7 @@
 }
 
 .dark *::-webkit-scrollbar-thumb:hover {
-    background: #6b7280;
+    background: #71717a;
 }
 
 *::-webkit-scrollbar-thumb:active {
@@ -163,7 +180,7 @@
 }
 
 .dark *::-webkit-scrollbar-thumb:active {
-    background: #9ca3af;
+    background: #a1a1aa;
 }
 
 .react-flow__handle {
@@ -189,8 +206,8 @@
 }
 
 .dark .jodit-toolbar {
-    border-bottom-color: #374151 !important;
-    background-color: #1f2937 !important;
+    border-bottom-color: #52525b !important;
+    background-color: #3f3f46 !important;
 }
 
 .jodit-toolbar-button {
@@ -204,7 +221,7 @@
 }
 
 .dark .jodit-toolbar-button:hover {
-    background-color: #374151 !important;
+    background-color: #52525b !important;
 }
 
 .jodit-toolbar-button__button {
@@ -231,8 +248,8 @@
 }
 
 .dark .jodit-wysiwyg {
-    color: #d1d5db !important;
-    background-color: #111827 !important;
+    color: #e4e4e7 !important;
+    background-color: #27272a !important;
 }
 
 .jodit-wysiwyg p {

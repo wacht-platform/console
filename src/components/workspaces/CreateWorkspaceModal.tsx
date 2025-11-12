@@ -95,7 +95,7 @@ export function CreateWorkspaceModal({
 
           <Field>
             <Label>Organization</Label>
-            <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-700">
+            <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-zinc-700 dark:text-zinc-300">
               {organizationName}
             </div>
           </Field>

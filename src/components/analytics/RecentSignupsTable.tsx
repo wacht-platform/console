@@ -8,6 +8,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "../ui/table";
+import { SkeletonTableRows } from "../ui/skeleton";
 import { useRecentSignups } from "@/lib/api/hooks/use-analytics";
 import { format } from "date-fns";
 

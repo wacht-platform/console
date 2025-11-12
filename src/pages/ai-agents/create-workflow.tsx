@@ -168,7 +168,7 @@ export default function CreateWorkflowPage() {
 	if (isEditing && isLoading) {
 		return (
 			<div className="h-full flex items-center justify-center">
-				<div className="text-sm text-gray-500">Loading workflow...</div>
+				<div className="text-sm text-zinc-500 dark:text-zinc-400">Loading workflow...</div>
 			</div>
 		);
 	}

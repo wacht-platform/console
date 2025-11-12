@@ -35,6 +35,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { webhookApi, WebhookEndpoint, WebhookAppEvent, CreateEndpointRequest, UpdateEndpointRequest } from "@/lib/api/webhooks";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { SkeletonTableRows } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 
 interface EndpointFormData {
@@ -436,19 +437,12 @@ export default function WebhookEndpointsPage() {
         </TableHead>
         <TableBody>
           {endpointsLoading ? (
-            <TableRow>
-              <TableCell colSpan={5} className="text-center py-8">
-                <div className="flex items-center justify-center gap-3">
-                  <Spinner size="sm" />
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading endpoints...</span>
-                </div>
-              </TableCell>
-            </TableRow>
+            <SkeletonTableRows rows={8} columns={5} withAvatar={false} />
           ) : !endpoints || endpoints.length === 0 ? (
             <TableRow>
               <TableCell colSpan={5} className="text-center py-8">
-                <GlobeAltIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-2 text-sm text-gray-500">No endpoints configured</p>
+                <GlobeAltIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
+                <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">No endpoints configured</p>
               </TableCell>
             </TableRow>
           ) : (

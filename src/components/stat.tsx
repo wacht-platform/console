@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Divider } from "@/components/ui/divider";
+import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/outline";
 
 export function Stat({
   title,
@@ -12,22 +12,33 @@ export function Stat({
   change: string;
   showPeriodText?: boolean;
 }) {
+  const isPositive = change && change.startsWith("+");
+  const isNegative = change && change.startsWith("-");
+  const hasChange = change && change !== "";
+
   return (
     <div>
-      <Divider />
-      <div className="mt-6 text-lg/6 font-medium sm:text-sm/6 text-zinc-900 dark:text-zinc-100">{title}</div>
-      <div className="mt-3 text-3xl/8 font-semibold sm:text-2xl/8 text-zinc-900 dark:text-white">{value}</div>
-      <div className="mt-3 text-sm/6 sm:text-xs/6">
-        {change ? (
-          <Badge color={change.startsWith("+") ? "lime" : "pink"}>{change}</Badge>
-        ) : showPeriodText ? (
-          <span className="text-zinc-500 dark:text-zinc-400">-</span>
-        ) : null}
-        {showPeriodText && (
+      <div className="text-sm font-normal text-zinc-500 dark:text-zinc-400">{title}</div>
+      <div className="mt-2 text-3xl font-normal text-zinc-900 dark:text-zinc-50">{value}</div>
+      <div className="mt-2 flex items-center gap-2 text-sm">
+        {hasChange ? (
           <>
-            {" "}
-            <span className="text-zinc-500 dark:text-zinc-400">from previous period</span>
+            {isPositive && (
+              <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                <ArrowUpIcon className="w-4 h-4" />
+                <span className="font-normal">{change}</span>
+              </div>
+            )}
+            {isNegative && (
+              <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
+                <ArrowDownIcon className="w-4 h-4" />
+                <span className="font-normal">{change}</span>
+              </div>
+            )}
+            <span className="text-zinc-500 dark:text-zinc-400 font-normal">vs last period</span>
           </>
+        ) : (
+          <span className="text-zinc-400 dark:text-zinc-500 font-normal">No data for comparison</span>
         )}
       </div>
     </div>

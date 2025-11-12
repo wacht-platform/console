@@ -147,7 +147,7 @@ export function CreateOrganizationModal({
             <div className="flex items-center space-x-4">
               {/* Avatar Preview */}
               <div
-                className="relative w-20 h-20 rounded-full border-2 border-dashed border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100 transition-all duration-200 cursor-pointer overflow-hidden"
+                className="relative w-20 h-20 rounded-full border-2 border-dashed border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200 cursor-pointer overflow-hidden"
                 onClick={() => fileInputRef.current?.click()}
               >
                 {imagePreview ? (
@@ -170,7 +170,7 @@ export function CreateOrganizationModal({
                   </>
                 ) : (
                   <div className="flex items-center justify-center h-full">
-                    <PhotoIcon className="w-6 h-6 text-gray-400" />
+                    <PhotoIcon className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
                   </div>
                 )}
               </div>
@@ -185,7 +185,7 @@ export function CreateOrganizationModal({
                 >
                   {imagePreview ? "Change Logo" : "Upload Logo"}
                 </Button>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
                   Recommended: Square PNG or JPG, max 2MB
                 </p>
               </div>

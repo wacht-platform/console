@@ -19,7 +19,7 @@ import { useDeploymentOrganizations } from "@/lib/api/hooks/use-deployment-organ
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import { useNavigate } from "react-router";
 import { CreateOrganizationModal } from "@/components/organizations/CreateOrganizationModal";
-import { Spinner } from "@/components/ui/spinner";
+import { SkeletonTableRows } from "@/components/ui/skeleton";
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
 
@@ -112,14 +112,7 @@ export default function OrganizationsPage() {
 					</TableHead>
 					<TableBody>
 						{isLoading ? (
-							<tr>
-								<td colSpan={3} className="p-8 text-center">
-									<div className="flex items-center justify-center gap-3">
-										<Spinner size="sm" />
-										<span className="text-sm text-zinc-600 dark:text-zinc-400">Loading organizations...</span>
-									</div>
-								</td>
-							</tr>
+							<SkeletonTableRows rows={10} columns={3} withAvatar={true} />
 						) : data?.data.length === 0 ? (
 							null
 						) : (
@@ -153,11 +146,11 @@ export default function OrganizationsPage() {
 				{/* Empty State */}
 				{!isLoading && (data?.data.length ?? 0) === 0 && (
 					<div className="text-center py-12">
-						<BuildingOfficeIcon className="mx-auto h-12 w-12 text-gray-400" />
-						<h3 className="mt-2 text-sm font-semibold text-gray-900">
+						<BuildingOfficeIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
+						<h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
 							No organizations
 						</h3>
-						<p className="mt-1 text-sm text-gray-500">
+						<p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
 							Get started by creating your first organization.
 						</p>
 						<div className="mt-6">

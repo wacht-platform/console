@@ -315,10 +315,10 @@ export default function OrganizationDetailsPage() {
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="text-lg text-gray-900 dark:text-gray-100">
+            <h1 className="text-lg text-zinc-900 dark:text-zinc-100">
               {organization.name}
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
               Organization ID: {organization.id}
             </p>
           </div>
@@ -356,15 +356,15 @@ export default function OrganizationDetailsPage() {
                 initials={organization.name.substring(0, 2).toUpperCase()}
                 alt={`${organization.name} logo`}
               />
-              <h2 className="text-lg text-gray-900 dark:text-gray-100 text-center mb-2">
+              <h2 className="text-lg text-zinc-900 dark:text-zinc-100 text-center mb-2">
                 {organization.name}
               </h2>
               {organization.description && (
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 text-center">
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2 text-center">
                   {organization.description}
                 </p>
               )}
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
                 Created{" "}
                 {format(new Date(organization.created_at), "MMM d, yyyy")}
               </p>
@@ -372,26 +372,26 @@ export default function OrganizationDetailsPage() {
               {/* Quick Stats */}
               <div className="w-full space-y-3 mb-6">
                 <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-zinc-800">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
                     Members
                   </span>
-                  <span className="text-sm text-gray-900 dark:text-gray-100">
+                  <span className="text-sm text-zinc-900 dark:text-zinc-100">
                     {organization.member_count}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-zinc-800">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
                     Roles
                   </span>
-                  <span className="text-sm text-gray-900 dark:text-gray-100">
+                  <span className="text-sm text-zinc-900 dark:text-zinc-100">
                     {organization.roles?.length || 0}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
                     Workspaces
                   </span>
-                  <span className="text-sm text-gray-900 dark:text-gray-100">
+                  <span className="text-sm text-zinc-900 dark:text-zinc-100">
                     {organization.workspaces?.length || 0}
                   </span>
                 </div>
@@ -404,55 +404,55 @@ export default function OrganizationDetailsPage() {
         <div className="lg:col-span-2">
           {/* Organization Details */}
           <div className="mb-8">
-            <h2 className="text-base text-gray-900 dark:text-gray-100 mb-4">
+            <h2 className="text-base text-zinc-900 dark:text-zinc-100 mb-4">
               Organization Details
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="space-y-1">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
                   Organization ID
                 </p>
-                <p className="text-sm text-gray-900 dark:text-gray-100 font-mono">
+                <p className="text-sm text-zinc-900 dark:text-zinc-100 font-mono">
                   {organization.id}
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
                   Member Count
                 </p>
-                <p className="text-sm text-gray-900 dark:text-gray-100">
+                <p className="text-sm text-zinc-900 dark:text-zinc-100">
                   {organization.member_count}
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
                   Created
                 </p>
-                <p className="text-sm text-gray-900 dark:text-gray-100">
+                <p className="text-sm text-zinc-900 dark:text-zinc-100">
                   {format(new Date(organization.created_at), "MMM d, yyyy")}
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
                   Last Updated
                 </p>
-                <p className="text-sm text-gray-900 dark:text-gray-100">
+                <p className="text-sm text-zinc-900 dark:text-zinc-100">
                   {format(new Date(organization.updated_at), "MMM d, yyyy")}
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
                   Total Roles
                 </p>
-                <p className="text-sm text-gray-900 dark:text-gray-100">
+                <p className="text-sm text-zinc-900 dark:text-zinc-100">
                   {organization.roles?.length || 0}
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
                   Total Workspaces
                 </p>
-                <p className="text-sm text-gray-900 dark:text-gray-100">
+                <p className="text-sm text-zinc-900 dark:text-zinc-100">
                   {organization.workspaces?.length || 0}
                 </p>
               </div>
@@ -466,26 +466,26 @@ export default function OrganizationDetailsPage() {
                 <div className="px-4 py-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div className="space-y-2">
-                      <h3 className="text-xs text-gray-500 dark:text-gray-400">
+                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
                         Total Members
                       </h3>
-                      <p className="text-base text-gray-900 dark:text-gray-100">
+                      <p className="text-base text-zinc-900 dark:text-zinc-100">
                         {organization.member_count}
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xs text-gray-500 dark:text-gray-400">
+                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
                         Total Roles
                       </h3>
-                      <p className="text-base text-gray-900 dark:text-gray-100">
+                      <p className="text-base text-zinc-900 dark:text-zinc-100">
                         {organization.roles?.length || 0}
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xs text-gray-500 dark:text-gray-400">
+                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
                         Total Workspaces
                       </h3>
-                      <p className="text-base text-gray-900 dark:text-gray-100">
+                      <p className="text-base text-zinc-900 dark:text-zinc-100">
                         {organization.workspaces?.length || 0}
                       </p>
                     </div>
@@ -496,7 +496,7 @@ export default function OrganizationDetailsPage() {
               <Tab label="Members">
                 <div className="px-4 py-6">
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-base text-gray-900 dark:text-gray-100">
+                    <h3 className="text-base text-zinc-900 dark:text-zinc-100">
                       Organization Members
                     </h3>
                     {membersData?.data && membersData.data.length > 0 && (
@@ -528,19 +528,19 @@ export default function OrganizationDetailsPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-1">
-                                <span className="text-sm text-gray-900 dark:text-gray-100">
+                                <span className="text-sm text-zinc-900 dark:text-zinc-100">
                                   {member.first_name} {member.last_name}
                                 </span>
                                 {member.username && (
-                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
                                     @{member.username}
                                   </span>
                                 )}
                               </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                              <div className="text-xs text-zinc-500 dark:text-zinc-400">
                                 {member.primary_email_address}
                               </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                                 {member.roles && member.roles.length > 0
                                   ? member.roles
                                       .map((role) => role.name)
@@ -577,7 +577,7 @@ export default function OrganizationDetailsPage() {
               <Tab label="Roles">
                 <div className="px-4 py-6">
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-base text-gray-900 dark:text-gray-100">
+                    <h3 className="text-base text-zinc-900 dark:text-zinc-100">
                       Organization Roles
                     </h3>
                     {organization.roles && organization.roles.length > 0 && (
@@ -619,7 +619,7 @@ export default function OrganizationDetailsPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
-                                <span className="text-sm text-gray-900 dark:text-gray-100">
+                                <span className="text-sm text-zinc-900 dark:text-zinc-100">
                                   {role.name}
                                 </span>
                                 {role.is_deployment_level && (
@@ -628,7 +628,7 @@ export default function OrganizationDetailsPage() {
                                   </span>
                                 )}
                               </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                              <div className="text-xs text-zinc-500 dark:text-zinc-400">
                                 {role.permissions.length} permissions
                                 {role.is_deployment_level &&
                                   " • Cannot be edited or deleted"}
@@ -667,7 +667,7 @@ export default function OrganizationDetailsPage() {
               <Tab label="Workspaces">
                 <div className="px-4 py-6">
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-base text-gray-900 dark:text-gray-100">
+                    <h3 className="text-base text-zinc-900 dark:text-zinc-100">
                       Organization Workspaces
                     </h3>
                     {organization.workspaces &&
@@ -736,10 +736,10 @@ export default function OrganizationDetailsPage() {
                                   alt={`${workspace.name} logo`}
                                 />
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm text-gray-900 dark:text-gray-100">
+                                  <span className="text-sm text-zinc-900 dark:text-zinc-100">
                                     {workspace.name}
                                   </span>
-                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
                                     • {workspace.member_count} members
                                   </span>
                                 </div>
@@ -780,7 +780,7 @@ export default function OrganizationDetailsPage() {
                   {/* Public Metadata */}
                   <div>
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-base text-gray-900 dark:text-gray-100">
+                      <h3 className="text-base text-zinc-900 dark:text-zinc-100">
                         Public Metadata
                       </h3>
                       {!isEditingPublicMetadata ? (
@@ -834,7 +834,7 @@ export default function OrganizationDetailsPage() {
                   {/* Private Metadata */}
                   <div>
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-base text-gray-900 dark:text-gray-100">
+                      <h3 className="text-base text-zinc-900 dark:text-zinc-100">
                         Private Metadata
                       </h3>
                       {!isEditingPrivateMetadata ? (

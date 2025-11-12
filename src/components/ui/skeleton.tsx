@@ -148,14 +148,16 @@ export function SkeletonList({
 	);
 }
 
-// New component for table row skeletons that look like actual table rows
+// Table skeleton that matches actual table structure
 export function SkeletonTableRows({
 	rows = 5,
 	columns = 4,
+	withAvatar = true,
 	className,
 }: {
 	rows?: number;
 	columns?: number;
+	withAvatar?: boolean;
 	className?: string;
 }) {
 	return (
@@ -164,20 +166,21 @@ export function SkeletonTableRows({
 				<tr
 					key={`skeleton-row-${rowIndex}`}
 					className={clsx(
-						"border-b border-zinc-950/5 dark:border-white/5",
+						"border-b border-zinc-100/60 dark:border-zinc-700/30 last:border-b-0",
+						"even:bg-zinc-50/50 dark:even:bg-zinc-800/20",
 						className,
 					)}
 				>
 					{Array.from({ length: columns }).map((_, colIndex) => (
 						<td
 							key={`skeleton-cell-${rowIndex}-${colIndex}`}
-							className="relative px-4 py-4 first:pl-2 last:pr-2 sm:first:pl-1 sm:last:pr-1"
+							className="px-6 py-2"
 						>
-							{colIndex === 0 ? (
+							{colIndex === 0 && withAvatar ? (
 								// First column with avatar + text (like user column)
 								<div className="flex items-center gap-3">
-									<SkeletonAvatar size={20} />
-									<Skeleton variant="text" width="120px" height={14} />
+									<SkeletonAvatar size={32} />
+									<Skeleton variant="text" width="140px" height={14} />
 								</div>
 							) : (
 								// Other columns with varying text widths
@@ -185,12 +188,12 @@ export function SkeletonTableRows({
 									variant="text"
 									width={
 										colIndex === 1
-											? "140px" // Email column
+											? "160px" // Email column
 											: colIndex === 2
-												? "80px" // Username column
+												? "100px" // Method column
 												: colIndex === 3
-													? "120px" // Phone column
-													: "90px" // Date column
+													? "100px" // Date column
+													: "120px" // Default
 									}
 									height={14}
 								/>

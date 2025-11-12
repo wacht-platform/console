@@ -410,9 +410,9 @@ export default function UserDetailsPage() {
                 {user.first_name} {user.last_name}
               </h2>
               {user.username && (
-                <p className="text-sm text-gray-500 mb-2">@{user.username}</p>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">@{user.username}</p>
               )}
-              <p className="text-sm text-gray-500 mb-6">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
                 Joined {format(new Date(user.created_at), "MMM d, yyyy")}
               </p>
 
@@ -476,7 +476,7 @@ export default function UserDetailsPage() {
         <div className="lg:col-span-2">
           {/* Account Details */}
           <div className="mb-8">
-            <h2 className="text-base text-gray-900 mb-4">
+            <h2 className="text-base text-zinc-900 dark:text-zinc-100 mb-4">
               Account Details
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -518,7 +518,7 @@ export default function UserDetailsPage() {
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-gray-500 dark:text-gray-400">2FA Policy</p>
-                <p className="text-sm text-gray-900 capitalize">
+                <p className="text-sm text-zinc-900 dark:text-zinc-100 capitalize">
                   {user.second_factor_policy || "None"}
                 </p>
               </div>
@@ -538,7 +538,7 @@ export default function UserDetailsPage() {
                 <div className="py-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div className="space-y-2">
-                      <h3 className="text-xs text-gray-500">
+                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
                         Primary Email
                       </h3>
                       <p className="text-sm text-gray-900 dark:text-gray-100">
@@ -546,7 +546,7 @@ export default function UserDetailsPage() {
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xs text-gray-500">
+                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
                         Primary Phone
                       </h3>
                       <p className="text-sm text-gray-900 dark:text-gray-100">
@@ -554,7 +554,7 @@ export default function UserDetailsPage() {
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xs text-gray-500">
+                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
                         Username
                       </h3>
                       <p className="text-sm text-gray-900 dark:text-gray-100">
@@ -562,7 +562,7 @@ export default function UserDetailsPage() {
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xs text-gray-500">
+                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
                         Total Email Addresses
                       </h3>
                       <p className="text-base text-gray-900 dark:text-gray-100">
@@ -570,7 +570,7 @@ export default function UserDetailsPage() {
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xs text-gray-500">
+                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
                         Total Phone Numbers
                       </h3>
                       <p className="text-base text-gray-900 dark:text-gray-100">
@@ -578,7 +578,7 @@ export default function UserDetailsPage() {
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xs text-gray-500">
+                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
                         Social Connections
                       </h3>
                       <p className="text-base text-gray-900 dark:text-gray-100">
@@ -658,7 +658,7 @@ export default function UserDetailsPage() {
                                   </span>
                                 )}
                               </div>
-                              <div className="text-xs text-gray-500">
+                              <div className="text-xs text-zinc-500 dark:text-zinc-400">
                                 Added{" "}
                                 {format(
                                   new Date(email.created_at),
@@ -769,7 +769,7 @@ export default function UserDetailsPage() {
                                   </span>
                                 )}
                               </div>
-                              <div className="text-xs text-gray-500">
+                              <div className="text-xs text-zinc-500 dark:text-zinc-400">
                                 Added{" "}
                                 {format(
                                   new Date(phone.created_at),
@@ -860,7 +860,7 @@ export default function UserDetailsPage() {
                                   {connection.email_address}
                                 </span>
                               </div>
-                              <div className="text-xs text-gray-500">
+                              <div className="text-xs text-zinc-500 dark:text-zinc-400">
                                 Connected{" "}
                                 {format(
                                   new Date(connection.created_at),

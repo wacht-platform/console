@@ -34,7 +34,7 @@ function MobileSidebar({
 				transition
 				className="fixed inset-y-0 w-full max-w-80 p-2 transition duration-300 ease-in-out data-closed:-translate-x-full"
 			>
-				<div className="flex h-full flex-col rounded-lg bg-white ring-1 shadow-xs ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
+				<div className="flex h-full flex-col rounded-lg bg-white ring-1 shadow-xs ring-zinc-950/5 dark:bg-zinc-800 dark:ring-white/10">
 					<div className="-mb-3 px-4 pt-3">
 						<Headless.CloseButton as={NavbarItem} aria-label="Close navigation">
 							<CloseMenuIcon />
@@ -57,7 +57,7 @@ export function SidebarLayout({
 }>) {
 	const [showSidebar, setShowSidebar] = useState(false);
 	return (
-		<div className="relative isolate flex min-h-svh w-full bg-white max-lg:flex-col lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950">
+		<div className="relative isolate flex min-h-svh w-full bg-white max-lg:flex-col lg:bg-zinc-100 dark:bg-zinc-800 dark:lg:bg-zinc-850">
 			<div className="fixed inset-y-0 left-0 w-64 max-lg:hidden z-30">
 				{sidebar}
 			</div>
@@ -67,7 +67,7 @@ export function SidebarLayout({
 			</MobileSidebar>
 
 			<main className="flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64">
-				<div className="grow space-y-5 p-6 pt-0 lg:rounded-lg lg:bg-white lg:p-10 lg:pt-0 lg:ring-1 lg:shadow-xs lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10">
+				<div className="grow space-y-5 p-6 pt-0 lg:rounded-lg lg:bg-white lg:p-10 lg:pt-0 lg:ring-1 lg:shadow-xs lg:ring-zinc-950/5 dark:lg:bg-zinc-850 dark:lg:ring-white/5">
 					<header className="flex items-center">
 						<div className="lg:hidden">
 							<NavbarItem

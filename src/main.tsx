@@ -8,7 +8,6 @@ if (!import.meta.env.VITE_WACHT_PUBLISHABLE_KEY) {
   console.error("Wacht publishable key is not defined");
 }
 
-// biome-ignore lint/style/noNonNullAssertion: <explanation>
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <DeploymentProvider publicKey={import.meta.env.VITE_WACHT_PUBLISHABLE_KEY}>

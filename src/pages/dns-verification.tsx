@@ -29,7 +29,7 @@ export default function DnsVerificationPage() {
 	if (!selectedDeployment) {
 		return (
 			<div className="flex items-center justify-center min-h-screen">
-				<Text className="text-gray-500">
+				<Text className="text-zinc-500 dark:text-zinc-400">
 					No deployment selected. Please select a deployment first.
 				</Text>
 			</div>
@@ -41,10 +41,10 @@ export default function DnsVerificationPage() {
 		return (
 			<div className="flex items-center justify-center min-h-screen">
 				<div className="text-center">
-					<Text className="text-gray-500 mb-2">
+					<Text className="text-zinc-500 dark:text-zinc-400 mb-2">
 						DNS configuration is only available for production deployments.
 					</Text>
-					<Text className="text-sm text-gray-400">
+					<Text className="text-sm text-zinc-400 dark:text-zinc-500">
 						Create a production deployment to configure custom domain
 						functionality.
 					</Text>

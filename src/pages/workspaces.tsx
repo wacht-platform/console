@@ -17,7 +17,7 @@ import { format } from "date-fns";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { useDeploymentWorkspaces } from "@/lib/api/hooks/use-deployment-workspaces";
 import { useNavigate } from "react-router";
-import { Spinner } from "@/components/ui/spinner";
+import { SkeletonTableRows } from "@/components/ui/skeleton";
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
 
@@ -93,14 +93,7 @@ export default function WorkspacesPage() {
 					</TableHead>
 					<TableBody>
 						{isLoading ? (
-							<tr>
-								<td colSpan={4} className="p-8 text-center">
-									<div className="flex items-center justify-center gap-3">
-										<Spinner size="sm" />
-										<span className="text-sm text-zinc-600 dark:text-zinc-400">Loading workspaces...</span>
-									</div>
-								</td>
-							</tr>
+							<SkeletonTableRows rows={10} columns={4} withAvatar={true} />
 						) : data?.data.length === 0 ? (
 							<TableRow>
 								<TableCell colSpan={5} className="text-center">

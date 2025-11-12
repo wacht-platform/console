@@ -34,7 +34,7 @@ function MobileSidebar({
 				transition
 				className="fixed inset-y-0 w-full max-w-80 p-2 transition duration-300 ease-in-out data-closed:-translate-x-full"
 			>
-				<div className="flex h-full flex-col rounded-lg bg-white ring-1 shadow-xs ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
+				<div className="flex h-full flex-col rounded-lg bg-white ring-1 shadow-xs ring-zinc-950/5 dark:bg-zinc-800 dark:ring-white/10">
 					<div className="-mb-3 px-4 pt-3">
 						<Headless.CloseButton as={NavbarItem} aria-label="Close navigation">
 							<CloseMenuIcon />
@@ -58,7 +58,7 @@ export function StackedLayout({
 	const [showSidebar, setShowSidebar] = useState(false);
 
 	return (
-		<div className="relative isolate flex min-h-svh w-full flex-col bg-white lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950">
+		<div className="relative isolate flex min-h-svh w-full flex-col bg-white lg:bg-zinc-100 dark:bg-zinc-800 dark:lg:bg-zinc-850">
 			{/* Sidebar on mobile */}
 			<MobileSidebar open={showSidebar} close={() => setShowSidebar(false)}>
 				{sidebar}

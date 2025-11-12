@@ -19,12 +19,12 @@ export function EmptyState({
   return (
     <div className="flex flex-col items-center justify-center py-12">
       {icon ? (
-        <div className="mx-auto h-12 w-12 text-gray-400">
+        <div className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500">
           {icon}
         </div>
       ) : (
         <svg
-          className="mx-auto h-12 w-12 text-gray-400"
+          className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -38,9 +38,9 @@ export function EmptyState({
           />
         </svg>
       )}
-      <h3 className="mt-2 text-sm font-semibold text-gray-900">{title}</h3>
+      <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{title}</h3>
       {description && (
-        <p className="mt-1 text-sm text-gray-500">{description}</p>
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{description}</p>
       )}
       {actionLabel && onAction && (
         <div className="mt-6">

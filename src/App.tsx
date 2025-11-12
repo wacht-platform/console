@@ -57,7 +57,7 @@ function AppContent() {
   const { actualTheme } = useTheme();
 
   return (
-    <div className="text-zinc-950 antialiased lg:bg-zinc-50 dark:bg-zinc-900 dark:text-white h-screen">
+    <div className="text-zinc-950 antialiased lg:bg-zinc-50 dark:bg-zinc-800 dark:text-zinc-100 h-screen">
       <DeploymentInitialized>
         <SignedIn>
           <SignedInRoutes />

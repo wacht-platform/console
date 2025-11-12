@@ -118,19 +118,19 @@ export function Tabs({
 				case "pills":
 					return selected
 						? "bg-white text-blue-600 shadow-md font-medium"
-						: "text-gray-600 hover:text-gray-900 hover:bg-white/20";
+						: "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-white/20";
 				case "underline":
 					return selected
 						? "text-blue-600 border-b-2 border-blue-600 font-medium"
-						: "text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300";
+						: "text-zinc-500 dark:text-zinc-400 border-b-2 border-transparent hover:text-zinc-700 dark:hover:text-zinc-300 hover:border-gray-300";
 				case "contained":
 					return selected
 						? "bg-blue-600 text-white font-medium"
-						: "bg-gray-100 text-gray-600 hover:bg-gray-200";
+						: "bg-gray-100 text-zinc-600 dark:text-zinc-400 hover:bg-gray-200";
 				case "minimal":
 					return selected
 						? "text-blue-600 font-medium"
-						: "text-gray-500 hover:text-gray-700";
+						: "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300";
 				default:
 					return "";
 			}

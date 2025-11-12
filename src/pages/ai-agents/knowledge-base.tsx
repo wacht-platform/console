@@ -228,7 +228,7 @@ export default function KnowledgeBasePage() {
 			<div className="text-center py-12">
 				<div className="text-red-500">
 					<p className="text-sm">Error loading knowledge bases</p>
-					<p className="text-xs text-gray-500 mt-1">{knowledgeBasesError.message}</p>
+					<p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{knowledgeBasesError.message}</p>
 				</div>
 			</div>
 		);
@@ -240,13 +240,13 @@ export default function KnowledgeBasePage() {
 			<div>
 				<div className="flex flex-col gap-2 mb-2">
 					<Heading>Knowledge Base</Heading>
-					<p className="text-sm text-gray-600">
+					<p className="text-sm text-zinc-600 dark:text-zinc-400">
 						Upload and manage documents that AI agents can reference
 					</p>
 				</div>
 
 				<div className="text-center py-12">
-					<BookOpenIcon className="mx-auto h-12 w-12 text-gray-400" />
+					<BookOpenIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
 					<h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
 						No knowledge bases
 					</h3>
@@ -371,7 +371,7 @@ export default function KnowledgeBasePage() {
 			<div className="mt-6">
 				{!selectedKnowledgeBase ? (
 					<div className="text-center py-12">
-						<BookOpenIcon className="mx-auto h-12 w-12 text-gray-400" />
+						<BookOpenIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
 						<h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
 							Select a knowledge base
 						</h3>
@@ -388,12 +388,12 @@ export default function KnowledgeBasePage() {
 					<div className="text-center py-12">
 						<div className="text-red-500">
 							<p className="text-sm">Error loading documents</p>
-							<p className="text-xs text-gray-500 mt-1">{documentsError.message}</p>
+							<p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{documentsError.message}</p>
 						</div>
 					</div>
 				) : documents.length === 0 ? (
 					<div className="text-center py-12">
-						<BookOpenIcon className="mx-auto h-12 w-12 text-gray-400" />
+						<BookOpenIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
 						<h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
 							No documents
 						</h3>
@@ -434,7 +434,7 @@ export default function KnowledgeBasePage() {
 												</div>
 												<div className="flex flex-col">
 													<span className="font-medium">{doc.title}</span>
-													<span className="text-xs text-gray-500">{doc.file_name}</span>
+													<span className="text-xs text-zinc-500 dark:text-zinc-400">{doc.file_name}</span>
 												</div>
 											</div>
 										</TableCell>
@@ -453,7 +453,7 @@ export default function KnowledgeBasePage() {
 										<TableCell>
 											<div className="text-sm">
 												<div>{formatFileSize(doc.file_size)}</div>
-												<div className="text-xs text-gray-500">
+												<div className="text-xs text-zinc-500 dark:text-zinc-400">
 													{new Date(doc.created_at).toLocaleDateString()}
 												</div>
 											</div>

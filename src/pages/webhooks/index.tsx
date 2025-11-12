@@ -87,7 +87,7 @@ export default function WebhooksPage() {
       <div>
         <Heading>Webhooks</Heading>
         <div className="text-center py-12">
-          <BoltIcon className="mx-auto h-12 w-12 text-gray-400" />
+          <BoltIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
           <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
             Webhooks not enabled
           </h3>

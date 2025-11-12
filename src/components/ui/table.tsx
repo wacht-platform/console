@@ -22,7 +22,7 @@ export function Table({
 	dense = false,
 	grid = false,
 	striped = false,
-	modern = false,
+	modern = true,
 	className,
 	children,
 	...props
@@ -41,39 +41,10 @@ export function Table({
 				>
 			}
 		>
-			<div className="flow-root">
-				<div
-					{...props}
-					className={clsx(
-						className,
-						"-mx-(--gutter) overflow-x-auto whitespace-nowrap",
-					)}
-				>
-					<div
-						className={clsx(
-							"inline-block min-w-full align-middle",
-							!bleed && "sm:px-(--gutter)",
-						)}
-					>
-						<div
-							className={clsx(
-								modern &&
-									"rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800",
-							)}
-						>
-							<table
-								className={clsx(
-									"min-w-full text-left text-sm/6",
-									modern
-										? ["text-zinc-950 dark:text-zinc-200"]
-										: ["text-zinc-950 dark:text-white"],
-								)}
-							>
-								{children}
-							</table>
-						</div>
-					</div>
-				</div>
+			<div className="overflow-x-auto border-t border-zinc-200 dark:border-zinc-700/50">
+				<table className="min-w-full bg-white dark:bg-transparent">
+					{children}
+				</table>
 			</div>
 		</TableContext.Provider>
 	);
@@ -83,15 +54,13 @@ export function TableHead({
 	className,
 	...props
 }: React.ComponentPropsWithoutRef<"thead">) {
-	const { modern } = useContext(TableContext);
 	return (
 		<thead
 			{...props}
 			className={clsx(
 				className,
-				modern
-					? "text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900"
-					: "text-zinc-500 dark:text-zinc-400",
+				"border-b border-l border-r border-zinc-200 dark:border-zinc-700/50",
+				"bg-zinc-50/50 dark:bg-zinc-800/30",
 			)}
 		/>
 	);
@@ -122,8 +91,6 @@ export function TableRow({
 	target?: string;
 	title?: string;
 } & React.ComponentPropsWithoutRef<"tr">) {
-	const { striped } = useContext(TableContext);
-
 	return (
 		<TableRowContext.Provider
 			value={
@@ -134,13 +101,10 @@ export function TableRow({
 				{...props}
 				className={clsx(
 					className,
-					href &&
-						"has-[[data-row-link][data-focus]]:outline-2 has-[[data-row-link][data-focus]]:-outline-offset-2 has-[[data-row-link][data-focus]]:outline-blue-500 dark:focus-within:bg-white/[2.5%]",
-					striped && "even:bg-zinc-950/[2.5%] dark:even:bg-white/[2.5%]",
-					href && striped && "hover:bg-zinc-950/5 dark:hover:bg-white/5",
-					href &&
-						!striped &&
-						"hover:bg-zinc-950/[2.5%] dark:hover:bg-white/[2.5%]",
+					"border-b border-zinc-100/60 dark:border-zinc-700/30 last:border-b-0",
+					"even:bg-zinc-50/50 dark:even:bg-zinc-800/20",
+					"hover:bg-zinc-100/50 dark:hover:bg-zinc-800/40 transition-colors",
+					href && "cursor-pointer",
 				)}
 			/>
 		</TableRowContext.Provider>
@@ -151,30 +115,15 @@ export function TableHeader({
 	className,
 	...props
 }: React.ComponentPropsWithoutRef<"th">) {
-	const { bleed, grid, modern } = useContext(TableContext);
-
 	return (
 		<th
 			{...props}
 			className={clsx(
 				className,
-				modern
-					? [
-							"border-b border-zinc-200 px-4 py-3 font-medium first:pl-(--gutter,--spacing(4)) last:pr-(--gutter,--spacing(4)) dark:border-zinc-800",
-							"first:first-of-type:rounded-tl-lg last:last-of-type:rounded-tr-lg",
-						]
-					: [
-							"border-b border-b-zinc-950/10 px-4 py-2 font-medium first:pl-(--gutter,--spacing(2)) last:pr-(--gutter,--spacing(2)) dark:border-b-white/10",
-						],
-				grid &&
-					modern &&
-					"border-l border-l-zinc-200 first:border-l-0 dark:border-l-zinc-800",
-				grid &&
-					!modern &&
-					"border-l border-l-zinc-950/5 first:border-l-0 dark:border-l-white/5",
-				!bleed && modern && "sm:first:pl-5 sm:last:pr-5",
-				!bleed && !modern && "sm:first:pl-1 sm:last:pr-1",
+				"px-6 py-2 text-left text-sm font-normal text-zinc-500 dark:text-zinc-400",
+				"border-r border-zinc-300/70 dark:border-zinc-700/50 last:border-r-0",
 			)}
+			style={{ borderRightWidth: '1.5px' }}
 		/>
 	);
 }
@@ -184,7 +133,6 @@ export function TableCell({
 	children,
 	...props
 }: React.ComponentPropsWithoutRef<"td">) {
-	const { bleed, dense, grid, striped, modern } = useContext(TableContext);
 	const { href, target, title } = useContext(TableRowContext);
 	const [cellRef, setCellRef] = useState<HTMLElement | null>(null);
 
@@ -194,25 +142,7 @@ export function TableCell({
 			{...props}
 			className={clsx(
 				className,
-				modern
-					? [
-							"relative px-5 first:pl-(--gutter,--spacing(4)) last:pr-(--gutter,--spacing(4))",
-							"last-of-type:first:last-of-type:rounded-bl-lg last-of-type:last:last-of-type:rounded-br-lg",
-						]
-					: [
-							"relative px-4 first:pl-(--gutter,--spacing(2)) last:pr-(--gutter,--spacing(2))",
-						],
-				!striped && modern && "border-b border-zinc-200 dark:border-zinc-800",
-				!striped && !modern && "border-b border-zinc-950/5 dark:border-white/5",
-				grid &&
-					modern &&
-					"border-l border-l-zinc-200 first:border-l-0 dark:border-l-zinc-800",
-				grid &&
-					!modern &&
-					"border-l border-l-zinc-950/5 first:border-l-0 dark:border-l-white/5",
-				dense ? "py-2.5" : "py-4",
-				!bleed && modern && "sm:first:pl-5 sm:last:pr-5",
-				!bleed && !modern && "sm:first:pl-1 sm:last:pr-1",
+				"px-6 py-2 text-sm text-zinc-900 dark:text-zinc-200",
 			)}
 		>
 			{href && (
