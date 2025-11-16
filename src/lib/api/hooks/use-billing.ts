@@ -138,13 +138,36 @@ export function useInvoice(invoiceId: string) {
 // Change subscription plan
 export function useChangePlan() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (newPlanId: string) => {
       await apiClient.post('/billing/change-plan', { new_plan_id: newPlanId });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['billing'] });
+    },
+  });
+}
+
+// Usage metrics types
+export interface UsageSnapshot {
+  metric_name: string;
+  quantity: number;
+  cost_cents?: number;
+}
+
+export interface UsageResponse {
+  snapshots: UsageSnapshot[];
+  billing_period: string;
+}
+
+// Get current usage metrics
+export function useUsageMetrics() {
+  return useQuery({
+    queryKey: ['usage-metrics'],
+    queryFn: async () => {
+      const { data } = await apiClient.get<UsageResponse>('/billing/usage');
+      return data;
     },
   });
 }

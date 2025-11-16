@@ -15,20 +15,34 @@ import { useBillingAccount } from "@/lib/api/hooks/use-billing";
 import { Tab, SimpleTabs } from "@/components/ui/simple-tabs";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Spinner } from "@/components/ui/spinner";
-import { PlusIcon, GlobeAltIcon, ClockIcon } from "@heroicons/react/24/outline";
+import {
+  PlusIcon,
+  GlobeAltIcon,
+  ClockIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
+import {
+  Dialog,
+  DialogTitle,
+  DialogDescription,
+  DialogActions,
+} from "@/components/ui/dialog";
+import { Text } from "@/components/ui/text";
 
 export default function ProjectsPage() {
   const { projects, isLoading } = useProjects();
   const { data: billingAccount } = useBillingAccount();
   const [createProjectDialogOpen, setCreateProjectDialogOpen] = useState(false);
   const [billingSetupDialogOpen, setBillingSetupDialogOpen] = useState(false);
+  const [pendingBillingDialogOpen, setPendingBillingDialogOpen] =
+    useState(false);
 
   const handleCreateProject = () => {
     if (!billingAccount) {
-      // No billing account exists, show billing setup first
       setBillingSetupDialogOpen(true);
+    } else if (billingAccount.billing_account.status === "pending") {
+      setPendingBillingDialogOpen(true);
     } else {
-      // Billing account exists, proceed with project creation
       setCreateProjectDialogOpen(true);
     }
   };
@@ -181,6 +195,46 @@ export default function ProjectsPage() {
         onClose={() => setBillingSetupDialogOpen(false)}
         onSuccess={handleBillingSetupSuccess}
       />
+
+      <Dialog
+        open={pendingBillingDialogOpen}
+        onClose={() => setPendingBillingDialogOpen(false)}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+            <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600 dark:text-yellow-500" />
+          </div>
+          <DialogTitle>Subscription Not Complete</DialogTitle>
+        </div>
+        <DialogDescription>
+          <Text>
+            Your billing account has been created but the subscription payment
+            has not been completed yet. This could mean:
+          </Text>
+          <ul className="list-disc list-inside mt-3 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+            <li>You closed the payment page before completing checkout</li>
+            <li>The payment is still processing (please wait a few minutes)</li>
+            <li>There was an issue with your payment method</li>
+          </ul>
+          <Text className="mt-4">
+            You can try completing the checkout again, or wait a few minutes if
+            you've already completed payment.
+          </Text>
+        </DialogDescription>
+        <DialogActions>
+          <Button plain onClick={() => setPendingBillingDialogOpen(false)}>
+            Close
+          </Button>
+          <Button
+            onClick={() => {
+              setPendingBillingDialogOpen(false);
+              setBillingSetupDialogOpen(true);
+            }}
+          >
+            Complete Checkout
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

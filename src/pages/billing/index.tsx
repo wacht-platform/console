@@ -3,32 +3,30 @@ import {
   useBillingAccount,
   useCustomerPortal,
   useCancelSubscription,
-  useInvoices,
   useChangePlan,
+  useUsageMetrics,
 } from "@/lib/api/hooks/use-billing";
 import { BillingSetupDialog } from "@/components/billing-setup-dialog";
-import { 
+import {
   CheckIcon,
-  ArrowRightIcon,
-  SparklesIcon,
   CreditCardIcon,
   DocumentTextIcon,
   ExclamationTriangleIcon,
+  SparklesIcon,
+  BoltIcon,
+  UserGroupIcon,
+  FolderIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import { Dialog, DialogTitle, DialogDescription, DialogActions } from "@/components/ui/dialog";
-import { Heading, Subheading } from "@/components/ui/heading";
-import { Stat } from "@/components/stat";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  Dialog,
+  DialogTitle,
+  DialogDescription,
+  DialogActions,
+} from "@/components/ui/dialog";
+import { Heading, Subheading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { Divider } from "@/components/ui/divider";
 
@@ -38,7 +36,7 @@ const plans = [
     name: "Starter",
     price: 0,
     priceDisplay: "Free",
-    description: "Perfect for small projects and testing",
+    description: "Perfect for testing and small projects",
     monthlyActiveUsers: 5000,
     projects: 5,
     organizations: "Unlimited",
@@ -50,9 +48,7 @@ const plans = [
       "Multi-factor authentication",
       "Organizations & RBAC",
       "Custom branding",
-      "API Keys & Rate limiting",
-      "Webhooks",
-      "Real-time events",
+      "Webhooks & Real-time events",
       "7 days audit logs",
       "Community support",
     ],
@@ -62,18 +58,17 @@ const plans = [
     name: "Growth",
     price: 99,
     priceDisplay: "$99",
-    description: "Scale your application with confidence",
+    description: "Scale with confidence",
     popular: true,
     monthlyActiveUsers: 50000,
     projects: "Unlimited",
     organizations: 500,
     workspaces: 5000,
     features: [
-      "Everything in Starter, plus:",
-      "Analytics dashboard",
-      "Higher API rate limits (500/min)",
+      "Everything in Starter",
+      "Advanced analytics dashboard",
+      "Higher API rate limits",
       "Email support",
-      "5,000 workspaces",
       "Advanced reporting",
       "Priority updates",
       "Custom integrations",
@@ -84,33 +79,61 @@ const plans = [
     name: "Enterprise",
     price: null,
     priceDisplay: "Custom",
-    description: "Tailored solutions for large organizations",
+    description: "For large-scale deployments",
     monthlyActiveUsers: "Custom",
     projects: "Unlimited",
     organizations: "Unlimited",
     workspaces: "Unlimited",
     features: [
-      "Everything in Growth, plus:",
+      "Everything in Growth",
       "Volume discounts",
       "SSO & IP allowlisting",
       "Dedicated support",
       "Unlimited audit logs",
-      "Custom API limits (10k/min)",
+      "Custom API limits",
       "SLA guarantee",
-      "Custom contracts",
       "Dedicated account manager",
     ],
   },
 ];
 
 const usageBasedPricing = [
-  { item: "Additional Users", price: "$0.003", unit: "per user/month" },
-  { item: "Extra Organizations", price: "$0.75-$1", unit: "per org/month" },
-  { item: "Extra Workspaces", price: "$0.15-$0.25", unit: "per workspace/month" },
-  { item: "AI Agent Workflows", price: "$1.50-$2", unit: "per workflow/month" },
-  { item: "OTP Messages", price: "$0.004-$0.08", unit: "per message" },
-  { item: "Email Sending", price: "$1.80", unit: "per 1,000 emails" },
-  { item: "Knowledge Storage", price: "$0.08-$0.10", unit: "per GB/month" },
+  {
+    item: "Additional MAU",
+    price: "$0.003",
+    unit: "per user/month",
+    icon: UserGroupIcon,
+  },
+  {
+    item: "Extra Organizations",
+    price: "$0.75-$1",
+    unit: "per org/month",
+    icon: FolderIcon,
+  },
+  {
+    item: "Extra Workspaces",
+    price: "$0.15-$0.25",
+    unit: "per workspace/month",
+    icon: FolderIcon,
+  },
+  {
+    item: "AI Agent Workflows",
+    price: "$1.50-$2",
+    unit: "per workflow/month",
+    icon: BoltIcon,
+  },
+  {
+    item: "OTP Messages",
+    price: "$0.004-$0.08",
+    unit: "per message",
+    icon: SparklesIcon,
+  },
+  {
+    item: "Email Sending",
+    price: "$1.80",
+    unit: "per 1,000 emails",
+    icon: SparklesIcon,
+  },
 ];
 
 export default function BillingPage() {
@@ -119,24 +142,27 @@ export default function BillingPage() {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
   const { data: billingAccount, isLoading, refetch } = useBillingAccount();
+  const { data: usageData } = useUsageMetrics();
   const customerPortal = useCustomerPortal();
   const cancelSubscription = useCancelSubscription();
-  const { } = useInvoices(); // Invoices loaded via portal
   const changePlan = useChangePlan();
 
-  // Check if we're returning from checkout
   useEffect(() => {
-    const checkoutInitiated = sessionStorage.getItem('billing_checkout_initiated');
+    const checkoutInitiated = sessionStorage.getItem(
+      "billing_checkout_initiated",
+    );
     if (checkoutInitiated) {
-      sessionStorage.removeItem('billing_checkout_initiated');
-      // Refetch billing data to get updated subscription
+      sessionStorage.removeItem("billing_checkout_initiated");
       refetch();
     }
   }, [refetch]);
 
   const handleSelectPlan = (planId: string) => {
     if (planId === "enterprise") {
-      window.open("mailto:sales@wacht.dev?subject=Enterprise Plan Inquiry", "_blank");
+      window.open(
+        "mailto:sales@wacht.dev?subject=Enterprise Plan Inquiry",
+        "_blank",
+      );
       return;
     }
     if (planId === "starter") {
@@ -160,8 +186,18 @@ export default function BillingPage() {
     try {
       await cancelSubscription.mutateAsync();
       setCancelDialogOpen(false);
+      refetch();
     } catch (error) {
       console.error("Failed to cancel subscription:", error);
+    }
+  };
+
+  const handleChangePlan = async (planId: string) => {
+    try {
+      await changePlan.mutateAsync(planId);
+      refetch();
+    } catch (error) {
+      console.error("Failed to change plan:", error);
     }
   };
 
@@ -174,83 +210,83 @@ export default function BillingPage() {
   }
 
   const subscription = billingAccount?.subscription;
-  const currentPlan = subscription?.status === "active" 
-    ? plans.find(p => p.id === subscription.chargebee_subscription_id?.split('_')[0]) || plans[0]
-    : plans[0];
+  const currentPlan =
+    subscription?.status === "active"
+      ? plans.find((p) =>
+          subscription.chargebee_subscription_id?.includes(p.id),
+        ) || plans[0]
+      : plans[0];
 
-  // Calculate stats for the current subscription
-  const stats = [
-    {
-      title: "Current Plan",
-      value: currentPlan.name,
-      change: subscription?.status === "active" ? "Active" : "Free Tier",
-    },
-    {
-      title: "Monthly Active Users",
-      value: typeof currentPlan.monthlyActiveUsers === 'number' 
-        ? currentPlan.monthlyActiveUsers.toLocaleString()
-        : currentPlan.monthlyActiveUsers,
-      change: "Limit",
-    },
-    {
-      title: "Projects",
-      value: currentPlan.projects.toString(),
-      change: currentPlan.projects === "Unlimited" ? "" : "Available",
-    },
-    {
-      title: "Monthly Cost",
-      value: currentPlan.priceDisplay,
-      change: currentPlan.price ? "/month" : "",
-    },
-  ];
+  const hasActiveSubscription = subscription?.status === "active";
 
   return (
-    <div>
+    <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col gap-2 mb-6">
-        <Heading>Billing & Subscription</Heading>
-        <Subheading>Manage your subscription plan and billing settings</Subheading>
+      <div className="mb-8">
+        <Heading>Billing & Plans</Heading>
+        <Subheading>Manage your subscription and view usage</Subheading>
       </div>
 
-      {/* Current Subscription Status */}
-      {subscription && (
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-              Subscription Overview
-            </h3>
-            <div className="flex gap-2">
-              <Button
-                outline
-                onClick={handleOpenPortal}
-                disabled={customerPortal.isPending}
-              >
-                {customerPortal.isPending ? <Spinner size="sm" /> : "Billing Portal"}
-              </Button>
-              {subscription.status === "active" && (
-                <Button
-                  plain
-                  onClick={() => setCancelDialogOpen(true)}
-                >
-                  Cancel Subscription
-                </Button>
-              )}
+      {/* Current Plan Card */}
+      {hasActiveSubscription ? (
+        <div className="mb-8 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-xl p-6 border border-blue-200 dark:border-blue-900">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+                  {currentPlan.name} Plan
+                </h3>
+                <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200">
+                  Active
+                </Badge>
+              </div>
+              <Text className="mb-4">{currentPlan.description}</Text>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                <div className="bg-white dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-700">
+                  <div className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">
+                    Monthly Cost
+                  </div>
+                  <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                    {currentPlan.priceDisplay}
+                    {currentPlan.price ? (
+                      <span className="text-sm font-normal text-zinc-600 dark:text-zinc-400">
+                        /mo
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-700">
+                  <div className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">
+                    MAU Included
+                  </div>
+                  <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                    {typeof currentPlan.monthlyActiveUsers === "number"
+                      ? currentPlan.monthlyActiveUsers.toLocaleString()
+                      : currentPlan.monthlyActiveUsers}
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-700">
+                  <div className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">
+                    Projects
+                  </div>
+                  <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                    {currentPlan.projects}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {stats.map((stat) => (
-              <Stat key={stat.title} {...stat} />
-            ))}
-          </div>
-          
-          {/* Quick Actions */}
-          <div className="mt-6 flex flex-wrap gap-3">
+
+          <div className="flex flex-wrap gap-3 mt-6">
             <Button
               onClick={handleOpenPortal}
               disabled={customerPortal.isPending}
             >
               <CreditCardIcon className="h-4 w-4 mr-2" />
-              Update Payment Method
+              Manage Billing
             </Button>
             <Button
               outline
@@ -260,191 +296,249 @@ export default function BillingPage() {
               <DocumentTextIcon className="h-4 w-4 mr-2" />
               View Invoices
             </Button>
-            {(billingAccount?.billing_account as any)?.status === 'failed' && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                <ExclamationTriangleIcon className="h-4 w-4 text-red-600 dark:text-red-400" />
-                <Text className="text-sm text-red-800 dark:text-red-200">
-                  Payment failed. Please update your payment method to restore service.
-                </Text>
-              </div>
-            )}
-            {(billingAccount?.billing_account as any)?.status === 'paused' && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                <ExclamationTriangleIcon className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                <Text className="text-sm text-yellow-800 dark:text-yellow-200">
-                  Your subscription is paused. Contact support to resume.
-                </Text>
-              </div>
-            )}
+            <Button plain onClick={() => setCancelDialogOpen(true)}>
+              Cancel Subscription
+            </Button>
+          </div>
+
+          {/* Payment status warnings */}
+          {(billingAccount?.billing_account as any)?.status === "failed" && (
+            <div className="mt-4 flex items-center gap-3 px-4 py-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-900">
+              <ExclamationTriangleIcon className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+              <Text className="text-sm text-red-800 dark:text-red-200">
+                Payment failed. Please update your payment method to restore
+                service.
+              </Text>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="mb-8 bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900/50 dark:to-zinc-800/50 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+              You're on the Free Starter Plan
+            </h3>
+            <Text className="mb-4">
+              Upgrade to unlock more features and higher limits
+            </Text>
+            <Button onClick={() => handleSelectPlan("growth")}>
+              Upgrade to Growth
+            </Button>
           </div>
         </div>
       )}
 
-      <Divider className="my-8" />
+      <Divider className="my-10" />
 
-      {/* Available Plans */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-              Available Plans
-            </h3>
-            <Text className="mt-1">Choose the plan that fits your needs</Text>
+      {/* Current Usage Metrics */}
+      {hasActiveSubscription && usageData && usageData.snapshots.length > 0 && (
+        <>
+          <div className="mb-10">
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                Current Usage
+              </h3>
+              <Text>Your usage for {usageData.billing_period}</Text>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {usageData.snapshots.map((snapshot) => {
+                // Format metric name for display
+                const metricLabels: Record<string, string> = {
+                  mau: "Monthly Active Users",
+                  mao: "Monthly Active Orgs",
+                  maw: "Monthly Active Workspaces",
+                  emails: "Emails Sent",
+                  webhooks: "Webhook Calls",
+                  sms: "SMS Messages",
+                  ai_tokens_input: "AI Input Tokens",
+                  ai_tokens_output: "AI Output Tokens",
+                  projects: "Projects",
+                };
+
+                const label =
+                  metricLabels[snapshot.metric_name] || snapshot.metric_name;
+
+                return (
+                  <div
+                    key={snapshot.metric_name}
+                    className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                  >
+                    <div className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">
+                      {label}
+                    </div>
+                    <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                      {snapshot.quantity.toLocaleString()}
+                    </div>
+                    {snapshot.cost_cents && snapshot.cost_cents > 0 && (
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                        ${(snapshot.cost_cents / 100).toFixed(2)} cost
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
+
+          <Divider className="my-10" />
+        </>
+      )}
+
+      {/* Plans Comparison */}
+      <div className="mb-10">
+        <div className="mb-6">
+          <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+            Choose Your Plan
+          </h3>
+          <Text>Select the plan that best fits your needs</Text>
         </div>
 
-        <Table className="[--gutter:--spacing(8)]">
-          <TableHead>
-            <TableRow>
-              <TableHeader>Plan</TableHeader>
-              <TableHeader>Monthly Active Users</TableHeader>
-              <TableHeader>Projects</TableHeader>
-              <TableHeader>Organizations</TableHeader>
-              <TableHeader>Price</TableHeader>
-              <TableHeader></TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {plans.map((plan) => (
-              <TableRow key={plan.id}>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <div className="font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                        {plan.name}
-                        {plan.popular && (
-                          <Badge className="text-xs">Popular</Badge>
-                        )}
-                      </div>
-                      <Text className="text-xs">{plan.description}</Text>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {plans.map((plan) => {
+            const isCurrentPlan = currentPlan.id === plan.id;
+            const isPremium = plan.id === "growth" || plan.id === "enterprise";
+
+            return (
+              <div
+                key={plan.id}
+                className={`relative rounded-xl border-2 p-6 transition-all ${
+                  plan.popular
+                    ? "border-blue-500 dark:border-blue-600 shadow-lg scale-105"
+                    : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600"
+                } ${isCurrentPlan ? "bg-blue-50 dark:bg-blue-950/20" : "bg-white dark:bg-zinc-900"}`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                    <Badge className="bg-blue-600 text-white px-4 py-1">
+                      <SparklesIcon className="h-3 w-3 mr-1 inline" />
+                      Most Popular
+                    </Badge>
+                  </div>
+                )}
+
+                <div className="mb-6">
+                  <h4 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                    {plan.name}
+                  </h4>
+                  <Text className="text-sm mb-4">{plan.description}</Text>
+
+                  <div className="mb-4">
+                    <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+                      {plan.priceDisplay}
+                      {plan.price ? (
+                        <span className="text-base font-normal text-zinc-600 dark:text-zinc-400">
+                          /month
+                        </span>
+                      ) : null}
                     </div>
                   </div>
-                </TableCell>
-                <TableCell>
-                  <Text>
-                    {typeof plan.monthlyActiveUsers === 'number' 
-                      ? plan.monthlyActiveUsers.toLocaleString()
-                      : plan.monthlyActiveUsers}
-                  </Text>
-                </TableCell>
-                <TableCell>
-                  <Text>{plan.projects}</Text>
-                </TableCell>
-                <TableCell>
-                  <Text>{plan.organizations}</Text>
-                </TableCell>
-                <TableCell>
-                  <div className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    {plan.priceDisplay}
-                    {plan.price && <span className="text-sm font-normal text-zinc-600 dark:text-zinc-400">/mo</span>}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {currentPlan.id === plan.id ? (
-                    <Badge>Current</Badge>
-                  ) : subscription?.status === "active" ? (
-                    // For active subscriptions, show change plan button
+
+                  {isCurrentPlan ? (
+                    <Badge className="w-full justify-center py-2">
+                      Current Plan
+                    </Badge>
+                  ) : hasActiveSubscription ? (
                     <Button
-                      plain
+                      className="w-full"
+                      outline={!isPremium}
                       onClick={() => {
                         if (plan.id === "enterprise") {
-                          window.open("mailto:sales@wacht.dev?subject=Enterprise Plan Inquiry", "_blank");
+                          window.open(
+                            "mailto:sales@wacht.dev?subject=Enterprise Plan Inquiry",
+                            "_blank",
+                          );
                         } else {
-                          // Use change plan API for existing subscriptions
-                          const planId = plan.id === "starter" ? "starter_monthly" : "growth_monthly";
-                          if (window.confirm(`Change to ${plan.name} plan? Your plan will be updated at the next billing cycle.`)) {
-                            changePlan.mutate(planId);
+                          const planId =
+                            plan.id === "starter"
+                              ? "starter_monthly"
+                              : "growth_monthly";
+                          if (window.confirm(`Change to ${plan.name} plan?`)) {
+                            handleChangePlan(planId);
                           }
                         }
                       }}
-                      className="text-sm"
                     >
-                      {plan.id === "enterprise" ? "Contact Sales" : 
-                       (plan.price ?? 0) < (currentPlan.price ?? 0) ? "Downgrade" : "Upgrade"}
-                      <ArrowRightIcon className="ml-1 h-3 w-3" />
+                      {plan.id === "enterprise"
+                        ? "Contact Sales"
+                        : (plan.price ?? 0) < (currentPlan.price ?? 0)
+                          ? "Downgrade"
+                          : "Upgrade"}
                     </Button>
                   ) : (
-                    // For new subscriptions, show regular select button
                     <Button
-                      plain
+                      className="w-full"
+                      outline={!isPremium}
                       onClick={() => handleSelectPlan(plan.id)}
-                      className="text-sm"
                     >
-                      {plan.id === "enterprise" ? "Contact Sales" : "Select"}
-                      <ArrowRightIcon className="ml-1 h-3 w-3" />
+                      {plan.id === "enterprise"
+                        ? "Contact Sales"
+                        : "Get Started"}
                     </Button>
                   )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+                </div>
 
-      <Divider className="my-8" />
+                <Divider className="my-4" />
 
-      {/* Plan Features Comparison */}
-      <div className="mb-8">
-        <div className="mb-6">
-          <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-            Features Comparison
-          </h3>
-          <Text className="mt-1">All plans include these core features</Text>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-3">
-          {plans.map((plan) => (
-            <div key={plan.id} className="space-y-4">
-              <div>
-                <h4 className="font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                  {plan.name}
-                  {plan.popular && <SparklesIcon className="h-4 w-4 text-yellow-500" />}
-                </h4>
+                <div>
+                  <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-3">
+                    Key Features
+                  </div>
+                  <ul className="space-y-2">
+                    {plan.features.slice(0, 6).map((feature, index) => (
+                      <li
+                        key={index}
+                        className="flex items-start gap-2 text-sm"
+                      >
+                        <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                        <Text className="text-sm">{feature}</Text>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-              <ul className="space-y-2">
-                {plan.features.slice(0, 8).map((feature, index) => (
-                  <li key={index} className="flex items-start gap-2 text-sm">
-                    <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                    <Text className="text-sm">{feature}</Text>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      <Divider className="my-8" />
+      <Divider className="my-10" />
 
       {/* Usage-based Pricing */}
-      <div>
+      <div className="mb-10">
         <div className="mb-6">
-          <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-            Pay As You Grow
+          <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+            Usage-Based Pricing
           </h3>
-          <Text className="mt-1">Additional usage beyond your plan limits</Text>
+          <Text>Pay only for what you use beyond your plan limits</Text>
         </div>
 
-        <Table className="[--gutter:--spacing(6)]">
-          <TableHead>
-            <TableRow>
-              <TableHeader>Service</TableHeader>
-              <TableHeader>Price</TableHeader>
-              <TableHeader>Billing Unit</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {usageBasedPricing.map((item) => (
-              <TableRow key={item.item}>
-                <TableCell className="font-medium">{item.item}</TableCell>
-                <TableCell>{item.price}</TableCell>
-                <TableCell className="text-zinc-600 dark:text-zinc-400">
-                  {item.unit}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {usageBasedPricing.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.item}
+                className="flex items-start gap-4 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+              >
+                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                  <Icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-zinc-900 dark:text-zinc-100 text-sm mb-1">
+                    {item.item}
+                  </div>
+                  <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                    {item.price}
+                  </div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                    {item.unit}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Billing Setup Dialog */}
@@ -459,24 +553,30 @@ export default function BillingPage() {
       />
 
       {/* Cancel Subscription Dialog */}
-      <Dialog open={cancelDialogOpen} onClose={() => setCancelDialogOpen(false)}>
+      <Dialog
+        open={cancelDialogOpen}
+        onClose={() => setCancelDialogOpen(false)}
+      >
         <DialogTitle>Cancel Subscription</DialogTitle>
         <DialogDescription>
-          Your subscription will remain active until the end of the current billing period.
-          After that, you'll be downgraded to the free Starter plan.
+          Are you sure you want to cancel your subscription? You'll continue to
+          have access until the end of your current billing period, then you'll
+          be downgraded to the free Starter plan.
         </DialogDescription>
         <DialogActions>
-          <Button
-            plain
-            onClick={() => setCancelDialogOpen(false)}
-          >
+          <Button plain onClick={() => setCancelDialogOpen(false)}>
             Keep Subscription
           </Button>
           <Button
+            color="red"
             onClick={handleCancelSubscription}
             disabled={cancelSubscription.isPending}
           >
-            {cancelSubscription.isPending ? <Spinner size="sm" /> : "Confirm Cancellation"}
+            {cancelSubscription.isPending ? (
+              <Spinner size="sm" />
+            ) : (
+              "Confirm Cancellation"
+            )}
           </Button>
         </DialogActions>
       </Dialog>
