@@ -490,11 +490,11 @@ export function ApplicationLayout() {
 
                     <li className="-mx-6 mt-auto">
                       <div className="border-t border-gray-100 dark:border-gray-800 pt-3 pb-3 px-6">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-shrink-0">
                             <ThemeToggle />
                           </div>
-                          <div className="flex-shrink-0">
+                          <div className="flex-1 min-w-0">
                             <UserButton showName={false} />
                           </div>
                         </div>
@@ -585,13 +585,15 @@ export function ApplicationLayout() {
 
                 <li className="-mx-4 mt-auto">
                   <div className="border-t border-gray-100 dark:border-gray-800 pt-3 pb-3 px-4">
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
                       <div className="flex-1 min-w-0">
+                        <UserButton />
+                      </div>
+                      <div className="flex-shrink-0">
                         <ThemeToggle />
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex-shrink-0">
                         <NotificationBell showBadge />
-                        <UserButton showName={false} />
                       </div>
                     </div>
                   </div>
