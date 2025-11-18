@@ -33,7 +33,25 @@ export interface Subscription {
 }
 
 export interface BillingAccountWithSubscription {
-  billing_account: BillingAccount;
+  id: string;
+  owner_id: string;
+  owner_type: string;
+  legal_name: string;
+  tax_id?: string;
+  billing_email: string;
+  billing_phone?: string;
+  address_line1: string;
+  address_line2?: string;
+  city: string;
+  state?: string;
+  postal_code: string;
+  country: string;
+  status: string;
+  payment_method_status?: string;
+  currency: string;
+  locale: string;
+  created_at?: string;
+  updated_at?: string;
   subscription?: Subscription;
 }
 
@@ -43,16 +61,16 @@ export interface CreateCheckoutRequest {
   billing_email: string;
   billing_phone?: string;
   tax_id?: string;
-  address_line1: string;
-  address_line2?: string;
-  city: string;
-  state?: string;
-  postal_code: string;
-  country: string;
 }
 
 export interface CheckoutResponse {
-  checkout_url: string;
+  id: string;
+  type: string;
+  url: string;
+  state: string;
+  embed?: boolean;
+  created_at?: number;
+  expires_at?: number;
 }
 
 export interface PortalResponse {
@@ -64,7 +82,8 @@ export function useBillingAccount() {
   return useQuery({
     queryKey: ["billing"],
     queryFn: async () => {
-      const { data } = await apiClient.get<BillingAccountWithSubscription | null>(`/billing`);
+      const { data } =
+        await apiClient.get<BillingAccountWithSubscription | null>(`/billing`);
       return data;
     },
   });
@@ -73,12 +92,12 @@ export function useBillingAccount() {
 // Create checkout session
 export function useCreateCheckout() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (data: CreateCheckoutRequest) => {
       const { data: response } = await apiClient.post<CheckoutResponse>(
         `/billing/checkout`,
-        data
+        data,
       );
       return response;
     },
@@ -101,7 +120,7 @@ export function useCustomerPortal() {
 // Cancel subscription
 export function useCancelSubscription() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async () => {
       await apiClient.post(`/billing/cancel`);
@@ -115,9 +134,9 @@ export function useCancelSubscription() {
 // Get invoices list
 export function useInvoices() {
   return useQuery({
-    queryKey: ['invoices'],
+    queryKey: ["invoices"],
     queryFn: async () => {
-      const response = await apiClient.get('/billing/invoices');
+      const response = await apiClient.get("/billing/invoices");
       return response.data;
     },
   });
@@ -126,7 +145,7 @@ export function useInvoices() {
 // Get single invoice
 export function useInvoice(invoiceId: string) {
   return useQuery({
-    queryKey: ['invoice', invoiceId],
+    queryKey: ["invoice", invoiceId],
     queryFn: async () => {
       const response = await apiClient.get(`/billing/invoices/${invoiceId}`);
       return response.data;
@@ -141,10 +160,10 @@ export function useChangePlan() {
 
   return useMutation({
     mutationFn: async (newPlanId: string) => {
-      await apiClient.post('/billing/change-plan', { new_plan_id: newPlanId });
+      await apiClient.post("/billing/change-plan", { new_plan_id: newPlanId });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['billing'] });
+      queryClient.invalidateQueries({ queryKey: ["billing"] });
     },
   });
 }
@@ -164,9 +183,9 @@ export interface UsageResponse {
 // Get current usage metrics
 export function useUsageMetrics() {
   return useQuery({
-    queryKey: ['usage-metrics'],
+    queryKey: ["usage-metrics"],
     queryFn: async () => {
-      const { data } = await apiClient.get<UsageResponse>('/billing/usage');
+      const { data } = await apiClient.get<UsageResponse>("/billing/usage");
       return data;
     },
   });

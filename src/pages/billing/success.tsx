@@ -9,10 +9,18 @@ export default function BillingSuccessPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Auto-redirect after 5 seconds
+    if (window.opener) {
+      window.opener.postMessage(
+        { type: "checkout_complete" },
+        window.location.origin,
+      );
+      window.close();
+      return;
+    }
+
     const timer = setTimeout(() => {
       navigate("/billing");
-    }, 5000);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, [navigate]);
@@ -23,28 +31,37 @@ export default function BillingSuccessPage() {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20 mb-6">
           <CheckCircleIcon className="h-10 w-10 text-green-600 dark:text-green-400" />
         </div>
-        
+
         <Heading className="mb-2">Payment Successful!</Heading>
         <Subheading className="mb-6">
           Your subscription has been activated successfully.
         </Subheading>
-        
+
         <Text className="mb-8">
-          Thank you for subscribing to Wacht. Your account has been upgraded and you now have access to all premium features.
+          Thank you for subscribing to Wacht. Your account has been upgraded and
+          you now have access to all premium features.
         </Text>
-        
-        <div className="space-y-3">
-          <Button onClick={() => navigate("/billing")}>
-            View Billing Details
-          </Button>
-          <Button outline onClick={() => navigate("/")}>
-            Go to Dashboard
-          </Button>
-        </div>
-        
-        <Text className="text-sm text-zinc-500 dark:text-zinc-400 mt-6">
-          Redirecting to billing page in 5 seconds...
-        </Text>
+
+        {window.opener ? (
+          <Text className="text-sm text-zinc-500 dark:text-zinc-400">
+            This window will close automatically...
+          </Text>
+        ) : (
+          <>
+            <div className="space-y-3">
+              <Button onClick={() => navigate("/billing")}>
+                View Billing Details
+              </Button>
+              <Button outline onClick={() => navigate("/")}>
+                Go to Dashboard
+              </Button>
+            </div>
+
+            <Text className="text-sm text-zinc-500 dark:text-zinc-400 mt-6">
+              Redirecting to billing page in 3 seconds...
+            </Text>
+          </>
+        )}
       </div>
     </div>
   );

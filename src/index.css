@@ -4,19 +4,19 @@
 
 /* Custom colors for softer dark mode and better accents */
 @theme {
-  --color-zinc-850: #27272a;
+    --color-zinc-850: #27272a;
 
-  /* Primary accent color - indigo for light mode, lighter indigo for dark mode */
-  --color-primary-light: #4f46e5; /* indigo-600 */
-  --color-primary-dark: #818cf8; /* indigo-400 */
+    /* Primary accent color - indigo for light mode, lighter indigo for dark mode */
+    --color-primary-light: #4f46e5; /* indigo-600 */
+    --color-primary-dark: #818cf8; /* indigo-400 */
 
-  /* Success color - emerald */
-  --color-success-light: #059669; /* emerald-600 */
-  --color-success-dark: #34d399; /* emerald-400 */
+    /* Success color - emerald */
+    --color-success-light: #059669; /* emerald-600 */
+    --color-success-dark: #34d399; /* emerald-400 */
 
-  /* Danger color - red */
-  --color-danger-light: #dc2626; /* red-600 */
-  --color-danger-dark: #f87171; /* red-400 */
+    /* Danger color - red */
+    --color-danger-light: #dc2626; /* red-600 */
+    --color-danger-dark: #f87171; /* red-400 */
 }
 
 /* Tab animations */
@@ -47,7 +47,8 @@
 }
 
 @keyframes pulse {
-    0%, 100% {
+    0%,
+    100% {
         opacity: 1;
     }
     50% {
@@ -56,7 +57,8 @@
 }
 
 @keyframes bounce {
-    0%, 100% {
+    0%,
+    100% {
         transform: translateY(-25%);
         animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
     }
@@ -87,19 +89,29 @@
 }
 
 @keyframes dots {
-    0%, 20% {
+    0%,
+    20% {
         color: rgba(0, 0, 0, 0);
-        text-shadow: 0.25em 0 0 rgba(0, 0, 0, 0), 0.5em 0 0 rgba(0, 0, 0, 0);
+        text-shadow:
+            0.25em 0 0 rgba(0, 0, 0, 0),
+            0.5em 0 0 rgba(0, 0, 0, 0);
     }
     40% {
         color: currentColor;
-        text-shadow: 0.25em 0 0 rgba(0, 0, 0, 0), 0.5em 0 0 rgba(0, 0, 0, 0);
+        text-shadow:
+            0.25em 0 0 rgba(0, 0, 0, 0),
+            0.5em 0 0 rgba(0, 0, 0, 0);
     }
     60% {
-        text-shadow: 0.25em 0 0 currentColor, 0.5em 0 0 rgba(0, 0, 0, 0);
+        text-shadow:
+            0.25em 0 0 currentColor,
+            0.5em 0 0 rgba(0, 0, 0, 0);
     }
-    80%, 100% {
-        text-shadow: 0.25em 0 0 currentColor, 0.5em 0 0 currentColor;
+    80%,
+    100% {
+        text-shadow:
+            0.25em 0 0 currentColor,
+            0.5em 0 0 currentColor;
     }
 }
 
@@ -127,7 +139,7 @@
 }
 
 .loading-dots::after {
-    content: '...';
+    content: "...";
     animation: dots 1.5s steps(5, end) infinite;
 }
 
@@ -266,4 +278,11 @@
 
 .jodit-status-bar {
     display: none !important;
+}
+
+#root .jodit-context table tr td,
+#root .jodit-context table tr th,
+#root .jodit-wysiwyg table tr td,
+#root .jodit-wysiwyg table tr th {
+    border: initial;
 }

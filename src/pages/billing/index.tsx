@@ -166,9 +166,9 @@ export default function BillingPage() {
       return;
     }
     if (planId === "starter") {
-      setSelectedPlan("starter_monthly");
+      setSelectedPlan("starter_plan");
     } else if (planId === "growth") {
-      setSelectedPlan("growth_monthly");
+      setSelectedPlan("growth_plan");
     }
     setBillingSetupOpen(true);
   };
@@ -302,7 +302,7 @@ export default function BillingPage() {
           </div>
 
           {/* Payment status warnings */}
-          {(billingAccount?.billing_account as any)?.status === "failed" && (
+          {billingAccount?.status === "failed" && (
             <div className="mt-4 flex items-center gap-3 px-4 py-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-900">
               <ExclamationTriangleIcon className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
               <Text className="text-sm text-red-800 dark:text-red-200">
@@ -451,8 +451,8 @@ export default function BillingPage() {
                         } else {
                           const planId =
                             plan.id === "starter"
-                              ? "starter_monthly"
-                              : "growth_monthly";
+                              ? "starter_plan"
+                              : "growth_plan";
                           if (window.confirm(`Change to ${plan.name} plan?`)) {
                             handleChangePlan(planId);
                           }

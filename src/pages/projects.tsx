@@ -40,7 +40,7 @@ export default function ProjectsPage() {
   const handleCreateProject = () => {
     if (!billingAccount) {
       setBillingSetupDialogOpen(true);
-    } else if (billingAccount.billing_account.status === "pending") {
+    } else if (billingAccount.status === "pending") {
       setPendingBillingDialogOpen(true);
     } else {
       setCreateProjectDialogOpen(true);

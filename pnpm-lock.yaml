@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@chargebee/chargebee-js-types':
+        specifier: ^1.0.8
+        version: 1.0.8
       '@headlessui/react':
         specifier: ^2.2.0
         version: 2.2.8(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -141,6 +144,9 @@ packages:
 
   '@bufbuild/protobuf@2.9.0':
     resolution: {integrity: sha512-rnJenoStJ8nvmt9Gzye8nkYd6V22xUAnu4086ER7h1zJ508vStko4pMvDeQ446ilDTFpV5wnoc5YS7XvMwwMqA==}
+
+  '@chargebee/chargebee-js-types@1.0.8':
+    resolution: {integrity: sha512-M8bJtZ7WnZQ9rTEqnaym1iM72BmxWV1mesjw5WRaGoj4aHuMXFK2VKdkGmVnDLm6QEpRySdU4ePsZ+eogRSORA==}
 
   '@emotion/is-prop-valid@1.2.2':
     resolution: {integrity: sha512-uNsoYd37AFmaCdXlg6EYD1KaPOaRWRByMCYzbKUX4+hhMfrxdVSelShywL4JVaAeM/eHUOSprYBQls+/neX3pw==}
@@ -2337,6 +2343,8 @@ snapshots:
   '@babel/runtime@7.28.4': {}
 
   '@bufbuild/protobuf@2.9.0': {}
+
+  '@chargebee/chargebee-js-types@1.0.8': {}
 
   '@emotion/is-prop-valid@1.2.2':
     dependencies:
