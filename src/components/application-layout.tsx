@@ -587,7 +587,7 @@ export function ApplicationLayout() {
                   <div className="border-t border-gray-100 dark:border-gray-800 pt-3 pb-3 px-4">
                     <div className="flex items-center gap-2">
                       <div className="flex-1 min-w-0">
-                        <UserButton />
+                        <UserButton showName={false} />
                       </div>
                       <div className="flex-shrink-0">
                         <ThemeToggle />
