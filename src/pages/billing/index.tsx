@@ -213,8 +213,8 @@ export default function BillingPage() {
   const currentPlan =
     subscription?.status === "active"
       ? plans.find((p) =>
-          subscription.chargebee_subscription_id?.includes(p.id),
-        ) || plans[0]
+        subscription.chargebee_subscription_id?.includes(p.id),
+      ) || plans[0]
       : plans[0];
 
   const hasActiveSubscription = subscription?.status === "active";
@@ -397,16 +397,14 @@ export default function BillingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {plans.map((plan) => {
             const isCurrentPlan = currentPlan.id === plan.id;
-            const isPremium = plan.id === "growth" || plan.id === "enterprise";
 
             return (
               <div
                 key={plan.id}
-                className={`relative rounded-xl border-2 p-6 transition-all ${
-                  plan.popular
-                    ? "border-blue-500 dark:border-blue-600 shadow-lg scale-105"
-                    : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600"
-                } ${isCurrentPlan ? "bg-blue-50 dark:bg-blue-950/20" : "bg-white dark:bg-zinc-900"}`}
+                className={`relative rounded-xl border-2 p-6 transition-all ${plan.popular
+                  ? "border-blue-500 dark:border-blue-600 shadow-lg scale-105"
+                  : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600"
+                  } ${isCurrentPlan ? "bg-blue-50 dark:bg-blue-950/20" : "bg-white dark:bg-zinc-900"}`}
               >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -441,7 +439,6 @@ export default function BillingPage() {
                   ) : hasActiveSubscription ? (
                     <Button
                       className="w-full"
-                      outline={!isPremium}
                       onClick={() => {
                         if (plan.id === "enterprise") {
                           window.open(
@@ -468,7 +465,6 @@ export default function BillingPage() {
                   ) : (
                     <Button
                       className="w-full"
-                      outline={!isPremium}
                       onClick={() => handleSelectPlan(plan.id)}
                     >
                       {plan.id === "enterprise"

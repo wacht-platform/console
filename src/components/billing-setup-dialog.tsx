@@ -167,11 +167,11 @@ export function BillingSetupDialog({
           const response = await createCheckout.mutateAsync(formData);
           return response;
         },
-        success: (hostedPageId) => {
+        success: () => {
           onSuccess?.();
           onClose();
         },
-        close: () => {},
+        close: () => { },
       });
     } catch (error) {
       console.error("Failed to create checkout session:", error);
@@ -203,7 +203,7 @@ export function BillingSetupDialog({
   const isFormValid = formData.legal_name && formData.billing_email;
 
   return (
-    <Dialog open={open} onClose={isPolling ? () => {} : onClose} size="3xl">
+    <Dialog open={open} onClose={isPolling ? () => { } : onClose} size="3xl">
       {isPolling ? (
         <div className="p-12">
           <div className="flex flex-col items-center justify-center space-y-8">
