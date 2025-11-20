@@ -57,7 +57,7 @@ const DEVICE_VARIABLES: TemplateVariableCategory = {
 
 // Template-specific variable mappings
 export const TEMPLATE_VARIABLES: Record<string, TemplateVariableCategory[]> = {
-    verification_code_template: [
+    "verification-code-template": [
         ...COMMON_VARIABLES,
         {
             category: "Verification Code",
@@ -69,7 +69,7 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVariableCategory[]> = {
         DEVICE_VARIABLES,
     ],
 
-    reset_password_code_template: [
+    "reset-password-code-template": [
         ...COMMON_VARIABLES,
         USER_VARIABLES,
         {
@@ -82,7 +82,7 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVariableCategory[]> = {
         DEVICE_VARIABLES,
     ],
 
-    sign_in_from_new_device_template: [
+    "sign-in-from-new-device-template": [
         ...COMMON_VARIABLES,
         USER_VARIABLES,
         {
@@ -95,7 +95,7 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVariableCategory[]> = {
         DEVICE_VARIABLES,
     ],
 
-    magic_link_template: [
+    "magic-link-template": [
         ...COMMON_VARIABLES,
         USER_VARIABLES,
         {
@@ -107,7 +107,7 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVariableCategory[]> = {
         },
     ],
 
-    primary_email_change_template: [
+    "primary-email-change-template": [
         ...COMMON_VARIABLES,
         USER_VARIABLES,
         {
@@ -119,7 +119,7 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVariableCategory[]> = {
         },
     ],
 
-    password_change_template: [
+    "password-change-template": [
         ...COMMON_VARIABLES,
         USER_VARIABLES,
         {
@@ -130,7 +130,7 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVariableCategory[]> = {
         },
     ],
 
-    password_remove_template: [
+    "password-remove-template": [
         ...COMMON_VARIABLES,
         USER_VARIABLES,
         {
@@ -141,12 +141,12 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVariableCategory[]> = {
         },
     ],
 
-    waitlist_signup_template: [
+    "waitlist-signup-template": [
         ...COMMON_VARIABLES,
         USER_VARIABLES,
     ],
 
-    waitlist_invite_template: [
+    "waitlist-invite-template": [
         ...COMMON_VARIABLES,
         USER_VARIABLES,
         {
@@ -159,7 +159,7 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVariableCategory[]> = {
         },
     ],
 
-    workspace_invite_template: [
+    "workspace-invite-template": [
         ...COMMON_VARIABLES,
         {
             category: "Invitation Details",
@@ -173,7 +173,7 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVariableCategory[]> = {
         },
     ],
 
-    organization_invite_template: [
+    "organization-invite-template": [
         ...COMMON_VARIABLES,
         {
             category: "Invitation Details",
