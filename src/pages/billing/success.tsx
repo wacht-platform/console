@@ -19,7 +19,7 @@ export default function BillingSuccessPage() {
     }
 
     const timer = setTimeout(() => {
-      navigate("/billing");
+      navigate("../billing");
     }, 3000);
 
     return () => clearTimeout(timer);
@@ -49,10 +49,10 @@ export default function BillingSuccessPage() {
         ) : (
           <>
             <div className="space-y-3">
-              <Button onClick={() => navigate("/billing")}>
+              <Button onClick={() => navigate("../billing")}>
                 View Billing Details
               </Button>
-              <Button outline onClick={() => navigate("/")}>
+              <Button outline onClick={() => navigate("../..")}>
                 Go to Dashboard
               </Button>
             </div>

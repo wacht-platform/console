@@ -21,6 +21,7 @@ const InvitedUsersPage = lazy(() => import("./pages/users/invited"));
 const WaitlistUsersPage = lazy(() => import("./pages/users/waitlist"));
 const UserDetailsPage = lazy(() => import("./pages/user/[id]"));
 const OrganizationsPage = lazy(() => import("./pages/organizations"));
+const WorkspacesPage = lazy(() => import("./pages/workspaces"));
 const OrganizationDetailsPage = lazy(() => import("./pages/organization/[id]"));
 const WorkspaceDetailsPage = lazy(() => import("./pages/workspace/[id]"));
 const SchemaFactorsPage = lazy(() => import("./pages/auth/schema-factors"));
@@ -67,11 +68,18 @@ const WebhookDeliveryDetailsPage = lazy(
 );
 const WebhookAnalyticsPage = lazy(() => import("./pages/webhooks/analytics"));
 const ApiKeysPage = lazy(() => import("./pages/api-keys"));
+const NotFoundPage = lazy(() => import("./pages/not-found"));
+const ErrorBoundaryPage = lazy(() => import("./pages/error-boundary"));
 
 export const router = createBrowserRouter([
   {
     path: "/project/:projectId/deployment/:deploymentId",
     element: <ApplicationLayout />,
+    errorElement: (
+      <Suspense fallback={<SimpleFallback />}>
+        <ErrorBoundaryPage />
+      </Suspense>
+    ),
     children: [
       {
         index: true,
@@ -139,6 +147,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<SimpleFallback />}>
             <OrganizationDetailsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "workspaces",
+        element: (
+          <Suspense fallback={<SimpleFallback />}>
+            <WorkspacesPage />
           </Suspense>
         ),
       },
@@ -417,6 +433,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<SimpleFallback />}>
             <ApiKeysPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "*",
+        element: (
+          <Suspense fallback={<SimpleFallback />}>
+            <NotFoundPage />
           </Suspense>
         ),
       },

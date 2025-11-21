@@ -159,7 +159,7 @@ export default function EmailTemplateEditor() {
   };
 
   const handleBack = () => {
-    navigate("/emails");
+    navigate(-1);
   };
 
   const insertVariable = (variable: string) => {

@@ -114,7 +114,7 @@ export default function WorkspacesPage() {
                 <TableRow
                   key={workspace.id}
                   className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => navigate(`/workspace/${workspace.id}`)}
+                  onClick={() => navigate(`workspace/${workspace.id}`)}
                 >
                   <TableCell>
                     <div className="flex items-center gap-3">
