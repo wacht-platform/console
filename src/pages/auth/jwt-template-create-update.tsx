@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Heading } from "@/components/ui/heading";
 import { Switch, SwitchField } from "@/components/ui/switch";
@@ -52,6 +52,7 @@ export default function JWTTemplateCreateUpdatePage() {
   const isEditMode = !!templateId;
   const [validationError, setValidationError] = useState<string | null>(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const editorRef = useRef<any>(null);
 
   useEffect(() => {
     if (templateId && jwtTemplates) {
@@ -142,8 +143,24 @@ export default function JWTTemplateCreateUpdatePage() {
   ];
 
   const insertVariable = (variable: string) => {
-    const editor = (window as any).ace.edit("json-editor");
-    editor.insert(`{{${variable}}}`);
+    if (!editorRef.current) return;
+
+    const editor = editorRef.current;
+    const position = editor.getPosition();
+    const range = {
+      startLineNumber: position.lineNumber,
+      startColumn: position.column,
+      endLineNumber: position.lineNumber,
+      endColumn: position.column
+    };
+
+    editor.executeEdits("insert-variable", [{
+      range: range,
+      text: `{{${variable}}}`,
+      forceMoveMarkers: true
+    }]);
+
+    editor.focus();
   };
 
   const handleClaimsChange = (value: string | undefined) => {
@@ -525,6 +542,9 @@ export default function JWTTemplateCreateUpdatePage() {
                     defaultLanguage="json"
                     value={claims}
                     onChange={handleClaimsChange}
+                    onMount={(editor) => {
+                      editorRef.current = editor;
+                    }}
                     theme={isDarkMode ? "vs-dark" : "vs"}
                     options={{
                       minimap: { enabled: false },
