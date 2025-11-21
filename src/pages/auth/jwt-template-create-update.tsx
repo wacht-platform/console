@@ -78,6 +78,74 @@ export default function JWTTemplateCreateUpdatePage() {
     setFormData((prev) => ({ ...prev, [name]: parseInt(value, 10) }));
   };
 
+  const availableVariables = [
+    { label: "Signin ID", value: "id" },
+    { label: "Session ID", value: "session_id" },
+    { label: "User ID", value: "user.id" },
+    { label: "User First Name", value: "user.first_name" },
+    { label: "User Last Name", value: "user.last_name" },
+    { label: "User Username", value: "user.username" },
+    { label: "User Profile Picture URL", value: "user.profile_picture_url" },
+    { label: "User Has Profile Picture", value: "user.has_profile_picture" },
+    { label: "User Availability", value: "user.availability" },
+    { label: "User Disabled", value: "user.disabled" },
+    { label: "User Last Password Reset", value: "user.last_password_reset_at" },
+    { label: "User Schema Version", value: "user.schema_version" },
+    { label: "User 2FA Policy", value: "user.second_factor_policy" },
+    { label: "User Backup Codes Generated", value: "user.backup_codes_generated" },
+    { label: "User Public Metadata", value: "user.public_metadata" },
+
+    // Primary Email
+    { label: "Email ID", value: "user.primary_email_address.id" },
+    { label: "Email Address", value: "user.primary_email_address.email_address" },
+    { label: "Email Verified", value: "user.primary_email_address.verified" },
+    { label: "Email Verified At", value: "user.primary_email_address.verified_at" },
+    { label: "Email Verification Strategy", value: "user.primary_email_address.verification_strategy" },
+
+    // Primary Phone
+    { label: "Phone ID", value: "user.primary_phone_number.id" },
+    { label: "Phone Number", value: "user.primary_phone_number.phone_number" },
+    { label: "Phone Verified", value: "user.primary_phone_number.verified" },
+    { label: "Phone Verified At", value: "user.primary_phone_number.verified_at" },
+
+    // Session/Signin Details
+    { label: "IP Address", value: "ip_address" },
+    { label: "Browser", value: "browser" },
+    { label: "Device", value: "device" },
+    { label: "City", value: "city" },
+    { label: "Region", value: "region" },
+    { label: "Region Code", value: "region_code" },
+    { label: "Country", value: "country" },
+    { label: "Country Code", value: "country_code" },
+    { label: "Last Active At", value: "last_active_at" },
+    { label: "Expires At", value: "expires_at" },
+
+    // Active Organization Membership
+    { label: "Active Org Membership ID", value: "active_organization_membership.id" },
+    { label: "Active Org Membership Public Metadata", value: "active_organization_membership.public_metadata" },
+    { label: "Active Org ID", value: "active_organization_membership.organization.id" },
+    { label: "Active Org Name", value: "active_organization_membership.organization.name" },
+    { label: "Active Org Image URL", value: "active_organization_membership.organization.image_url" },
+    { label: "Active Org Description", value: "active_organization_membership.organization.description" },
+    { label: "Active Org Member Count", value: "active_organization_membership.organization.member_count" },
+    { label: "Active Org Public Metadata", value: "active_organization_membership.organization.public_metadata" },
+
+    // Active Workspace Membership
+    { label: "Active Workspace Membership ID", value: "active_workspace_membership.id" },
+    { label: "Active Workspace Membership Public Metadata", value: "active_workspace_membership.public_metadata" },
+    { label: "Active Workspace ID", value: "active_workspace_membership.workspace.id" },
+    { label: "Active Workspace Name", value: "active_workspace_membership.workspace.name" },
+    { label: "Active Workspace Image URL", value: "active_workspace_membership.workspace.image_url" },
+    { label: "Active Workspace Description", value: "active_workspace_membership.workspace.description" },
+    { label: "Active Workspace Member Count", value: "active_workspace_membership.workspace.member_count" },
+    { label: "Active Workspace Public Metadata", value: "active_workspace_membership.workspace.public_metadata" },
+  ];
+
+  const insertVariable = (variable: string) => {
+    const editor = (window as any).ace.edit("json-editor");
+    editor.insert(`{{${variable}}}`);
+  };
+
   const handleClaimsChange = (value: string | undefined) => {
     if (value !== undefined) {
       const claimsParsed = JSON.parse(value);
@@ -86,29 +154,7 @@ export default function JWTTemplateCreateUpdatePage() {
     }
   };
 
-  const insertShortcode = (code: string) => {
-    try {
-      const newEntry = `"${code}": "{{${code}}}"`;
-      const currentTemplate = claims || "{}";
 
-      if (currentTemplate.trim() === "{}") {
-        handleClaimsChange(`{ ${newEntry} }`);
-        return;
-      }
-
-      const withoutClosingBrace = currentTemplate.trimEnd().replace(/}$/, "");
-
-      if (withoutClosingBrace.trim().endsWith(",")) {
-        handleClaimsChange(`${withoutClosingBrace} ${newEntry} }`);
-      } else if (withoutClosingBrace.trim().endsWith("{")) {
-        handleClaimsChange(`${withoutClosingBrace} ${newEntry} }`);
-      } else {
-        handleClaimsChange(`${withoutClosingBrace}, ${newEntry} }`);
-      }
-    } catch {
-      handleClaimsChange(`{"${code}": "{{${code}}}"}`);
-    }
-  };
 
   const toggleCustomSigningKey = (checked: boolean) => {
     setIsCustomSigningKey(checked);
@@ -220,8 +266,8 @@ export default function JWTTemplateCreateUpdatePage() {
               {isEditMode ? "Edit JWT Template" : "Create JWT Template"}
             </Heading>
             <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
-              {isEditMode 
-                ? "Update your JWT template configuration and claims" 
+              {isEditMode
+                ? "Update your JWT template configuration and claims"
                 : "Configure a new JWT template for token generation"}
             </p>
           </div>
@@ -359,30 +405,30 @@ export default function JWTTemplateCreateUpdatePage() {
                       onChange={handleAlgorithmChange}
                       className="mt-2"
                     >
-                    <ListboxOption value="HS256">
-                      <ListboxLabel>HS256</ListboxLabel>
-                    </ListboxOption>
-                    <ListboxOption value="HS384">
-                      <ListboxLabel>HS384</ListboxLabel>
-                    </ListboxOption>
-                    <ListboxOption value="HS512">
-                      <ListboxLabel>HS512</ListboxLabel>
-                    </ListboxOption>
-                    <ListboxOption value="RS256">
-                      <ListboxLabel>RS256</ListboxLabel>
-                    </ListboxOption>
-                    <ListboxOption value="RS384">
-                      <ListboxLabel>RS384</ListboxLabel>
-                    </ListboxOption>
-                    <ListboxOption value="RS512">
-                      <ListboxLabel>RS512</ListboxLabel>
-                    </ListboxOption>
-                    <ListboxOption value="ES256">
-                      <ListboxLabel>ES256</ListboxLabel>
-                    </ListboxOption>
-                    <ListboxOption value="ES384">
-                      <ListboxLabel>ES384</ListboxLabel>
-                    </ListboxOption>
+                      <ListboxOption value="HS256">
+                        <ListboxLabel>HS256</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="HS384">
+                        <ListboxLabel>HS384</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="HS512">
+                        <ListboxLabel>HS512</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="RS256">
+                        <ListboxLabel>RS256</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="RS384">
+                        <ListboxLabel>RS384</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="RS512">
+                        <ListboxLabel>RS512</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="ES256">
+                        <ListboxLabel>ES256</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="ES384">
+                        <ListboxLabel>ES384</ListboxLabel>
+                      </ListboxOption>
                     </Listbox>
                   </Field>
                   <Field>
@@ -503,78 +549,16 @@ export default function JWTTemplateCreateUpdatePage() {
                 <div className="space-y-2">
                   <div className="text-xs font-normal text-gray-500 dark:text-zinc-400 uppercase tracking-wide">User Properties</div>
                   <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => insertShortcode("user.id")}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      user.id
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => insertShortcode("user.external_id")}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      user.external_id
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => insertShortcode("user.first_name")}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      user.first_name
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => insertShortcode("user.last_name")}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      user.last_name
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => insertShortcode("user.full_name")}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      user.full_name
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => insertShortcode("user.username")}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      user.username
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => insertShortcode("user.created_at")}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      user.created_at
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => insertShortcode("user.updated_at")}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      user.updated_at
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => insertShortcode("user.last_sign_in_at")}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      user.last_sign_in_at
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        insertShortcode("user.primary_email_address")
-                      }
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 col-span-2"
-                    >
-                      user.primary_email_address
-                    </button>
+                    {availableVariables.map((variable) => (
+                      <button
+                        key={variable.value}
+                        type="button"
+                        onClick={() => insertVariable(variable.value)}
+                        className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      >
+                        {variable.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -593,6 +577,6 @@ export default function JWTTemplateCreateUpdatePage() {
         isDestructive={true}
         isLoading={isDeletingJWTTemplate}
       />
-    </div>
+    </div >
   );
 }
