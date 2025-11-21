@@ -454,4 +454,17 @@ export const router = createBrowserRouter([
       </Suspense>
     ),
   },
+  {
+    path: "*",
+    element: (
+      <Suspense fallback={<SimpleFallback />}>
+        <NotFoundPage />
+      </Suspense>
+    ),
+    errorElement: (
+      <Suspense fallback={<SimpleFallback />}>
+        <ErrorBoundaryPage />
+      </Suspense>
+    ),
+  },
 ]);
