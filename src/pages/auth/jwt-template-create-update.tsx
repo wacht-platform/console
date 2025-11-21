@@ -544,22 +544,184 @@ export default function JWTTemplateCreateUpdatePage() {
               <div className="lg:col-span-4 space-y-4">
                 <div>
                   <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100">Available Variables</h3>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">Click to insert user attributes</p>
+                  <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">Click to insert variables into your JWT claims</p>
                 </div>
-                <div className="space-y-2">
-                  <div className="text-xs font-normal text-gray-500 dark:text-zinc-400 uppercase tracking-wide">User Properties</div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {availableVariables.map((variable) => (
-                      <button
-                        key={variable.value}
-                        type="button"
-                        onClick={() => insertVariable(variable.value)}
-                        className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-600 shadow-sm text-sm leading-4 font-normal rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        {variable.label}
-                      </button>
-                    ))}
-                  </div>
+
+                <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+                  {/* Session Variables */}
+                  <details className="group" open>
+                    <summary className="cursor-pointer list-none">
+                      <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                        <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">Session</span>
+                        <svg className="w-4 h-4 text-gray-500 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </summary>
+                    <div className="mt-2 grid grid-cols-2 gap-1.5 px-1">
+                      {availableVariables.filter(v => v.value.startsWith('id') || v.value.startsWith('session_id')).map((variable) => (
+                        <button
+                          key={variable.value}
+                          type="button"
+                          onClick={() => insertVariable(variable.value)}
+                          className="text-left px-2.5 py-1.5 text-xs font-normal rounded border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600 transition-colors"
+                        >
+                          {variable.label}
+                        </button>
+                      ))}
+                    </div>
+                  </details>
+
+                  {/* User Variables */}
+                  <details className="group" open>
+                    <summary className="cursor-pointer list-none">
+                      <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                        <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">User</span>
+                        <svg className="w-4 h-4 text-gray-500 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </summary>
+                    <div className="mt-2 grid grid-cols-2 gap-1.5 px-1">
+                      {availableVariables.filter(v => v.value.startsWith('user.')).map((variable) => (
+                        <button
+                          key={variable.value}
+                          type="button"
+                          onClick={() => insertVariable(variable.value)}
+                          className="text-left px-2.5 py-1.5 text-xs font-normal rounded border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600 transition-colors"
+                        >
+                          {variable.label}
+                        </button>
+                      ))}
+                    </div>
+                  </details>
+
+                  {/* Email Variables */}
+                  <details className="group">
+                    <summary className="cursor-pointer list-none">
+                      <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                        <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">Email</span>
+                        <svg className="w-4 h-4 text-gray-500 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </summary>
+                    <div className="mt-2 grid grid-cols-2 gap-1.5 px-1">
+                      {availableVariables.filter(v => v.value.includes('email')).map((variable) => (
+                        <button
+                          key={variable.value}
+                          type="button"
+                          onClick={() => insertVariable(variable.value)}
+                          className="text-left px-2.5 py-1.5 text-xs font-normal rounded border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600 transition-colors"
+                        >
+                          {variable.label}
+                        </button>
+                      ))}
+                    </div>
+                  </details>
+
+                  {/* Phone Variables */}
+                  <details className="group">
+                    <summary className="cursor-pointer list-none">
+                      <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                        <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">Phone</span>
+                        <svg className="w-4 h-4 text-gray-500 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </summary>
+                    <div className="mt-2 grid grid-cols-2 gap-1.5 px-1">
+                      {availableVariables.filter(v => v.value.includes('phone')).map((variable) => (
+                        <button
+                          key={variable.value}
+                          type="button"
+                          onClick={() => insertVariable(variable.value)}
+                          className="text-left px-2.5 py-1.5 text-xs font-normal rounded border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600 transition-colors"
+                        >
+                          {variable.label}
+                        </button>
+                      ))}
+                    </div>
+                  </details>
+
+                  {/* Session Details Variables */}
+                  <details className="group">
+                    <summary className="cursor-pointer list-none">
+                      <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                        <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">Session Details</span>
+                        <svg className="w-4 h-4 text-gray-500 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </summary>
+                    <div className="mt-2 grid grid-cols-2 gap-1.5 px-1">
+                      {availableVariables.filter(v =>
+                        v.value.includes('ip_address') ||
+                        v.value.includes('browser') ||
+                        v.value.includes('device') ||
+                        v.value.includes('city') ||
+                        v.value.includes('region') ||
+                        v.value.includes('country')
+                      ).map((variable) => (
+                        <button
+                          key={variable.value}
+                          type="button"
+                          onClick={() => insertVariable(variable.value)}
+                          className="text-left px-2.5 py-1.5 text-xs font-normal rounded border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600 transition-colors"
+                        >
+                          {variable.label}
+                        </button>
+                      ))}
+                    </div>
+                  </details>
+
+                  {/* Organization Variables */}
+                  <details className="group">
+                    <summary className="cursor-pointer list-none">
+                      <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                        <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">Organization</span>
+                        <svg className="w-4 h-4 text-gray-500 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </summary>
+                    <div className="mt-2 grid grid-cols-2 gap-1.5 px-1">
+                      {availableVariables.filter(v => v.value.startsWith('active_organization')).map((variable) => (
+                        <button
+                          key={variable.value}
+                          type="button"
+                          onClick={() => insertVariable(variable.value)}
+                          className="text-left px-2.5 py-1.5 text-xs font-normal rounded border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600 transition-colors"
+                        >
+                          {variable.label}
+                        </button>
+                      ))}
+                    </div>
+                  </details>
+
+                  {/* Workspace Variables */}
+                  <details className="group">
+                    <summary className="cursor-pointer list-none">
+                      <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                        <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">Workspace</span>
+                        <svg className="w-4 h-4 text-gray-500 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </summary>
+                    <div className="mt-2 grid grid-cols-2 gap-1.5 px-1">
+                      {availableVariables.filter(v => v.value.startsWith('active_workspace')).map((variable) => (
+                        <button
+                          key={variable.value}
+                          type="button"
+                          onClick={() => insertVariable(variable.value)}
+                          className="text-left px-2.5 py-1.5 text-xs font-normal rounded border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600 transition-colors"
+                        >
+                          {variable.label}
+                        </button>
+                      ))}
+                    </div>
+                  </details>
                 </div>
               </div>
             </div>
