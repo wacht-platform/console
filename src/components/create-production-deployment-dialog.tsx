@@ -128,7 +128,7 @@ export function CreateProductionDeploymentDialog({
 
 	return (
 		<Dialog size="3xl" open={open} onClose={onClose}>
-			<div className="md:col-span-3 border-dashed border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">
+			<div>
 				<div className="space-y-4">
 					<div>
 						<h2 className="text-lg text-zinc-900 dark:text-white">
@@ -147,9 +147,8 @@ export function CreateProductionDeploymentDialog({
 						<Input
 							type="text"
 							placeholder="example.com"
-							className={`mt-2 bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white placeholder-zinc-500 ${
-								validationError ? "border-red-500 dark:border-red-500" : ""
-							}`}
+							className={`mt-2 bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white placeholder-zinc-500 ${validationError ? "border-red-500 dark:border-red-500" : ""
+								}`}
 							value={customDomain}
 							onChange={(e) => {
 								setCustomDomain(e.target.value);
