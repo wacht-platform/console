@@ -912,7 +912,7 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Second Factor Policy</DialogTitle>
+      <DialogTitle>Enforce Second Factor on Account</DialogTitle>
       <DialogDescription>
         Configure whether second factors are optional or enforced
       </DialogDescription>

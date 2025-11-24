@@ -164,19 +164,7 @@ export interface DeploymentUISettings {
 	support_page_url: string;
 }
 
-export interface DeploymentOrgSettings {
-	id: string;
-	created_at: string | null;
-	updated_at: string | null;
-	deleted_at: string | null;
-	deployment_id: string;
-	enabled: boolean;
-	ip_allowlist_enabled: boolean;
-	max_allowed_members: number;
-	allow_deletion: boolean;
-	custom_role_enabled: boolean;
-	default_role: string;
-}
+
 
 export interface DeploymentRestrictions {
 	id: string;
@@ -249,6 +237,8 @@ export interface DeploymentB2bSettings {
 	workspaces_enabled: boolean;
 	ip_allowlist_per_workspace_enabled: boolean;
 	ip_allowlist_per_org_enabled: boolean;
+	enforce_mfa_per_org_enabled: boolean;
+	enforce_mfa_per_workspace_enabled: boolean;
 	max_allowed_org_members: number;
 	max_allowed_workspace_members: number;
 	allow_users_to_create_orgs: boolean;
@@ -285,7 +275,6 @@ export interface DeploymentWithSettings {
 	mail_from_host: string;
 	auth_settings?: DeploymentAuthSettings;
 	ui_settings?: DeploymentUISettings;
-	org_settings?: DeploymentOrgSettings;
 	restrictions?: DeploymentRestrictions;
 	jwt_templates?: DeploymentJWTTemplate[];
 	b2b_settings?: DeploymentB2bSettings;
@@ -323,6 +312,8 @@ export interface Deployment {
 	verification_status?: VerificationStatus;
 	domain_verification_records?: DomainVerificationRecords;
 	email_verification_records?: EmailVerificationRecords;
+	email_provider?: EmailProvider;
+	custom_smtp_config?: CustomSmtpConfig;
 }
 
 export enum SocialConnectionProvider {
@@ -364,4 +355,24 @@ export interface EmailTemplate {
 	template_from: string;
 	template_reply_to: string;
 	template_subject: string;
+}
+
+export type EmailProvider = "postmark" | "custom_smtp";
+
+export interface CustomSmtpConfig {
+	host: string;
+	port: number;
+	username: string;
+	from_email: string;
+	use_tls: boolean;
+	verified: boolean;
+}
+
+export interface SmtpConfigRequest {
+	host: string;
+	port: number;
+	username: string;
+	password: string;
+	from_email: string;
+	use_tls: boolean;
 }

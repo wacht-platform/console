@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/fieldset";
 import {
 	CheckCircleIcon,
 	XCircleIcon,
@@ -9,6 +12,8 @@ import {
 	ArrowPathIcon,
 	ChevronRightIcon,
 	ExclamationTriangleIcon,
+	ServerIcon,
+	EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 import { Link } from "react-router";
 import {
@@ -25,6 +30,9 @@ import type {
 	DnsRecord,
 	DomainVerificationRecords,
 	EmailVerificationRecords,
+	CustomSmtpConfig,
+	SmtpConfigRequest,
+	EmailProvider,
 } from "@/types/deployment";
 
 function DnsRecordRow({ record }: { record: DnsRecord }) {
@@ -156,6 +164,153 @@ function DnsRecordSection({
 	);
 }
 
+interface SmtpConfigFormProps {
+	onSubmit: (config: SmtpConfigRequest) => void;
+	onVerify: (config: SmtpConfigRequest) => void;
+	onRemove: () => void;
+	existingConfig?: CustomSmtpConfig | null;
+	isSubmitting?: boolean;
+	isVerifying?: boolean;
+	isRemoving?: boolean;
+}
+
+function SmtpConfigForm({
+	onSubmit,
+	onVerify,
+	onRemove,
+	existingConfig,
+	isSubmitting = false,
+	isVerifying = false,
+	isRemoving = false,
+}: SmtpConfigFormProps) {
+	const [host, setHost] = useState(existingConfig?.host || "");
+	const [port, setPort] = useState(existingConfig?.port?.toString() || "587");
+	const [username, setUsername] = useState(existingConfig?.username || "");
+	const [password, setPassword] = useState("");
+	const [fromEmail, setFromEmail] = useState(existingConfig?.from_email || "");
+	const [useTls, setUseTls] = useState(existingConfig?.use_tls ?? true);
+
+	const getConfig = (): SmtpConfigRequest => ({
+		host,
+		port: parseInt(port, 10),
+		username,
+		password,
+		from_email: fromEmail,
+		use_tls: useTls,
+	});
+
+	const isFormValid = host && port && username && password && fromEmail;
+
+	return (
+		<div className="space-y-4">
+			<div className="grid grid-cols-2 gap-4">
+				<div>
+					<Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+						SMTP Host
+					</Label>
+					<Input
+						type="text"
+						value={host}
+						onChange={(e) => setHost(e.target.value)}
+						placeholder="smtp.example.com"
+						className="mt-1"
+					/>
+				</div>
+				<div>
+					<Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+						Port
+					</Label>
+					<Input
+						type="number"
+						value={port}
+						onChange={(e) => setPort(e.target.value)}
+						placeholder="587"
+						className="mt-1"
+					/>
+				</div>
+			</div>
+
+			<div className="grid grid-cols-2 gap-4">
+				<div>
+					<Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+						Username
+					</Label>
+					<Input
+						type="text"
+						value={username}
+						onChange={(e) => setUsername(e.target.value)}
+						placeholder="your-username"
+						className="mt-1"
+					/>
+				</div>
+				<div>
+					<Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+						Password
+					</Label>
+					<Input
+						type="password"
+						value={password}
+						onChange={(e) => setPassword(e.target.value)}
+						placeholder={existingConfig ? "••••••••" : "Enter password"}
+						className="mt-1"
+					/>
+				</div>
+			</div>
+
+			<div>
+				<Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+					From Email
+				</Label>
+				<Input
+					type="email"
+					value={fromEmail}
+					onChange={(e) => setFromEmail(e.target.value)}
+					placeholder="noreply@example.com"
+					className="mt-1"
+				/>
+				<Text className="text-xs text-gray-500 mt-1">
+					Emails will be sent from this address
+				</Text>
+			</div>
+
+			<CheckboxField>
+				<Checkbox
+					checked={useTls}
+					onChange={(checked) => setUseTls(checked)}
+				/>
+				<Label>Use TLS (STARTTLS)</Label>
+			</CheckboxField>
+
+			<div className="flex items-center space-x-3 pt-2">
+				<Button
+					onClick={() => onVerify(getConfig())}
+					disabled={!isFormValid || isVerifying}
+					outline
+				>
+					{isVerifying ? "Testing..." : "Test Connection"}
+				</Button>
+				<Button
+					onClick={() => onSubmit(getConfig())}
+					disabled={!isFormValid || isSubmitting}
+				>
+					{isSubmitting ? "Saving..." : existingConfig ? "Update Configuration" : "Save Configuration"}
+				</Button>
+				{existingConfig && (
+					<Button
+						onClick={onRemove}
+						disabled={isRemoving}
+						color="red"
+					>
+						{isRemoving ? "Removing..." : "Remove & Use Postmark"}
+					</Button>
+				)}
+			</div>
+		</div>
+	);
+}
+
+type EmailConfigMode = "postmark" | "smtp";
+
 interface DnsVerificationPanelCompactProps {
 	domainRecords?: DomainVerificationRecords;
 	emailRecords?: EmailVerificationRecords;
@@ -163,6 +318,14 @@ interface DnsVerificationPanelCompactProps {
 	onVerify?: () => void;
 	isVerifying?: boolean;
 	compact?: boolean;
+	emailProvider?: EmailProvider;
+	smtpConfig?: CustomSmtpConfig | null;
+	onSmtpSubmit?: (config: SmtpConfigRequest) => void;
+	onSmtpVerify?: (config: SmtpConfigRequest) => void;
+	onSmtpRemove?: () => void;
+	isSmtpSubmitting?: boolean;
+	isSmtpVerifying?: boolean;
+	isSmtpRemoving?: boolean;
 }
 
 export function DnsVerificationPanel({
@@ -172,7 +335,19 @@ export function DnsVerificationPanel({
 	onVerify,
 	isVerifying = false,
 	compact = false,
+	emailProvider,
+	smtpConfig,
+	onSmtpSubmit,
+	onSmtpVerify,
+	onSmtpRemove,
+	isSmtpSubmitting = false,
+	isSmtpVerifying = false,
+	isSmtpRemoving = false,
 }: DnsVerificationPanelCompactProps) {
+	const [emailConfigMode, setEmailConfigMode] = useState<EmailConfigMode>(
+		emailProvider === "custom_smtp" ? "smtp" : "postmark"
+	);
+
 	const allDomainRecords = [
 		...(domainRecords?.cloudflare_verification || []),
 		...(domainRecords?.custom_hostname_verification || []),
@@ -305,15 +480,96 @@ export function DnsVerificationPanel({
 				/>
 			)}
 
-			{allEmailRecords.length > 0 && (
-				<DnsRecordSection
-					title="Email Configuration Records"
-					description="Add these DNS records to enable email delivery functionality"
-					records={allEmailRecords}
-				/>
-			)}
+			{/* Email Configuration Section */}
+			<div className="space-y-4">
+				<div>
+					<h3 className="text-lg font-medium">Email Configuration</h3>
+					<Text className="text-sm text-zinc-500 dark:text-zinc-400">
+						Choose how to send emails from your application
+					</Text>
+				</div>
 
-			{allDomainRecords.length === 0 && allEmailRecords.length === 0 && (
+				{/* Email Provider Toggle */}
+				<div className="flex space-x-4">
+					<button
+						type="button"
+						onClick={() => setEmailConfigMode("postmark")}
+						className={`flex-1 p-4 rounded-lg border-2 transition-all ${
+							emailConfigMode === "postmark"
+								? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
+								: "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+						}`}
+					>
+						<div className="flex items-center space-x-3">
+							<EnvelopeIcon className={`h-6 w-6 ${emailConfigMode === "postmark" ? "text-indigo-600" : "text-gray-400"}`} />
+							<div className="text-left">
+								<div className={`font-medium ${emailConfigMode === "postmark" ? "text-indigo-600" : "text-gray-900 dark:text-gray-100"}`}>
+									Postmark (DNS Records)
+								</div>
+								<div className="text-sm text-gray-500">
+									Configure DNS records for email delivery
+								</div>
+							</div>
+						</div>
+						{emailProvider === "postmark" && emailConfigMode === "postmark" && (
+							<Badge color="green" className="mt-2">Active</Badge>
+						)}
+					</button>
+
+					<button
+						type="button"
+						onClick={() => setEmailConfigMode("smtp")}
+						className={`flex-1 p-4 rounded-lg border-2 transition-all ${
+							emailConfigMode === "smtp"
+								? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
+								: "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+						}`}
+					>
+						<div className="flex items-center space-x-3">
+							<ServerIcon className={`h-6 w-6 ${emailConfigMode === "smtp" ? "text-indigo-600" : "text-gray-400"}`} />
+							<div className="text-left">
+								<div className={`font-medium ${emailConfigMode === "smtp" ? "text-indigo-600" : "text-gray-900 dark:text-gray-100"}`}>
+									Custom SMTP
+								</div>
+								<div className="text-sm text-gray-500">
+									Use your own SMTP server
+								</div>
+							</div>
+						</div>
+						{emailProvider === "custom_smtp" && emailConfigMode === "smtp" && (
+							<Badge color="green" className="mt-2">Active</Badge>
+						)}
+					</button>
+				</div>
+
+				{/* Postmark DNS Records */}
+				{emailConfigMode === "postmark" && allEmailRecords.length > 0 && (
+					<div className="mt-4">
+						<DnsRecordSection
+							title="Email DNS Records"
+							description="Add these DNS records to enable email delivery via Postmark"
+							records={allEmailRecords}
+						/>
+					</div>
+				)}
+
+				{/* SMTP Configuration Form */}
+				{emailConfigMode === "smtp" && onSmtpSubmit && onSmtpVerify && onSmtpRemove && (
+					<div className="mt-4 bg-white dark:bg-neutral-900 rounded-lg border border-gray-200 dark:border-neutral-700 p-6">
+						<SmtpConfigForm
+							existingConfig={smtpConfig}
+							onSubmit={onSmtpSubmit}
+							onVerify={onSmtpVerify}
+							onRemove={onSmtpRemove}
+							isSubmitting={isSmtpSubmitting}
+							isVerifying={isSmtpVerifying}
+							isRemoving={isSmtpRemoving}
+						/>
+					</div>
+				)}
+			</div>
+
+			{allDomainRecords.length === 0 && allEmailRecords.length === 0 && emailConfigMode === "postmark" && (
 				<div className="text-center py-12">
 					<Text className="text-zinc-500 dark:text-zinc-400">
 						No DNS records found. Create a production deployment to generate

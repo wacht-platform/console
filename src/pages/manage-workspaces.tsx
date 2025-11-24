@@ -76,12 +76,12 @@ export default function ManageWorkspacesPage() {
       allow_workspace_deletion: b2bSettings.allow_workspace_deletion ?? true,
       membership_limit_type:
         b2bSettings.max_allowed_workspace_members === 0 ||
-        b2bSettings.max_allowed_workspace_members == null
+          b2bSettings.max_allowed_workspace_members == null
           ? "unlimited"
           : "limited",
       max_allowed_workspace_members:
         b2bSettings.max_allowed_workspace_members === 0 ||
-        b2bSettings.max_allowed_workspace_members == null
+          b2bSettings.max_allowed_workspace_members == null
           ? ""
           : b2bSettings.max_allowed_workspace_members,
       default_workspace_member_role_id:
@@ -369,7 +369,7 @@ export default function ManageWorkspacesPage() {
                         }}
                         className="flex-1"
                       />
-                      <Button 
+                      <Button
                         onClick={() => {
                           const permission = newPermission.trim();
                           if (permission && !settingsState.workspace_permissions.includes(permission)) {
@@ -389,8 +389,8 @@ export default function ManageWorkspacesPage() {
                         </span>
                       ) : (
                         settingsState.workspace_permissions.map((permission) => (
-                          <Badge 
-                            key={permission} 
+                          <Badge
+                            key={permission}
                             color="green"
                             className="flex items-center gap-1"
                           >
@@ -398,7 +398,7 @@ export default function ManageWorkspacesPage() {
                             <button
                               onClick={() => {
                                 handleSettingChange(
-                                  "workspace_permissions", 
+                                  "workspace_permissions",
                                   settingsState.workspace_permissions.filter(p => p !== permission)
                                 );
                               }}
@@ -536,6 +536,27 @@ export default function ManageWorkspacesPage() {
                       handleSettingChange("workspaces_per_org_count", e)
                     }
                   />
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h2 className="text-base font-medium">
+                        Enable IP allowlist
+                      </h2>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                        Allow workspaces to create ip allowlists for their
+                        members.
+                      </p>
+                    </div>
+                    <Switch
+                      name="ip_allowlist_per_workspace_enabled"
+                      checked={settingsState.ip_allowlist_per_workspace_enabled}
+                      onChange={(checked) =>
+                        handleSettingChange(
+                          "ip_allowlist_per_workspace_enabled",
+                          checked
+                        )
+                      }
+                    />
+                  </div>
                 </div>
               </section>
             </div>

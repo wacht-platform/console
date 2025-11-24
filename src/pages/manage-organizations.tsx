@@ -30,6 +30,8 @@ interface B2BSettingsState {
   org_creation_per_user_count: number | string;
   custom_org_role_enabled: boolean;
   ip_allowlist_per_org_enabled: boolean;
+  enforce_mfa_per_org_enabled: boolean;
+  enforce_mfa_per_workspace_enabled: boolean;
   organization_permissions: string[];
 }
 
@@ -45,6 +47,8 @@ const initialSettingsState: B2BSettingsState = {
   org_creation_per_user_count: "",
   custom_org_role_enabled: false,
   ip_allowlist_per_org_enabled: false,
+  enforce_mfa_per_org_enabled: false,
+  enforce_mfa_per_workspace_enabled: false,
   organization_permissions: [],
 };
 
@@ -70,12 +74,12 @@ export default function ManageOrganizationsPage() {
       allow_org_deletion: b2bSettings.allow_org_deletion ?? true,
       membership_limit_type:
         b2bSettings.max_allowed_org_members === 0 ||
-        b2bSettings.max_allowed_org_members == null
+          b2bSettings.max_allowed_org_members == null
           ? "unlimited"
           : "limited",
       max_allowed_org_members:
         b2bSettings.max_allowed_org_members === 0 ||
-        b2bSettings.max_allowed_org_members == null
+          b2bSettings.max_allowed_org_members == null
           ? ""
           : b2bSettings.max_allowed_org_members,
       default_org_member_role_id: b2bSettings.default_org_member_role?.id ?? "",
@@ -92,6 +96,10 @@ export default function ManageOrganizationsPage() {
       custom_org_role_enabled: b2bSettings.custom_org_role_enabled ?? false,
       ip_allowlist_per_org_enabled:
         b2bSettings.ip_allowlist_per_org_enabled ?? false,
+      enforce_mfa_per_org_enabled:
+        b2bSettings.enforce_mfa_per_org_enabled ?? false,
+      enforce_mfa_per_workspace_enabled:
+        b2bSettings.enforce_mfa_per_workspace_enabled ?? false,
       organization_permissions: b2bSettings.organization_permissions ?? [],
     });
   }, []);
@@ -175,6 +183,10 @@ export default function ManageOrganizationsPage() {
         allow_users_to_create_orgs: settingsState.allow_users_to_create_orgs,
         ip_allowlist_per_org_enabled:
           settingsState.ip_allowlist_per_org_enabled,
+        enforce_mfa_per_org_enabled:
+          settingsState.enforce_mfa_per_org_enabled,
+        enforce_mfa_per_workspace_enabled:
+          settingsState.enforce_mfa_per_workspace_enabled,
       };
 
       await updateB2bSettings.mutateAsync(payload);
@@ -266,6 +278,48 @@ export default function ManageOrganizationsPage() {
                     onChange={(checked) =>
                       handleSettingChange(
                         "ip_allowlist_per_org_enabled",
+                        checked
+                      )
+                    }
+                  />
+                </div>
+
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-base font-medium">
+                      Enforce MFA for Organizations
+                    </h2>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      Require all organization members to have Multi-Factor Authentication enabled.
+                    </p>
+                  </div>
+                  <Switch
+                    name="enforce_mfa_per_org_enabled"
+                    checked={settingsState.enforce_mfa_per_org_enabled}
+                    onChange={(checked) =>
+                      handleSettingChange(
+                        "enforce_mfa_per_org_enabled",
+                        checked
+                      )
+                    }
+                  />
+                </div>
+
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-base font-medium">
+                      Enforce MFA for Workspaces
+                    </h2>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      Require all workspace members to have Multi-Factor Authentication enabled.
+                    </p>
+                  </div>
+                  <Switch
+                    name="enforce_mfa_per_workspace_enabled"
+                    checked={settingsState.enforce_mfa_per_workspace_enabled}
+                    onChange={(checked) =>
+                      handleSettingChange(
+                        "enforce_mfa_per_workspace_enabled",
                         checked
                       )
                     }
@@ -371,7 +425,7 @@ export default function ManageOrganizationsPage() {
                         }}
                         className="flex-1"
                       />
-                      <Button 
+                      <Button
                         onClick={() => {
                           const permission = newPermission.trim();
                           if (permission && !settingsState.organization_permissions.includes(permission)) {
@@ -391,8 +445,8 @@ export default function ManageOrganizationsPage() {
                         </span>
                       ) : (
                         settingsState.organization_permissions.map((permission) => (
-                          <Badge 
-                            key={permission} 
+                          <Badge
+                            key={permission}
                             color="blue"
                             className="flex items-center gap-1"
                           >
@@ -400,7 +454,7 @@ export default function ManageOrganizationsPage() {
                             <button
                               onClick={() => {
                                 handleSettingChange(
-                                  "organization_permissions", 
+                                  "organization_permissions",
                                   settingsState.organization_permissions.filter(p => p !== permission)
                                 );
                               }}
