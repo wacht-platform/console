@@ -18,7 +18,7 @@ import {
   useDeleteUserPhone,
 } from "@/lib/api/hooks/use-user-phone-mutations";
 import { useDeleteUserSocialConnection } from "@/lib/api/hooks/use-user-social-mutations";
-import { useDeleteUser } from "@/lib/api/hooks/use-deployment-user-mutations";
+import { useDeleteUser, useImpersonateUser } from "@/lib/api/hooks/use-deployment-user-mutations";
 import { Button } from "@/components/ui/button";
 import { getCountryFlag } from "@/lib/constants/countries";
 
@@ -39,6 +39,7 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   UserIcon,
+  UserCircleIcon,
 } from "@heroicons/react/24/outline";
 
 export default function UserDetailsPage() {
@@ -67,6 +68,9 @@ export default function UserDetailsPage() {
 
   // User deletion mutation
   const { mutateAsync: deleteUser } = useDeleteUser();
+
+  // Impersonation mutation
+  const { mutateAsync: impersonateUser, isPending: isImpersonating } = useImpersonateUser();
 
   // Modal states
   const [addEmailModalOpen, setAddEmailModalOpen] = useState(false);
@@ -328,6 +332,19 @@ export default function UserDetailsPage() {
     setIsEditingPrivateMetadata(false);
   };
 
+  const handleImpersonate = async () => {
+    if (!userId) return;
+
+    try {
+      const data = await impersonateUser(userId);
+      // Redirect to the impersonation URL
+      window.location.href = data.redirect_url;
+    } catch (error) {
+      console.error("Failed to impersonate user:", error);
+      toast.error("Failed to start impersonation session");
+    }
+  };
+
   const getSocialProviderName = (provider: string): string => {
     switch (provider) {
       case "oauth_google":
@@ -363,6 +380,15 @@ export default function UserDetailsPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <Button
+            color="blue"
+            outline
+            onClick={handleImpersonate}
+            disabled={isImpersonating}
+          >
+            <UserCircleIcon className="h-4 w-4" />
+            {isImpersonating ? "Impersonating..." : "Impersonate"}
+          </Button>
           <Button
             outline
             className="p-2"
@@ -608,7 +634,7 @@ export default function UserDetailsPage() {
                   </div>
 
                   {!user.email_addresses ||
-                  user.email_addresses.length === 0 ? (
+                    user.email_addresses.length === 0 ? (
                     <EmptyState
                       title="No email addresses"
                       description="Get started by adding an email address for this user."
@@ -823,7 +849,7 @@ export default function UserDetailsPage() {
                   </div>
 
                   {!user.social_connections ||
-                  user.social_connections.length === 0 ? (
+                    user.social_connections.length === 0 ? (
                     <EmptyState
                       title="No social connections"
                       description="This user hasn't connected any social accounts yet."
@@ -1060,11 +1086,11 @@ export default function UserDetailsPage() {
         profileData={
           user
             ? {
-                first_name: user.first_name,
-                last_name: user.last_name,
-                username: user.username || undefined,
-                image_url: user.profile_picture_url || undefined,
-              }
+              first_name: user.first_name,
+              last_name: user.last_name,
+              username: user.username || undefined,
+              image_url: user.profile_picture_url || undefined,
+            }
             : null
         }
       />

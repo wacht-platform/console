@@ -138,3 +138,31 @@ export function useApproveWaitlistUser() {
     },
   });
 }
+
+interface ImpersonateUserResponse {
+  token: string;
+  redirect_url: string;
+}
+
+async function impersonateUser(deploymentId: string, userId: string) {
+  const response = await apiClient.post<ImpersonateUserResponse>(
+    `/deployments/${deploymentId}/users/${userId}/impersonate`
+  );
+  return response.data;
+}
+
+export function useImpersonateUser() {
+  const { selectedDeployment } = useProjects();
+
+  return useMutation({
+    mutationFn: (userId: string) => {
+      if (!selectedDeployment?.id) {
+        throw new Error("No deployment selected");
+      }
+      return impersonateUser(selectedDeployment.id.toString(), userId);
+    },
+    onError: () => {
+      toast.error("Failed to start impersonation session");
+    },
+  });
+}
