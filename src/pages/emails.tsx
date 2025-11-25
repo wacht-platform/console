@@ -256,14 +256,14 @@ function SmtpConfigDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} size="lg">
+    <Dialog open={open} onClose={onClose} size="2xl">
       <DialogTitle>Configure Custom SMTP</DialogTitle>
       <DialogDescription>
         Enter your SMTP server credentials to send emails through your own mail server.
       </DialogDescription>
       <DialogBody>
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <Field>
               <Label>SMTP Host</Label>
               <Input
@@ -284,7 +284,7 @@ function SmtpConfigDialog({
             </Field>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <Field>
               <Label>Username</Label>
               <Input
@@ -300,7 +300,7 @@ function SmtpConfigDialog({
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={existingConfig ? "••••••••" : "Enter password"}
+                placeholder={existingConfig ? "Leave empty to keep existing" : "Enter password"}
               />
             </Field>
           </div>
@@ -313,49 +313,57 @@ function SmtpConfigDialog({
               onChange={(e) => setFromEmail(e.target.value)}
               placeholder="noreply@example.com"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
               Emails will be sent from this address
             </p>
           </Field>
 
-          <CheckboxField>
-            <Checkbox
-              checked={useTls}
-              onChange={(checked) => setUseTls(checked)}
-            />
-            <Label>Use STARTTLS</Label>
-          </CheckboxField>
-          <p className="text-xs text-gray-500 -mt-2">
-            Disable for implicit TLS/SSL
-          </p>
+          <div className="pt-2 border-t border-gray-200 dark:border-neutral-700">
+            <CheckboxField>
+              <Checkbox
+                checked={useTls}
+                onChange={(checked) => setUseTls(checked)}
+              />
+              <Label>Use STARTTLS</Label>
+            </CheckboxField>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-7">
+              Uncheck for implicit TLS/SSL (port 465). Keep checked for STARTTLS (port 587).
+            </p>
+          </div>
         </div>
       </DialogBody>
       <DialogActions>
-        {existingConfig && (
-          <Button
-            onClick={handleRemove}
-            disabled={isRemoving}
-            color="red"
-          >
-            {isRemoving ? "Removing..." : "Remove & Use Postmark"}
-          </Button>
-        )}
-        <Button outline onClick={onClose}>
-          Cancel
-        </Button>
-        <Button
-          onClick={handleVerify}
-          disabled={!isFormValid || isVerifying}
-          outline
-        >
-          {isVerifying ? "Testing..." : "Test Connection"}
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          disabled={!isFormValid || isSubmitting}
-        >
-          {isSubmitting ? "Saving..." : existingConfig ? "Update" : "Save"}
-        </Button>
+        <div className="flex justify-between w-full">
+          <div>
+            {existingConfig && (
+              <Button
+                onClick={handleRemove}
+                disabled={isRemoving}
+                color="red"
+              >
+                {isRemoving ? "Removing..." : "Remove & Use Postmark"}
+              </Button>
+            )}
+          </div>
+          <div className="flex gap-3">
+            <Button outline onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleVerify}
+              disabled={!isFormValid || isVerifying}
+              outline
+            >
+              {isVerifying ? "Testing..." : "Test Connection"}
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={!isFormValid || isSubmitting}
+            >
+              {isSubmitting ? "Saving..." : existingConfig ? "Update" : "Save"}
+            </Button>
+          </div>
+        </div>
       </DialogActions>
     </Dialog>
   );
