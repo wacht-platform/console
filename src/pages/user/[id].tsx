@@ -382,7 +382,6 @@ export default function UserDetailsPage() {
         <div className="flex items-center gap-3">
           <Button
             color="blue"
-            outline
             onClick={handleImpersonate}
             disabled={isImpersonating}
           >
