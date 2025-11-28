@@ -7,7 +7,7 @@ import {
 	DialogActions,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { MultiSelect } from "@/components/ui/multi-select";
+import { Badge } from "@/components/ui/badge";
 import { Field, Label } from "@/components/ui/fieldset";
 import { useDarkMode } from "@/lib/hooks/use-dark-mode";
 import Editor from "@monaco-editor/react";
@@ -123,19 +123,63 @@ export function EditWorkspaceMemberDialog({
 						<Field>
 							<Label>Roles</Label>
 							{availableRoles.length > 0 ? (
-								<MultiSelect
-									options={availableRoles.map(role => ({
-										id: role.id,
-										name: role.is_deployment_level ? `${role.name} (Default)` : role.name,
-										description: role.is_deployment_level
-											? `Default deployment role • ${role.permissions.length} permission${role.permissions.length !== 1 ? 's' : ''}`
-											: `${role.permissions.length} permission${role.permissions.length !== 1 ? 's' : ''}`
-									}))}
-									selectedValues={selectedRoles}
-									onChange={setSelectedRoles}
-									placeholder="Select roles to assign..."
-									modal={true}
-								/>
+								<div className="space-y-4">
+									{/* Selected roles */}
+									{selectedRoles.length > 0 && (
+										<div>
+											<div className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+												Assigned roles:
+											</div>
+											<div className="flex flex-wrap gap-2">
+												{selectedRoles.map((roleId) => {
+													const role = availableRoles.find(r => r.id === roleId);
+													return role ? (
+														<Badge
+															key={roleId}
+															color="green"
+															className="cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30"
+															onClick={() => setSelectedRoles(selectedRoles.filter(id => id !== roleId))}
+														>
+															{role.is_deployment_level ? `${role.name} (Default)` : role.name}
+															<svg className="ml-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+															</svg>
+														</Badge>
+													) : null;
+												})}
+											</div>
+										</div>
+									)}
+
+									{/* Available roles */}
+									<div>
+										<div className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+											Available roles:
+										</div>
+										<div className="flex flex-wrap gap-2">
+											{availableRoles
+												.filter(role => !selectedRoles.includes(role.id))
+												.map((role) => (
+													<Badge
+														key={role.id}
+														color="zinc"
+														className="cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700"
+														onClick={() => setSelectedRoles([...selectedRoles, role.id])}
+													>
+														{role.is_deployment_level ? `${role.name} (Default)` : role.name}
+														<svg className="ml-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+															<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+														</svg>
+													</Badge>
+												))}
+										</div>
+										{availableRoles.filter(role => !selectedRoles.includes(role.id)).length === 0 && (
+											<div className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+												All available roles are already assigned.
+											</div>
+										)}
+									</div>
+								</div>
 							) : (
 								<div className="text-sm text-gray-500 dark:text-gray-400">
 									No roles available. Create roles first to assign them to members.
