@@ -27,8 +27,8 @@ importers:
         specifier: ^5.66.0
         version: 5.89.0(react@19.1.1)
       '@wacht/react-router':
-        specifier: 0.0.1-alpha.4
-        version: 0.0.1-alpha.4(@wacht/jsx@0.0.1-alpha.5(@wacht/types@0.0.1-alpha.3)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(rollup@4.51.0))(react-dom@19.1.1(react@19.1.1))(react-router@7.9.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)(rollup@4.51.0)
+        specifier: latest
+        version: 0.0.1-alpha.8(@wacht/jsx@0.0.1-alpha.5(@wacht/types@0.0.1-alpha.3)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(rollup@4.51.0))(@wacht/types@0.0.1-alpha.3)(react-dom@19.1.1(react@19.1.1))(react-router@7.9.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)(rollup@4.51.0)
       '@xyflow/react':
         specifier: ^12.6.4
         version: 12.8.5(@types/react@19.1.13)(immer@10.1.3)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -1109,10 +1109,11 @@ packages:
       react: ^19.0.0
       react-dom: ^19.0.0
 
-  '@wacht/react-router@0.0.1-alpha.4':
-    resolution: {integrity: sha512-+LnWxkrCsm53A3XjS8t4ViS/BgeNsGzT6aUDmuHYuC+Cwz79WV23mf4qFKkypxP6kS0HHieuUdy5flKl23MQYA==}
+  '@wacht/react-router@0.0.1-alpha.8':
+    resolution: {integrity: sha512-sY66dduBKc6HmcbeFntZygFk0DKYff/tP84SnKq73kL+zjNrB1vbt8MxhLjP8SYHZQzbHjo4gv5IqTYSU7aCeA==}
     peerDependencies:
       '@wacht/jsx': '*'
+      '@wacht/types': '*'
       react: ^19.0.0
       react-dom: ^19.0.0
       react-router: ^7.0.0
@@ -3246,9 +3247,10 @@ snapshots:
     transitivePeerDependencies:
       - rollup
 
-  '@wacht/react-router@0.0.1-alpha.4(@wacht/jsx@0.0.1-alpha.5(@wacht/types@0.0.1-alpha.3)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(rollup@4.51.0))(react-dom@19.1.1(react@19.1.1))(react-router@7.9.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)(rollup@4.51.0)':
+  '@wacht/react-router@0.0.1-alpha.8(@wacht/jsx@0.0.1-alpha.5(@wacht/types@0.0.1-alpha.3)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(rollup@4.51.0))(@wacht/types@0.0.1-alpha.3)(react-dom@19.1.1(react@19.1.1))(react-router@7.9.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)(rollup@4.51.0)':
     dependencies:
       '@wacht/jsx': 0.0.1-alpha.5(@wacht/types@0.0.1-alpha.3)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(rollup@4.51.0)
+      '@wacht/types': 0.0.1-alpha.3
       react: 19.1.1
       react-dom: 19.1.1(react@19.1.1)
       react-router: 7.9.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
