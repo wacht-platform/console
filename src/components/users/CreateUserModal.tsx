@@ -30,6 +30,7 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
   const [password, setPassword] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [skipChecks, setSkipChecks] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -113,6 +114,10 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
     // Validate password if required
     if (isPasswordEnabled && !password && authSettings?.password?.min_length) {
       newErrors.password = `Password must be at least ${authSettings.password.min_length} characters`;
+    } else if (isPasswordEnabled && password && !skipChecks && authSettings?.password?.min_length) {
+      if (password.length < authSettings.password.min_length) {
+        newErrors.password = `Password must be at least ${authSettings.password.min_length} characters`;
+      }
     }
 
     setErrors(newErrors);
@@ -168,6 +173,7 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
       if (phone) formData.append('phone_number', phone);
       if (username) formData.append('username', username);
       if (password) formData.append('password', password);
+      formData.append('skip_password_check', skipChecks.toString());
       if (selectedImage) formData.append('profile_image', selectedImage);
 
       await createUserMutation.mutateAsync(formData);
@@ -189,6 +195,7 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
     setPhone("");
     setUsername("");
     setPassword("");
+    setSkipChecks(false);
     setSelectedImage(null);
     setImagePreview(null);
     if (fileInputRef.current) {
@@ -359,6 +366,19 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
                 )}
               </Field>
             )}
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="skipChecks"
+                checked={skipChecks}
+                onChange={(e) => setSkipChecks(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <Label htmlFor="skipChecks" className="text-sm font-normal mb-0">
+                Skip password validation checks
+              </Label>
+            </div>
           </form>
         )}
       </DialogBody>

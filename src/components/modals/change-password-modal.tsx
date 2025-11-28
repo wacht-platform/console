@@ -22,6 +22,7 @@ interface ChangePasswordModalProps {
 
 interface ChangePasswordRequest {
   new_password: string;
+  skip_password_check?: boolean;
 }
 
 export function ChangePasswordModal({
@@ -32,6 +33,7 @@ export function ChangePasswordModal({
 }: ChangePasswordModalProps) {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [skipChecks, setSkipChecks] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -57,7 +59,7 @@ export function ChangePasswordModal({
 
     if (!newPassword.trim()) {
       newErrors.newPassword = "New password is required";
-    } else if (newPassword.length < 8) {
+    } else if (!skipChecks && newPassword.length < 8) {
       newErrors.newPassword = "Password must be at least 8 characters long";
     }
 
@@ -82,6 +84,7 @@ export function ChangePasswordModal({
     try {
       const requestData: ChangePasswordRequest = {
         new_password: newPassword,
+        skip_password_check: skipChecks,
       };
 
       await changePasswordMutation.mutateAsync(requestData);
@@ -98,6 +101,7 @@ export function ChangePasswordModal({
   const handleClose = () => {
     setNewPassword("");
     setConfirmPassword("");
+    setSkipChecks(false);
     setErrors({});
     setIsLoading(false);
     onClose();
@@ -137,6 +141,19 @@ export function ChangePasswordModal({
               <ErrorMessage>{errors.confirmPassword}</ErrorMessage>
             )}
           </Field>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="skipChecks"
+              checked={skipChecks}
+              onChange={(e) => setSkipChecks(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <Label htmlFor="skipChecks" className="text-sm font-normal mb-0">
+              Skip password validation checks
+            </Label>
+          </div>
         </form>
       </DialogBody>
       <DialogActions>
