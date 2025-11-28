@@ -1,15 +1,15 @@
 import { useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
+import { Spinner } from "@/components/ui/spinner";
 import {
 	EnvelopeIcon,
 	DevicePhoneMobileIcon,
 	UserCircleIcon,
-	PhotoIcon,
-	CheckIcon,
-	SparklesIcon,
+	CheckCircleIcon,
+	CloudArrowUpIcon,
 } from "@heroicons/react/24/outline";
-import { Dialog, DialogActions, DialogTitle, DialogBody } from "@/components/ui/dialog";
+import { Dialog, DialogActions, DialogTitle, DialogBody, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/fieldset";
 import { Field } from "@/components/ui/fieldset";
 import clsx from "clsx";
@@ -48,6 +48,7 @@ export function CreateProjectDialog({
 	]);
 	const [logoUrl, setLogoUrl] = useState<string | null>(null);
 	const [logoFile, setLogoFile] = useState<File | null>(null);
+	const [loading, setLoading] = useState(false);
 	const logoInputRef = useRef<HTMLInputElement>(null);
 	const { createProject } = useProjects();
 
@@ -62,6 +63,8 @@ export function CreateProjectDialog({
 
 	const toggleAuthMethod = (method: AuthMethod) => {
 		if (selectedMethods.includes(method)) {
+			// Prevent deselecting if it's the last method
+			if (selectedMethods.length === 1) return;
 			setSelectedMethods(selectedMethods.filter((m) => m !== method));
 		} else {
 			setSelectedMethods([...selectedMethods, method]);
@@ -69,6 +72,7 @@ export function CreateProjectDialog({
 	};
 
 	const handleContinue = async () => {
+		setLoading(true);
 		try {
 			const formData = new FormData();
 			if (logoFile) {
@@ -82,259 +86,249 @@ export function CreateProjectDialog({
 
 			await createProject(formData);
 			onClose();
+			// Reset form
+			setAppName("");
+			setLogoUrl(null);
+			setLogoFile(null);
+			setSelectedMethods(["email"]);
 		} catch (error) {
 			console.error(error);
+		} finally {
+			setLoading(false);
 		}
 	};
 
 	return (
-		<Dialog size="4xl" open={open} onClose={onClose}>
-			<DialogTitle>
-				<div className="flex items-center gap-2">
-					<SparklesIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-					Create New Project
-				</div>
-			</DialogTitle>
-			<DialogBody>
-				<div className="space-y-4">
-					{/* Project Details Section */}
-					<div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800">
-						<h3 className="text-sm font-semibold text-zinc-900 dark:text-white mb-3 flex items-center gap-2">
-							<div className="h-6 w-6 rounded-md bg-blue-600 dark:bg-blue-500 flex items-center justify-center">
-								<span className="text-white text-xs font-bold">1</span>
-							</div>
-							Project Information
+		<Dialog size="3xl" open={open} onClose={onClose}>
+			<DialogTitle>Create New Project</DialogTitle>
+			<DialogDescription>
+				Set up your project's identity and authentication methods.
+			</DialogDescription>
+
+			<DialogBody className="space-y-8 mt-4">
+				{/* Project Details Section */}
+				<section className="space-y-4">
+					<h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+						<span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 text-[10px] font-bold text-blue-600 dark:text-blue-400">1</span>
+						Project Details
+					</h3>
+
+					<div className="flex gap-6 items-start p-4 bg-zinc-50 dark:bg-white/5 rounded-xl border border-zinc-200 dark:border-white/5">
+						{/* Logo Upload */}
+						<div className="flex flex-col items-center gap-2 shrink-0">
+							<button
+								type="button"
+								className={clsx(
+									"w-20 h-20 rounded-2xl border-2 border-dashed transition-all duration-200",
+									logoUrl
+										? "border-blue-500/50 p-0.5"
+										: "border-zinc-300 dark:border-zinc-700 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-white dark:hover:bg-zinc-800",
+									"flex items-center justify-center cursor-pointer overflow-hidden relative group bg-white dark:bg-zinc-900"
+								)}
+								onClick={() => logoInputRef.current?.click()}
+							>
+								{logoUrl ? (
+									<img
+										src={logoUrl}
+										alt="App logo"
+										className="w-full h-full object-cover rounded-[14px]"
+									/>
+								) : (
+									<div className="flex flex-col items-center gap-1.5 p-2">
+										<CloudArrowUpIcon className="h-6 w-6 text-zinc-400 group-hover:text-blue-500 transition-colors" />
+										<span className="text-[9px] font-medium text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 uppercase tracking-wide">Upload</span>
+									</div>
+								)}
+								{logoUrl && (
+									<div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-[14px]">
+										<span className="text-xs text-white font-medium">Change</span>
+									</div>
+								)}
+							</button>
+							<input
+								type="file"
+								ref={logoInputRef}
+								className="hidden"
+								accept="image/*"
+								onChange={handleLogoUpload}
+							/>
+						</div>
+
+						{/* Project Name */}
+						<Field className="flex-1">
+							<Label>Project Name</Label>
+							<Input
+								type="text"
+								placeholder="e.g., Acme Dashboard"
+								className="w-full mt-1.5"
+								value={appName}
+								onChange={(e) => setAppName(e.target.value)}
+								autoFocus
+							/>
+							<Text className="text-xs text-zinc-500 mt-1.5">
+								This name will be displayed to users on the sign-in page.
+							</Text>
+						</Field>
+					</div>
+				</section>
+
+				{/* Authentication Methods Section */}
+				<section className="space-y-4">
+					<div className="flex items-center justify-between">
+						<h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+							<span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 text-[10px] font-bold text-blue-600 dark:text-blue-400">2</span>
+							Authentication Methods
 						</h3>
-						<div className="flex items-start gap-4">
-							{/* Logo Upload */}
-							<div className="flex flex-col items-center gap-2">
-								<button
-									type="button"
-									className={clsx(
-										"w-20 h-20 rounded-lg border-2 border-dashed transition-all",
-										logoUrl
-											? "border-blue-500 bg-white dark:bg-zinc-900"
-											: "border-zinc-300 dark:border-zinc-600 hover:border-blue-500 hover:bg-white dark:hover:bg-zinc-900",
-										"flex items-center justify-center cursor-pointer overflow-hidden relative group"
-									)}
-									onClick={() => logoInputRef.current?.click()}
-									aria-label="Upload logo"
-								>
-									{logoUrl ? (
-										<img
-											src={logoUrl}
-											alt="App logo"
-											className="w-full h-full object-cover rounded-lg"
-										/>
-									) : (
-										<div className="text-center">
-											<PhotoIcon className="h-6 w-6 mx-auto text-zinc-400 group-hover:text-blue-500 transition-colors" />
-											<span className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 block">Upload</span>
-										</div>
-									)}
-								</button>
-								<input
-									type="file"
-									ref={logoInputRef}
-									className="hidden"
-									accept="image/*"
-									onChange={handleLogoUpload}
-								/>
-							</div>
+						<span className="text-xs text-zinc-500">
+							{selectedMethods.length} selected
+						</span>
+					</div>
 
-							{/* Project Name */}
-							<Field className="flex-1">
-								<Label>Project Name</Label>
-								<Input
-									type="text"
-									placeholder="Enter your project name"
-									className="w-full mt-1"
-									value={appName}
-									onChange={(e) => setAppName(e.target.value)}
-								/>
-								<Text className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-									Choose a memorable name that your users will recognize
-								</Text>
-							</Field>
+					<div className="space-y-3">
+						<div className="text-xs font-medium text-zinc-500 uppercase tracking-wider ml-1">Identity Providers</div>
+						<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+							<AuthMethodCard
+								icon={<EnvelopeIcon className="h-5 w-5" />}
+								label="Email"
+								selected={selectedMethods.includes("email")}
+								onClick={() => toggleAuthMethod("email")}
+							/>
+							<AuthMethodCard
+								icon={<DevicePhoneMobileIcon className="h-5 w-5" />}
+								label="Phone"
+								selected={selectedMethods.includes("phone")}
+								onClick={() => toggleAuthMethod("phone")}
+							/>
+							<AuthMethodCard
+								icon={<UserCircleIcon className="h-5 w-5" />}
+								label="Username"
+								selected={selectedMethods.includes("username")}
+								onClick={() => toggleAuthMethod("username")}
+							/>
 						</div>
 					</div>
 
-					{/* Authentication Methods Section */}
-					<div className="space-y-4">
-						<div className="flex items-center justify-between">
-							<div className="flex items-center gap-2">
-								<div className="h-6 w-6 rounded-md bg-green-600 dark:bg-green-500 flex items-center justify-center">
-									<span className="text-white text-xs font-bold">2</span>
-								</div>
-								<div>
-									<h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
-										Authentication Methods
-									</h3>
-									<Text className="text-sm text-zinc-600 dark:text-zinc-400">
-										Select how users can access your application
-									</Text>
-								</div>
-							</div>
-							{selectedMethods.length > 0 && (
-								<span className="px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full">
-									{selectedMethods.length}
-								</span>
-							)}
-						</div>
-
-						{/* Traditional Methods */}
-						<div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
-							<div className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700">
-								<h4 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Traditional Authentication</h4>
-							</div>
-							<div className="p-3 space-y-1">
-								<AuthMethodItem
-									icon={<EnvelopeIcon className="h-5 w-5" />}
-									label="Email"
-									description="Sign in with email and password"
-									selected={selectedMethods.includes("email")}
-									onClick={() => toggleAuthMethod("email")}
-								/>
-
-								<AuthMethodItem
-									icon={<DevicePhoneMobileIcon className="h-5 w-5" />}
-									label="Phone"
-									description="Sign in with phone number"
-									selected={selectedMethods.includes("phone")}
-									onClick={() => toggleAuthMethod("phone")}
-								/>
-
-								<AuthMethodItem
-									icon={<UserCircleIcon className="h-5 w-5" />}
-									label="Username"
-									description="Sign in with username"
-									selected={selectedMethods.includes("username")}
-									onClick={() => toggleAuthMethod("username")}
-								/>
-							</div>
-						</div>
-
-						{/* Social Methods */}
-						<div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
-							<div className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700">
-								<h4 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Social Login Providers</h4>
-							</div>
-							<div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-1">
-								<AuthMethodItem
-									icon={<img src={GoogleIcon} alt="Google" className="h-5 w-5" />}
-									label="Google"
-									description="Continue with Google"
-									selected={selectedMethods.includes("google_oauth")}
-									onClick={() => toggleAuthMethod("google_oauth")}
-								/>
-
-								<AuthMethodItem
-									icon={<img src={MicrosoftIcon} alt="Microsoft" className="h-5 w-5" />}
-									label="Microsoft"
-									description="Continue with Microsoft"
-									selected={selectedMethods.includes("microsoft_oauth")}
-									onClick={() => toggleAuthMethod("microsoft_oauth")}
-								/>
-
-								<AuthMethodItem
-									icon={<img src={GithubIcon} alt="GitHub" className="h-5 w-5" />}
-									label="GitHub"
-									description="Continue with GitHub"
-									selected={selectedMethods.includes("github_oauth")}
-									onClick={() => toggleAuthMethod("github_oauth")}
-								/>
-
-								<AuthMethodItem
-									icon={<img src={DiscordIcon} alt="Discord" className="h-5 w-5" />}
-									label="Discord"
-									description="Continue with Discord"
-									selected={selectedMethods.includes("discord_oauth")}
-									onClick={() => toggleAuthMethod("discord_oauth")}
-								/>
-
-								<AuthMethodItem
-									icon={<img src={LinkedInIcon} alt="LinkedIn" className="h-5 w-5" />}
-									label="LinkedIn"
-									description="Continue with LinkedIn"
-									selected={selectedMethods.includes("linkedin_oauth")}
-									onClick={() => toggleAuthMethod("linkedin_oauth")}
-								/>
-
-								<AuthMethodItem
-									icon={<img src={GitlabIcon} alt="GitLab" className="h-5 w-5" />}
-									label="GitLab"
-									description="Continue with GitLab"
-									selected={selectedMethods.includes("gitlab_oauth")}
-									onClick={() => toggleAuthMethod("gitlab_oauth")}
-								/>
-							</div>
+					<div className="space-y-3 pt-2">
+						<div className="text-xs font-medium text-zinc-500 uppercase tracking-wider ml-1">Social Providers</div>
+						<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+							<AuthMethodCard
+								icon={<img src={GoogleIcon} alt="Google" className="h-5 w-5" />}
+								label="Google"
+								selected={selectedMethods.includes("google_oauth")}
+								onClick={() => toggleAuthMethod("google_oauth")}
+								compact
+							/>
+							<AuthMethodCard
+								icon={<img src={MicrosoftIcon} alt="Microsoft" className="h-5 w-5" />}
+								label="Microsoft"
+								selected={selectedMethods.includes("microsoft_oauth")}
+								onClick={() => toggleAuthMethod("microsoft_oauth")}
+								compact
+							/>
+							<AuthMethodCard
+								icon={<img src={GithubIcon} alt="GitHub" className="h-5 w-5" />}
+								label="GitHub"
+								selected={selectedMethods.includes("github_oauth")}
+								onClick={() => toggleAuthMethod("github_oauth")}
+								compact
+							/>
+							<AuthMethodCard
+								icon={<img src={DiscordIcon} alt="Discord" className="h-5 w-5" />}
+								label="Discord"
+								selected={selectedMethods.includes("discord_oauth")}
+								onClick={() => toggleAuthMethod("discord_oauth")}
+								compact
+							/>
+							<AuthMethodCard
+								icon={<img src={LinkedInIcon} alt="LinkedIn" className="h-5 w-5" />}
+								label="LinkedIn"
+								selected={selectedMethods.includes("linkedin_oauth")}
+								onClick={() => toggleAuthMethod("linkedin_oauth")}
+								compact
+							/>
+							<AuthMethodCard
+								icon={<img src={GitlabIcon} alt="GitLab" className="h-5 w-5" />}
+								label="GitLab"
+								selected={selectedMethods.includes("gitlab_oauth")}
+								onClick={() => toggleAuthMethod("gitlab_oauth")}
+								compact
+							/>
 						</div>
 					</div>
-				</div>
+				</section>
 			</DialogBody>
+
 			<DialogActions>
-				<Button outline onClick={onClose}>
+				<Button plain onClick={onClose}>
 					Cancel
 				</Button>
-				<Button 
+				<Button
 					onClick={handleContinue}
-					disabled={!appName || selectedMethods.length === 0}
+					disabled={!appName || selectedMethods.length === 0 || loading}
 					className="min-w-[120px]"
+					color="blue"
 				>
-					Create Project
+					{loading ? (
+						<div className="flex items-center gap-2">
+							<Spinner size="sm" />
+							<span>Creating...</span>
+						</div>
+					) : (
+						"Create Project"
+					)}
 				</Button>
 			</DialogActions>
 		</Dialog>
 	);
 }
 
-function AuthMethodItem({
+function AuthMethodCard({
 	icon,
 	label,
-	description,
 	selected,
 	onClick,
+	compact = false,
 }: {
 	icon: React.ReactNode;
 	label: string;
-	description: string;
 	selected: boolean;
 	onClick: () => void;
+	compact?: boolean;
 }) {
 	return (
-		<div 
+		<div
 			className={clsx(
-				"relative flex items-center gap-2.5 p-2.5 rounded-lg transition-all cursor-pointer border",
+				"relative flex items-center gap-3 rounded-lg transition-all cursor-pointer border select-none",
+				compact ? "p-2.5" : "p-3",
 				selected
-					? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
-					: "hover:bg-zinc-50 dark:hover:bg-zinc-800/50 border-transparent hover:border-zinc-200 dark:hover:border-zinc-700"
+					? "bg-blue-50/50 dark:bg-blue-500/10 border-blue-500 dark:border-blue-500/50 shadow-sm ring-1 ring-blue-500/20"
+					: "bg-white dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800"
 			)}
 			onClick={onClick}
 		>
 			<span className={clsx(
-				"flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors",
+				"flex shrink-0 items-center justify-center rounded-md transition-colors",
+				compact ? "h-6 w-6" : "h-8 w-8",
 				selected
-					? "bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-400"
-					: "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
+					? "bg-white dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 shadow-sm"
+					: "bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400"
 			)}>
 				{icon}
 			</span>
-			<div className="flex-1 min-w-0">
-				<h3 className={clsx(
-					"text-sm font-medium leading-tight",
-					selected ? "text-blue-900 dark:text-blue-100" : "text-zinc-900 dark:text-white"
-				)}>
-					{label}
-				</h3>
-				<p className={clsx(
-					"text-[11px] truncate",
-					selected ? "text-blue-700 dark:text-blue-300" : "text-zinc-500 dark:text-zinc-400"
-				)}>
-					{description}
-				</p>
-			</div>
+			<span className={clsx(
+				"flex-1 font-medium truncate",
+				compact ? "text-xs" : "text-sm",
+				selected ? "text-blue-900 dark:text-blue-100" : "text-zinc-700 dark:text-zinc-300"
+			)}>
+				{label}
+			</span>
+
 			{selected && (
-				<CheckIcon className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
+				<div className="absolute top-0 right-0 -mt-1 -mr-1">
+					<div className="bg-blue-500 text-white rounded-full p-0.5 shadow-sm">
+						<CheckCircleIcon className="h-3 w-3" />
+					</div>
+				</div>
 			)}
 		</div>
 	);

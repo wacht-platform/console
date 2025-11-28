@@ -67,22 +67,35 @@ export default function DeploymentSettingsPage() {
 
   const [useInitialsForUserProfileImage, setUseInitialsForUserProfileImage] =
     useState(true);
-  const [useInitialsForOrganizationProfileImage, setUseInitialsForOrganizationProfileImage] = useState(true);
+  const [
+    useInitialsForOrganizationProfileImage,
+    setUseInitialsForOrganizationProfileImage,
+  ] = useState(true);
   const [signupTermsStatement, setSignupTermsStatement] = useState("");
-  const [signupTermsStatementShown, setSignupTermsStatementShown] = useState(true);
+  const [signupTermsStatementShown, setSignupTermsStatementShown] =
+    useState(true);
   const [darkModePrimaryColor, setDarkModePrimaryColor] = useState("#1E40AF");
-  const [darkModeBackgroundColor, setDarkModeBackgroundColor] = useState("#111827");
+  const [darkModeBackgroundColor, setDarkModeBackgroundColor] =
+    useState("#111827");
   const [waitlistPageUrl, setWaitlistPageUrl] = useState("");
   const [supportPageUrl, setSupportPageUrl] = useState("");
 
   // Image URL states to track current values (null means use original, empty string means removed)
   const [logoImageUrl, setLogoImageUrl] = useState<string | null>(null);
   const [faviconImageUrl, setFaviconImageUrl] = useState<string | null>(null);
-  const [userProfileImageUrl, setUserProfileImageUrl] = useState<string | null>(null);
-  const [orgProfileImageUrl, setOrgProfileImageUrl] = useState<string | null>(null);
-  const [workspaceProfileImageUrl, setWorkspaceProfileImageUrl] = useState<string | null>(null);
+  const [userProfileImageUrl, setUserProfileImageUrl] = useState<string | null>(
+    null,
+  );
+  const [orgProfileImageUrl, setOrgProfileImageUrl] = useState<string | null>(
+    null,
+  );
+  const [workspaceProfileImageUrl, setWorkspaceProfileImageUrl] = useState<
+    string | null
+  >(null);
 
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {},
+  );
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -97,7 +110,7 @@ export default function DeploymentSettingsPage() {
   const updateField = (
     setter: (value: string) => void,
     value: string,
-    fieldName: keyof ValidationErrors
+    fieldName: keyof ValidationErrors,
   ) => {
     setter(value);
     setIsDirty(true);
@@ -115,13 +128,11 @@ export default function DeploymentSettingsPage() {
 
   const updateBooleanField = (
     setter: (value: boolean) => void,
-    value: boolean
+    value: boolean,
   ) => {
     setter(value);
     setIsDirty(true);
   };
-
-
 
   const validateField = (fieldName: keyof ValidationErrors, value: string) => {
     const errors = { ...validationErrors };
@@ -202,24 +213,30 @@ export default function DeploymentSettingsPage() {
       setAfterSigninRedirectUrl(settings.after_signin_redirect_url || "");
       setAfterLogoClickUrl(settings.after_logo_click_url || "");
       setAfterCreateOrganizationUrl(
-        settings.after_create_organization_redirect_url || ""
+        settings.after_create_organization_redirect_url || "",
       );
       setPrimaryColor(settings.light_mode_settings?.primary_color || "#1E40AF");
       setBackgroundColor(
-        settings.light_mode_settings?.background_color || "#F3F4F6"
+        settings.light_mode_settings?.background_color || "#F3F4F6",
       );
       setAfterSignOutOnePageUrl(settings.after_sign_out_one_page_url || "");
       setAfterSignOutAllPageUrl(settings.after_sign_out_all_page_url || "");
       setUseInitialsForUserProfileImage(
-        settings.use_initials_for_user_profile_image ?? true
+        settings.use_initials_for_user_profile_image ?? true,
       );
       setUseInitialsForOrganizationProfileImage(
-        settings.use_initials_for_organization_profile_image ?? true
+        settings.use_initials_for_organization_profile_image ?? true,
       );
       setSignupTermsStatement(settings.signup_terms_statement || "");
-      setSignupTermsStatementShown(settings.signup_terms_statement_shown ?? true);
-      setDarkModePrimaryColor(settings.dark_mode_settings?.primary_color || "#1E40AF");
-      setDarkModeBackgroundColor(settings.dark_mode_settings?.background_color || "#111827");
+      setSignupTermsStatementShown(
+        settings.signup_terms_statement_shown ?? true,
+      );
+      setDarkModePrimaryColor(
+        settings.dark_mode_settings?.primary_color || "#1E40AF",
+      );
+      setDarkModeBackgroundColor(
+        settings.dark_mode_settings?.background_color || "#111827",
+      );
       setWaitlistPageUrl(settings.waitlist_page_url || "");
       setSupportPageUrl(settings.support_page_url || "");
 
@@ -297,8 +314,7 @@ export default function DeploymentSettingsPage() {
         deploymentSettings?.ui_settings?.organization_profile_url || "",
       create_organization_url:
         deploymentSettings?.ui_settings?.create_organization_url || "",
-      user_profile_url:
-        deploymentSettings?.ui_settings?.user_profile_url || "",
+      user_profile_url: deploymentSettings?.ui_settings?.user_profile_url || "",
       light_mode_settings: {
         primary_color: primaryColor,
         background_color: backgroundColor,
@@ -315,9 +331,15 @@ export default function DeploymentSettingsPage() {
       // Include image URLs only if they have been changed
       ...(logoImageUrl !== null && { logo_image_url: logoImageUrl }),
       ...(faviconImageUrl !== null && { favicon_image_url: faviconImageUrl }),
-      ...(userProfileImageUrl !== null && { default_user_profile_image_url: userProfileImageUrl }),
-      ...(orgProfileImageUrl !== null && { default_organization_profile_image_url: orgProfileImageUrl }),
-      ...(workspaceProfileImageUrl !== null && { default_workspace_profile_image_url: workspaceProfileImageUrl }),
+      ...(userProfileImageUrl !== null && {
+        default_user_profile_image_url: userProfileImageUrl,
+      }),
+      ...(orgProfileImageUrl !== null && {
+        default_organization_profile_image_url: orgProfileImageUrl,
+      }),
+      ...(workspaceProfileImageUrl !== null && {
+        default_workspace_profile_image_url: workspaceProfileImageUrl,
+      }),
     };
 
     try {
@@ -341,24 +363,30 @@ export default function DeploymentSettingsPage() {
       setAfterSigninRedirectUrl(settings.after_signin_redirect_url || "");
       setAfterLogoClickUrl(settings.after_logo_click_url || "");
       setAfterCreateOrganizationUrl(
-        settings.after_create_organization_redirect_url || ""
+        settings.after_create_organization_redirect_url || "",
       );
       setPrimaryColor(settings.light_mode_settings?.primary_color || "#1E40AF");
       setBackgroundColor(
-        settings.light_mode_settings?.background_color || "#F3F4F6"
+        settings.light_mode_settings?.background_color || "#F3F4F6",
       );
       setAfterSignOutOnePageUrl(settings.after_sign_out_one_page_url || "");
       setAfterSignOutAllPageUrl(settings.after_sign_out_all_page_url || "");
       setUseInitialsForUserProfileImage(
-        settings.use_initials_for_user_profile_image ?? true
+        settings.use_initials_for_user_profile_image ?? true,
       );
       setUseInitialsForOrganizationProfileImage(
-        settings.use_initials_for_organization_profile_image ?? true
+        settings.use_initials_for_organization_profile_image ?? true,
       );
       setSignupTermsStatement(settings.signup_terms_statement || "");
-      setSignupTermsStatementShown(settings.signup_terms_statement_shown ?? true);
-      setDarkModePrimaryColor(settings.dark_mode_settings?.primary_color || "#1E40AF");
-      setDarkModeBackgroundColor(settings.dark_mode_settings?.background_color || "#111827");
+      setSignupTermsStatementShown(
+        settings.signup_terms_statement_shown ?? true,
+      );
+      setDarkModePrimaryColor(
+        settings.dark_mode_settings?.primary_color || "#1E40AF",
+      );
+      setDarkModeBackgroundColor(
+        settings.dark_mode_settings?.background_color || "#111827",
+      );
       setWaitlistPageUrl(settings.waitlist_page_url || "");
       setSupportPageUrl(settings.support_page_url || "");
 
@@ -376,7 +404,7 @@ export default function DeploymentSettingsPage() {
   };
 
   // Check if we can show delete option (multiple deployments exist)
-  const canDeleteDeployment = selectedProject && selectedProject.deployments.length > 1 && selectedDeployment;
+  const canDeleteDeployment = selectedProject && selectedDeployment;
 
   return (
     <div>
@@ -431,7 +459,11 @@ export default function DeploymentSettingsPage() {
             <ImageUpload
               label=""
               imageType="logo"
-              currentImageUrl={logoImageUrl !== null ? logoImageUrl : deploymentSettings?.ui_settings?.logo_image_url}
+              currentImageUrl={
+                logoImageUrl !== null
+                  ? logoImageUrl
+                  : deploymentSettings?.ui_settings?.logo_image_url
+              }
               onImageUploaded={(url) => {
                 setLogoImageUrl(url);
                 setIsDirty(true);
@@ -451,7 +483,11 @@ export default function DeploymentSettingsPage() {
             <ImageUpload
               label=""
               imageType="favicon"
-              currentImageUrl={faviconImageUrl !== null ? faviconImageUrl : deploymentSettings?.ui_settings?.favicon_image_url}
+              currentImageUrl={
+                faviconImageUrl !== null
+                  ? faviconImageUrl
+                  : deploymentSettings?.ui_settings?.favicon_image_url
+              }
               onImageUploaded={(url) => {
                 setFaviconImageUrl(url);
                 setIsDirty(true);
@@ -475,7 +511,11 @@ export default function DeploymentSettingsPage() {
               placeholder="https://example.com/privacy"
               value={privacyPolicyUrl}
               onChange={(e) =>
-                updateField(setPrivacyPolicyUrl, e.target.value, "privacyPolicyUrl")
+                updateField(
+                  setPrivacyPolicyUrl,
+                  e.target.value,
+                  "privacyPolicyUrl",
+                )
               }
               className={
                 validationErrors.privacyPolicyUrl && showValidationErrors
@@ -565,7 +605,11 @@ export default function DeploymentSettingsPage() {
               type="color"
               value={backgroundColor}
               onChange={(e) =>
-                updateField(setBackgroundColor, e.target.value, "backgroundColor")
+                updateField(
+                  setBackgroundColor,
+                  e.target.value,
+                  "backgroundColor",
+                )
               }
               className="w-16 h-10 p-1 rounded"
             />
@@ -574,7 +618,11 @@ export default function DeploymentSettingsPage() {
               placeholder="#F3F4F6"
               value={backgroundColor}
               onChange={(e) =>
-                updateField(setBackgroundColor, e.target.value, "backgroundColor")
+                updateField(
+                  setBackgroundColor,
+                  e.target.value,
+                  "backgroundColor",
+                )
               }
               className={`flex-1 ${
                 validationErrors.backgroundColor && showValidationErrors
@@ -600,7 +648,11 @@ export default function DeploymentSettingsPage() {
               type="color"
               value={darkModePrimaryColor}
               onChange={(e) =>
-                updateField(setDarkModePrimaryColor, e.target.value, "darkModePrimaryColor")
+                updateField(
+                  setDarkModePrimaryColor,
+                  e.target.value,
+                  "darkModePrimaryColor",
+                )
               }
               className="w-16 h-10 p-1 rounded"
             />
@@ -609,7 +661,11 @@ export default function DeploymentSettingsPage() {
               placeholder="#1E40AF"
               value={darkModePrimaryColor}
               onChange={(e) =>
-                updateField(setDarkModePrimaryColor, e.target.value, "darkModePrimaryColor")
+                updateField(
+                  setDarkModePrimaryColor,
+                  e.target.value,
+                  "darkModePrimaryColor",
+                )
               }
               className={`flex-1 ${
                 validationErrors.darkModePrimaryColor && showValidationErrors
@@ -628,14 +684,20 @@ export default function DeploymentSettingsPage() {
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
             <Subheading>Dark Mode Background Color</Subheading>
-            <Text>The background color for your application's dark mode UI.</Text>
+            <Text>
+              The background color for your application's dark mode UI.
+            </Text>
           </div>
           <div className="space-y-1 flex items-center gap-3">
             <Input
               type="color"
               value={darkModeBackgroundColor}
               onChange={(e) =>
-                updateField(setDarkModeBackgroundColor, e.target.value, "darkModeBackgroundColor")
+                updateField(
+                  setDarkModeBackgroundColor,
+                  e.target.value,
+                  "darkModeBackgroundColor",
+                )
               }
               className="w-16 h-10 p-1 rounded"
             />
@@ -644,7 +706,11 @@ export default function DeploymentSettingsPage() {
               placeholder="#111827"
               value={darkModeBackgroundColor}
               onChange={(e) =>
-                updateField(setDarkModeBackgroundColor, e.target.value, "darkModeBackgroundColor")
+                updateField(
+                  setDarkModeBackgroundColor,
+                  e.target.value,
+                  "darkModeBackgroundColor",
+                )
               }
               className={`flex-1 ${
                 validationErrors.darkModeBackgroundColor && showValidationErrors
@@ -652,11 +718,12 @@ export default function DeploymentSettingsPage() {
                   : ""
               }`}
             />
-            {validationErrors.darkModeBackgroundColor && showValidationErrors && (
-              <span className="text-red-500 text-sm px-2">
-                {validationErrors.darkModeBackgroundColor}
-              </span>
-            )}
+            {validationErrors.darkModeBackgroundColor &&
+              showValidationErrors && (
+                <span className="text-red-500 text-sm px-2">
+                  {validationErrors.darkModeBackgroundColor}
+                </span>
+              )}
           </div>
         </section>
 
@@ -691,7 +758,7 @@ export default function DeploymentSettingsPage() {
                 updateField(
                   setAfterSignupRedirectUrl,
                   e.target.value,
-                  "afterSignupRedirectUrl"
+                  "afterSignupRedirectUrl",
                 )
               }
               className={
@@ -726,7 +793,7 @@ export default function DeploymentSettingsPage() {
                 updateField(
                   setAfterSigninRedirectUrl,
                   e.target.value,
-                  "afterSigninRedirectUrl"
+                  "afterSigninRedirectUrl",
                 )
               }
               className={
@@ -761,7 +828,7 @@ export default function DeploymentSettingsPage() {
                 updateField(
                   setAfterLogoClickUrl,
                   e.target.value,
-                  "afterLogoClickUrl"
+                  "afterLogoClickUrl",
                 )
               }
               className={
@@ -795,7 +862,7 @@ export default function DeploymentSettingsPage() {
                 updateField(
                   setAfterSignOutOnePageUrl,
                   e.target.value,
-                  "afterSignOutOnePageUrl"
+                  "afterSignOutOnePageUrl",
                 )
               }
               className={
@@ -829,7 +896,7 @@ export default function DeploymentSettingsPage() {
                 updateField(
                   setAfterSignOutAllPageUrl,
                   e.target.value,
-                  "afterSignOutAllPageUrl"
+                  "afterSignOutAllPageUrl",
                 )
               }
               className={
@@ -864,7 +931,7 @@ export default function DeploymentSettingsPage() {
                 updateField(
                   setAfterCreateOrganizationUrl,
                   e.target.value,
-                  "afterCreateOrganizationUrl"
+                  "afterCreateOrganizationUrl",
                 )
               }
               className={
@@ -896,7 +963,12 @@ export default function DeploymentSettingsPage() {
             <ImageUpload
               label=""
               imageType="user-profile"
-              currentImageUrl={userProfileImageUrl !== null ? userProfileImageUrl : deploymentSettings?.ui_settings?.default_user_profile_image_url}
+              currentImageUrl={
+                userProfileImageUrl !== null
+                  ? userProfileImageUrl
+                  : deploymentSettings?.ui_settings
+                      ?.default_user_profile_image_url
+              }
               onImageUploaded={(url) => {
                 setUserProfileImageUrl(url);
                 setIsDirty(true);
@@ -918,7 +990,12 @@ export default function DeploymentSettingsPage() {
             <ImageUpload
               label=""
               imageType="org-profile"
-              currentImageUrl={orgProfileImageUrl !== null ? orgProfileImageUrl : deploymentSettings?.ui_settings?.default_organization_profile_image_url}
+              currentImageUrl={
+                orgProfileImageUrl !== null
+                  ? orgProfileImageUrl
+                  : deploymentSettings?.ui_settings
+                      ?.default_organization_profile_image_url
+              }
               onImageUploaded={(url) => {
                 setOrgProfileImageUrl(url);
                 setIsDirty(true);
@@ -940,7 +1017,12 @@ export default function DeploymentSettingsPage() {
             <ImageUpload
               label=""
               imageType="workspace-profile"
-              currentImageUrl={workspaceProfileImageUrl !== null ? workspaceProfileImageUrl : deploymentSettings?.ui_settings?.default_workspace_profile_image_url}
+              currentImageUrl={
+                workspaceProfileImageUrl !== null
+                  ? workspaceProfileImageUrl
+                  : deploymentSettings?.ui_settings
+                      ?.default_workspace_profile_image_url
+              }
               onImageUploaded={(url) => {
                 setWorkspaceProfileImageUrl(url);
                 setIsDirty(true);
@@ -953,9 +1035,7 @@ export default function DeploymentSettingsPage() {
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
             <Subheading>Use Initials for User Profile Images</Subheading>
-            <Text>
-              Show user initials when no profile image is available.
-            </Text>
+            <Text>Show user initials when no profile image is available.</Text>
           </div>
           <div className="space-y-1 flex justify-end">
             <Switch
@@ -970,7 +1050,9 @@ export default function DeploymentSettingsPage() {
 
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>Use Initials for Organization Profile Images</Subheading>
+            <Subheading>
+              Use Initials for Organization Profile Images
+            </Subheading>
             <Text>
               Show organization initials when no profile image is available.
             </Text>
@@ -980,7 +1062,10 @@ export default function DeploymentSettingsPage() {
               name="use_initials_for_organization_profile_image"
               checked={useInitialsForOrganizationProfileImage}
               onChange={(checked) =>
-                updateBooleanField(setUseInitialsForOrganizationProfileImage, checked)
+                updateBooleanField(
+                  setUseInitialsForOrganizationProfileImage,
+                  checked,
+                )
               }
             />
           </div>
@@ -989,9 +1074,7 @@ export default function DeploymentSettingsPage() {
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
             <Subheading>Signup Terms Statement</Subheading>
-            <Text>
-              Custom terms statement shown during signup process.
-            </Text>
+            <Text>Custom terms statement shown during signup process.</Text>
           </div>
           <div className="space-y-1">
             <Input
@@ -1002,7 +1085,7 @@ export default function DeploymentSettingsPage() {
                 updateField(
                   setSignupTermsStatement,
                   e.target.value,
-                  "signupTermsStatement"
+                  "signupTermsStatement",
                 )
               }
               className={
@@ -1022,9 +1105,7 @@ export default function DeploymentSettingsPage() {
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
             <Subheading>Show Signup Terms Statement</Subheading>
-            <Text>
-              Display the terms statement during the signup process.
-            </Text>
+            <Text>Display the terms statement during the signup process.</Text>
           </div>
           <div className="space-y-1 flex justify-end">
             <Switch
@@ -1040,9 +1121,7 @@ export default function DeploymentSettingsPage() {
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
             <Subheading>Waitlist Page URL</Subheading>
-            <Text>
-              URL for your application's waitlist page.
-            </Text>
+            <Text>URL for your application's waitlist page.</Text>
           </div>
           <div className="space-y-1">
             <Input
@@ -1053,7 +1132,7 @@ export default function DeploymentSettingsPage() {
                 updateField(
                   setWaitlistPageUrl,
                   e.target.value,
-                  "waitlistPageUrl"
+                  "waitlistPageUrl",
                 )
               }
               className={
@@ -1073,9 +1152,7 @@ export default function DeploymentSettingsPage() {
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
             <Subheading>Support Page URL</Subheading>
-            <Text>
-              URL for your application's support or help page.
-            </Text>
+            <Text>URL for your application's support or help page.</Text>
           </div>
           <div className="space-y-1">
             <Input
@@ -1083,11 +1160,7 @@ export default function DeploymentSettingsPage() {
               placeholder="https://example.com/support"
               value={supportPageUrl}
               onChange={(e) =>
-                updateField(
-                  setSupportPageUrl,
-                  e.target.value,
-                  "supportPageUrl"
-                )
+                updateField(setSupportPageUrl, e.target.value, "supportPageUrl")
               }
               className={
                 validationErrors.supportPageUrl && showValidationErrors
@@ -1123,7 +1196,10 @@ export default function DeploymentSettingsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Tooltip message="Copied!" trigger={copiedIndex === item.index}>
+                  <Tooltip
+                    message="Copied!"
+                    trigger={copiedIndex === item.index}
+                  >
                     <Button
                       outline
                       onClick={() => copyToClipboard(item.demoLink, item.index)}
@@ -1155,7 +1231,8 @@ export default function DeploymentSettingsPage() {
                   Delete Deployment
                 </Subheading>
                 <Text>
-                  Permanently delete this {selectedDeployment?.mode} deployment. This action cannot be undone.
+                  Permanently delete this {selectedDeployment?.mode} deployment.
+                  This action cannot be undone.
                 </Text>
               </div>
               <div className="space-y-1 ml-auto">

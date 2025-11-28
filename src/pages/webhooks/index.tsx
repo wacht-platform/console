@@ -201,70 +201,68 @@ export default function WebhooksPage() {
 
       {/* Configuration */}
       <div className="mt-14">
-        <div className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden dark:bg-zinc-900 dark:ring-white/10">
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-zinc-700">
-            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-              Webhook Configuration
-            </h3>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Manage your webhook app settings and signing secret
+        <div className="mb-4">
+          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            Webhook Configuration
+          </h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Manage your webhook app settings and signing secret
+          </p>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-gray-900 dark:text-white">
+              App Name
+            </label>
+            <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">{app?.name}</p>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-900 dark:text-white">
+              Signing Secret
+            </label>
+            <div className="flex items-center gap-2 mt-1">
+              <code className="flex-1 px-3 py-2 bg-gray-50 rounded-md text-sm font-mono text-gray-900 dark:bg-zinc-800 dark:text-gray-100">
+                {showSecret
+                  ? app?.signing_secret
+                  : "••••••••••••••••••••••••"}
+              </code>
+              <Button
+                outline
+                onClick={() => setShowSecret(!showSecret)}
+              >
+                {showSecret ? "Hide" : "Show"}
+              </Button>
+              <Button
+                outline
+                onClick={() => rotateSecretMutation.mutate()}
+                disabled={rotateSecretMutation.isPending}
+              >
+                {rotateSecretMutation.isPending ? (
+                  <>
+                    <Spinner size="xs" className="mr-2" />
+                    Rotating...
+                  </>
+                ) : (
+                  "Rotate"
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Use this secret to verify webhook signatures in your
+              application
             </p>
           </div>
-          <div className="px-6 py-4 space-y-4">
-            <div>
-              <label className="text-sm font-medium text-gray-900 dark:text-white">
-                App Name
-              </label>
-              <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">{app?.name}</p>
-            </div>
 
-            <div>
-              <label className="text-sm font-medium text-gray-900 dark:text-white">
-                Signing Secret
-              </label>
-              <div className="flex items-center gap-2 mt-1">
-                <code className="flex-1 px-3 py-2 bg-gray-50 rounded-md text-sm font-mono text-gray-900 dark:bg-zinc-800 dark:text-gray-100">
-                  {showSecret
-                    ? app?.signing_secret
-                    : "••••••••••••••••••••••••"}
-                </code>
-                <Button
-                  outline
-                  onClick={() => setShowSecret(!showSecret)}
-                >
-                  {showSecret ? "Hide" : "Show"}
-                </Button>
-                <Button
-                  outline
-                  onClick={() => rotateSecretMutation.mutate()}
-                  disabled={rotateSecretMutation.isPending}
-                >
-                  {rotateSecretMutation.isPending ? (
-                    <>
-                      <Spinner size="xs" className="mr-2" />
-                      Rotating...
-                    </>
-                  ) : (
-                    "Rotate"
-                  )}
-                </Button>
-              </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                Use this secret to verify webhook signatures in your
-                application
-              </p>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-900 dark:text-white">
-                Created
-              </label>
-              <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">
-                {app?.created_at
-                  ? new Date(app.created_at).toLocaleDateString()
-                  : "N/A"}
-              </p>
-            </div>
+          <div>
+            <label className="text-sm font-medium text-gray-900 dark:text-white">
+              Created
+            </label>
+            <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">
+              {app?.created_at
+                ? new Date(app.created_at).toLocaleDateString()
+                : "N/A"}
+            </p>
           </div>
         </div>
       </div>

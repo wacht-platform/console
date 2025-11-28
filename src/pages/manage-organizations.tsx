@@ -31,7 +31,6 @@ interface B2BSettingsState {
   custom_org_role_enabled: boolean;
   ip_allowlist_per_org_enabled: boolean;
   enforce_mfa_per_org_enabled: boolean;
-  enforce_mfa_per_workspace_enabled: boolean;
   organization_permissions: string[];
 }
 
@@ -48,7 +47,6 @@ const initialSettingsState: B2BSettingsState = {
   custom_org_role_enabled: false,
   ip_allowlist_per_org_enabled: false,
   enforce_mfa_per_org_enabled: false,
-  enforce_mfa_per_workspace_enabled: false,
   organization_permissions: [],
 };
 
@@ -98,8 +96,6 @@ export default function ManageOrganizationsPage() {
         b2bSettings.ip_allowlist_per_org_enabled ?? false,
       enforce_mfa_per_org_enabled:
         b2bSettings.enforce_mfa_per_org_enabled ?? false,
-      enforce_mfa_per_workspace_enabled:
-        b2bSettings.enforce_mfa_per_workspace_enabled ?? false,
       organization_permissions: b2bSettings.organization_permissions ?? [],
     });
   }, []);
@@ -185,8 +181,6 @@ export default function ManageOrganizationsPage() {
           settingsState.ip_allowlist_per_org_enabled,
         enforce_mfa_per_org_enabled:
           settingsState.enforce_mfa_per_org_enabled,
-        enforce_mfa_per_workspace_enabled:
-          settingsState.enforce_mfa_per_workspace_enabled,
       };
 
       await updateB2bSettings.mutateAsync(payload);
@@ -299,27 +293,6 @@ export default function ManageOrganizationsPage() {
                     onChange={(checked) =>
                       handleSettingChange(
                         "enforce_mfa_per_org_enabled",
-                        checked
-                      )
-                    }
-                  />
-                </div>
-
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h2 className="text-base font-medium">
-                      Enforce MFA for Workspaces
-                    </h2>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Require all workspace members to have Multi-Factor Authentication enabled.
-                    </p>
-                  </div>
-                  <Switch
-                    name="enforce_mfa_per_workspace_enabled"
-                    checked={settingsState.enforce_mfa_per_workspace_enabled}
-                    onChange={(checked) =>
-                      handleSettingChange(
-                        "enforce_mfa_per_workspace_enabled",
                         checked
                       )
                     }

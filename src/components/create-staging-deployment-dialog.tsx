@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Text } from "@/components/ui/text";
+import { Spinner } from "@/components/ui/spinner";
 import {
 	EnvelopeIcon,
 	DevicePhoneMobileIcon,
 	UserCircleIcon,
-	CheckIcon,
+	CheckCircleIcon,
 	BeakerIcon,
 	RocketLaunchIcon,
 } from "@heroicons/react/24/outline";
@@ -15,7 +16,7 @@ import GoogleIcon from "@/assets/google.svg";
 import LinkedInIcon from "@/assets/linkedin.svg";
 import MicrosoftIcon from "@/assets/microsoft.svg";
 import XIcon from "@/assets/x.svg";
-import { Dialog, DialogActions, DialogTitle, DialogBody } from "@/components/ui/dialog";
+import { Dialog, DialogActions, DialogTitle, DialogBody, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "./ui/button";
 import { toast } from 'sonner';
 import clsx from "clsx";
@@ -53,6 +54,8 @@ export function CreateStagingDeploymentDialog({
 
 	const toggleAuthMethod = (method: AuthMethod) => {
 		if (selectedMethods.includes(method)) {
+			// Prevent deselecting if it's the last method
+			if (selectedMethods.length === 1) return;
 			setSelectedMethods(selectedMethods.filter((m) => m !== method));
 		} else {
 			setSelectedMethods([...selectedMethods, method]);
@@ -85,145 +88,123 @@ export function CreateStagingDeploymentDialog({
 	};
 
 	return (
-		<Dialog size="4xl" open={open} onClose={() => onOpenChange(false)}>
-			<DialogTitle>
-				<div className="flex items-center gap-2">
-					<BeakerIcon className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-					Create Staging Deployment
-				</div>
+		<Dialog size="3xl" open={open} onClose={() => onOpenChange(false)}>
+			<DialogTitle className="flex items-center gap-2">
+				<BeakerIcon className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+				Create Staging Deployment
 			</DialogTitle>
-			<DialogBody>
-				<div className="space-y-4">
-					{/* Info Banner */}
-					<div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg p-3 border border-orange-200 dark:border-orange-800">
-						<div className="flex gap-3">
-							<RocketLaunchIcon className="h-5 w-5 text-orange-600 dark:text-orange-400 shrink-0 mt-0.5" />
-							<div>
-								<h3 className="text-sm font-semibold text-orange-900 dark:text-orange-100">
-									Staging Environment
-								</h3>
-								<Text className="text-sm text-orange-700 dark:text-orange-300 mt-1">
-									Perfect for testing and development. You can create up to 3 staging deployments per project to test different configurations.
-								</Text>
-							</div>
+			<DialogDescription>
+				Set up a test environment for development and QA.
+			</DialogDescription>
+
+			<DialogBody className="space-y-6 mt-4">
+				{/* Info Banner */}
+				<div className="bg-orange-50/50 dark:bg-orange-900/10 rounded-xl p-4 border border-orange-100 dark:border-orange-900/20">
+					<div className="flex gap-3">
+						<div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg shrink-0 h-fit">
+							<RocketLaunchIcon className="h-5 w-5 text-orange-600 dark:text-orange-400" />
 						</div>
-					</div>
-
-					{/* Authentication Methods Section */}
-					<div className="space-y-4">
-						<div className="flex items-center justify-between">
-							<div>
-								<h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
-									Authentication Configuration
-								</h3>
-								<Text className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-									Select the authentication methods for this staging environment
-								</Text>
-							</div>
-							{selectedMethods.length > 0 && (
-								<span className="px-2 py-0.5 text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-full">
-									{selectedMethods.length}
-								</span>
-							)}
-						</div>
-
-						{/* Traditional Methods */}
-						<div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
-							<div className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700">
-								<h4 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Traditional Authentication</h4>
-							</div>
-							<div className="p-3 space-y-1">
-								<AuthMethodItem
-									icon={<EnvelopeIcon className="h-5 w-5" />}
-									label="Email"
-									description="Sign in with email and password"
-									selected={selectedMethods.includes("email")}
-									onClick={() => toggleAuthMethod("email")}
-								/>
-
-								<AuthMethodItem
-									icon={<DevicePhoneMobileIcon className="h-5 w-5" />}
-									label="Phone"
-									description="Sign in with phone number"
-									selected={selectedMethods.includes("phone")}
-									onClick={() => toggleAuthMethod("phone")}
-								/>
-
-								<AuthMethodItem
-									icon={<UserCircleIcon className="h-5 w-5" />}
-									label="Username"
-									description="Sign in with username"
-									selected={selectedMethods.includes("username")}
-									onClick={() => toggleAuthMethod("username")}
-								/>
-							</div>
-						</div>
-
-						{/* Social Methods */}
-						<div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
-							<div className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700">
-								<h4 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Social Login Providers</h4>
-							</div>
-							<div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-1">
-								<AuthMethodItem
-									icon={<img src={GoogleIcon} alt="Google" className="h-5 w-5" />}
-									label="Google"
-									description="Continue with Google"
-									selected={selectedMethods.includes("google_oauth")}
-									onClick={() => toggleAuthMethod("google_oauth")}
-								/>
-
-								<AuthMethodItem
-									icon={<img src={MicrosoftIcon} alt="Microsoft" className="h-5 w-5" />}
-									label="Microsoft"
-									description="Continue with Microsoft"
-									selected={selectedMethods.includes("microsoft_oauth")}
-									onClick={() => toggleAuthMethod("microsoft_oauth")}
-								/>
-
-								<AuthMethodItem
-									icon={<img src={GithubIcon} alt="GitHub" className="h-5 w-5" />}
-									label="GitHub"
-									description="Continue with GitHub"
-									selected={selectedMethods.includes("github_oauth")}
-									onClick={() => toggleAuthMethod("github_oauth")}
-								/>
-
-								<AuthMethodItem
-									icon={<img src={DiscordIcon} alt="Discord" className="h-5 w-5" />}
-									label="Discord"
-									description="Continue with Discord"
-									selected={selectedMethods.includes("discord_oauth")}
-									onClick={() => toggleAuthMethod("discord_oauth")}
-								/>
-
-								<AuthMethodItem
-									icon={<img src={LinkedInIcon} alt="LinkedIn" className="h-5 w-5" />}
-									label="LinkedIn"
-									description="Continue with LinkedIn"
-									selected={selectedMethods.includes("linkedin_oauth")}
-									onClick={() => toggleAuthMethod("linkedin_oauth")}
-								/>
-
-								<AuthMethodItem
-									icon={<img src={GitlabIcon} alt="GitLab" className="h-5 w-5" />}
-									label="GitLab"
-									description="Continue with GitLab"
-									selected={selectedMethods.includes("gitlab_oauth")}
-									onClick={() => toggleAuthMethod("gitlab_oauth")}
-								/>
-
-								<AuthMethodItem
-									icon={<img src={XIcon} alt="X" className="h-5 w-5" />}
-									label="X (Twitter)"
-									description="Continue with X"
-									selected={selectedMethods.includes("x_oauth")}
-									onClick={() => toggleAuthMethod("x_oauth")}
-								/>
-							</div>
+						<div>
+							<h3 className="text-sm font-semibold text-orange-900 dark:text-orange-100">
+								Development Environment
+							</h3>
+							<Text className="text-xs text-orange-700/80 dark:text-orange-300/80 mt-1 leading-relaxed">
+								Staging deployments are perfect for testing changes safely. You can create up to 3 staging environments per project. They come with a generated <code>.wacht.app</code> domain.
+							</Text>
 						</div>
 					</div>
 				</div>
+
+				{/* Authentication Methods Section */}
+				<section className="space-y-4">
+					<div className="flex items-center justify-between">
+						<h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+							Authentication Configuration
+						</h3>
+						<span className="text-xs text-zinc-500">
+							{selectedMethods.length} selected
+						</span>
+					</div>
+
+					<div className="space-y-3">
+						<div className="text-xs font-medium text-zinc-500 uppercase tracking-wider ml-1">Identity Providers</div>
+						<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+							<AuthMethodCard
+								icon={<EnvelopeIcon className="h-5 w-5" />}
+								label="Email"
+								selected={selectedMethods.includes("email")}
+								onClick={() => toggleAuthMethod("email")}
+							/>
+							<AuthMethodCard
+								icon={<DevicePhoneMobileIcon className="h-5 w-5" />}
+								label="Phone"
+								selected={selectedMethods.includes("phone")}
+								onClick={() => toggleAuthMethod("phone")}
+							/>
+							<AuthMethodCard
+								icon={<UserCircleIcon className="h-5 w-5" />}
+								label="Username"
+								selected={selectedMethods.includes("username")}
+								onClick={() => toggleAuthMethod("username")}
+							/>
+						</div>
+					</div>
+
+					<div className="space-y-3 pt-2">
+						<div className="text-xs font-medium text-zinc-500 uppercase tracking-wider ml-1">Social Providers</div>
+						<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+							<AuthMethodCard
+								icon={<img src={GoogleIcon} alt="Google" className="h-5 w-5" />}
+								label="Google"
+								selected={selectedMethods.includes("google_oauth")}
+								onClick={() => toggleAuthMethod("google_oauth")}
+								compact
+							/>
+							<AuthMethodCard
+								icon={<img src={MicrosoftIcon} alt="Microsoft" className="h-5 w-5" />}
+								label="Microsoft"
+								selected={selectedMethods.includes("microsoft_oauth")}
+								onClick={() => toggleAuthMethod("microsoft_oauth")}
+								compact
+							/>
+							<AuthMethodCard
+								icon={<img src={GithubIcon} alt="GitHub" className="h-5 w-5" />}
+								label="GitHub"
+								selected={selectedMethods.includes("github_oauth")}
+								onClick={() => toggleAuthMethod("github_oauth")}
+								compact
+							/>
+							<AuthMethodCard
+								icon={<img src={DiscordIcon} alt="Discord" className="h-5 w-5" />}
+								label="Discord"
+								selected={selectedMethods.includes("discord_oauth")}
+								onClick={() => toggleAuthMethod("discord_oauth")}
+								compact
+							/>
+							<AuthMethodCard
+								icon={<img src={LinkedInIcon} alt="LinkedIn" className="h-5 w-5" />}
+								label="LinkedIn"
+								selected={selectedMethods.includes("linkedin_oauth")}
+								onClick={() => toggleAuthMethod("linkedin_oauth")}
+								compact
+							/>
+							<AuthMethodCard
+								icon={<img src={GitlabIcon} alt="GitLab" className="h-5 w-5" />}
+								label="GitLab"
+								selected={selectedMethods.includes("gitlab_oauth")}
+								onClick={() => toggleAuthMethod("gitlab_oauth")}
+								compact
+							/>
+							<AuthMethodCard
+								icon={<img src={XIcon} alt="X" className="h-5 w-5" />}
+								label="X (Twitter)"
+								selected={selectedMethods.includes("x_oauth")}
+								onClick={() => toggleAuthMethod("x_oauth")}
+								compact
+							/>
+						</div>
+					</div>
+				</section>
 			</DialogBody>
 
 			<DialogActions>
@@ -233,62 +214,70 @@ export function CreateStagingDeploymentDialog({
 				<Button
 					onClick={handleCreate}
 					disabled={isLoading || selectedMethods.length === 0}
-					className="min-w-[180px]"
+					className="min-w-[140px]"
+					color="orange"
 				>
-					{isLoading ? "Creating..." : "Create Staging Deployment"}
+					{isLoading ? (
+						<div className="flex items-center gap-2">
+							<Spinner size="sm" />
+							<span>Creating...</span>
+						</div>
+					) : (
+						"Create Staging"
+					)}
 				</Button>
 			</DialogActions>
 		</Dialog>
 	);
 }
 
-function AuthMethodItem({
+function AuthMethodCard({
 	icon,
 	label,
-	description,
 	selected,
 	onClick,
+	compact = false,
 }: {
 	icon: React.ReactNode;
 	label: string;
-	description: string;
 	selected: boolean;
 	onClick: () => void;
+	compact?: boolean;
 }) {
 	return (
-		<div 
+		<div
 			className={clsx(
-				"relative flex items-center gap-2.5 p-2.5 rounded-lg transition-all cursor-pointer border",
+				"relative flex items-center gap-3 rounded-lg transition-all cursor-pointer border select-none",
+				compact ? "p-2.5" : "p-3",
 				selected
-					? "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800"
-					: "hover:bg-zinc-50 dark:hover:bg-zinc-800/50 border-transparent hover:border-zinc-200 dark:hover:border-zinc-700"
+					? "bg-orange-50/50 dark:bg-orange-500/10 border-orange-500 dark:border-orange-500/50 shadow-sm ring-1 ring-orange-500/20"
+					: "bg-white dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800"
 			)}
 			onClick={onClick}
 		>
 			<span className={clsx(
-				"flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors",
+				"flex shrink-0 items-center justify-center rounded-md transition-colors",
+				compact ? "h-6 w-6" : "h-8 w-8",
 				selected
-					? "bg-orange-100 dark:bg-orange-800 text-orange-600 dark:text-orange-400"
-					: "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
+					? "bg-white dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 shadow-sm"
+					: "bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400"
 			)}>
 				{icon}
 			</span>
-			<div className="flex-1 min-w-0">
-				<h3 className={clsx(
-					"text-sm font-medium leading-tight",
-					selected ? "text-orange-900 dark:text-orange-100" : "text-zinc-900 dark:text-white"
-				)}>
-					{label}
-				</h3>
-				<p className={clsx(
-					"text-[11px] truncate",
-					selected ? "text-orange-700 dark:text-orange-300" : "text-zinc-500 dark:text-zinc-400"
-				)}>
-					{description}
-				</p>
-			</div>
+			<span className={clsx(
+				"flex-1 font-medium truncate",
+				compact ? "text-xs" : "text-sm",
+				selected ? "text-orange-900 dark:text-orange-100" : "text-zinc-700 dark:text-zinc-300"
+			)}>
+				{label}
+			</span>
+
 			{selected && (
-				<CheckIcon className="h-4 w-4 text-orange-600 dark:text-orange-400 shrink-0" />
+				<div className="absolute top-0 right-0 -mt-1 -mr-1">
+					<div className="bg-orange-500 text-white rounded-full p-0.5 shadow-sm">
+						<CheckCircleIcon className="h-3 w-3" />
+					</div>
+				</div>
 			)}
 		</div>
 	);

@@ -222,186 +222,176 @@ export default function ApiKeysPage() {
         <SimpleTabs>
           <Tab label="Active Keys">
             <div className="mt-4">
-              <div className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden dark:bg-zinc-900 dark:ring-white/10">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-zinc-700">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                        Active API Keys
-                      </h3>
-                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
-                        Keys that can currently access your deployment
-                      </p>
-                    </div>
-                    <Button onClick={() => setShowCreateModal(true)}>
-                      <PlusIcon className="mr-2 h-4 w-4" />
-                      Create Key
-                    </Button>
-                  </div>
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                    Active API Keys
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
+                    Keys that can currently access your deployment
+                  </p>
                 </div>
-                <div className="px-6 pb-4">
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableHeader>Name</TableHeader>
-                        <TableHeader>Key</TableHeader>
-                        <TableHeader>Created</TableHeader>
-                        <TableHeader>Last Used</TableHeader>
-                        <TableHeader>Expires</TableHeader>
-                        <TableHeader>Status</TableHeader>
-                        <TableHeader className="text-right">Actions</TableHeader>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {keysLoading ? (
-                        <SkeletonTableRows rows={5} columns={7} withAvatar={false} />
-                      ) : activeKeys.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={7} className="text-center py-12">
-                            <KeyIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
-                            <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                              No active keys
-                            </h3>
-                            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                              Create your first API key to get started.
-                            </p>
-                            <div className="mt-6">
-                              <Button onClick={() => setShowCreateModal(true)}>
-                                <PlusIcon className="mr-2 h-4 w-4" />
-                                Create First Key
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        activeKeys.map((key) => (
-                          <TableRow key={key.id}>
-                            <TableCell className="font-medium">{key.name}</TableCell>
-                            <TableCell>
-                              <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono dark:bg-zinc-800 dark:text-gray-100">
-                                {key.key_prefix}...{key.key_suffix}
-                              </code>
-                            </TableCell>
-                            <TableCell className="text-sm text-gray-500 dark:text-gray-400">
-                              {format(new Date(key.created_at), "MMM d, yyyy")}
-                            </TableCell>
-                            <TableCell className="text-sm text-gray-500 dark:text-gray-400">
-                              {key.last_used_at
-                                ? format(new Date(key.last_used_at), "MMM d, yyyy")
-                                : "Never"}
-                            </TableCell>
-                            <TableCell className="text-sm">
-                              {key.expires_at ? (
-                                <span className="text-yellow-600">
-                                  {format(new Date(key.expires_at), "MMM d, yyyy")}
-                                </span>
-                              ) : (
-                                <span className="text-zinc-400 dark:text-zinc-500">Never</span>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <Badge color="green">Active</Badge>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  outline
-                                  onClick={() => rotateKeyMutation.mutate(key.id)}
-                                  disabled={rotateKeyMutation.isPending}
-                                  title="Rotate key"
-                                >
-                                  <ArrowPathIcon className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  outline
-                                  onClick={() => {
-                                    setSelectedKey(key);
-                                    setShowRevokeModal(true);
-                                  }}
-                                  title="Revoke key"
-                                >
-                                  <TrashIcon className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
+                <Button onClick={() => setShowCreateModal(true)}>
+                  <PlusIcon className="mr-2 h-4 w-4" />
+                  Create Key
+                </Button>
               </div>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableHeader>Name</TableHeader>
+                    <TableHeader>Key</TableHeader>
+                    <TableHeader>Created</TableHeader>
+                    <TableHeader>Last Used</TableHeader>
+                    <TableHeader>Expires</TableHeader>
+                    <TableHeader>Status</TableHeader>
+                    <TableHeader className="text-right">Actions</TableHeader>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {keysLoading ? (
+                    <SkeletonTableRows rows={5} columns={7} withAvatar={false} />
+                  ) : activeKeys.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-12">
+                        <KeyIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
+                        <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                          No active keys
+                        </h3>
+                        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                          Create your first API key to get started.
+                        </p>
+                        <div className="mt-6">
+                          <Button onClick={() => setShowCreateModal(true)}>
+                            <PlusIcon className="mr-2 h-4 w-4" />
+                            Create First Key
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    activeKeys.map((key) => (
+                      <TableRow key={key.id}>
+                        <TableCell className="font-medium">{key.name}</TableCell>
+                        <TableCell>
+                          <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono dark:bg-zinc-800 dark:text-gray-100">
+                            {key.key_prefix}...{key.key_suffix}
+                          </code>
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-500 dark:text-gray-400">
+                          {format(new Date(key.created_at), "MMM d, yyyy")}
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-500 dark:text-gray-400">
+                          {key.last_used_at
+                            ? format(new Date(key.last_used_at), "MMM d, yyyy")
+                            : "Never"}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {key.expires_at ? (
+                            <span className="text-yellow-600">
+                              {format(new Date(key.expires_at), "MMM d, yyyy")}
+                            </span>
+                          ) : (
+                            <span className="text-zinc-400 dark:text-zinc-500">Never</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge color="green">Active</Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              outline
+                              onClick={() => rotateKeyMutation.mutate(key.id)}
+                              disabled={rotateKeyMutation.isPending}
+                              title="Rotate key"
+                            >
+                              <ArrowPathIcon className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              outline
+                              onClick={() => {
+                                setSelectedKey(key);
+                                setShowRevokeModal(true);
+                              }}
+                              title="Revoke key"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </div>
           </Tab>
 
           <Tab label="Revoked Keys">
             <div className="mt-4">
-              <div className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden dark:bg-zinc-900 dark:ring-white/10">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-zinc-700">
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                    Revoked API Keys
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
-                    Keys that have been revoked and can no longer access your deployment
-                  </p>
-                </div>
-                <div className="px-6 pb-4">
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableHeader>Name</TableHeader>
-                        <TableHeader>Key</TableHeader>
-                        <TableHeader>Created</TableHeader>
-                        <TableHeader>Revoked</TableHeader>
-                        <TableHeader>Reason</TableHeader>
-                        <TableHeader>Status</TableHeader>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {keysLoading ? (
-                        <SkeletonTableRows rows={5} columns={6} withAvatar={false} />
-                      ) : revokedKeys.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={6} className="text-center py-12">
-                            <KeyIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
-                            <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                              No revoked keys
-                            </h3>
-                            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                              Revoked API keys will appear here.
-                            </p>
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        revokedKeys.map((key) => (
-                          <TableRow key={key.id} className="opacity-60">
-                            <TableCell className="font-medium">{key.name}</TableCell>
-                            <TableCell>
-                              <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono dark:bg-zinc-800 dark:text-gray-100">
-                                {key.key_prefix}...{key.key_suffix}
-                              </code>
-                            </TableCell>
-                            <TableCell className="text-sm text-gray-500 dark:text-gray-400">
-                              {format(new Date(key.created_at), "MMM d, yyyy")}
-                            </TableCell>
-                            <TableCell className="text-sm text-gray-500 dark:text-gray-400">
-                              {key.revoked_at
-                                ? format(new Date(key.revoked_at), "MMM d, yyyy")
-                                : "-"}
-                            </TableCell>
-                            <TableCell className="text-sm text-gray-500 dark:text-gray-400">
-                              {key.revoked_reason || "-"}
-                            </TableCell>
-                            <TableCell>
-                              <Badge color="red">Revoked</Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
+              <div className="mb-4">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                  Revoked API Keys
+                </h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
+                  Keys that have been revoked and can no longer access your deployment
+                </p>
               </div>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableHeader>Name</TableHeader>
+                    <TableHeader>Key</TableHeader>
+                    <TableHeader>Created</TableHeader>
+                    <TableHeader>Revoked</TableHeader>
+                    <TableHeader>Reason</TableHeader>
+                    <TableHeader>Status</TableHeader>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {keysLoading ? (
+                    <SkeletonTableRows rows={5} columns={6} withAvatar={false} />
+                  ) : revokedKeys.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-12">
+                        <KeyIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
+                        <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                          No revoked keys
+                        </h3>
+                        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                          Revoked API keys will appear here.
+                        </p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    revokedKeys.map((key) => (
+                      <TableRow key={key.id} className="opacity-60">
+                        <TableCell className="font-medium">{key.name}</TableCell>
+                        <TableCell>
+                          <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono dark:bg-zinc-800 dark:text-gray-100">
+                            {key.key_prefix}...{key.key_suffix}
+                          </code>
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-500 dark:text-gray-400">
+                          {format(new Date(key.created_at), "MMM d, yyyy")}
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-500 dark:text-gray-400">
+                          {key.revoked_at
+                            ? format(new Date(key.revoked_at), "MMM d, yyyy")
+                            : "-"}
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-500 dark:text-gray-400">
+                          {key.revoked_reason || "-"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge color="red">Revoked</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </div>
           </Tab>
         </SimpleTabs>

@@ -30,6 +30,7 @@ interface WorkspaceSettingsState {
   ip_allowlist_per_workspace_enabled: boolean;
   custom_workspace_role_enabled: boolean;
   default_workspace_creator_role_id: string;
+  enforce_mfa_per_workspace_enabled: boolean;
   workspace_permissions: string[];
 }
 
@@ -45,6 +46,7 @@ const initialSettingsState: WorkspaceSettingsState = {
   ip_allowlist_per_workspace_enabled: false,
   custom_workspace_role_enabled: false,
   default_workspace_creator_role_id: "",
+  enforce_mfa_per_workspace_enabled: false,
   workspace_permissions: [],
 };
 
@@ -98,6 +100,8 @@ export default function ManageWorkspacesPage() {
         b2bSettings.custom_workspace_role_enabled ?? false,
       default_workspace_creator_role_id:
         b2bSettings.default_workspace_creator_role?.id ?? "",
+      enforce_mfa_per_workspace_enabled:
+        b2bSettings.enforce_mfa_per_workspace_enabled ?? false,
       workspace_permissions: b2bSettings.workspace_permissions ?? [],
     });
   }, []);
@@ -192,6 +196,8 @@ export default function ManageWorkspacesPage() {
           settingsState.ip_allowlist_per_workspace_enabled,
         custom_workspace_role_enabled:
           settingsState.custom_workspace_role_enabled,
+        enforce_mfa_per_workspace_enabled:
+          settingsState.enforce_mfa_per_workspace_enabled,
       };
 
       await updateB2bSettings.mutateAsync(payload);
@@ -262,6 +268,27 @@ export default function ManageWorkspacesPage() {
                     onChange={(checked) =>
                       handleSettingChange(
                         "custom_workspace_role_enabled",
+                        checked
+                      )
+                    }
+                  />
+                </div>
+
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-base font-medium">
+                      Enforce MFA for Workspaces
+                    </h2>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      Require all workspace members to have Multi-Factor Authentication enabled.
+                    </p>
+                  </div>
+                  <Switch
+                    name="enforce_mfa_per_workspace_enabled"
+                    checked={settingsState.enforce_mfa_per_workspace_enabled}
+                    onChange={(checked) =>
+                      handleSettingChange(
+                        "enforce_mfa_per_workspace_enabled",
                         checked
                       )
                     }
