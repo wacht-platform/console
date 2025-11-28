@@ -3,7 +3,6 @@ import { Text } from "@/components/ui/text";
 import {
   ArrowTopRightOnSquareIcon,
   ClipboardIcon,
-  TrashIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useRef, useState, useMemo } from "react";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -19,8 +18,6 @@ import {
   DeploymentDisplaySettingsUpdates,
 } from "@/lib/api/hooks/use-update-deployment-display-settings";
 import SavePopup from "@/components/save-popup";
-import { useProjects } from "@/lib/api/hooks/use-projects";
-import { DeleteDeploymentDialog } from "@/components/delete-deployment-dialog";
 import { ImageUpload } from "@/components/ui/image-upload";
 
 interface ValidationErrors {
@@ -48,7 +45,6 @@ interface ValidationErrors {
 export default function DeploymentSettingsPage() {
   const { deploymentSettings } = useCurrentDeployemnt();
   const updateDisplaySettings = useUpdateDeploymentDisplaySettings();
-  const { selectedProject, selectedDeployment } = useProjects();
   const [isSaving, setIsSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -97,7 +93,6 @@ export default function DeploymentSettingsPage() {
     {},
   );
   const [showValidationErrors, setShowValidationErrors] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 

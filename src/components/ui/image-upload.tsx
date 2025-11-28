@@ -144,7 +144,7 @@ export function ImageUpload({
                 <img
                   src={previewUrl}
                   alt={`${label} preview`}
-                  className={cn("w-full h-full object-contain", imageClassName)}
+                  className={cn("w-full h-full object-cover", imageClassName)}
                 />
               ) : (
                 <div className="flex items-center justify-center h-full">
