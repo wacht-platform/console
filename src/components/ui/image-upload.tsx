@@ -6,6 +6,8 @@ import { Spinner } from "@/components/ui/spinner";
 import { useUploadImage } from "@/lib/api/hooks/use-upload-image";
 import { toast } from 'sonner';
 
+import { cn } from "@/lib/utils";
+
 type ImageType = "logo" | "favicon" | "user-profile" | "org-profile" | "workspace-profile";
 
 interface ImageUploadProps {
@@ -21,6 +23,7 @@ interface ImageUploadProps {
   customUploadHook?: {
     mutateAsync: (file: File) => Promise<string>;
   };
+  imageClassName?: string;
 }
 
 const validateImageFile = (file: File, imageType?: ImageType): string | null => {
@@ -57,6 +60,7 @@ export function ImageUpload({
   disabled = false,
   variant = "banner",
   customUploadHook,
+  imageClassName,
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
@@ -81,9 +85,9 @@ export function ImageUpload({
     const uploadPromise = customUploadHook
       ? customUploadHook.mutateAsync(file)
       : uploadImageMutation.mutateAsync({
-          imageType,
-          file,
-        });
+        imageType,
+        file,
+      });
 
     toast.promise(uploadPromise, {
       loading: `Uploading ${label.toLowerCase()}...`,
@@ -130,18 +134,17 @@ export function ImageUpload({
           {/* Avatar Preview */}
           <div className="relative">
             <div
-              className={`w-20 h-20 rounded-full border-2 border-dashed transition-all duration-200 cursor-pointer overflow-hidden ${
-                isUploading
+              className={`w-20 h-20 rounded-full border-2 border-dashed transition-all duration-200 cursor-pointer overflow-hidden ${isUploading
                   ? 'border-blue-300 bg-blue-50'
                   : 'border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-              } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+                } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
               onClick={!disabled ? handleUploadClick : undefined}
             >
               {previewUrl ? (
                 <img
                   src={previewUrl}
                   alt={`${label} preview`}
-                  className="w-full h-full object-cover"
+                  className={cn("w-full h-full object-cover", imageClassName)}
                 />
               ) : (
                 <div className="flex items-center justify-center h-full">
@@ -208,11 +211,10 @@ export function ImageUpload({
       <div className="space-y-3">
         {/* Upload Area */}
         <div
-          className={`relative w-full h-36 border-2 border-dashed rounded-lg transition-all duration-200 cursor-pointer ${
-            isUploading
+          className={`relative w-full h-36 border-2 border-dashed rounded-lg transition-all duration-200 cursor-pointer ${isUploading
               ? 'border-blue-300 bg-blue-50'
               : 'border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-          } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+            } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
           onClick={!disabled ? handleUploadClick : undefined}
         >
           {previewUrl ? (
@@ -220,7 +222,7 @@ export function ImageUpload({
               <img
                 src={previewUrl}
                 alt={`${label} preview`}
-                className="w-full h-full object-cover rounded-lg"
+                className={cn("w-full h-full object-cover rounded-lg", imageClassName)}
               />
               {!disabled && (
                 <button

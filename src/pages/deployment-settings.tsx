@@ -403,9 +403,6 @@ export default function DeploymentSettingsPage() {
     }
   };
 
-  // Check if we can show delete option (multiple deployments exist)
-  const canDeleteDeployment = selectedProject && selectedDeployment;
-
   return (
     <div>
       <Heading>Deployment Settings</Heading>
@@ -470,6 +467,7 @@ export default function DeploymentSettingsPage() {
               }}
               variant="banner"
               required={true}
+              imageClassName="object-contain"
             />
           </div>
         </section>
@@ -581,11 +579,10 @@ export default function DeploymentSettingsPage() {
               onChange={(e) =>
                 updateField(setPrimaryColor, e.target.value, "primaryColor")
               }
-              className={`flex-1 ${
-                validationErrors.primaryColor && showValidationErrors
-                  ? "border-red-500"
-                  : ""
-              }`}
+              className={`flex-1 ${validationErrors.primaryColor && showValidationErrors
+                ? "border-red-500"
+                : ""
+                }`}
             />
             {validationErrors.primaryColor && showValidationErrors && (
               <span className="text-red-500 text-sm px-2">
@@ -624,11 +621,10 @@ export default function DeploymentSettingsPage() {
                   "backgroundColor",
                 )
               }
-              className={`flex-1 ${
-                validationErrors.backgroundColor && showValidationErrors
-                  ? "border-red-500"
-                  : ""
-              }`}
+              className={`flex-1 ${validationErrors.backgroundColor && showValidationErrors
+                ? "border-red-500"
+                : ""
+                }`}
             />
             {validationErrors.backgroundColor && showValidationErrors && (
               <span className="text-red-500 text-sm px-2">
@@ -667,11 +663,10 @@ export default function DeploymentSettingsPage() {
                   "darkModePrimaryColor",
                 )
               }
-              className={`flex-1 ${
-                validationErrors.darkModePrimaryColor && showValidationErrors
-                  ? "border-red-500"
-                  : ""
-              }`}
+              className={`flex-1 ${validationErrors.darkModePrimaryColor && showValidationErrors
+                ? "border-red-500"
+                : ""
+                }`}
             />
             {validationErrors.darkModePrimaryColor && showValidationErrors && (
               <span className="text-red-500 text-sm px-2">
@@ -712,11 +707,10 @@ export default function DeploymentSettingsPage() {
                   "darkModeBackgroundColor",
                 )
               }
-              className={`flex-1 ${
-                validationErrors.darkModeBackgroundColor && showValidationErrors
-                  ? "border-red-500"
-                  : ""
-              }`}
+              className={`flex-1 ${validationErrors.darkModeBackgroundColor && showValidationErrors
+                ? "border-red-500"
+                : ""
+                }`}
             />
             {validationErrors.darkModeBackgroundColor &&
               showValidationErrors && (
@@ -936,7 +930,7 @@ export default function DeploymentSettingsPage() {
               }
               className={
                 validationErrors.afterCreateOrganizationUrl &&
-                showValidationErrors
+                  showValidationErrors
                   ? "border-red-500"
                   : ""
               }
@@ -967,7 +961,7 @@ export default function DeploymentSettingsPage() {
                 userProfileImageUrl !== null
                   ? userProfileImageUrl
                   : deploymentSettings?.ui_settings
-                      ?.default_user_profile_image_url
+                    ?.default_user_profile_image_url
               }
               onImageUploaded={(url) => {
                 setUserProfileImageUrl(url);
@@ -994,7 +988,7 @@ export default function DeploymentSettingsPage() {
                 orgProfileImageUrl !== null
                   ? orgProfileImageUrl
                   : deploymentSettings?.ui_settings
-                      ?.default_organization_profile_image_url
+                    ?.default_organization_profile_image_url
               }
               onImageUploaded={(url) => {
                 setOrgProfileImageUrl(url);
@@ -1021,7 +1015,7 @@ export default function DeploymentSettingsPage() {
                 workspaceProfileImageUrl !== null
                   ? workspaceProfileImageUrl
                   : deploymentSettings?.ui_settings
-                      ?.default_workspace_profile_image_url
+                    ?.default_workspace_profile_image_url
               }
               onImageUploaded={(url) => {
                 setWorkspaceProfileImageUrl(url);
@@ -1220,44 +1214,7 @@ export default function DeploymentSettingsPage() {
             ))}
           </div>
         </section>
-
-        {canDeleteDeployment && (
-          <>
-            <Divider className="my-8" soft />
-
-            <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center justify-between">
-              <div className="space-y-1">
-                <Subheading className="text-red-600 dark:text-red-400">
-                  Delete Deployment
-                </Subheading>
-                <Text>
-                  Permanently delete this {selectedDeployment?.mode} deployment.
-                  This action cannot be undone.
-                </Text>
-              </div>
-              <div className="space-y-1 ml-auto">
-                <Button
-                  color="red"
-                  onClick={() => setIsDeleteDialogOpen(true)}
-                  className="flex items-center gap-2"
-                >
-                  <TrashIcon className="h-4 w-4" />
-                  Delete deployment
-                </Button>
-              </div>
-            </section>
-          </>
-        )}
       </div>
-
-      {canDeleteDeployment && (
-        <DeleteDeploymentDialog
-          open={isDeleteDialogOpen}
-          onClose={() => setIsDeleteDialogOpen(false)}
-          deployment={selectedDeployment}
-          projectId={selectedProject.id}
-        />
-      )}
     </div>
   );
 }
