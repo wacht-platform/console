@@ -135,8 +135,8 @@ export function ImageUpload({
           <div className="relative">
             <div
               className={`w-20 h-20 rounded-full border-2 border-dashed transition-all duration-200 cursor-pointer overflow-hidden ${isUploading
-                  ? 'border-blue-300 bg-blue-50'
-                  : 'border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                ? 'border-blue-300 bg-blue-50'
+                : 'border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800'
                 } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
               onClick={!disabled ? handleUploadClick : undefined}
             >
@@ -144,7 +144,7 @@ export function ImageUpload({
                 <img
                   src={previewUrl}
                   alt={`${label} preview`}
-                  className={cn("w-full h-full object-cover", imageClassName)}
+                  className={cn("w-full h-full object-contain", imageClassName)}
                 />
               ) : (
                 <div className="flex items-center justify-center h-full">
@@ -212,8 +212,8 @@ export function ImageUpload({
         {/* Upload Area */}
         <div
           className={`relative w-full h-36 border-2 border-dashed rounded-lg transition-all duration-200 cursor-pointer ${isUploading
-              ? 'border-blue-300 bg-blue-50'
-              : 'border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+            ? 'border-blue-300 bg-blue-50'
+            : 'border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800'
             } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
           onClick={!disabled ? handleUploadClick : undefined}
         >
