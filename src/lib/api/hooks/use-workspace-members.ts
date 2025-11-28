@@ -15,6 +15,7 @@ interface WorkspaceMemberDetails {
 	updated_at: string;
 	workspace_id: string;
 	user_id: string;
+	public_metadata?: Record<string, any>;
 	roles: WorkspaceRole[];
 	first_name: string;
 	last_name: string;

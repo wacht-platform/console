@@ -27,6 +27,7 @@ export interface OrganizationMemberDetails {
   updated_at: string;
   organization_id: string;
   user_id: string;
+  public_metadata?: Record<string, any>;
   roles: OrganizationRole[];
   first_name: string;
   last_name: string;
@@ -123,6 +124,7 @@ export interface AddOrganizationMemberRequest {
 
 export interface UpdateOrganizationMemberRequest {
   role_ids: string[];
+  public_metadata?: Record<string, any>;
 }
 
 export interface CreateOrganizationRoleRequest {
