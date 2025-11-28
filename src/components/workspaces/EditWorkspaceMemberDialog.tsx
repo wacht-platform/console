@@ -48,7 +48,6 @@ export function EditWorkspaceMemberDialog({
 }: EditWorkspaceMemberDialogProps) {
 	const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 	const [publicMetadata, setPublicMetadata] = useState<string>("");
-	const [isEditingMetadata, setIsEditingMetadata] = useState(false);
 	const isDarkMode = useDarkMode();
 
 	const updateMember = useUpdateWorkspaceMember();
@@ -67,44 +66,31 @@ export function EditWorkspaceMemberDialog({
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
+		// Validate JSON before sending request
+		let parsedMetadata;
+		try {
+			parsedMetadata = JSON.parse(publicMetadata);
+		} catch (jsonError) {
+			alert("Invalid JSON format in metadata. Please check your syntax.");
+			return;
+		}
+
+		// Send update request
 		try {
 			await updateMember.mutateAsync({
 				workspaceId,
 				membershipId: member.id,
 				data: {
 					role_ids: selectedRoles,
-				},
-			});
-			onClose();
-		} catch (error) {
-			console.error("Failed to update member:", error);
-		}
-	};
-
-	const handleSaveMetadata = async () => {
-		try {
-			const parsedMetadata = JSON.parse(publicMetadata);
-			await updateMember.mutateAsync({
-				workspaceId,
-				membershipId: member.id,
-				data: {
 					public_metadata: parsedMetadata,
 				},
 			});
-			setIsEditingMetadata(false);
-		} catch (error) {
-			console.error("Failed to update metadata:", error);
-			alert("Invalid JSON format. Please check your syntax.");
+			onClose();
+		} catch (error: any) {
+			console.error("Failed to update member:", error);
+			const errorMessage = error?.response?.data?.message || error?.message || "Failed to update member. Please try again.";
+			alert(errorMessage);
 		}
-	};
-
-	const handleCancelMetadata = () => {
-		setPublicMetadata(
-			member?.public_metadata
-				? JSON.stringify(member.public_metadata, null, 2)
-				: "{}"
-		);
-		setIsEditingMetadata(false);
 	};
 
 	return (
@@ -191,24 +177,6 @@ export function EditWorkspaceMemberDialog({
 						<Field>
 							<div className="flex justify-between items-center mb-4">
 								<Label className="text-base text-zinc-900 dark:text-zinc-100">Public Metadata</Label>
-								{!isEditingMetadata ? (
-									<Button
-										type="button"
-										outline
-										onClick={() => setIsEditingMetadata(true)}
-									>
-										Edit
-									</Button>
-								) : (
-									<div className="flex gap-2">
-										<Button type="button" outline onClick={handleCancelMetadata}>
-											Cancel
-										</Button>
-										<Button type="button" onClick={handleSaveMetadata}>
-											Save
-										</Button>
-									</div>
-								)}
 							</div>
 
 							<div className="space-y-3">
@@ -220,7 +188,7 @@ export function EditWorkspaceMemberDialog({
 										onChange={(value) => setPublicMetadata(value || "{}")}
 										theme={isDarkMode ? "vs-dark" : "vs"}
 										options={{
-											readOnly: !isEditingMetadata,
+											readOnly: false,
 											minimap: { enabled: false },
 											fontSize: 13,
 											scrollBeyondLastLine: false,

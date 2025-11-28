@@ -9,6 +9,7 @@ interface UpdateUserRequest {
 	username?: string;
 	public_metadata?: Record<string, unknown>;
 	private_metadata?: Record<string, unknown>;
+	disabled?: boolean;
 	profile_image?: File;
 }
 
@@ -34,6 +35,9 @@ async function updateUser(
 	}
 	if (data.private_metadata !== undefined) {
 		formData.append("private_metadata", JSON.stringify(data.private_metadata));
+	}
+	if (data.disabled !== undefined) {
+		formData.append("disabled", data.disabled.toString());
 	}
 	if (data.profile_image !== undefined) {
 		formData.append("profile_image", data.profile_image);

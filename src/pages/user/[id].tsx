@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useUserDetails } from "@/lib/api/hooks/use-user-details";
-import { useUpdateUser } from "@/lib/api/hooks/use-update-user";
 import { useDarkMode } from "@/lib/hooks/use-dark-mode";
 import { Spinner } from "@/components/ui/spinner";
 import type { UserEmailAddress, UserPhoneNumber } from "@/types/user";
@@ -19,6 +18,7 @@ import {
 } from "@/lib/api/hooks/use-user-phone-mutations";
 import { useDeleteUserSocialConnection } from "@/lib/api/hooks/use-user-social-mutations";
 import { useDeleteUser, useImpersonateUser } from "@/lib/api/hooks/use-deployment-user-mutations";
+import { useUpdateUser } from "@/lib/api/hooks/use-update-user";
 import { Button } from "@/components/ui/button";
 import { getCountryFlag } from "@/lib/constants/countries";
 
@@ -71,6 +71,9 @@ export default function UserDetailsPage() {
 
   // Impersonation mutation
   const { mutateAsync: impersonateUser, isPending: isImpersonating } = useImpersonateUser();
+
+  // User update mutation for disabling
+  const { mutateAsync: updateUserMutation, isPending: isUpdatingUser } = useUpdateUser(userId || "");
 
   // Modal states
   const [addEmailModalOpen, setAddEmailModalOpen] = useState(false);
@@ -333,15 +336,24 @@ export default function UserDetailsPage() {
   };
 
   const handleImpersonate = async () => {
-    if (!userId) return;
-
     try {
-      const data = await impersonateUser(userId);
-      // Redirect to the impersonation URL
-      window.location.href = data.redirect_url;
+      await impersonateUser(userId || "");
+      toast.success("Impersonation started successfully");
     } catch (error) {
       console.error("Failed to impersonate user:", error);
-      toast.error("Failed to start impersonation session");
+      toast.error("Failed to impersonate user");
+    }
+  };
+
+  const handleDisableUser = async () => {
+    try {
+      await updateUserMutation({
+        disabled: !user.disabled, // Toggle disabled state
+      });
+      toast.success(user.disabled ? "User enabled successfully" : "User disabled successfully");
+    } catch (error) {
+      console.error("Failed to update user status:", error);
+      toast.error("Failed to update user status");
     }
   };
 
@@ -386,6 +398,23 @@ export default function UserDetailsPage() {
           >
             <UserCircleIcon className="h-4 w-4" />
             {isImpersonating ? "Impersonating..." : "Impersonate"}
+          </Button>
+          <Button
+            color={user.disabled ? "green" : "orange"}
+            onClick={handleDisableUser}
+            disabled={isUpdatingUser}
+          >
+            {user.disabled ? (
+              <>
+                <CheckCircleIcon className="h-4 w-4" />
+                {isUpdatingUser ? "Enabling..." : "Enable User"}
+              </>
+            ) : (
+              <>
+                <XCircleIcon className="h-4 w-4" />
+                {isUpdatingUser ? "Disabling..." : "Disable User"}
+              </>
+            )}
           </Button>
           <Button
             outline
