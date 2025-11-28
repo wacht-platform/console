@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/fieldset";
+import { Label, Field } from "@/components/ui/fieldset";
 import {
 	CheckCircleIcon,
 	XCircleIcon,
@@ -204,74 +204,59 @@ function SmtpConfigForm({
 	return (
 		<div className="space-y-4">
 			<div className="grid grid-cols-2 gap-4">
-				<div>
-					<Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-						SMTP Host
-					</Label>
+				<Field>
+					<Label>SMTP Host</Label>
 					<Input
 						type="text"
 						value={host}
 						onChange={(e) => setHost(e.target.value)}
 						placeholder="smtp.example.com"
-						className="mt-1"
 					/>
-				</div>
-				<div>
-					<Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-						Port
-					</Label>
+				</Field>
+				<Field>
+					<Label>Port</Label>
 					<Input
 						type="number"
 						value={port}
 						onChange={(e) => setPort(e.target.value)}
 						placeholder="587"
-						className="mt-1"
 					/>
-				</div>
+				</Field>
 			</div>
 
 			<div className="grid grid-cols-2 gap-4">
-				<div>
-					<Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-						Username
-					</Label>
+				<Field>
+					<Label>Username</Label>
 					<Input
 						type="text"
 						value={username}
 						onChange={(e) => setUsername(e.target.value)}
 						placeholder="your-username"
-						className="mt-1"
 					/>
-				</div>
-				<div>
-					<Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-						Password
-					</Label>
+				</Field>
+				<Field>
+					<Label>Password</Label>
 					<Input
 						type="password"
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
 						placeholder={existingConfig ? "••••••••" : "Enter password"}
-						className="mt-1"
 					/>
-				</div>
+				</Field>
 			</div>
 
-			<div>
-				<Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-					From Email
-				</Label>
+			<Field>
+				<Label>From Email</Label>
 				<Input
 					type="email"
 					value={fromEmail}
 					onChange={(e) => setFromEmail(e.target.value)}
 					placeholder="noreply@example.com"
-					className="mt-1"
 				/>
 				<Text className="text-xs text-gray-500 mt-1">
 					Emails will be sent from this address
 				</Text>
-			</div>
+			</Field>
 
 			<CheckboxField>
 				<Checkbox
@@ -485,60 +470,70 @@ export function DnsVerificationPanel({
 				<div>
 					<h3 className="text-lg font-medium">Email Configuration</h3>
 					<Text className="text-sm text-zinc-500 dark:text-zinc-400">
-						Choose how to send emails from your application
+						Configure email delivery for your application
 					</Text>
 				</div>
 
 				{/* Email Provider Toggle */}
-				<div className="flex space-x-4">
+				<div className="flex gap-4">
 					<button
 						type="button"
 						onClick={() => setEmailConfigMode("postmark")}
-						className={`flex-1 p-4 rounded-lg border-2 transition-all ${
+						className={`flex-1 p-5 rounded-lg border-2 transition-all ${
 							emailConfigMode === "postmark"
-								? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
-								: "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+								? "border-indigo-500 bg-indigo-50 dark:border-indigo-400 dark:bg-indigo-500/10"
+								: "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600 bg-white dark:bg-neutral-800/50"
 						}`}
 					>
-						<div className="flex items-center space-x-3">
-							<EnvelopeIcon className={`h-6 w-6 ${emailConfigMode === "postmark" ? "text-indigo-600" : "text-gray-400"}`} />
-							<div className="text-left">
-								<div className={`font-medium ${emailConfigMode === "postmark" ? "text-indigo-600" : "text-gray-900 dark:text-gray-100"}`}>
-									Postmark (DNS Records)
-								</div>
-								<div className="text-sm text-gray-500">
-									Configure DNS records for email delivery
+						<div className="flex items-start justify-between">
+							<div className="flex items-start space-x-3">
+								<EnvelopeIcon className={`h-6 w-6 mt-0.5 ${emailConfigMode === "postmark" ? "text-indigo-600 dark:text-indigo-400" : "text-gray-400 dark:text-neutral-500"}`} />
+								<div className="text-left">
+									<div className="flex items-center gap-2">
+										<span className={`font-medium ${emailConfigMode === "postmark" ? "text-indigo-600 dark:text-indigo-400" : "text-gray-900 dark:text-neutral-100"}`}>
+											Postmark
+										</span>
+										<Badge color="zinc" className="text-xs">Required</Badge>
+									</div>
+									<div className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
+										Configure DNS records for email delivery
+									</div>
 								</div>
 							</div>
+							{emailProvider === "postmark" && (
+								<Badge color="green" className="flex-shrink-0">Active</Badge>
+							)}
 						</div>
-						{emailProvider === "postmark" && emailConfigMode === "postmark" && (
-							<Badge color="green" className="mt-2">Active</Badge>
-						)}
 					</button>
 
 					<button
 						type="button"
 						onClick={() => setEmailConfigMode("smtp")}
-						className={`flex-1 p-4 rounded-lg border-2 transition-all ${
+						className={`flex-1 p-5 rounded-lg border-2 transition-all ${
 							emailConfigMode === "smtp"
-								? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
-								: "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+								? "border-indigo-500 bg-indigo-50 dark:border-indigo-400 dark:bg-indigo-500/10"
+								: "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600 bg-white dark:bg-neutral-800/50"
 						}`}
 					>
-						<div className="flex items-center space-x-3">
-							<ServerIcon className={`h-6 w-6 ${emailConfigMode === "smtp" ? "text-indigo-600" : "text-gray-400"}`} />
-							<div className="text-left">
-								<div className={`font-medium ${emailConfigMode === "smtp" ? "text-indigo-600" : "text-gray-900 dark:text-gray-100"}`}>
-									Custom SMTP
-								</div>
-								<div className="text-sm text-gray-500">
-									Use your own SMTP server
+						<div className="flex items-start justify-between">
+							<div className="flex items-start space-x-3">
+								<ServerIcon className={`h-6 w-6 mt-0.5 ${emailConfigMode === "smtp" ? "text-indigo-600 dark:text-indigo-400" : "text-gray-400 dark:text-neutral-500"}`} />
+								<div className="text-left">
+									<div className="flex items-center gap-2">
+										<span className={`font-medium ${emailConfigMode === "smtp" ? "text-indigo-600 dark:text-indigo-400" : "text-gray-900 dark:text-neutral-100"}`}>
+											Custom SMTP
+										</span>
+										<Badge color="amber" className="text-xs">Optional</Badge>
+									</div>
+									<div className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
+										Use your own SMTP server instead
+									</div>
 								</div>
 							</div>
+							{emailProvider === "custom_smtp" && (
+								<Badge color="green" className="flex-shrink-0">Active</Badge>
+							)}
 						</div>
-						{emailProvider === "custom_smtp" && emailConfigMode === "smtp" && (
-							<Badge color="green" className="mt-2">Active</Badge>
-						)}
 					</button>
 				</div>
 
