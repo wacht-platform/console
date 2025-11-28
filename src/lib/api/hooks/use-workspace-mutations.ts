@@ -17,7 +17,7 @@ interface AddWorkspaceMemberRequest {
 }
 
 interface UpdateWorkspaceMemberRequest {
-	role_ids: string[];
+	role_ids?: string[];
 	public_metadata?: Record<string, any>;
 }
 

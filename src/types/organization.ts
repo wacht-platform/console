@@ -123,7 +123,7 @@ export interface AddOrganizationMemberRequest {
 }
 
 export interface UpdateOrganizationMemberRequest {
-  role_ids: string[];
+  role_ids?: string[];
   public_metadata?: Record<string, any>;
 }
 
