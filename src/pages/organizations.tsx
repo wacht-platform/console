@@ -30,7 +30,13 @@ export default function OrganizationsPage() {
 	const [page, setPage] = useState(1);
 	const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_OPTIONS[0]);
 	const [createModalOpen, setCreateModalOpen] = useState(false);
-	const { data: organizations, isLoading } = useDeploymentOrganizations();
+	const offset = (page - 1) * itemsPerPage;
+	const { data: organizations, isLoading } = useDeploymentOrganizations({
+		offset,
+		sort_key: sortKey,
+		sort_order: sortOrder,
+		limit: itemsPerPage,
+	});
 
 	const data = {
 		data: organizations?.data || [],
