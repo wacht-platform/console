@@ -28,7 +28,10 @@ import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import { CreateUserModal } from "@/components/users/CreateUserModal";
 import { InviteUserModal } from "@/components/users/InviteUserModal";
 import type { DeploymentWaitlistUser, UserWithIdentifiers } from "@/types/user";
-import { useApproveWaitlistUser, useDeleteInvitation } from "@/lib/api/hooks/use-deployment-user-mutations";
+import {
+  useApproveWaitlistUser,
+  useDeleteInvitation,
+} from "@/lib/api/hooks/use-deployment-user-mutations";
 import { useNavigate, useLocation, useParams } from "react-router";
 import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
 import { SkeletonTableRows } from "@/components/ui/skeleton";
@@ -245,7 +248,8 @@ export default function UsersPage() {
               <TableHeader>
                 {selectedTabKey === "Waitlist" ? "Joined" : "Created"}
               </TableHeader>
-              {(selectedTabKey === "Waitlist" || selectedTabKey === "Invited") && <TableHeader />}
+              {(selectedTabKey === "Waitlist" ||
+                selectedTabKey === "Invited") && <TableHeader />}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -334,7 +338,7 @@ export default function UsersPage() {
                   <TableCell>
                     <Button
                       color="red"
-                      onClick={(e) => {
+                      onClick={(e: any) => {
                         e.stopPropagation();
                         handleWithdrawInvitation(invitation.id);
                       }}
