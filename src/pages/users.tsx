@@ -28,7 +28,7 @@ import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import { CreateUserModal } from "@/components/users/CreateUserModal";
 import { InviteUserModal } from "@/components/users/InviteUserModal";
 import type { DeploymentWaitlistUser, UserWithIdentifiers } from "@/types/user";
-import { useApproveWaitlistUser } from "@/lib/api/hooks/use-deployment-user-mutations";
+import { useApproveWaitlistUser, useDeleteInvitation } from "@/lib/api/hooks/use-deployment-user-mutations";
 import { useNavigate, useLocation, useParams } from "react-router";
 import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
 import { SkeletonTableRows } from "@/components/ui/skeleton";
@@ -121,10 +121,15 @@ export default function UsersPage() {
   };
 
   const approveWaitlistMutation = useApproveWaitlistUser();
+  const deleteInvitationMutation = useDeleteInvitation();
 
   const handleApproveWaitlist = (waitlistUser: DeploymentWaitlistUser) => {
     setSelectedWaitlistUser(waitlistUser);
     setConfirmApprovalOpen(true);
+  };
+
+  const handleWithdrawInvitation = (invitationId: string) => {
+    deleteInvitationMutation.mutate(invitationId);
   };
 
   const handleConfirmApproval = () => {
@@ -240,7 +245,7 @@ export default function UsersPage() {
               <TableHeader>
                 {selectedTabKey === "Waitlist" ? "Joined" : "Created"}
               </TableHeader>
-              {selectedTabKey === "Waitlist" && <TableHeader />}
+              {(selectedTabKey === "Waitlist" || selectedTabKey === "Invited") && <TableHeader />}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -252,7 +257,7 @@ export default function UsersPage() {
                     ? 5
                     : selectedTabKey === "Waitlist"
                       ? 4
-                      : 4
+                      : 5
                 }
                 withAvatar={true}
               />
@@ -325,6 +330,18 @@ export default function UsersPage() {
                   </TableCell>
                   <TableCell className="text-zinc-600 dark:text-zinc-400">
                     {format(new Date(invitation.created_at), "MMM d, yyyy")}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      color="red"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleWithdrawInvitation(invitation.id);
+                      }}
+                      disabled={deleteInvitationMutation.isPending}
+                    >
+                      Withdraw
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))

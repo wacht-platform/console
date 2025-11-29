@@ -86,6 +86,13 @@ async function deleteUser(deploymentId: string, userId: string) {
   return response.data;
 }
 
+async function deleteInvitation(deploymentId: string, invitationId: string) {
+  const response = await apiClient.delete(
+    `/deployments/${deploymentId}/invited-users/${invitationId}`
+  );
+  return response.data;
+}
+
 async function approveWaitlistUser(
   deploymentId: string,
   waitlistUserId: string
@@ -118,6 +125,27 @@ export function useDeleteUser() {
   });
 }
 
+export function useDeleteInvitation() {
+  const queryClient = useQueryClient();
+  const { selectedDeployment } = useProjects();
+
+  return useMutation({
+    mutationFn: (invitationId: string) => {
+      if (!selectedDeployment?.id) {
+        throw new Error("No deployment selected");
+      }
+      return deleteInvitation(selectedDeployment.id.toString(), invitationId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invited-users"] });
+      toast.success("Invitation withdrawn successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to withdraw invitation. Please try again.");
+    },
+  });
+}
+
 export function useApproveWaitlistUser() {
   const queryClient = useQueryClient();
   const { selectedDeployment } = useProjects();
@@ -135,6 +163,10 @@ export function useApproveWaitlistUser() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-waitlist", selectedDeployment?.id] });
       queryClient.invalidateQueries({ queryKey: ["users", selectedDeployment?.id] });
+      toast.success("Waitlist user approved successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to approve waitlist user. Please try again.");
     },
   });
 }

@@ -383,7 +383,7 @@ export default function WorkspaceDetailsPage() {
                       <Spinner className="h-6 w-6" />
                     </div>
                   ) : membersData?.data && membersData.data.length > 0 ? (
-                    <div className="divide-y divide-gray-200">
+                    <div className="divide-y divide-gray-200 dark:divide-zinc-800">
                       {membersData.data.map((member) => (
                         <div key={member.id} className="py-4 first:pt-0 last:pb-0">
                           <div className="flex items-center justify-between">
