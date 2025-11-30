@@ -85,19 +85,6 @@ const emailTemplateCategories = [
           "Invite users to join an organization within your application",
         route: "organization-invite-template",
       },
-      {
-        id: 1,
-        title: "Workspace Invitation",
-        description:
-          "Send an invitation email to new users to join your application",
-        route: "workspace-invite-template",
-      },
-      {
-        id: 11,
-        title: "User Invitation",
-        description: "Generic invitation for users to join your application",
-        route: "workspace-invite-template",
-      },
     ],
   },
   {
@@ -168,8 +155,8 @@ const emailTemplateCategories = [
       },
       {
         id: 10,
-        title: "Waitlist Invitation",
-        description: "Invite waitlisted users to join your application",
+        title: "User Invitation",
+        description: "Invite users to join your application",
         route: "waitlist-invite-template",
       },
     ],

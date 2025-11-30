@@ -148,13 +148,18 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVariableCategory[]> = {
 
     "waitlist-invite-template": [
         ...COMMON_VARIABLES,
-        USER_VARIABLES,
+        {
+            category: "User Information",
+            variables: [
+                { key: "user.first_name", label: "First Name" },
+                { key: "user.last_name", label: "Last Name" },
+            ],
+        },
         {
             category: "Invitation",
             variables: [
                 { key: "action_url", label: "Invitation Link" },
                 { key: "invitation.expires_in_days", label: "Expires In (days)" },
-                { key: "invitation.expiry", label: "Expiry Date" },
             ],
         },
     ],
