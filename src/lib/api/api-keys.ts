@@ -21,17 +21,16 @@ export interface ApiKeyStats {
 }
 
 export const apiKeysApi = {
-  // Status and activation (similar to webhooks pattern)
   async getStatus(deploymentId: string): Promise<ApiKeyStatus> {
     const response = await apiClient.get(
-      `/deployments/${deploymentId}/api-keys/status`
+      `/deployments/${deploymentId}/api-keys/status`,
     );
     return response.data;
   },
 
   async activate(deploymentId: string): Promise<ApiKeyApp> {
     const response = await apiClient.post(
-      `/deployments/${deploymentId}/api-keys/activate`
+      `/deployments/${deploymentId}/api-keys/activate`,
     );
     return response.data;
   },
@@ -49,18 +48,18 @@ export const apiKeysApi = {
   // API Keys Management
   async getKeys(deploymentId: string): Promise<ApiKey[]> {
     const response = await apiClient.get(
-      `/deployments/${deploymentId}/api-keys`
+      `/deployments/${deploymentId}/api-keys`,
     );
     return response.data.keys || [];
   },
 
   async createKey(
     deploymentId: string,
-    data: CreateApiKeyRequest
+    data: CreateApiKeyRequest,
   ): Promise<ApiKeyWithSecret> {
     const response = await apiClient.post(
       `/deployments/${deploymentId}/api-keys`,
-      data
+      data,
     );
     return response.data;
   },
@@ -68,20 +67,19 @@ export const apiKeysApi = {
   async revokeKey(
     deploymentId: string,
     keyId: string,
-    data?: RevokeApiKeyRequest
+    data?: RevokeApiKeyRequest,
   ): Promise<void> {
-    await apiClient.delete(
-      `/deployments/${deploymentId}/api-keys/${keyId}`,
-      { data }
-    );
+    await apiClient.delete(`/deployments/${deploymentId}/api-keys/${keyId}`, {
+      data,
+    });
   },
 
   async rotateKey(
     deploymentId: string,
-    keyId: string
+    keyId: string,
   ): Promise<ApiKeyWithSecret> {
     const response = await apiClient.post(
-      `/deployments/${deploymentId}/api-keys/${keyId}/rotate`
+      `/deployments/${deploymentId}/api-keys/${keyId}/rotate`,
     );
     return response.data;
   },
@@ -89,7 +87,7 @@ export const apiKeysApi = {
   // Get statistics for API key usage
   async getStats(deploymentId: string): Promise<ApiKeyStats> {
     const response = await apiClient.get(
-      `/deployments/${deploymentId}/api-keys/stats`
+      `/deployments/${deploymentId}/api-keys/stats`,
     );
     return response.data;
   },
