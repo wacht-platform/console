@@ -19,19 +19,17 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { useDeploymentWorkspaces } from "@/lib/api/hooks/use-deployment-workspaces";
-import { useNavigate } from "react-router";
 import { SkeletonTableRows } from "@/components/ui/skeleton";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
 
 export default function WorkspacesPage() {
-  const navigate = useNavigate();
   const [sortKey, setSortKey] = useState<string>("created_at");
   const [sortOrder, setSortOrder] = useState<string>("desc");
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_OPTIONS[0]);
-  
+
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 500);
 
@@ -71,9 +69,9 @@ export default function WorkspacesPage() {
               <div className="flex-1">
                 <InputGroup className="w-64">
                   <MagnifyingGlassIcon className="size-4" />
-                  <Input 
-                    name="search" 
-                    placeholder="Search workspaces..." 
+                  <Input
+                    name="search"
+                    placeholder="Search workspaces..."
                     value={search}
                     onChange={(e) => {
                       setSearch(e.target.value);
@@ -146,10 +144,7 @@ export default function WorkspacesPage() {
               </TableRow>
             ) : (
               data?.data.map((workspace) => (
-                <TableRow
-                  key={workspace.id}
-                  href={`workspace/${workspace.id}`}
-                >
+                <TableRow key={workspace.id} href={`workspace/${workspace.id}`}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar

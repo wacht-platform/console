@@ -27,12 +27,12 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import { CreateUserModal } from "@/components/users/CreateUserModal";
 import { InviteUserModal } from "@/components/users/InviteUserModal";
-import type { DeploymentWaitlistUser, UserWithIdentifiers } from "@/types/user";
+import type { DeploymentWaitlistUser } from "@/types/user";
 import {
   useApproveWaitlistUser,
   useDeleteInvitation,
 } from "@/lib/api/hooks/use-deployment-user-mutations";
-import { useNavigate, useLocation, useParams } from "react-router";
+import { useLocation, useParams } from "react-router";
 import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
 import { SkeletonTableRows } from "@/components/ui/skeleton";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
@@ -40,7 +40,6 @@ import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
 
 export default function UsersPage() {
-  const navigate = useNavigate();
   const location = useLocation();
   const { projectId, deploymentId } = useParams();
   const [sortKey, setSortKey] = useState<string>("created_at");
@@ -118,7 +117,7 @@ export default function UsersPage() {
   const hasUsersInCurrentTab = () => {
     // If searching, we want to show the table (empty state handled inside)
     if (search) return true;
-    
+
     if (selectedTabKey === "Active") return (activeUsers?.data.length ?? 0) > 0;
     if (selectedTabKey === "Invited")
       return (invitedUsers?.data.length ?? 0) > 0;
@@ -191,9 +190,9 @@ export default function UsersPage() {
               <div className="flex-1">
                 <InputGroup className="w-64">
                   <MagnifyingGlassIcon className="size-4" />
-                  <Input 
-                    name="search" 
-                    placeholder="Search users..." 
+                  <Input
+                    name="search"
+                    placeholder="Search users..."
                     value={search}
                     onChange={(e) => {
                       setSearch(e.target.value);
