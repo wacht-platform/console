@@ -142,7 +142,7 @@ export function ChangePasswordModal({
             )}
           </Field>
 
-          <div className="flex items-center gap-2">
+          <Field className="flex items-center gap-2">
             <input
               type="checkbox"
               id="skipChecks"
@@ -153,7 +153,7 @@ export function ChangePasswordModal({
             <Label htmlFor="skipChecks" className="text-sm font-normal mb-0">
               Skip password validation checks
             </Label>
-          </div>
+          </Field>
         </form>
       </DialogBody>
       <DialogActions>
