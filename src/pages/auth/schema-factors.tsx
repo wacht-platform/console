@@ -1002,7 +1002,6 @@ export default function SchemaFactorsPage() {
   const [multiSessionSettingsOpen, setMultiSessionSettingsOpen] =
     useState(false);
 
-
   const { isLoading } = useInitializeAuthSettings();
   const { settings, isDirty: isFormDirty } = useAuthSettingsStore();
   const { isSaving, saveSettings, resetSettings } = useSaveAuthSettings();
@@ -1021,7 +1020,6 @@ export default function SchemaFactorsPage() {
     updatePasskeySettings,
     updateMagicLinkSettings,
     updateMultiSessionSupport,
-
   } = useAuthSettingsStore();
 
   const handleToggle = (settingType: string, value: boolean) => {
@@ -1088,11 +1086,6 @@ export default function SchemaFactorsPage() {
         console.warn(`Unhandled setting type: ${settingType}`);
     }
   };
-
-
-
-
-
 
   const handleSaveSettings = async () => {
     try {
@@ -1528,39 +1521,6 @@ export default function SchemaFactorsPage() {
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
                   Configure the settings for user sessions
                 </p>
-              </div>
-            </div>
-
-            <Divider soft />
-
-
-
-            <div className="flex items-start justify-between">
-              <div>
-                <Subheading className="text-sm font-medium">
-                  Multi Session Support
-                </Subheading>
-                <Text className="text-sm text-zinc-500 dark:text-zinc-400">
-                  Enable multi-session support to allow users to have multiple
-                  sessions at the same time.
-                </Text>
-              </div>
-              <div className="flex items-center gap-2 h-[48px]">
-                <Button
-                  plain
-                  type="button"
-                  onClick={() => setMultiSessionSettingsOpen(true)}
-                >
-                  <Cog6ToothIcon />
-                </Button>
-
-                <Switch
-                  name="email_enabled"
-                  checked={settings.multi_session_support.enabled}
-                  onChange={(checked) =>
-                    handleToggle("multi_session_support_enabled", checked)
-                  }
-                />
               </div>
             </div>
           </div>
