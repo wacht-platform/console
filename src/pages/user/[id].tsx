@@ -17,7 +17,10 @@ import {
   useDeleteUserPhone,
 } from "@/lib/api/hooks/use-user-phone-mutations";
 import { useDeleteUserSocialConnection } from "@/lib/api/hooks/use-user-social-mutations";
-import { useDeleteUser, useImpersonateUser } from "@/lib/api/hooks/use-deployment-user-mutations";
+import {
+  useDeleteUser,
+  useImpersonateUser,
+} from "@/lib/api/hooks/use-deployment-user-mutations";
 import { useUpdateUser } from "@/lib/api/hooks/use-update-user";
 import { Button } from "@/components/ui/button";
 import { getCountryFlag } from "@/lib/constants/countries";
@@ -43,7 +46,6 @@ import {
 } from "@heroicons/react/24/outline";
 
 export default function UserDetailsPage() {
-
   const { id, projectId, deploymentId } = useParams();
   const userId = id;
   const navigate = useNavigate();
@@ -63,17 +65,19 @@ export default function UserDetailsPage() {
 
   // Social connection mutations
   const { mutateAsync: deleteSocialConnection } = useDeleteUserSocialConnection(
-    userId || ""
+    userId || "",
   );
 
   // User deletion mutation
   const { mutateAsync: deleteUser } = useDeleteUser();
 
   // Impersonation mutation
-  const { mutateAsync: impersonateUser, isPending: isImpersonating } = useImpersonateUser();
+  const { mutateAsync: impersonateUser, isPending: isImpersonating } =
+    useImpersonateUser();
 
   // User update mutation for disabling
-  const { mutateAsync: updateUserMutation, isPending: isUpdatingUser } = useUpdateUser(userId || "");
+  const { mutateAsync: updateUserMutation, isPending: isUpdatingUser } =
+    useUpdateUser(userId || "");
 
   // Modal states
   const [addEmailModalOpen, setAddEmailModalOpen] = useState(false);
@@ -86,10 +90,10 @@ export default function UserDetailsPage() {
 
   // Data for edit modals
   const [selectedEmail, setSelectedEmail] = useState<UserEmailAddress | null>(
-    null
+    null,
   );
   const [selectedPhone, setSelectedPhone] = useState<UserPhoneNumber | null>(
-    null
+    null,
   );
   const [deleteItem, setDeleteItem] = useState<{
     id: string;
@@ -110,24 +114,24 @@ export default function UserDetailsPage() {
       setPublicMetadata(
         user.public_metadata
           ? JSON.stringify(user.public_metadata, null, 2)
-          : "{}"
+          : "{}",
       );
       setPrivateMetadata(
         user.private_metadata
           ? JSON.stringify(user.private_metadata, null, 2)
-          : "{}"
+          : "{}",
       );
     }
   }, [user]);
-
-
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px] w-full">
         <div className="flex flex-col items-center gap-4">
           <Spinner size="lg" />
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading user details...</span>
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+            Loading user details...
+          </span>
         </div>
       </div>
     );
@@ -179,7 +183,7 @@ export default function UserDetailsPage() {
   const handleAddEmail = async (
     email: string,
     verified: boolean,
-    isPrimary: boolean
+    isPrimary: boolean,
   ) => {
     try {
       await addEmail({
@@ -197,7 +201,7 @@ export default function UserDetailsPage() {
     phoneNumber: string,
     countryCode: string,
     verified: boolean,
-    isPrimary: boolean
+    isPrimary: boolean,
   ) => {
     try {
       await addPhone({
@@ -216,7 +220,7 @@ export default function UserDetailsPage() {
     id: string,
     email: string,
     verified: boolean,
-    isPrimary: boolean
+    isPrimary: boolean,
   ) => {
     try {
       await updateEmail({
@@ -237,7 +241,7 @@ export default function UserDetailsPage() {
     id: string,
     phoneNumber: string,
     verified: boolean,
-    isPrimary: boolean
+    isPrimary: boolean,
   ) => {
     try {
       await updatePhone({
@@ -299,7 +303,9 @@ export default function UserDetailsPage() {
       toast.success("Public metadata updated successfully");
     } catch (error) {
       console.error("Failed to save public metadata:", error);
-      toast.error("Failed to update public metadata. Please check the JSON format.");
+      toast.error(
+        "Failed to update public metadata. Please check the JSON format.",
+      );
     }
   };
 
@@ -313,7 +319,9 @@ export default function UserDetailsPage() {
       toast.success("Private metadata updated successfully");
     } catch (error) {
       console.error("Failed to save private metadata:", error);
-      toast.error("Failed to update private metadata. Please check the JSON format.");
+      toast.error(
+        "Failed to update private metadata. Please check the JSON format.",
+      );
     }
   };
 
@@ -321,7 +329,7 @@ export default function UserDetailsPage() {
     setPublicMetadata(
       user?.public_metadata
         ? JSON.stringify(user.public_metadata, null, 2)
-        : "{}"
+        : "{}",
     );
     setIsEditingPublicMetadata(false);
   };
@@ -330,7 +338,7 @@ export default function UserDetailsPage() {
     setPrivateMetadata(
       user?.private_metadata
         ? JSON.stringify(user.private_metadata, null, 2)
-        : "{}"
+        : "{}",
     );
     setIsEditingPrivateMetadata(false);
   };
@@ -355,7 +363,11 @@ export default function UserDetailsPage() {
       await updateUserMutation({
         disabled: !user.disabled, // Toggle disabled state
       });
-      toast.success(user.disabled ? "User enabled successfully" : "User disabled successfully");
+      toast.success(
+        user.disabled
+          ? "User enabled successfully"
+          : "User disabled successfully",
+      );
     } catch (error) {
       console.error("Failed to update user status:", error);
       toast.error("Failed to update user status");
@@ -393,14 +405,13 @@ export default function UserDetailsPage() {
             <h1 className="text-lg text-gray-900 dark:text-gray-100">
               {user.first_name} {user.last_name}
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">User ID: {user.id}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              User ID: {user.id}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button
-            onClick={handleImpersonate}
-            disabled={isImpersonating}
-          >
+          <Button onClick={handleImpersonate} disabled={isImpersonating}>
             <UserCircleIcon className="h-4 w-4" />
             {isImpersonating ? "Impersonating..." : "Impersonate"}
           </Button>
@@ -417,7 +428,7 @@ export default function UserDetailsPage() {
             ) : (
               <>
                 <XCircleIcon className="h-4 w-4" />
-                {isUpdatingUser ? "Disabling..." : "Disable User"}
+                {isUpdatingUser ? "Disabling..." : "Disable"}
               </>
             )}
           </Button>
@@ -433,7 +444,11 @@ export default function UserDetailsPage() {
             color="red"
             className="p-2"
             onClick={() => {
-              setDeleteItem({ type: "user", id: user.id, name: user.first_name + " " + user.last_name });
+              setDeleteItem({
+                type: "user",
+                id: user.id,
+                name: user.first_name + " " + user.last_name,
+              });
               setConfirmationDialogOpen(true);
             }}
           >
@@ -468,7 +483,9 @@ export default function UserDetailsPage() {
                 {user.first_name} {user.last_name}
               </h2>
               {user.username && (
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">@{user.username}</p>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">
+                  @{user.username}
+                </p>
               )}
               <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
                 Joined {format(new Date(user.created_at), "MMM d, yyyy")}
@@ -477,13 +494,17 @@ export default function UserDetailsPage() {
               {/* Quick Stats */}
               <div className="w-full space-y-3 mb-6">
                 <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-zinc-800">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Email Addresses</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Email Addresses
+                  </span>
                   <span className="text-sm text-gray-900 dark:text-gray-100">
                     {user.email_addresses?.length || 0}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-zinc-800">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Phone Numbers</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Phone Numbers
+                  </span>
                   <span className="text-sm text-gray-900 dark:text-gray-100">
                     {user.phone_numbers?.length || 0}
                   </span>
@@ -501,7 +522,9 @@ export default function UserDetailsPage() {
               {/* Security Status */}
               <div className="w-full space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Password</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Password
+                  </span>
                   <div className="flex items-center gap-2">
                     {user.has_password ? (
                       <CheckCircleIcon className="h-4 w-4 text-green-500" />
@@ -518,7 +541,9 @@ export default function UserDetailsPage() {
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">2FA</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    2FA
+                  </span>
                   {user.has_otp ? (
                     <CheckCircleIcon className="h-4 w-4 text-green-500" />
                   ) : (
@@ -555,13 +580,17 @@ export default function UserDetailsPage() {
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Username</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Username
+                </p>
                 <p className="text-sm text-gray-900 dark:text-gray-100">
                   {user.username || "Not provided"}
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Created</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Created
+                </p>
                 <p className="text-sm text-gray-900 dark:text-gray-100">
                   {format(new Date(user.created_at), "MMM d, yyyy")}
                 </p>
@@ -575,7 +604,9 @@ export default function UserDetailsPage() {
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-gray-500 dark:text-gray-400">2FA Policy</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  2FA Policy
+                </p>
                 <p className="text-sm text-zinc-900 dark:text-zinc-100 capitalize">
                   {user.second_factor_policy || "None"}
                 </p>
@@ -584,7 +615,9 @@ export default function UserDetailsPage() {
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Schema Version
                 </p>
-                <p className="text-sm text-gray-900 dark:text-gray-100">{user.schema_version}</p>
+                <p className="text-sm text-gray-900 dark:text-gray-100">
+                  {user.schema_version}
+                </p>
               </div>
             </div>
           </div>
@@ -657,16 +690,14 @@ export default function UserDetailsPage() {
                     </h3>
                     {user.email_addresses &&
                       user.email_addresses.length > 0 && (
-                        <Button
-                          onClick={() => setAddEmailModalOpen(true)}
-                        >
+                        <Button onClick={() => setAddEmailModalOpen(true)}>
                           Add Email Address
                         </Button>
                       )}
                   </div>
 
                   {!user.email_addresses ||
-                    user.email_addresses.length === 0 ? (
+                  user.email_addresses.length === 0 ? (
                     <EmptyState
                       title="No email addresses"
                       description="Get started by adding an email address for this user."
@@ -720,12 +751,12 @@ export default function UserDetailsPage() {
                                 Added{" "}
                                 {format(
                                   new Date(email.created_at),
-                                  "MMM d, yyyy"
+                                  "MMM d, yyyy",
                                 )}
                                 {email.verified &&
                                   ` • Verified ${format(
                                     new Date(email.verified_at),
-                                    "MMM d, yyyy"
+                                    "MMM d, yyyy",
                                   )}`}
                               </div>
                             </div>
@@ -745,7 +776,7 @@ export default function UserDetailsPage() {
                                   handleDeleteItem(
                                     email.id,
                                     "email",
-                                    email.email
+                                    email.email,
                                   )
                                 }
                               >
@@ -768,9 +799,7 @@ export default function UserDetailsPage() {
                       Phone Numbers
                     </h3>
                     {user.phone_numbers && user.phone_numbers.length > 0 && (
-                      <Button
-                        onClick={() => setAddPhoneModalOpen(true)}
-                      >
+                      <Button onClick={() => setAddPhoneModalOpen(true)}>
                         Add Phone Number
                       </Button>
                     )}
@@ -808,7 +837,9 @@ export default function UserDetailsPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
-                                <span className="text-lg">{getCountryFlag(phone.country_code)}</span>
+                                <span className="text-lg">
+                                  {getCountryFlag(phone.country_code)}
+                                </span>
                                 <span className="text-sm text-gray-900 dark:text-gray-100">
                                   {phone.country_code} {phone.phone_number}
                                 </span>
@@ -831,12 +862,12 @@ export default function UserDetailsPage() {
                                 Added{" "}
                                 {format(
                                   new Date(phone.created_at),
-                                  "MMM d, yyyy"
+                                  "MMM d, yyyy",
                                 )}
                                 {phone.verified &&
                                   ` • Verified ${format(
                                     new Date(phone.verified_at),
-                                    "MMM d, yyyy"
+                                    "MMM d, yyyy",
                                   )}`}
                               </div>
                             </div>
@@ -856,7 +887,7 @@ export default function UserDetailsPage() {
                                   handleDeleteItem(
                                     phone.id,
                                     "phone",
-                                    phone.phone_number
+                                    phone.phone_number,
                                   )
                                 }
                               >
@@ -881,7 +912,7 @@ export default function UserDetailsPage() {
                   </div>
 
                   {!user.social_connections ||
-                    user.social_connections.length === 0 ? (
+                  user.social_connections.length === 0 ? (
                     <EmptyState
                       title="No social connections"
                       description="This user hasn't connected any social accounts yet."
@@ -922,7 +953,7 @@ export default function UserDetailsPage() {
                                 Connected{" "}
                                 {format(
                                   new Date(connection.created_at),
-                                  "MMM d, yyyy"
+                                  "MMM d, yyyy",
                                 )}
                               </div>
                             </div>
@@ -933,7 +964,7 @@ export default function UserDetailsPage() {
                                 handleDeleteItem(
                                   connection.id,
                                   "social",
-                                  getSocialProviderName(connection.provider)
+                                  getSocialProviderName(connection.provider),
                                 )
                               }
                             >
@@ -1100,7 +1131,11 @@ export default function UserDetailsPage() {
         onClose={() => setEditEmailModalOpen(false)}
         onSubmit={handleUpdateEmail}
         emailData={selectedEmail}
-        userData={user ? { primary_email_address_id: user.primary_email_address_id } : null}
+        userData={
+          user
+            ? { primary_email_address_id: user.primary_email_address_id }
+            : null
+        }
       />
 
       <EditPhoneModal
@@ -1108,7 +1143,11 @@ export default function UserDetailsPage() {
         onClose={() => setEditPhoneModalOpen(false)}
         onSubmit={handleUpdatePhone}
         phoneData={selectedPhone}
-        userData={user ? { primary_phone_number_id: user.primary_phone_number_id } : null}
+        userData={
+          user
+            ? { primary_phone_number_id: user.primary_phone_number_id }
+            : null
+        }
       />
 
       <EditProfileModal
@@ -1118,11 +1157,11 @@ export default function UserDetailsPage() {
         profileData={
           user
             ? {
-              first_name: user.first_name,
-              last_name: user.last_name,
-              username: user.username || undefined,
-              image_url: user.profile_picture_url || undefined,
-            }
+                first_name: user.first_name,
+                last_name: user.last_name,
+                username: user.username || undefined,
+                image_url: user.profile_picture_url || undefined,
+              }
             : null
         }
       />

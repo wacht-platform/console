@@ -148,8 +148,7 @@ export default function WorkspacesPage() {
               data?.data.map((workspace) => (
                 <TableRow
                   key={workspace.id}
-                  className="cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800/50"
-                  onClick={() => navigate(`workspace/${workspace.id}`)}
+                  href={`workspace/${workspace.id}`}
                 >
                   <TableCell>
                     <div className="flex items-center gap-3">

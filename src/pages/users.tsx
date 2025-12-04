@@ -155,12 +155,6 @@ export default function UsersPage() {
     }
   };
 
-  const handleViewUserDetails = (user: UserWithIdentifiers) => {
-    navigate(
-      `/project/${projectId}/deployment/${deploymentId}/user/${user.id}`,
-    );
-  };
-
   const handleSortChange = (value: string) => {
     const [key, order] = value.split("-");
     setSortKey(key);
@@ -295,8 +289,7 @@ export default function UsersPage() {
               activeUsers?.data.map((user) => (
                 <TableRow
                   key={user.id}
-                  className="cursor-pointer"
-                  onClick={() => handleViewUserDetails(user)}
+                  href={`/project/${projectId}/deployment/${deploymentId}/user/${user.id}`}
                 >
                   <TableCell>
                     <div className="flex items-center gap-3">

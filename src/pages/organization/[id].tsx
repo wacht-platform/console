@@ -37,7 +37,14 @@ import type {
   Workspace,
 } from "@/types/organization";
 
-import { PencilIcon, TrashIcon, UsersIcon, ChevronLeftIcon, ChevronRightIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import {
+  PencilIcon,
+  TrashIcon,
+  UsersIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/24/outline";
 
 // Helper function to convert OrganizationRole to OrganizationRoleSimple
 const convertToSimpleRoles = (
@@ -53,7 +60,7 @@ const convertToSimpleRoles = (
 
 export default function OrganizationDetailsPage() {
   const navigate = useNavigate();
-  const { id, projectId, deploymentId } = useParams();
+  const { id } = useParams();
   const organizationId = id;
   const isDarkMode = useDarkMode();
 
@@ -82,7 +89,7 @@ export default function OrganizationDetailsPage() {
       debouncedSearch,
       sortKey,
       sortOrder,
-      activeTab === 1
+      activeTab === 1,
     );
 
   const [publicMetadata, setPublicMetadata] = useState<string>("");
@@ -187,7 +194,9 @@ export default function OrganizationDetailsPage() {
       toast.success("Public metadata updated successfully");
     } catch (error) {
       console.error("Failed to save public metadata:", error);
-      toast.error("Failed to update public metadata. Please check the JSON format.");
+      toast.error(
+        "Failed to update public metadata. Please check the JSON format.",
+      );
     }
   };
 
@@ -203,7 +212,9 @@ export default function OrganizationDetailsPage() {
       toast.success("Private metadata updated successfully");
     } catch (error) {
       console.error("Failed to save private metadata:", error);
-      toast.error("Failed to update private metadata. Please check the JSON format.");
+      toast.error(
+        "Failed to update private metadata. Please check the JSON format.",
+      );
     }
   };
 
@@ -590,10 +601,18 @@ export default function OrganizationDetailsPage() {
                     </div>
                   ) : !membersData?.data || membersData.data.length === 0 ? (
                     <EmptyState
-                      title={search ? "No members found" : "No members added yet"}
-                      description={search ? "Try adjusting your search terms." : "Get started by adding your first organization member."}
+                      title={
+                        search ? "No members found" : "No members added yet"
+                      }
+                      description={
+                        search
+                          ? "Try adjusting your search terms."
+                          : "Get started by adding your first organization member."
+                      }
                       actionLabel={search ? undefined : "Add Member"}
-                      onAction={search ? undefined : () => setAddMemberModalOpen(true)}
+                      onAction={
+                        search ? undefined : () => setAddMemberModalOpen(true)
+                      }
                       icon={<UsersIcon />}
                     />
                   ) : (
@@ -653,13 +672,17 @@ export default function OrganizationDetailsPage() {
                       {/* Pagination Controls */}
                       <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100 dark:border-zinc-800">
                         <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                          Showing {page * pageSize + 1} to {Math.min((page + 1) * pageSize, (page * pageSize) + membersData.data.length)}
+                          Showing {page * pageSize + 1} to{" "}
+                          {Math.min(
+                            (page + 1) * pageSize,
+                            page * pageSize + membersData.data.length,
+                          )}
                         </div>
                         <div className="flex gap-2">
                           <Button
                             outline
                             disabled={page === 0}
-                            onClick={() => setPage(p => Math.max(0, p - 1))}
+                            onClick={() => setPage((p) => Math.max(0, p - 1))}
                             className="p-2"
                           >
                             <ChevronLeftIcon className="h-4 w-4" />
@@ -667,7 +690,7 @@ export default function OrganizationDetailsPage() {
                           <Button
                             outline
                             disabled={!membersData.has_more}
-                            onClick={() => setPage(p => p + 1)}
+                            onClick={() => setPage((p) => p + 1)}
                             className="p-2"
                           >
                             <ChevronRightIcon className="h-4 w-4" />

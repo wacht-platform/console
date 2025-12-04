@@ -140,8 +140,7 @@ export default function OrganizationsPage() {
 							data?.data.map((org) => (
 								<TableRow
 									key={org.id}
-									className="cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800/50"
-									onClick={() => navigate(`../organization/${org.id}`)}
+									href={`../organization/${org.id}`}
 								>
 									<TableCell>
 										<div className="flex items-center gap-3">
