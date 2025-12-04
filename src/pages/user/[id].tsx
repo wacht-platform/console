@@ -337,8 +337,13 @@ export default function UserDetailsPage() {
 
   const handleImpersonate = async () => {
     try {
-      await impersonateUser(userId || "");
-      toast.success("Impersonation started successfully");
+      const response = await impersonateUser(userId || "");
+      if (response && response.redirect_url) {
+        window.open(response.redirect_url, "_blank");
+        toast.success("Impersonation started successfully");
+      } else {
+        toast.error("Failed to get impersonation URL");
+      }
     } catch (error) {
       console.error("Failed to impersonate user:", error);
       toast.error("Failed to impersonate user");
