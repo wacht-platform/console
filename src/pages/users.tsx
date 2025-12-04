@@ -338,7 +338,6 @@ export default function UsersPage() {
                   <TableCell>
                     <Button
                       color="red"
-                      outline
                       className="text-xs py-1 px-2"
                       onClick={(e: any) => {
                         e.stopPropagation();
