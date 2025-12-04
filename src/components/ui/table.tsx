@@ -140,7 +140,7 @@ export function TableCell({
       {...props}
       className={clsx(
         className,
-        "px-6 py-2 text-sm text-zinc-900 dark:text-zinc-200",
+        "relative px-6 py-2 text-sm text-zinc-900 dark:text-zinc-200",
       )}
     >
       {href && (
