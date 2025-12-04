@@ -13,11 +13,20 @@ async function fetchOrganizationMembers(
 	organizationId: string,
 	offset: number = 0,
 	limit: number = 20,
+	search?: string,
+	sortKey?: string,
+	sortOrder?: string,
 ): Promise<PaginatedResponse<OrganizationMemberDetails>> {
 	const { data } = await apiClient.get<PaginatedResponse<OrganizationMemberDetails>>(
 		`/deployments/${deploymentId}/organizations/${organizationId}/members`,
 		{
-			params: { offset, limit },
+			params: {
+				offset,
+				limit,
+				search,
+				sort_key: sortKey,
+				sort_order: sortOrder,
+			},
 		}
 	);
 	return data;
@@ -27,12 +36,24 @@ export function useOrganizationMembers(
 	organizationId: string | undefined,
 	offset: number = 0,
 	limit: number = 20,
+	search?: string,
+	sortKey?: string,
+	sortOrder?: string,
 	enabled: boolean = true,
 ) {
 	const { selectedDeployment } = useProjects();
 
 	return useQuery({
-		queryKey: ["organization-members", selectedDeployment?.id, organizationId, offset, limit],
+		queryKey: [
+			"organization-members",
+			selectedDeployment?.id,
+			organizationId,
+			offset,
+			limit,
+			search,
+			sortKey,
+			sortOrder,
+		],
 		queryFn: () => {
 			if (!selectedDeployment?.id || !organizationId) {
 				throw new Error("No deployment or organization selected");
@@ -42,6 +63,9 @@ export function useOrganizationMembers(
 				organizationId,
 				offset,
 				limit,
+				search,
+				sortKey,
+				sortOrder,
 			);
 		},
 		enabled: enabled && !!selectedDeployment?.id && !!organizationId,

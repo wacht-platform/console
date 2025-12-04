@@ -367,7 +367,7 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
               </Field>
             )}
 
-            <div className="flex items-center gap-2">
+            <Field className="flex items-center gap-2">
               <input
                 type="checkbox"
                 id="skipChecks"
@@ -378,7 +378,7 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
               <Label htmlFor="skipChecks" className="text-sm font-normal mb-0">
                 Skip password validation checks
               </Label>
-            </div>
+            </Field>
           </form>
         )}
       </DialogBody>

@@ -5,7 +5,10 @@ import { useWorkspaceDetails } from "@/lib/api/hooks/use-workspace-details";
 import { useWorkspaceMembers } from "@/lib/api/hooks/use-workspace-members";
 import { useDeleteWorkspace, useUpdateWorkspace } from "@/lib/api/hooks/use-workspace-mutations";
 import { useDarkMode } from "@/lib/hooks/use-dark-mode";
+import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 import { Button } from "@/components/ui/button";
+import { Input, InputGroup } from "@/components/ui/input";
+import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import { Spinner } from "@/components/ui/spinner";
 import { SimpleTabs, Tab } from "@/components/ui/simple-tabs";
 import Editor from "@monaco-editor/react";
@@ -26,6 +29,9 @@ import {
   PencilIcon,
   TrashIcon,
   PlusIcon,
+  MagnifyingGlassIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
 export default function WorkspaceDetailsPage() {
@@ -36,6 +42,14 @@ export default function WorkspaceDetailsPage() {
   
   // Tab state - needs to be declared before use
   const [activeTab, setActiveTab] = useState(0);
+
+  // Member search and sort state
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 500);
+  const [sortKey, setSortKey] = useState("created_at");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [page, setPage] = useState(0);
+  const pageSize = 20;
   
   const {
     data: workspace,
@@ -52,7 +66,15 @@ export default function WorkspaceDetailsPage() {
   const {
     data: membersData,
     isLoading: membersLoading,
-  } = useWorkspaceMembers(workspaceId, 0, 100, activeTab === 1);
+  } = useWorkspaceMembers(
+    workspaceId, 
+    page * pageSize, 
+    pageSize, 
+    debouncedSearch,
+    sortKey,
+    sortOrder,
+    activeTab === 1
+  );
 
   // Metadata editor states
   const [publicMetadata, setPublicMetadata] = useState<string>("");
@@ -378,62 +400,74 @@ export default function WorkspaceDetailsPage() {
                       Add Member
                     </Button>
                   </div>
+
+                  {/* Search and Sort Controls */}
+                  <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                    <div className="relative flex-1">
+                      <InputGroup>
+                        <MagnifyingGlassIcon />
+                        <Input
+                          name="search"
+                          placeholder="Search members..."
+                          value={search}
+                          onChange={(e) => {
+                            setSearch(e.target.value);
+                            setPage(0); // Reset to first page on search
+                          }}
+                        />
+                      </InputGroup>
+                    </div>
+                    <div className="w-full sm:w-64">
+                      <Listbox
+                        value={`${sortKey}-${sortOrder}`}
+                        onChange={(value) => {
+                          const [key, order] = value.split("-");
+                          setSortKey(key);
+                          setSortOrder(order);
+                        }}
+                      >
+                        <ListboxOption value="created_at-desc">
+                          <ListboxLabel>Date Joined (Newest)</ListboxLabel>
+                        </ListboxOption>
+                        <ListboxOption value="created_at-asc">
+                          <ListboxLabel>Date Joined (Oldest)</ListboxLabel>
+                        </ListboxOption>
+                        <ListboxOption value="first_name-asc">
+                          <ListboxLabel>First Name (A-Z)</ListboxLabel>
+                        </ListboxOption>
+                        <ListboxOption value="first_name-desc">
+                          <ListboxLabel>First Name (Z-A)</ListboxLabel>
+                        </ListboxOption>
+                        <ListboxOption value="last_name-asc">
+                          <ListboxLabel>Last Name (A-Z)</ListboxLabel>
+                        </ListboxOption>
+                        <ListboxOption value="last_name-desc">
+                          <ListboxLabel>Last Name (Z-A)</ListboxLabel>
+                        </ListboxOption>
+                        <ListboxOption value="email-asc">
+                          <ListboxLabel>Email (A-Z)</ListboxLabel>
+                        </ListboxOption>
+                        <ListboxOption value="email-desc">
+                          <ListboxLabel>Email (Z-A)</ListboxLabel>
+                        </ListboxOption>
+                        <ListboxOption value="username-asc">
+                          <ListboxLabel>Username (A-Z)</ListboxLabel>
+                        </ListboxOption>
+                        <ListboxOption value="username-desc">
+                          <ListboxLabel>Username (Z-A)</ListboxLabel>
+                        </ListboxOption>
+                      </Listbox>
+                    </div>
+                  </div>
+
                   {membersLoading ? (
                     <div className="flex justify-center py-8">
                       <Spinner className="h-6 w-6" />
                     </div>
-                  ) : membersData?.data && membersData.data.length > 0 ? (
-                    <div className="divide-y divide-gray-200 dark:divide-zinc-800">
-                      {membersData.data.map((member) => (
-                        <div key={member.id} className="py-4 first:pt-0 last:pb-0">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <Avatar
-                                className="size-10"
-                                initials={`${member.first_name?.[0] || ''}${member.last_name?.[0] || ''}`}
-                                alt={`${member.first_name} ${member.last_name}`}
-                              />
-                              <div>
-                                <p className="text-sm text-zinc-900 dark:text-zinc-100">
-                                  {member.first_name} {member.last_name}
-                                </p>
-                                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                  {member.roles.length > 0 ? member.roles[0].name : 'No role'}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Button
-                                outline
-                                onClick={() => {
-                                  setSelectedMember(member);
-                                  setEditMemberModalOpen(true);
-                                }}
-                                className="p-1.5"
-                              >
-                                <PencilIcon className="h-3.5 w-3.5" />
-                                <span className="sr-only">Edit Member</span>
-                              </Button>
-                              <Button
-                                outline
-                                onClick={() => {
-                                  setSelectedMember(member);
-                                  setDeleteMemberModalOpen(true);
-                                }}
-                                className="p-1.5 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-                              >
-                                <TrashIcon className="h-3.5 w-3.5" />
-                                <span className="sr-only">Remove Member</span>
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
+                  ) : !membersData?.data || membersData.data.length === 0 ? (
                     <EmptyState
-                      title="No members found"
-                      description="This workspace doesn't have any members yet."
+                      title={search ? "No members found" : "No members found"}
+                      description={search ? "Try adjusting your search terms." : "This workspace doesn't have any members yet."}
                       icon={
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -450,6 +484,81 @@ export default function WorkspaceDetailsPage() {
                         </svg>
                       }
                     />
+                  ) : (
+                    <>
+                      <div className="divide-y divide-gray-200 dark:divide-zinc-800">
+                        {membersData.data.map((member) => (
+                          <div key={member.id} className="py-4 first:pt-0 last:pb-0">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <Avatar
+                                  className="size-10"
+                                  initials={`${member.first_name?.[0] || ''}${member.last_name?.[0] || ''}`}
+                                  alt={`${member.first_name} ${member.last_name}`}
+                                />
+                                <div>
+                                  <p className="text-sm text-zinc-900 dark:text-zinc-100">
+                                    {member.first_name} {member.last_name}
+                                  </p>
+                                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                    {member.roles.length > 0 ? member.roles[0].name : 'No role'}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  outline
+                                  onClick={() => {
+                                    setSelectedMember(member);
+                                    setEditMemberModalOpen(true);
+                                  }}
+                                  className="p-1.5"
+                                >
+                                  <PencilIcon className="h-3.5 w-3.5" />
+                                  <span className="sr-only">Edit Member</span>
+                                </Button>
+                                <Button
+                                  outline
+                                  onClick={() => {
+                                    setSelectedMember(member);
+                                    setDeleteMemberModalOpen(true);
+                                  }}
+                                  className="p-1.5 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                                >
+                                  <TrashIcon className="h-3.5 w-3.5" />
+                                  <span className="sr-only">Remove Member</span>
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Pagination Controls */}
+                      <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100 dark:border-zinc-800">
+                        <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                          Showing {page * pageSize + 1} to {Math.min((page + 1) * pageSize, (page * pageSize) + membersData.data.length)}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            outline
+                            disabled={page === 0}
+                            onClick={() => setPage(p => Math.max(0, p - 1))}
+                            className="p-2"
+                          >
+                            <ChevronLeftIcon className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            outline
+                            disabled={!membersData.has_more}
+                            onClick={() => setPage(p => p + 1)}
+                            className="p-2"
+                          >
+                            <ChevronRightIcon className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </>
                   )}
                 </div>
               </Tab>

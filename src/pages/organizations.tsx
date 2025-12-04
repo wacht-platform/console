@@ -20,6 +20,7 @@ import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import { useNavigate } from "react-router";
 import { CreateOrganizationModal } from "@/components/organizations/CreateOrganizationModal";
 import { SkeletonTableRows } from "@/components/ui/skeleton";
+import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
 
@@ -30,12 +31,17 @@ export default function OrganizationsPage() {
 	const [page, setPage] = useState(1);
 	const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_OPTIONS[0]);
 	const [createModalOpen, setCreateModalOpen] = useState(false);
+	
+	const [search, setSearch] = useState("");
+	const debouncedSearch = useDebouncedValue(search, 500);
+
 	const offset = (page - 1) * itemsPerPage;
 	const { data: organizations, isLoading } = useDeploymentOrganizations({
 		offset,
 		sort_key: sortKey,
 		sort_order: sortOrder,
 		limit: itemsPerPage,
+		search: debouncedSearch,
 	});
 
 	const data = {
@@ -69,14 +75,23 @@ export default function OrganizationsPage() {
 			<div className="flex flex-col gap-2 mb-2">
 				<Heading>Organizations</Heading>
 			</div>
-			{!isLoading && (data?.data.length ?? 0) > 0 && (
+			{/* Show controls if there is data OR if searching (to allow clearing search) */}
+			{((data?.data.length ?? 0) > 0 || search) && (
 				<div className="flex flex-wrap items-center justify-between gap-4">
 					<div className="sm:flex-1">
 						<div className="mt-4 flex max-w-md gap-2">
 							<div className="flex-1">
 								<InputGroup className="w-64">
 									<MagnifyingGlassIcon className="size-4" />
-									<Input name="search" placeholder="Search organizations..." />
+									<Input 
+										name="search" 
+										placeholder="Search organizations..." 
+										value={search}
+										onChange={(e) => {
+											setSearch(e.target.value);
+											setPage(1);
+										}}
+									/>
 								</InputGroup>
 							</div>
 							<div className="flex-1">
@@ -149,22 +164,36 @@ export default function OrganizationsPage() {
 					</TableBody>
 				</Table>
 
-				{/* Empty State */}
+				{/* Empty State - Only show if no data AND no search (if search yields no results, we might want a different empty state, but for now standard empty state or just empty table is fine, though user might be confused. The existing code hides table body if empty. I'll stick to logic: if not loading and empty data... */}
 				{!isLoading && (data?.data.length ?? 0) === 0 && (
 					<div className="text-center py-12">
-						<BuildingOfficeIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
-						<h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-							No organizations
-						</h3>
-						<p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-							Get started by creating your first organization.
-						</p>
-						<div className="mt-6">
-							<Button onClick={() => setCreateModalOpen(true)}>
-								<PlusIcon className="mr-2 h-4 w-4" />
-								Create Organization
-							</Button>
-						</div>
+						{search ? (
+							<>
+								<MagnifyingGlassIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
+								<h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+									No results found
+								</h3>
+								<p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+									Try adjusting your search terms.
+								</p>
+							</>
+						) : (
+							<>
+								<BuildingOfficeIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
+								<h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+									No organizations
+								</h3>
+								<p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+									Get started by creating your first organization.
+								</p>
+								<div className="mt-6">
+									<Button onClick={() => setCreateModalOpen(true)}>
+										<PlusIcon className="mr-2 h-4 w-4" />
+										Create Organization
+									</Button>
+								</div>
+							</>
+						)}
 					</div>
 				)}
 

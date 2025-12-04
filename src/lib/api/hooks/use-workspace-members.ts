@@ -35,11 +35,20 @@ async function fetchWorkspaceMembers(
 	workspaceId: string,
 	offset: number = 0,
 	limit: number = 20,
+	search?: string,
+	sortKey?: string,
+	sortOrder?: string,
 ): Promise<PaginatedResponse<WorkspaceMemberDetails>> {
 	const { data } = await apiClient.get<PaginatedResponse<WorkspaceMemberDetails>>(
 		`/deployments/${deploymentId}/workspaces/${workspaceId}/members`,
 		{
-			params: { offset, limit },
+			params: {
+				offset,
+				limit,
+				search,
+				sort_key: sortKey,
+				sort_order: sortOrder,
+			},
 		}
 	);
 	return data;
@@ -49,12 +58,24 @@ export function useWorkspaceMembers(
 	workspaceId: string | undefined,
 	offset: number = 0,
 	limit: number = 20,
+	search?: string,
+	sortKey?: string,
+	sortOrder?: string,
 	enabled: boolean = true,
 ) {
 	const { selectedDeployment } = useProjects();
 
 	return useQuery({
-		queryKey: ["workspace-members", selectedDeployment?.id, workspaceId, offset, limit],
+		queryKey: [
+			"workspace-members",
+			selectedDeployment?.id,
+			workspaceId,
+			offset,
+			limit,
+			search,
+			sortKey,
+			sortOrder,
+		],
 		queryFn: () => {
 			if (!selectedDeployment?.id || !workspaceId) {
 				throw new Error("No deployment or workspace selected");
@@ -64,6 +85,9 @@ export function useWorkspaceMembers(
 				workspaceId,
 				offset,
 				limit,
+				search,
+				sortKey,
+				sortOrder,
 			);
 		},
 		enabled: enabled && !!selectedDeployment?.id && !!workspaceId,

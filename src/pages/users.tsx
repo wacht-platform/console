@@ -35,6 +35,7 @@ import {
 import { useNavigate, useLocation, useParams } from "react-router";
 import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
 import { SkeletonTableRows } from "@/components/ui/skeleton";
+import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
 
@@ -45,6 +46,10 @@ export default function UsersPage() {
   const [sortKey, setSortKey] = useState<string>("created_at");
   const [sortOrder, setSortOrder] = useState<string>("desc");
   const [page, setPage] = useState(1);
+
+  // Search state
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 500);
 
   // Determine current tab from URL
   const getCurrentTab = () => {
@@ -58,6 +63,8 @@ export default function UsersPage() {
   // Update selected tab when URL changes
   useEffect(() => {
     setSelectedTabKey(getCurrentTab());
+    setPage(1); // Reset page on tab change
+    setSearch(""); // Reset search on tab change
   }, [location.pathname]);
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_OPTIONS[0]);
   const offset = (page - 1) * itemsPerPage;
@@ -74,6 +81,7 @@ export default function UsersPage() {
       sort_order: sortOrder,
       limit: itemsPerPage,
       enabled: selectedTabKey === "Active",
+      search: debouncedSearch,
     });
 
   const { data: invitedUsers, isLoading: invitedUsersLoading } =
@@ -83,6 +91,7 @@ export default function UsersPage() {
       sort_order: sortOrder,
       limit: itemsPerPage,
       enabled: selectedTabKey === "Invited",
+      search: debouncedSearch,
     });
 
   const { data: waitlistUsers, isLoading: waitlistUsersLoading } =
@@ -92,6 +101,7 @@ export default function UsersPage() {
       sort_order: sortOrder,
       limit: itemsPerPage,
       enabled: selectedTabKey === "Waitlist",
+      search: debouncedSearch,
     });
 
   const isLoading =
@@ -106,7 +116,9 @@ export default function UsersPage() {
 
   // Helper function to check if current tab has any users
   const hasUsersInCurrentTab = () => {
-    if (isLoading) return false;
+    // If searching, we want to show the table (empty state handled inside)
+    if (search) return true;
+    
     if (selectedTabKey === "Active") return (activeUsers?.data.length ?? 0) > 0;
     if (selectedTabKey === "Invited")
       return (invitedUsers?.data.length ?? 0) > 0;
@@ -185,7 +197,15 @@ export default function UsersPage() {
               <div className="flex-1">
                 <InputGroup className="w-64">
                   <MagnifyingGlassIcon className="size-4" />
-                  <Input name="search" placeholder="Search users&hellip;" />
+                  <Input 
+                    name="search" 
+                    placeholder="Search users..." 
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setPage(1);
+                    }}
+                  />
                 </InputGroup>
               </div>
               <div className="flex-1">
