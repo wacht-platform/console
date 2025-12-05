@@ -504,8 +504,8 @@ export default function UserDetailsPage() {
                 </div>
               </div>
 
-              {/* Account Status */}
-              <div className="w-full py-2 mt-2">
+              {/* Security Status */}
+              <div className="w-full mb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
                     <span className="text-sm text-gray-900 dark:text-gray-100">
@@ -519,10 +519,6 @@ export default function UserDetailsPage() {
                     color={user.disabled ? "zinc" : "green"}
                   />
                 </div>
-              </div>
-
-              {/* Security Status */}
-              <div className="w-full space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">
                     Password
