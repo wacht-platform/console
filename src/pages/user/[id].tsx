@@ -508,7 +508,7 @@ export default function UserDetailsPage() {
               <div className="w-full py-2 mt-2">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <span className="text-sm text-gray-900 dark:text-gray-100">
                       User Status
                     </span>
                   </div>
@@ -714,7 +714,7 @@ export default function UserDetailsPage() {
                   </div>
 
                   {!user.email_addresses ||
-                    user.email_addresses.length === 0 ? (
+                  user.email_addresses.length === 0 ? (
                     <EmptyState
                       title="No email addresses"
                       description="Get started by adding an email address for this user."
@@ -929,7 +929,7 @@ export default function UserDetailsPage() {
                   </div>
 
                   {!user.social_connections ||
-                    user.social_connections.length === 0 ? (
+                  user.social_connections.length === 0 ? (
                     <EmptyState
                       title="No social connections"
                       description="This user hasn't connected any social accounts yet."
@@ -1174,11 +1174,11 @@ export default function UserDetailsPage() {
         profileData={
           user
             ? {
-              first_name: user.first_name,
-              last_name: user.last_name,
-              username: user.username || undefined,
-              image_url: user.profile_picture_url || undefined,
-            }
+                first_name: user.first_name,
+                last_name: user.last_name,
+                username: user.username || undefined,
+                image_url: user.profile_picture_url || undefined,
+              }
             : null
         }
       />
