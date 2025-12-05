@@ -505,10 +505,10 @@ export default function UserDetailsPage() {
               </div>
 
               {/* Security Status */}
-              <div className="w-full mb-3">
+              <div className="w-full mb-3 flex flex-col gap-1">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
-                    <span className="text-sm text-gray-900 dark:text-gray-100">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
                       User Status
                     </span>
                   </div>
