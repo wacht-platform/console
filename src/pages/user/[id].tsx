@@ -504,7 +504,7 @@ export default function UserDetailsPage() {
                 </div>
               </div>
 
-                {/* Security Status */}
+              {/* Security Status */}
               <div className="w-full space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -539,17 +539,17 @@ export default function UserDetailsPage() {
 
               {/* Segments */}
               <div className="w-full py-2 mt-2">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      Segments
-                    </span>
-                  </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Segments
+                  </span>
+                </div>
 
-                  <SegmentManager
-                    targetId={user.id}
-                    targetType="user"
-                    currentSegments={user.segments}
-                  />
+                <SegmentManager
+                  targetId={user.id}
+                  targetType="user"
+                  currentSegments={user.segments}
+                />
               </div>
 
               {/* Account Status */}
@@ -558,9 +558,6 @@ export default function UserDetailsPage() {
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       User Status
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {user.disabled ? "User is currently disabled" : "User is active"}
                     </span>
                   </div>
                   <Switch
@@ -717,7 +714,7 @@ export default function UserDetailsPage() {
                   </div>
 
                   {!user.email_addresses ||
-                  user.email_addresses.length === 0 ? (
+                    user.email_addresses.length === 0 ? (
                     <EmptyState
                       title="No email addresses"
                       description="Get started by adding an email address for this user."
@@ -932,7 +929,7 @@ export default function UserDetailsPage() {
                   </div>
 
                   {!user.social_connections ||
-                  user.social_connections.length === 0 ? (
+                    user.social_connections.length === 0 ? (
                     <EmptyState
                       title="No social connections"
                       description="This user hasn't connected any social accounts yet."
@@ -1177,11 +1174,11 @@ export default function UserDetailsPage() {
         profileData={
           user
             ? {
-                first_name: user.first_name,
-                last_name: user.last_name,
-                username: user.username || undefined,
-                image_url: user.profile_picture_url || undefined,
-              }
+              first_name: user.first_name,
+              last_name: user.last_name,
+              username: user.username || undefined,
+              image_url: user.profile_picture_url || undefined,
+            }
             : null
         }
       />
