@@ -537,23 +537,8 @@ export default function UserDetailsPage() {
                 </div>
               </div>
 
-              {/* Segments */}
-              <div className="w-full py-2 mt-2">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Segments
-                  </span>
-                </div>
-
-                <SegmentManager
-                  targetId={user.id}
-                  targetType="user"
-                  currentSegments={user.segments}
-                />
-              </div>
-
               {/* Account Status */}
-              <div className="w-full py-4 border-t border-gray-100 dark:border-zinc-800 mt-2">
+              <div className="w-full py-2 mt-2">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -567,6 +552,21 @@ export default function UserDetailsPage() {
                     color={user.disabled ? "zinc" : "green"}
                   />
                 </div>
+              </div>
+
+              {/* Segments */}
+              <div className="w-full py-2 mt-2">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Segments
+                  </span>
+                </div>
+
+                <SegmentManager
+                  targetId={user.id}
+                  targetType="user"
+                  currentSegments={user.segments}
+                />
               </div>
             </div>
           </div>
