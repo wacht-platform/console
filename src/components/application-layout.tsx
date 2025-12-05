@@ -24,6 +24,7 @@ import {
   XMarkIcon,
   Bars3Icon,
   KeyIcon,
+  RectangleStackIcon,
 } from "@heroicons/react/24/outline";
 import {
   useProjects,
@@ -135,14 +136,16 @@ export function ApplicationLayout() {
     [selectedDeployment, selectedProject],
   );
 
-  // Main navigation sections for the vertical sidebar (only main categories)
-  const mainNavigation = [
+  const overviewNavigation = [
     {
       name: "Overview",
       href: createNavigationLink("/"),
       icon: ViewColumnsIcon,
       current: pathname === "/" || pathname.endsWith("//"),
     },
+  ];
+
+  const managementNavigation = [
     {
       name: "Users",
       href: createNavigationLink("users/active"),
@@ -156,32 +159,35 @@ export function ApplicationLayout() {
       current: pathname.includes("/organizations"),
     },
     {
-      name: "Webhooks",
-      href: createNavigationLink("webhooks"),
-      icon: BoltIcon,
-      current: pathname.includes("/webhooks"),
+      name: "Segments",
+      href: createNavigationLink("segments"),
+      icon: RectangleStackIcon,
+      current: pathname.includes("segments"),
     },
+  ];
+
+  const developerNavigation = [
     {
       name: "API Keys",
       href: createNavigationLink("api-keys"),
       icon: KeyIcon,
       current: pathname.includes("/api-keys"),
     },
-    // {
-    //   name: "Billing",
-    //   href: createNavigationLink("billing"),
-    //   icon: CreditCardIcon,
-    //   current: pathname.includes("/billing"),
-    // },
-  ];
-
-  const sidebarSections = [
+    {
+      name: "Webhooks",
+      href: createNavigationLink("webhooks"),
+      icon: BoltIcon,
+      current: pathname.includes("/webhooks"),
+    },
     {
       name: "Agents & LLMs",
       href: createNavigationLink("llms/ai-agents"), // Default to first sub-page
       icon: CodeBracketSquareIcon,
       current: pathname.includes("llms/"),
     },
+  ];
+
+  const settingsNavigation = [
     {
       name: "Authentication",
       href: createNavigationLink("auth/schema-factors"), // Default to first sub-page
@@ -189,7 +195,7 @@ export function ApplicationLayout() {
       current: pathname.includes("auth/"),
     },
     {
-      name: "B2B Features",
+      name: "B2B Settings",
       href: createNavigationLink("manage-organizations"), // Default to first sub-page
       icon: BuildingOffice2Icon,
       current: pathname.includes("manage-"),
@@ -337,6 +343,7 @@ export function ApplicationLayout() {
     if (pathname.includes("llms/")) return "agents";
     if (pathname.includes("auth/")) return "auth";
     if (pathname.includes("manage-")) return "b2b";
+    if (pathname.includes("segments")) return "segments";
     if (pathname.includes("deployment-settings") || pathname.includes("emails"))
       return "customization";
     if (pathname.includes("webhooks")) return "webhooks";
@@ -422,13 +429,10 @@ export function ApplicationLayout() {
                 </div>
                 <nav className="relative flex flex-1 flex-col">
                   <ul role="list" className="flex flex-1 flex-col gap-y-6">
-                    {/* Main navigation */}
+                    {/* Overview */}
                     <li>
-                      <div className="text-xs font-normal text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                        Manage
-                      </div>
-                      <ul role="list" className="-mx-2 mt-1.5 space-y-0.5">
-                        {mainNavigation.map((item) => (
+                      <ul role="list" className="-mx-2 space-y-1">
+                        {overviewNavigation.map((item) => (
                           <li key={item.name}>
                             <Link
                               to={item.href}
@@ -455,13 +459,79 @@ export function ApplicationLayout() {
                       </ul>
                     </li>
 
-                    {/* Main sections */}
+                    {/* Management */}
                     <li>
                       <div className="text-xs font-normal text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                        Features
+                        Management
                       </div>
-                      <ul role="list" className="-mx-2 mt-1.5 space-y-0.5">
-                        {sidebarSections.map((item) => (
+                      <ul role="list" className="-mx-2 mt-2 space-y-1">
+                        {managementNavigation.map((item) => (
+                          <li key={item.name}>
+                            <Link
+                              to={item.href}
+                              className={classNames(
+                                item.current
+                                  ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400"
+                                  : "text-gray-800 hover:bg-gray-50/70 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
+                                "group flex gap-x-3 rounded-lg p-2 text-sm font-normal transition-all duration-150",
+                              )}
+                            >
+                              <item.icon
+                                aria-hidden="true"
+                                className={classNames(
+                                  item.current
+                                    ? "text-indigo-600 dark:text-indigo-400"
+                                    : "text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400",
+                                  "size-5 shrink-0 transition-colors duration-150",
+                                )}
+                              />
+                              {item.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+
+                    {/* Configuration */}
+                    <li>
+                      <div className="text-xs font-normal text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Configuration
+                      </div>
+                      <ul role="list" className="-mx-2 mt-2 space-y-1">
+                        {settingsNavigation.map((item) => (
+                          <li key={item.name}>
+                            <Link
+                              to={item.href}
+                              className={classNames(
+                                item.current
+                                  ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400"
+                                  : "text-gray-800 hover:bg-gray-50/70 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
+                                "group flex gap-x-3 rounded-lg p-2 text-sm font-normal transition-all duration-150",
+                              )}
+                            >
+                              <item.icon
+                                aria-hidden="true"
+                                className={classNames(
+                                  item.current
+                                    ? "text-indigo-600 dark:text-indigo-400"
+                                    : "text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400",
+                                  "size-5 shrink-0 transition-colors duration-150",
+                                )}
+                              />
+                              {item.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+
+                    {/* Developers */}
+                    <li>
+                      <div className="text-xs font-normal text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Developers
+                      </div>
+                      <ul role="list" className="-mx-2 mt-2 space-y-1">
+                        {developerNavigation.map((item) => (
                           <li key={item.name}>
                             <Link
                               to={item.href}
@@ -520,13 +590,10 @@ export function ApplicationLayout() {
           <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-4">
             <nav className="flex flex-1 flex-col min-w-0">
               <ul role="list" className="flex flex-1 flex-col gap-y-6">
-                {/* Main navigation */}
+                {/* Overview */}
                 <li>
-                  <div className="text-xs font-normal text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                    Manage
-                  </div>
-                  <ul role="list" className="-mx-2 mt-1.5 space-y-0.5">
-                    {mainNavigation.map((item) => (
+                  <ul role="list" className="-mx-2 space-y-1">
+                    {overviewNavigation.map((item) => (
                       <li key={item.name}>
                         <Link
                           to={item.href}
@@ -553,13 +620,79 @@ export function ApplicationLayout() {
                   </ul>
                 </li>
 
-                {/* Main sections */}
+                {/* Management */}
                 <li>
                   <div className="text-xs font-normal text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                    Features
+                    Management
                   </div>
-                  <ul role="list" className="-mx-2 mt-1.5 space-y-0.5">
-                    {sidebarSections.map((item) => (
+                  <ul role="list" className="-mx-2 mt-2 space-y-1">
+                    {managementNavigation.map((item) => (
+                      <li key={item.name}>
+                        <Link
+                          to={item.href}
+                          className={classNames(
+                            item.current
+                              ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400"
+                              : "text-gray-800 hover:bg-gray-50/70 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
+                            "group flex gap-x-3 rounded-lg p-2 text-sm font-normal transition-all duration-150",
+                          )}
+                        >
+                          <item.icon
+                            aria-hidden="true"
+                            className={classNames(
+                              item.current
+                                ? "text-indigo-600 dark:text-indigo-400"
+                                : "text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400",
+                              "size-5 shrink-0 transition-colors duration-150",
+                            )}
+                          />
+                          {item.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+
+                {/* Configuration */}
+                <li>
+                  <div className="text-xs font-normal text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Configuration
+                  </div>
+                  <ul role="list" className="-mx-2 mt-2 space-y-1">
+                    {settingsNavigation.map((item) => (
+                      <li key={item.name}>
+                        <Link
+                          to={item.href}
+                          className={classNames(
+                            item.current
+                              ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400"
+                              : "text-gray-800 hover:bg-gray-50/70 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
+                            "group flex gap-x-3 rounded-lg p-2 text-sm font-normal transition-all duration-150",
+                          )}
+                        >
+                          <item.icon
+                            aria-hidden="true"
+                            className={classNames(
+                              item.current
+                                ? "text-indigo-600 dark:text-indigo-400"
+                                : "text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400",
+                              "size-5 shrink-0 transition-colors duration-150",
+                            )}
+                          />
+                          {item.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+
+                {/* Developers */}
+                <li>
+                  <div className="text-xs font-normal text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Developers
+                  </div>
+                  <ul role="list" className="-mx-2 mt-2 space-y-1">
+                    {developerNavigation.map((item) => (
                       <li key={item.name}>
                         <Link
                           to={item.href}

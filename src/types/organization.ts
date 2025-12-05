@@ -1,5 +1,8 @@
 
 
+import { Segment } from './segment';
+
+
 // Organization Role Types
 export interface OrganizationRole {
   id: string;
@@ -71,6 +74,7 @@ export interface Workspace {
   member_count: number;
   public_metadata: Record<string, unknown>;
   private_metadata: Record<string, unknown>;
+  segments?: Segment[];
 }
 
 // Organization Types
@@ -84,6 +88,7 @@ export interface Organization {
   member_count: number;
   public_metadata: Record<string, unknown>;
   private_metadata: Record<string, unknown>;
+  segments?: Segment[];
 }
 
 export interface OrganizationDetails {
@@ -98,6 +103,7 @@ export interface OrganizationDetails {
   private_metadata: Record<string, unknown>;
   roles: OrganizationRole[];
   workspaces: Workspace[];
+  segments?: Segment[];
 }
 
 // API Request/Response Types

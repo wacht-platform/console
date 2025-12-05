@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "../client";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { WorkspaceRole } from "@/types/organization";
+import { Segment } from "@/types/segment";
 
 interface WorkspaceDetails {
 	id: string;
@@ -16,6 +17,7 @@ interface WorkspaceDetails {
 	organization_id: string;
 	organization_name: string;
 	roles: WorkspaceRole[];
+	segments?: Segment[];
 }
 
 async function fetchWorkspaceDetails(

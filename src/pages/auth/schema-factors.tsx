@@ -1513,17 +1513,6 @@ export default function SchemaFactorsPage() {
               </SwitchField>
             </div>
           </div>
-
-          <div className="space-y-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="text-base font-medium">Session Settings</h2>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  Configure the settings for user sessions
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 

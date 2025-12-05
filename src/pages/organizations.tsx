@@ -135,7 +135,7 @@ export default function OrganizationsPage() {
           </TableHead>
           <TableBody>
             {isLoading ? (
-              <SkeletonTableRows rows={10} columns={3} withAvatar={true} />
+              <SkeletonTableRows rows={10} columns={4} withAvatar={true} />
             ) : data?.data.length === 0 ? null : (
               data?.data.map((org) => (
                 <TableRow key={org.id} href={`../organization/${org.id}`}>

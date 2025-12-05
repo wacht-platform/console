@@ -1,3 +1,5 @@
+import { Segment } from "./segment";
+
 export interface UserWithIdentifiers {
 	id: string;
 	created_at: string;
@@ -8,6 +10,7 @@ export interface UserWithIdentifiers {
 	profile_picture_url: string;
 	primary_email_address: string | null;
 	primary_phone_number: string | null;
+	segments?: Segment[];
 }
 
 export interface DeploymentInvitation {
@@ -118,6 +121,7 @@ export interface UserDetails {
 	email_addresses: UserEmailAddress[];
 	phone_numbers: UserPhoneNumber[];
 	social_connections: SocialConnection[];
+	segments?: Segment[];
 
 	// Authentication
 	has_password: boolean;

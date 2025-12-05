@@ -42,6 +42,7 @@ async function fetchUserWaitlist(
 
 type ExtendedHookParams = QueryParams & {
   enabled: boolean;
+  segment_id?: string;
 };
 
 export function useDeploymentUsers(

@@ -20,6 +20,7 @@ import { AddWorkspaceMemberDialog } from "@/components/workspaces/AddWorkspaceMe
 import { EditWorkspaceMemberDialog } from "@/components/workspaces/EditWorkspaceMemberDialog";
 import { useDeleteWorkspaceRole } from "@/lib/api/hooks/use-workspace-role-mutations";
 import { useRemoveWorkspaceMember } from "@/lib/api/hooks/use-workspace-mutations";
+import { SegmentManager } from "@/components/segments/SegmentManager";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Avatar } from "@/components/ui/avatar";
 import { WorkspaceRole } from "@/types/organization";
@@ -322,6 +323,21 @@ export default function WorkspaceDetailsPage() {
                   <span className="text-sm text-zinc-900 dark:text-zinc-100">
                     {workspace.roles ? workspace.roles.length : 0}
                   </span>
+                </div>
+
+                {/* Segments */}
+                <div className="py-2 border-t border-gray-100 dark:border-zinc-800 mt-2">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Segments
+                    </span>
+                  </div>
+                  
+                  <SegmentManager
+                    targetId={workspace.id}
+                    targetType="workspace"
+                    currentSegments={workspace.segments}
+                  />
                 </div>
               </div>
 

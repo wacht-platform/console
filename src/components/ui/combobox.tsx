@@ -14,6 +14,7 @@ export function Combobox<T>({
   autoFocus,
   "aria-label": ariaLabel,
   children,
+  onBlur,
   ...props
 }: {
   options: T[];
@@ -23,8 +24,9 @@ export function Combobox<T>({
   placeholder?: string;
   autoFocus?: boolean;
   "aria-label"?: string;
+  onBlur?: () => void;
   children: (value: NonNullable<T>) => React.ReactElement;
-} & Omit<Headless.ComboboxProps<T, false>, "as" | "multiple" | "children"> & {
+} & Omit<Headless.ComboboxProps<T, false>, "as" | "multiple" | "children" | "onBlur"> & {
     anchor?: "top" | "bottom";
   }) {
   const [query, setQuery] = useState("");
@@ -41,6 +43,7 @@ export function Combobox<T>({
   return (
     <Headless.Combobox
       {...props}
+      as="div"
       multiple={false}
       onClose={() => setQuery("")}
     >
@@ -68,6 +71,7 @@ export function Combobox<T>({
           aria-label={ariaLabel}
           displayValue={(option: T) => displayValue(option) ?? ""}
           onChange={(event) => setQuery(event.target.value)}
+          onBlur={onBlur}
           placeholder={placeholder}
           className={clsx([
             className,
@@ -150,7 +154,7 @@ export function ComboboxOption<T>({
   Headless.ComboboxOptionProps<"div", T>,
   "as" | "className"
 >) {
-  let sharedClasses = clsx(
+  const sharedClasses = clsx(
     // Base
     "flex min-w-0 items-center",
     // Icons

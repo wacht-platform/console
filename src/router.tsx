@@ -21,6 +21,9 @@ const InvitedUsersPage = lazy(() => import("./pages/users/invited"));
 const WaitlistUsersPage = lazy(() => import("./pages/users/waitlist"));
 const UserDetailsPage = lazy(() => import("./pages/user/[id]"));
 const OrganizationsPage = lazy(() => import("./pages/organizations"));
+const SegmentsLayout = lazy(() => import("./pages/segments/layout"));
+const SegmentsManagePage = lazy(() => import("./pages/segments/manage"));
+const SegmentDetailsPage = lazy(() => import("./pages/segments/detail"));
 const WorkspacesPage = lazy(() => import("./pages/workspaces"));
 const OrganizationDetailsPage = lazy(() => import("./pages/organization/[id]"));
 const WorkspaceDetailsPage = lazy(() => import("./pages/workspace/[id]"));
@@ -141,6 +144,32 @@ export const router = createBrowserRouter([
             <OrganizationsPage />
           </Suspense>
         ),
+      },
+      {
+        path: "segments",
+        element: (
+          <Suspense fallback={<SimpleFallback />}>
+            <SegmentsLayout />
+          </Suspense>
+        ),
+        children: [
+          {
+            index: true,
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <SegmentsManagePage />
+              </Suspense>
+            ),
+          },
+          {
+            path: ":id",
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <SegmentDetailsPage />
+              </Suspense>
+            ),
+          },
+        ],
       },
       {
         path: "organization/:id",

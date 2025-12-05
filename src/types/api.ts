@@ -9,4 +9,5 @@ export interface QueryParams {
   sort_order?: string;
   limit?: number;
   search?: string;
+  segment_id?: string;
 }

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "../client";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { PaginatedResponse, QueryParams } from "@/types/api";
+import { Segment } from "@/types/segment";
 
 interface Organization {
   id: string;
@@ -12,6 +13,7 @@ interface Organization {
   image_url: string;
   description: string;
   member_count: number;
+  segments?: Segment[];
 }
 
 async function fetchOrganizations(

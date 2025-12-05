@@ -13,6 +13,8 @@ import {
   useDeleteOrganizationRole,
 } from "@/lib/api/hooks/use-organization-mutations";
 import { useDeleteWorkspace } from "@/lib/api/hooks/use-workspace-mutations";
+import { SegmentManager } from "@/components/segments/SegmentManager";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input, InputGroup } from "@/components/ui/input";
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
@@ -425,6 +427,20 @@ export default function OrganizationDetailsPage() {
                     {organization.workspaces?.length || 0}
                   </span>
                 </div>
+
+                <div className="py-2">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Segments
+                    </span>
+                  </div>
+
+                  <SegmentManager
+                    targetId={organization.id}
+                    targetType="organization"
+                    currentSegments={organization.segments}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -432,69 +448,44 @@ export default function OrganizationDetailsPage() {
 
         {/* Main Content Area */}
         <div className="lg:col-span-2">
-          {/* Organization Details */}
-          <div className="mb-8">
-            <h2 className="text-base text-zinc-900 dark:text-zinc-100 mb-4">
-              Organization Details
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="space-y-1">
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Organization ID
-                </p>
-                <p className="text-sm text-zinc-900 dark:text-zinc-100 font-mono">
-                  {organization.id}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Member Count
-                </p>
-                <p className="text-sm text-zinc-900 dark:text-zinc-100">
-                  {organization.member_count}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Created
-                </p>
-                <p className="text-sm text-zinc-900 dark:text-zinc-100">
-                  {format(new Date(organization.created_at), "MMM d, yyyy")}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Last Updated
-                </p>
-                <p className="text-sm text-zinc-900 dark:text-zinc-100">
-                  {format(new Date(organization.updated_at), "MMM d, yyyy")}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Total Roles
-                </p>
-                <p className="text-sm text-zinc-900 dark:text-zinc-100">
-                  {organization.roles?.length || 0}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Total Workspaces
-                </p>
-                <p className="text-sm text-zinc-900 dark:text-zinc-100">
-                  {organization.workspaces?.length || 0}
-                </p>
-              </div>
-            </div>
-          </div>
-
           {/* Tabs */}
           <div>
             <SimpleTabs defaultTab={0} onChange={setActiveTab}>
               <Tab label="Overview">
                 <div className="px-4 py-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="mb-8">
+                    <h3 className="text-base text-zinc-900 dark:text-zinc-100 mb-4">
+                      Organization Details
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="space-y-1">
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          Organization ID
+                        </p>
+                        <p className="text-sm text-zinc-900 dark:text-zinc-100 font-mono">
+                          {organization.id}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          Created
+                        </p>
+                        <p className="text-sm text-zinc-900 dark:text-zinc-100">
+                          {format(new Date(organization.created_at), "MMM d, yyyy")}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          Last Updated
+                        </p>
+                        <p className="text-sm text-zinc-900 dark:text-zinc-100">
+                          {format(new Date(organization.updated_at), "MMM d, yyyy")}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 border-t border-gray-100 dark:border-zinc-800">
                     <div className="space-y-2">
                       <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
                         Total Members
@@ -798,14 +789,16 @@ export default function OrganizationDetailsPage() {
                     <h3 className="text-base text-zinc-900 dark:text-zinc-100">
                       Organization Workspaces
                     </h3>
-                    {organization.workspaces &&
-                      organization.workspaces.length > 0 && (
-                        <Button
-                          onClick={() => setCreateWorkspaceModalOpen(true)}
-                        >
-                          Create Workspace
-                        </Button>
-                      )}
+                    <div className="flex gap-2">
+                      {organization.workspaces &&
+                        organization.workspaces.length > 0 && (
+                          <Button
+                            onClick={() => setCreateWorkspaceModalOpen(true)}
+                          >
+                            Create Workspace
+                          </Button>
+                        )}
+                    </div>
                   </div>
 
                   {!organization.workspaces ||
@@ -863,13 +856,26 @@ export default function OrganizationDetailsPage() {
                                     .toUpperCase()}
                                   alt={`${workspace.name} logo`}
                                 />
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm text-zinc-900 dark:text-zinc-100">
-                                    {workspace.name}
-                                  </span>
-                                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                                    • {workspace.member_count} members
-                                  </span>
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm text-zinc-900 dark:text-zinc-100">
+                                      {workspace.name}
+                                    </span>
+                                    <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                                      • {workspace.member_count} members
+                                    </span>
+                                  </div>
+                                  <div className="flex gap-1 mt-1">
+                                    {workspace.segments?.map((s) => (
+                                      <Badge
+                                        key={s.id}
+                                        color="zinc"
+                                        className="text-[10px] px-1 py-0"
+                                      >
+                                        {s.name}
+                                      </Badge>
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
                             </button>

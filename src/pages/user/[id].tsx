@@ -36,6 +36,8 @@ import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import Editor from "@monaco-editor/react";
 
+import { SegmentManager } from "@/components/segments/SegmentManager";
+import { Switch } from "@/components/ui/switch";
 import {
   PencilIcon,
   TrashIcon,
@@ -416,23 +418,6 @@ export default function UserDetailsPage() {
             {isImpersonating ? "Impersonating..." : "Impersonate"}
           </Button>
           <Button
-            color={user.disabled ? "green" : "orange"}
-            onClick={handleDisableUser}
-            disabled={isUpdatingUser}
-          >
-            {user.disabled ? (
-              <>
-                <CheckCircleIcon className="h-4 w-4" />
-                {isUpdatingUser ? "Enabling..." : "Enable User"}
-              </>
-            ) : (
-              <>
-                <XCircleIcon className="h-4 w-4" />
-                {isUpdatingUser ? "Disabling..." : "Disable"}
-              </>
-            )}
-          </Button>
-          <Button
             outline
             className="p-2"
             onClick={() => setEditProfileModalOpen(true)}
@@ -519,7 +504,7 @@ export default function UserDetailsPage() {
                 </div>
               </div>
 
-              {/* Security Status */}
+                {/* Security Status */}
               <div className="w-full space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -549,6 +534,41 @@ export default function UserDetailsPage() {
                   ) : (
                     <XCircleIcon className="h-4 w-4 text-red-500" />
                   )}
+                </div>
+              </div>
+
+              {/* Segments */}
+              <div className="w-full py-2 mt-2">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Segments
+                    </span>
+                  </div>
+
+                  <SegmentManager
+                    targetId={user.id}
+                    targetType="user"
+                    currentSegments={user.segments}
+                  />
+              </div>
+
+              {/* Account Status */}
+              <div className="w-full py-4 border-t border-gray-100 dark:border-zinc-800 mt-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      User Status
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {user.disabled ? "User is currently disabled" : "User is active"}
+                    </span>
+                  </div>
+                  <Switch
+                    checked={!user.disabled}
+                    onChange={() => handleDisableUser()}
+                    disabled={isUpdatingUser}
+                    color={user.disabled ? "zinc" : "green"}
+                  />
                 </div>
               </div>
             </div>
