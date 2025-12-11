@@ -1,7 +1,8 @@
 import { createBrowserRouter } from "react-router";
 import { ApplicationLayout } from "@/components/application-layout";
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import { Spinner } from "@/components/ui/spinner";
+import { lazyImport } from "@/lib/lazy-import";
 
 const SimpleFallback = () => (
   <div className="flex items-center justify-center min-h-[400px] w-full">
@@ -14,65 +15,65 @@ const SimpleFallback = () => (
   </div>
 );
 
-const OverviewPage = lazy(() => import("./pages/overview"));
+const OverviewPage = lazyImport(() => import("./pages/overview"));
 
-const ActiveUsersPage = lazy(() => import("./pages/users/active"));
-const InvitedUsersPage = lazy(() => import("./pages/users/invited"));
-const WaitlistUsersPage = lazy(() => import("./pages/users/waitlist"));
-const UserDetailsPage = lazy(() => import("./pages/user/[id]"));
-const OrganizationsPage = lazy(() => import("./pages/organizations"));
-const SegmentsLayout = lazy(() => import("./pages/segments/layout"));
-const SegmentsManagePage = lazy(() => import("./pages/segments/manage"));
-const SegmentDetailsPage = lazy(() => import("./pages/segments/detail"));
-const WorkspacesPage = lazy(() => import("./pages/workspaces"));
-const OrganizationDetailsPage = lazy(() => import("./pages/organization/[id]"));
-const WorkspaceDetailsPage = lazy(() => import("./pages/workspace/[id]"));
-const SchemaFactorsPage = lazy(() => import("./pages/auth/schema-factors"));
-const SSOConnectionsPage = lazy(() => import("./pages/auth/social-login"));
-const SessionsPage = lazy(() => import("./pages/auth/sessions"));
-const OAuthApplicationsPage = lazy(() => import("./pages/auth/oauth"));
-const Web3AuthPage = lazy(() => import("./pages/auth/web3"));
-const RestrictionsPage = lazy(() => import("./pages/auth/restrictions"));
-const ManageOrganizationsPage = lazy(
+const ActiveUsersPage = lazyImport(() => import("./pages/users/active"));
+const InvitedUsersPage = lazyImport(() => import("./pages/users/invited"));
+const WaitlistUsersPage = lazyImport(() => import("./pages/users/waitlist"));
+const UserDetailsPage = lazyImport(() => import("./pages/user/[id]"));
+const OrganizationsPage = lazyImport(() => import("./pages/organizations"));
+const SegmentsLayout = lazyImport(() => import("./pages/segments/layout"));
+const SegmentsManagePage = lazyImport(() => import("./pages/segments/manage"));
+const SegmentDetailsPage = lazyImport(() => import("./pages/segments/detail"));
+const WorkspacesPage = lazyImport(() => import("./pages/workspaces"));
+const OrganizationDetailsPage = lazyImport(() => import("./pages/organization/[id]"));
+const WorkspaceDetailsPage = lazyImport(() => import("./pages/workspace/[id]"));
+const SchemaFactorsPage = lazyImport(() => import("./pages/auth/schema-factors"));
+const SSOConnectionsPage = lazyImport(() => import("./pages/auth/social-login"));
+const SessionsPage = lazyImport(() => import("./pages/auth/sessions"));
+const OAuthApplicationsPage = lazyImport(() => import("./pages/auth/oauth"));
+const Web3AuthPage = lazyImport(() => import("./pages/auth/web3"));
+const RestrictionsPage = lazyImport(() => import("./pages/auth/restrictions"));
+const ManageOrganizationsPage = lazyImport(
   () => import("./pages/manage-organizations"),
 );
-const ManageWorkspacesPage = lazy(() => import("./pages/manage-workspaces"));
-const PortalPage = lazy(() => import("./pages/portal"));
-const DeploymentSettingsPage = lazy(
+const ManageWorkspacesPage = lazyImport(() => import("./pages/manage-workspaces"));
+const PortalPage = lazyImport(() => import("./pages/portal"));
+const DeploymentSettingsPage = lazyImport(
   () => import("./pages/deployment-settings"),
 );
-const EmailsPage = lazy(() => import("./pages/emails"));
-const EmailTemplateEditor = lazy(
+const EmailsPage = lazyImport(() => import("./pages/emails"));
+const EmailTemplateEditor = lazyImport(
   () => import("./pages/emails/template-editor"),
 );
-const SMSPage = lazy(() => import("./pages/sms"));
-const ApplicationSettingsPage = lazy(() => import("./pages/settings"));
-const ProjectsPage = lazy(() => import("./pages/projects"));
-const JWTTemplatesPage = lazy(() => import("./pages/auth/jwt-templates"));
-const JWTTemplateCreateUpdatePage = lazy(
+const SMSPage = lazyImport(() => import("./pages/sms"));
+const ApplicationSettingsPage = lazyImport(() => import("./pages/settings"));
+const ProjectsPage = lazyImport(() => import("./pages/projects"));
+const JWTTemplatesPage = lazyImport(() => import("./pages/auth/jwt-templates"));
+const JWTTemplateCreateUpdatePage = lazyImport(
   () => import("./pages/auth/jwt-template-create-update"),
 );
-const DnsVerificationPage = lazy(() => import("./pages/dns-verification"));
+const DnsVerificationPage = lazyImport(() => import("./pages/dns-verification"));
 // AI Agents pages
-const CreateAgentsPage = lazy(() => import("./pages/ai-agents/create-agents"));
-const WorkflowsPage = lazy(() => import("./pages/ai-agents/workflows"));
-const CreateWorkflowPage = lazy(
+const CreateAgentsPage = lazyImport(() => import("./pages/ai-agents/create-agents"));
+const WorkflowsPage = lazyImport(() => import("./pages/ai-agents/workflows"));
+const CreateWorkflowPage = lazyImport(
   () => import("./pages/ai-agents/create-workflow"),
 );
-const ToolsPage = lazy(() => import("./pages/ai-agents/tools"));
-const KnowledgeBasePage = lazy(
+const ToolsPage = lazyImport(() => import("./pages/ai-agents/tools"));
+const KnowledgeBasePage = lazyImport(
   () => import("./pages/ai-agents/knowledge-base"),
 );
-const WebhooksPage = lazy(() => import("./pages/webhooks"));
-const WebhookEndpointsPage = lazy(() => import("./pages/webhooks/endpoints"));
-const WebhookDeliveriesPage = lazy(() => import("./pages/webhooks/deliveries"));
-const WebhookDeliveryDetailsPage = lazy(
+const WebhooksPage = lazyImport(() => import("./pages/webhooks"));
+const WebhookEndpointsPage = lazyImport(() => import("./pages/webhooks/endpoints"));
+const WebhookDeliveriesPage = lazyImport(() => import("./pages/webhooks/deliveries"));
+const WebhookDeliveryDetailsPage = lazyImport(
   () => import("./pages/webhooks/delivery-details"),
 );
-const WebhookAnalyticsPage = lazy(() => import("./pages/webhooks/analytics"));
-const ApiKeysPage = lazy(() => import("./pages/api-keys"));
-const NotFoundPage = lazy(() => import("./pages/not-found"));
-const ErrorBoundaryPage = lazy(() => import("./pages/error-boundary"));
+const WebhookAnalyticsPage = lazyImport(() => import("./pages/webhooks/analytics"));
+const ApiKeysPage = lazyImport(() => import("./pages/api-keys"));
+const NotFoundPage = lazyImport(() => import("./pages/not-found"));
+const ErrorBoundaryPage = lazyImport(() => import("./pages/error-boundary"));
 
 export const router = createBrowserRouter([
   {

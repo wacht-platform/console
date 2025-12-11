@@ -76,10 +76,7 @@ export function SegmentManager({
 
       {isAdding ? (
         <div
-          className={cn(
-            "min-w-[12rem]",
-            currentSegments.length === 0 && "w-full",
-          )}
+          className={cn("min-w-48", currentSegments.length === 0 && "w-full")}
         >
           {isLoading ? (
             <div className="flex items-center px-2 py-1">

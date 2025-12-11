@@ -14,7 +14,6 @@ import {
 } from "@/lib/api/hooks/use-organization-mutations";
 import { useDeleteWorkspace } from "@/lib/api/hooks/use-workspace-mutations";
 import { SegmentManager } from "@/components/segments/SegmentManager";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input, InputGroup } from "@/components/ui/input";
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
@@ -38,6 +37,7 @@ import type {
   OrganizationRoleSimple,
   Workspace,
 } from "@/types/organization";
+import { EnterpriseSSO } from "@/components/organizations/EnterpriseSSO";
 
 import {
   PencilIcon,
@@ -47,6 +47,7 @@ import {
   ChevronRightIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
+import { Badge } from "@/components/ui/badge";
 
 // Helper function to convert OrganizationRole to OrganizationRoleSimple
 const convertToSimpleRoles = (
@@ -452,7 +453,7 @@ export default function OrganizationDetailsPage() {
           <div>
             <SimpleTabs defaultTab={0} onChange={setActiveTab}>
               <Tab label="Overview">
-                <div className="px-4 py-6">
+                <div className="pt-6">
                   <div className="mb-8">
                     <h3 className="text-base text-zinc-900 dark:text-zinc-100 mb-4">
                       Organization Details
@@ -471,7 +472,10 @@ export default function OrganizationDetailsPage() {
                           Created
                         </p>
                         <p className="text-sm text-zinc-900 dark:text-zinc-100">
-                          {format(new Date(organization.created_at), "MMM d, yyyy")}
+                          {format(
+                            new Date(organization.created_at),
+                            "MMM d, yyyy",
+                          )}
                         </p>
                       </div>
                       <div className="space-y-1">
@@ -479,7 +483,10 @@ export default function OrganizationDetailsPage() {
                           Last Updated
                         </p>
                         <p className="text-sm text-zinc-900 dark:text-zinc-100">
-                          {format(new Date(organization.updated_at), "MMM d, yyyy")}
+                          {format(
+                            new Date(organization.updated_at),
+                            "MMM d, yyyy",
+                          )}
                         </p>
                       </div>
                     </div>
@@ -515,7 +522,7 @@ export default function OrganizationDetailsPage() {
               </Tab>
 
               <Tab label="Members">
-                <div className="px-4 py-6">
+                <div className="pt-6">
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-base text-zinc-900 dark:text-zinc-100">
                       Organization Members
@@ -694,7 +701,7 @@ export default function OrganizationDetailsPage() {
               </Tab>
 
               <Tab label="Roles">
-                <div className="px-4 py-6">
+                <div className="pt-6">
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-base text-zinc-900 dark:text-zinc-100">
                       Organization Roles
@@ -784,7 +791,7 @@ export default function OrganizationDetailsPage() {
               </Tab>
 
               <Tab label="Workspaces">
-                <div className="px-4 py-6">
+                <div className="pt-6">
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-base text-zinc-900 dark:text-zinc-100">
                       Organization Workspaces
@@ -819,7 +826,7 @@ export default function OrganizationDetailsPage() {
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                            d="M2.25 21h19.5m-18-18v18m2.25-18v18m13.5-18v18m2.25-18v18M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.75m-3.75 3.75h.75m-3.75 3.75h.75m-3.75 3.75H21m-3.75-18v18"
+                            d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
                           />
                         </svg>
                       }
@@ -909,8 +916,12 @@ export default function OrganizationDetailsPage() {
                 </div>
               </Tab>
 
+              <Tab label="Single Sign-On">
+                <EnterpriseSSO organizationId={organization.id} />
+              </Tab>
+
               <Tab label="Metadata">
-                <div className="px-4 py-6 space-y-8">
+                <div className="pt-6 space-y-8">
                   {/* Public Metadata */}
                   <div>
                     <div className="flex justify-between items-center mb-4">
@@ -1024,6 +1035,7 @@ export default function OrganizationDetailsPage() {
           </div>
         </div>
       </div>
+
       {/* All Modals */}
       <EditOrganizationDialog
         isOpen={editOrganizationModalOpen}
