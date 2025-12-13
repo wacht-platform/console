@@ -22,6 +22,7 @@ interface B2bSettingsUpdate {
     org_creation_per_user_count?: number;
     workspace_permissions?: string[];
     organization_permissions?: string[];
+    enterprise_sso_enabled?: boolean;
 }
 
 async function updateDeploymentB2bSettings(

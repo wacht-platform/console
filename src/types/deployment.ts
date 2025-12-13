@@ -260,6 +260,7 @@ export interface DeploymentB2bSettings {
 	default_org_member_role: DeploymentOrganizationRole;
 	workspace_permissions?: string[];
 	organization_permissions?: string[];
+	enterprise_sso_enabled?: boolean;
 }
 
 export interface DeploymentWithSettings {

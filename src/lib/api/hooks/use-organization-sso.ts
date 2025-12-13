@@ -21,15 +21,14 @@ export interface EnterpriseConnection {
     organization_id: string;
     domain_id?: string;
     protocol: "saml" | "oidc";
-    // SAML fields
     idp_entity_id?: string;
     idp_sso_url?: string;
     idp_certificate?: string;
-    // OIDC fields
     oidc_client_id?: string;
     oidc_issuer_url?: string;
     oidc_scopes?: string;
-    // Timestamps
+    jit_enabled: boolean;
+    attribute_mapping?: Record<string, string>;
     created_at: string;
     updated_at: string;
 }
@@ -41,27 +40,27 @@ export interface CreateDomainRequest {
 export interface CreateConnectionRequest {
     domain_id?: string;
     protocol: "saml" | "oidc";
-    // SAML fields
     idp_entity_id?: string;
     idp_sso_url?: string;
     idp_certificate?: string;
-    // OIDC fields
     oidc_client_id?: string;
     oidc_client_secret?: string;
     oidc_issuer_url?: string;
     oidc_scopes?: string;
+    jit_enabled?: boolean;
+    attribute_mapping?: Record<string, string>;
 }
 
 export interface UpdateConnectionRequest {
-    // SAML fields
     idp_entity_id?: string;
     idp_sso_url?: string;
     idp_certificate?: string;
-    // OIDC fields
     oidc_client_id?: string;
     oidc_client_secret?: string;
     oidc_issuer_url?: string;
     oidc_scopes?: string;
+    jit_enabled?: boolean;
+    attribute_mapping?: Record<string, string>;
 }
 
 interface PaginatedResponse<T> {
@@ -331,6 +330,34 @@ export function useRevokeSCIMToken() {
             queryClient.invalidateQueries({
                 queryKey: ["scim-token", selectedDeployment?.id, organizationId, connectionId],
             });
+        },
+    });
+}
+
+// --- Test Connection ---
+
+export interface TestConnectionResult {
+    success: boolean;
+    protocol: string;
+    checks: Record<string, boolean>;
+    errors?: Record<string, string>;
+}
+
+export function useTestEnterpriseConnection() {
+    const { selectedDeployment } = useProjects();
+
+    return useMutation({
+        mutationFn: async ({
+            organizationId,
+            connectionId,
+        }: {
+            organizationId: string;
+            connectionId: string;
+        }) => {
+            const { data } = await api.post<TestConnectionResult>(
+                `/deployments/${selectedDeployment!.id}/organizations/${organizationId}/connections/${connectionId}/test`
+            );
+            return data;
         },
     });
 }

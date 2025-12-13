@@ -31,6 +31,7 @@ interface B2BSettingsState {
   custom_org_role_enabled: boolean;
   ip_allowlist_per_org_enabled: boolean;
   enforce_mfa_per_org_enabled: boolean;
+  enterprise_sso_enabled: boolean;
   organization_permissions: string[];
 }
 
@@ -47,6 +48,7 @@ const initialSettingsState: B2BSettingsState = {
   custom_org_role_enabled: false,
   ip_allowlist_per_org_enabled: false,
   enforce_mfa_per_org_enabled: false,
+  enterprise_sso_enabled: false,
   organization_permissions: [],
 };
 
@@ -96,6 +98,7 @@ export default function ManageOrganizationsPage() {
         b2bSettings.ip_allowlist_per_org_enabled ?? false,
       enforce_mfa_per_org_enabled:
         b2bSettings.enforce_mfa_per_org_enabled ?? false,
+      enterprise_sso_enabled: b2bSettings.enterprise_sso_enabled ?? false,
       organization_permissions: b2bSettings.organization_permissions ?? [],
     });
   }, []);
@@ -181,6 +184,8 @@ export default function ManageOrganizationsPage() {
           settingsState.ip_allowlist_per_org_enabled,
         enforce_mfa_per_org_enabled:
           settingsState.enforce_mfa_per_org_enabled,
+        enterprise_sso_enabled:
+          settingsState.enterprise_sso_enabled,
       };
 
       await updateB2bSettings.mutateAsync(payload);
@@ -293,6 +298,27 @@ export default function ManageOrganizationsPage() {
                     onChange={(checked) =>
                       handleSettingChange(
                         "enforce_mfa_per_org_enabled",
+                        checked
+                      )
+                    }
+                  />
+                </div>
+
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-base font-medium">
+                      Enable Enterprise SSO
+                    </h2>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      Allow organizations to configure SAML and OIDC connections for single sign-on.
+                    </p>
+                  </div>
+                  <Switch
+                    name="enterprise_sso_enabled"
+                    checked={settingsState.enterprise_sso_enabled}
+                    onChange={(checked) =>
+                      handleSettingChange(
+                        "enterprise_sso_enabled",
                         checked
                       )
                     }

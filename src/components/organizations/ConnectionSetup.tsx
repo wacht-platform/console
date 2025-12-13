@@ -42,18 +42,147 @@ import {
 const connectionSchema = z.object({
   protocol: z.enum(["saml", "oidc"]),
   domain_id: z.string().optional(),
-  // SAML fields
   idp_entity_id: z.string().optional(),
   idp_sso_url: z.string().url("Invalid URL").optional().or(z.literal("")),
   idp_certificate: z.string().optional(),
-  // OIDC fields
   oidc_issuer_url: z.string().url("Invalid URL").optional().or(z.literal("")),
   oidc_client_id: z.string().optional(),
   oidc_client_secret: z.string().optional(),
   oidc_scopes: z.string().optional(),
+  jit_enabled: z.boolean().optional(),
+  attr_first_name: z.string().optional(),
+  attr_last_name: z.string().optional(),
+  attr_email: z.string().optional(),
 });
 
 type ConnectionFormValues = z.infer<typeof connectionSchema>;
+
+// IdP Templates for quick configuration
+interface IdPTemplate {
+  id: string;
+  name: string;
+  logo: string;
+  protocol: "saml" | "oidc";
+  description: string;
+  docUrl: string;
+  placeholders: {
+    issuerUrl?: string;
+    ssoUrl?: string;
+    entityId?: string;
+    scopes?: string;
+  };
+}
+
+const IDP_TEMPLATES: IdPTemplate[] = [
+  {
+    id: "okta",
+    name: "Okta",
+    logo: "https://www.okta.com/sites/default/files/Okta_Logo_BrightBlue_Medium.png",
+    protocol: "saml",
+    description: "Enterprise identity management",
+    docUrl: "https://help.okta.com/en-us/content/topics/apps/apps_app_integration_wizard_saml.htm",
+    placeholders: {
+      entityId: "http://www.okta.com/{yourOktaDomain}",
+      ssoUrl: "https://{yourOktaDomain}.okta.com/app/{appName}/{appId}/sso/saml",
+    },
+  },
+  {
+    id: "azure",
+    name: "Azure AD",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Microsoft_Azure.svg/150px-Microsoft_Azure.svg.png",
+    protocol: "saml",
+    description: "Microsoft Entra ID",
+    docUrl: "https://learn.microsoft.com/en-us/azure/active-directory/manage-apps/add-application-portal-setup-sso",
+    placeholders: {
+      entityId: "https://sts.windows.net/{tenantId}/",
+      ssoUrl: "https://login.microsoftonline.com/{tenantId}/saml2",
+    },
+  },
+  {
+    id: "google",
+    name: "Google Workspace",
+    logo: "https://www.gstatic.com/images/branding/product/1x/googleg_48dp.png",
+    protocol: "saml",
+    description: "Google Cloud Identity",
+    docUrl: "https://support.google.com/a/answer/6087519",
+    placeholders: {
+      entityId: "https://accounts.google.com/o/saml2?idpid={idpId}",
+      ssoUrl: "https://accounts.google.com/o/saml2/idp?idpid={idpId}",
+    },
+  },
+  {
+    id: "okta-oidc",
+    name: "Okta",
+    logo: "https://www.okta.com/sites/default/files/Okta_Logo_BrightBlue_Medium.png",
+    protocol: "oidc",
+    description: "OpenID Connect",
+    docUrl: "https://developer.okta.com/docs/guides/implement-oauth-for-okta/main/",
+    placeholders: {
+      issuerUrl: "https://{yourOktaDomain}.okta.com",
+      scopes: "openid profile email",
+    },
+  },
+  {
+    id: "azure-oidc",
+    name: "Azure AD",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Microsoft_Azure.svg/150px-Microsoft_Azure.svg.png",
+    protocol: "oidc",
+    description: "Microsoft Entra ID (OIDC)",
+    docUrl: "https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc",
+    placeholders: {
+      issuerUrl: "https://login.microsoftonline.com/{tenantId}/v2.0",
+      scopes: "openid profile email",
+    },
+  },
+  {
+    id: "google-oidc",
+    name: "Google Workspace",
+    logo: "https://www.gstatic.com/images/branding/product/1x/googleg_48dp.png",
+    protocol: "oidc",
+    description: "Google Cloud OIDC",
+    docUrl: "https://developers.google.com/identity/openid-connect/openid-connect",
+    placeholders: {
+      issuerUrl: "https://accounts.google.com",
+      scopes: "openid profile email",
+    },
+  },
+  {
+    id: "auth0",
+    name: "Auth0",
+    logo: "https://cdn.auth0.com/styleguide/latest/lib/logos/img/badge.png",
+    protocol: "oidc",
+    description: "Identity platform",
+    docUrl: "https://auth0.com/docs/authenticate/protocols/openid-connect-protocol",
+    placeholders: {
+      issuerUrl: "https://{yourDomain}.auth0.com/",
+      scopes: "openid profile email",
+    },
+  },
+  {
+    id: "onelogin",
+    name: "OneLogin",
+    logo: "https://cdn.onelogin.com/images/icons/onelogin-icon.svg",
+    protocol: "saml",
+    description: "Identity & access management",
+    docUrl: "https://onelogin.service-now.com/support?id=kb_article&sys_id=912bb23adbdc1cd0ca1c400e0b96197d",
+    placeholders: {
+      entityId: "https://app.onelogin.com/saml/metadata/{appId}",
+      ssoUrl: "https://{subdomain}.onelogin.com/trust/saml2/http-post/sso/{appId}",
+    },
+  },
+  {
+    id: "ping",
+    name: "PingOne",
+    logo: "https://www.pingidentity.com/content/dam/ping-6-2-assets/topnav/ping-logo.svg",
+    protocol: "saml",
+    description: "Ping Identity",
+    docUrl: "https://docs.pingidentity.com/pingone/latest/connector/configure-saml.html",
+    placeholders: {
+      entityId: "https://auth.pingone.com/{environmentId}",
+      ssoUrl: "https://auth.pingone.com/{environmentId}/saml20/idp/sso",
+    },
+  },
+];
 
 interface ConnectionSetupProps {
   organizationId: string;
@@ -215,6 +344,7 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
   const [editingConnection, setEditingConnection] =
     useState<EnterpriseConnection | null>(null);
   const [deletingConnectionId, setDeletingConnectionId] = useState<string | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<IdPTemplate | null>(null);
 
   const { data: connections, isLoading: connectionsLoading } =
     useOrganizationConnections(organizationId);
@@ -228,25 +358,49 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
     resolver: zodResolver(connectionSchema),
     defaultValues: {
       protocol: "saml",
+      jit_enabled: true,
     },
   });
 
+  const selectTemplate = (template: IdPTemplate) => {
+    setSelectedTemplate(template);
+    form.setValue("protocol", template.protocol);
+    if (template.protocol === "saml") {
+      form.setValue("idp_entity_id", template.placeholders.entityId || "");
+      form.setValue("idp_sso_url", template.placeholders.ssoUrl || "");
+    } else {
+      form.setValue("oidc_issuer_url", template.placeholders.issuerUrl || "");
+      form.setValue("oidc_scopes", template.placeholders.scopes || "openid profile email");
+    }
+  };
+
+  const clearTemplate = () => {
+    setSelectedTemplate(null);
+    form.reset();
+  };
+
   const onSubmit = async (data: ConnectionFormValues) => {
     try {
+      const attributeMapping: Record<string, string> = {};
+      if (data.attr_first_name) attributeMapping.first_name = data.attr_first_name;
+      if (data.attr_last_name) attributeMapping.last_name = data.attr_last_name;
+      if (data.attr_email) attributeMapping.email = data.attr_email;
+      const hasAttributeMapping = Object.keys(attributeMapping).length > 0;
+
       if (editingConnection) {
         await updateConnection.mutateAsync({
           organizationId,
           connectionId: editingConnection.id,
           data: {
-            // SAML fields
             idp_entity_id: data.idp_entity_id,
             idp_sso_url: data.idp_sso_url,
             idp_certificate: data.idp_certificate,
-            // OIDC fields
             oidc_issuer_url: data.oidc_issuer_url,
             oidc_client_id: data.oidc_client_id,
-            oidc_client_secret: data.oidc_client_secret || undefined, // Don't send empty string
+            oidc_client_secret: data.oidc_client_secret || undefined,
             oidc_scopes: data.oidc_scopes,
+            jit_enabled: data.jit_enabled ?? true,
+            ...(hasAttributeMapping && { attribute_mapping: attributeMapping }),
           },
         });
         toast.success("Connection updated successfully");
@@ -256,15 +410,15 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
           data: {
             protocol: data.protocol,
             domain_id: data.domain_id === "none" ? undefined : data.domain_id,
-            // SAML fields
             idp_entity_id: data.idp_entity_id,
             idp_sso_url: data.idp_sso_url,
             idp_certificate: data.idp_certificate,
-            // OIDC fields
             oidc_issuer_url: data.oidc_issuer_url,
             oidc_client_id: data.oidc_client_id,
             oidc_client_secret: data.oidc_client_secret,
             oidc_scopes: data.oidc_scopes,
+            jit_enabled: data.jit_enabled ?? true,
+            ...(hasAttributeMapping && { attribute_mapping: attributeMapping }),
           },
         });
         toast.success("Connection created successfully");
@@ -286,15 +440,17 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
     form.reset({
       protocol: connection.protocol,
       domain_id: connection.domain_id ? String(connection.domain_id) : "none",
-      // SAML fields
       idp_entity_id: connection.idp_entity_id,
       idp_sso_url: connection.idp_sso_url,
       idp_certificate: connection.idp_certificate,
-      // OIDC fields
       oidc_issuer_url: connection.oidc_issuer_url || "",
       oidc_client_id: connection.oidc_client_id || "",
-      oidc_client_secret: "", // Don't populate secret for security
+      oidc_client_secret: "",
       oidc_scopes: connection.oidc_scopes || "openid profile email",
+      jit_enabled: connection.jit_enabled ?? true,
+      attr_first_name: connection.attribute_mapping?.first_name || "",
+      attr_last_name: connection.attribute_mapping?.last_name || "",
+      attr_email: connection.attribute_mapping?.email || "",
     });
     setIsDialogOpen(true);
   };
@@ -314,6 +470,7 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
     setIsDialogOpen(open);
     if (!open) {
       setEditingConnection(null);
+      setSelectedTemplate(null);
       form.reset();
     }
   };
@@ -353,28 +510,120 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
               onSubmit={form.handleSubmit(onSubmit)}
               className="space-y-6"
             >
+              {/* IdP Template Selector - only shown when creating new connection */}
+              {!editingConnection && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                      Choose Identity Provider
+                    </label>
+                    {selectedTemplate && (
+                      <button
+                        type="button"
+                        onClick={clearTemplate}
+                        className="text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 underline"
+                      >
+                        Clear selection
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {IDP_TEMPLATES.map((template) => (
+                      <button
+                        key={template.id}
+                        type="button"
+                        onClick={() => selectTemplate(template)}
+                        className={`
+                          relative flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-all
+                          hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20
+                          ${selectedTemplate?.id === template.id
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 ring-2 ring-blue-500/20'
+                            : 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50'
+                          }
+                        `}
+                      >
+                        <img
+                          src={template.logo}
+                          alt={template.name}
+                          className="h-6 w-auto object-contain"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                        <span className="hidden text-lg font-bold text-zinc-600 dark:text-zinc-400">
+                          {template.name.charAt(0)}
+                        </span>
+                        <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300 text-center leading-tight">
+                          {template.name}
+                        </span>
+                        <span className={`
+                          text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide
+                          ${template.protocol === 'saml'
+                            ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
+                            : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                          }
+                        `}>
+                          {template.protocol}
+                        </span>
+                        {selectedTemplate?.id === template.id && (
+                          <div className="absolute -top-1 -right-1 h-4 w-4 bg-blue-500 rounded-full flex items-center justify-center">
+                            <svg className="h-2.5 w-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  {selectedTemplate && (
+                    <div className="flex items-center gap-2 p-2 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                      <span className="text-xs text-blue-700 dark:text-blue-300">
+                        📚 <a href={selectedTemplate.docUrl} target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
+                          View {selectedTemplate.name} setup documentation
+                        </a>
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                  <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="bg-white dark:bg-zinc-900 px-2 text-xs text-zinc-500 uppercase tracking-wider">
+                    {selectedTemplate ? `${selectedTemplate.name} Configuration` : 'Manual Configuration'}
+                  </span>
+                </div>
+              </div>
+
               <div className="space-y-4">
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      Protocol
-                    </label>
-                    <Select
-                      disabled={!!editingConnection}
-                      name="protocol"
-                      value={form.watch("protocol")}
-                      onChange={(e) =>
-                        form.setValue(
-                          "protocol",
-                          e.target.value as "saml" | "oidc",
-                        )
-                      }
-                      className="dark:bg-zinc-800"
-                    >
-                      <option value="saml">SAML 2.0</option>
-                      <option value="oidc">OpenID Connect</option>
-                    </Select>
-                  </div>
+                  {/* Only show Protocol dropdown when no template selected */}
+                  {!selectedTemplate && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                        Protocol
+                      </label>
+                      <Select
+                        disabled={!!editingConnection}
+                        name="protocol"
+                        value={form.watch("protocol")}
+                        onChange={(e) =>
+                          form.setValue(
+                            "protocol",
+                            e.target.value as "saml" | "oidc",
+                          )
+                        }
+                        className="dark:bg-zinc-800"
+                      >
+                        <option value="saml">SAML 2.0</option>
+                        <option value="oidc">OpenID Connect</option>
+                      </Select>
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                       Domain (Optional)
@@ -414,17 +663,6 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                       </div>
                     </div>
                   )}
-              </div>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                  <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-white dark:bg-zinc-900 px-2 text-xs text-zinc-500 uppercase tracking-wider">
-                    Configuration
-                  </span>
-                </div>
               </div>
 
               {form.watch("protocol") === "saml" ? (
@@ -527,6 +765,67 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                   </div>
                 </div>
               )}
+
+              {/* JIT Provisioning Toggle */}
+              <div className="pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    {...form.register("jit_enabled")}
+                    className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-600"
+                  />
+                  <span className="font-medium text-sm">Enable JIT Provisioning</span>
+                </label>
+                <p className="text-xs text-zinc-500 mt-1 ml-7">
+                  When enabled, new users are automatically created on their first SSO login.
+                </p>
+              </div>
+
+              {/* Attribute Mapping (Collapsible) */}
+              <div className="pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                <details className="group">
+                  <summary className="text-sm font-medium text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">
+                    Advanced: Attribute Mapping
+                  </summary>
+                  <div className="mt-4 space-y-4 pl-0.5">
+                    <p className="text-xs text-zinc-500">
+                      Map IdP attribute names to Wacht user fields. Leave empty to use defaults.
+                    </p>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                          First Name
+                        </label>
+                        <Input
+                          {...form.register("attr_first_name")}
+                          placeholder={form.watch("protocol") === "saml" ? "givenName" : "given_name"}
+                          className="dark:bg-zinc-800/50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                          Last Name
+                        </label>
+                        <Input
+                          {...form.register("attr_last_name")}
+                          placeholder={form.watch("protocol") === "saml" ? "surname" : "family_name"}
+                          className="dark:bg-zinc-800/50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                          Email
+                        </label>
+                        <Input
+                          {...form.register("attr_email")}
+                          placeholder="email"
+                          className="dark:bg-zinc-800/50"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </details>
+              </div>
             </form>
           </DialogBody>
           <DialogActions className="mt-8 pt-4 border-t border-zinc-100 dark:border-zinc-800">
