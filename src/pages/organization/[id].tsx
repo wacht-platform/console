@@ -38,6 +38,7 @@ import type {
   Workspace,
 } from "@/types/organization";
 import { EnterpriseSSO } from "@/components/organizations/EnterpriseSSO";
+import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 
 import {
   PencilIcon,
@@ -66,6 +67,7 @@ export default function OrganizationDetailsPage() {
   const { id } = useParams();
   const organizationId = id;
   const isDarkMode = useDarkMode();
+  const { deploymentSettings } = useCurrentDeployemnt();
 
   // Tab state - needs to be declared before use
   const [activeTab, setActiveTab] = useState(0);
@@ -639,8 +641,8 @@ export default function OrganizationDetailsPage() {
                                 <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                                   {member.roles && member.roles.length > 0
                                     ? member.roles
-                                        .map((role) => role.name)
-                                        .join(", ")
+                                      .map((role) => role.name)
+                                      .join(", ")
                                     : "No roles assigned"}
                                 </div>
                               </div>
@@ -809,7 +811,7 @@ export default function OrganizationDetailsPage() {
                   </div>
 
                   {!organization.workspaces ||
-                  organization.workspaces.length === 0 ? (
+                    organization.workspaces.length === 0 ? (
                     <EmptyState
                       title="No workspaces created yet"
                       description="Create workspaces to organize your projects and teams."
@@ -916,9 +918,11 @@ export default function OrganizationDetailsPage() {
                 </div>
               </Tab>
 
-              <Tab label="Single Sign-On">
-                <EnterpriseSSO organizationId={organization.id} />
-              </Tab>
+              {deploymentSettings?.b2b_settings?.enterprise_sso_enabled && (
+                <Tab label="Single Sign-On">
+                  <EnterpriseSSO organizationId={organization.id} />
+                </Tab>
+              )}
 
               <Tab label="Metadata">
                 <div className="pt-6 space-y-8">
