@@ -17,7 +17,7 @@ import { Toaster } from "sonner";
 import { useTheme } from "./lib/providers/theme";
 
 function SignedInRoutes() {
-  const { getToken } = useSession();
+  const { getToken, session, loading } = useSession();
   const [interceptorReady, setInterceptorReady] = React.useState(false);
 
   useEffect(() => {
@@ -31,11 +31,37 @@ function SignedInRoutes() {
 
     setInterceptorReady(true);
 
-    // Cleanup interceptor on unmount
     return () => {
       apiClient.interceptors.request.eject(interceptorId);
     };
   }, [getToken]);
+
+  const activeSignInId = session?.active_signin?.id;
+  const activeOrgMembershipId = session?.active_signin?.active_organization_membership_id;
+
+  useEffect(() => {
+    if (loading) return;
+    if (!session) return;
+
+    const storedSignInId = sessionStorage.getItem("wacht_prev_signin_id");
+    const storedOrgMembershipId = sessionStorage.getItem("wacht_prev_org_membership_id");
+    const hasInitialized = sessionStorage.getItem("wacht_session_initialized") === "true";
+
+    sessionStorage.setItem("wacht_prev_signin_id", activeSignInId || "");
+    sessionStorage.setItem("wacht_prev_org_membership_id", activeOrgMembershipId || "");
+
+    if (!hasInitialized) {
+      sessionStorage.setItem("wacht_session_initialized", "true");
+      return;
+    }
+
+    const signInChanged = storedSignInId !== (activeSignInId || "");
+    const orgChanged = storedOrgMembershipId !== (activeOrgMembershipId || "");
+
+    if (signInChanged || orgChanged) {
+      router.navigate("/");
+    }
+  }, [activeSignInId, activeOrgMembershipId, loading, session]);
 
   // Don't render QueryProvider until interceptor is ready
   if (!interceptorReady) {

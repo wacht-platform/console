@@ -43,9 +43,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
       if (targetDeployment) {
         set({ selectedDeployment: targetDeployment });
-        navigationFunction(
-          `/project/${project.id}/deployment/${targetDeployment.id}`,
-        );
+        // Navigate to root when switching projects
+        navigationFunction("/");
       }
     }
   },
@@ -54,12 +53,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     set({ selectedDeployment: deployment });
 
     if (navigate && deployment && navigationFunction) {
-      const { selectedProject } = get();
-      if (selectedProject) {
-        navigationFunction(
-          `/project/${selectedProject.id}/deployment/${deployment.id}`,
-        );
-      }
+      // Navigate to root when switching deployments
+      navigationFunction("/");
     }
   },
 

@@ -26,18 +26,30 @@ export interface AssignSegmentRequest {
   targetType: SegmentType;
 }
 
-export type FilterKind = 'segment' | 'field' | 'metadata' | 'metric';
+export interface UserFilter {
+  name?: string;
+  email?: string;
+  phone?: string;
+}
 
-export interface AnalysisFilter {
-  kind: FilterKind;
-  operator: string;
-  value?: string | number;
-  field?: string; // For field, metadata, metric
+export interface OrganizationFilter {
+  name?: string;
+}
+
+export interface WorkspaceFilter {
+  name?: string;
+}
+
+export interface SegmentDataFilters {
+  segment_id?: string;
+  user?: UserFilter;
+  organization?: OrganizationFilter;
+  workspace?: WorkspaceFilter;
 }
 
 export interface AnalyzeRequest {
   target_type: SegmentType;
-  filters: AnalysisFilter[];
+  filters?: SegmentDataFilters;
 }
 
 export interface AnalyzedEntity {

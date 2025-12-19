@@ -59,25 +59,24 @@ export default function SegmentDetailsPage() {
 
     setIsAnalyzing(true);
     try {
-      const filters: any[] = [
-        { kind: "segment", operator: "include", id: segment.id }, // Note: using 'id' to match backend expectation
-      ];
+      // Build filters object matching backend SegmentDataFilters structure
+      const filters: {
+        segment_id: string;
+        user?: { name?: string };
+        organization?: { name?: string };
+        workspace?: { name?: string };
+      } = {
+        segment_id: segment.id,
+      };
 
+      // Add search filter based on target type
       if (debouncedSearch) {
         if (segment.type === "user") {
-          filters.push({
-            kind: "field",
-            field: "first_name",
-            operator: "contains",
-            value: debouncedSearch,
-          });
-        } else {
-          filters.push({
-            kind: "field",
-            field: "name",
-            operator: "contains",
-            value: debouncedSearch,
-          });
+          filters.user = { name: debouncedSearch };
+        } else if (segment.type === "organization") {
+          filters.organization = { name: debouncedSearch };
+        } else if (segment.type === "workspace") {
+          filters.workspace = { name: debouncedSearch };
         }
       }
 

@@ -2,9 +2,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../client";
 import { useProjects } from "./use-projects";
 import { toast } from 'sonner';
-import { 
-  Segment, 
-  CreateSegmentRequest, 
+import {
+  Segment,
+  CreateSegmentRequest,
   UpdateSegmentRequest,
   SegmentType,
   AnalyzeRequest,
@@ -87,7 +87,7 @@ async function analyzeSegments(
   data: AnalyzeRequest
 ): Promise<PaginatedResponse<AnalyzedEntity>> {
   const response = await apiClient.post<PaginatedResponse<AnalyzedEntity>>(
-    `/deployments/${deploymentId}/segments/analyze`,
+    `/deployments/${deploymentId}/segments/data`,
     data
   );
   return response.data;
@@ -97,7 +97,7 @@ async function analyzeSegments(
 
 export function useSegments(params: QueryParams = {}) {
   const { selectedDeployment } = useProjects();
-  
+
   return useQuery({
     queryKey: ["segments", selectedDeployment?.id, params],
     queryFn: () => {
@@ -223,7 +223,7 @@ export function useRemoveSegment() {
       } else if (targetType === 'workspace') {
         queryClient.invalidateQueries({ queryKey: ["workspace-details", selectedDeployment?.id, targetId] });
       } else if (targetType === 'user') {
-         queryClient.invalidateQueries({ queryKey: ["user-details", selectedDeployment?.id, targetId] });
+        queryClient.invalidateQueries({ queryKey: ["user-details", selectedDeployment?.id, targetId] });
       }
       queryClient.invalidateQueries({ queryKey: ["segments"] });
       toast.success("Segment removed successfully");
