@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Field, Label, ErrorMessage } from "@/components/ui/fieldset";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { PhotoIcon } from "@heroicons/react/24/outline";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api/client";
 import { useProjects } from "@/lib/api/hooks/use-projects";
@@ -137,91 +137,79 @@ export function CreateOrganizationModal({
   };
 
   return (
-    <Dialog open={isOpen} onClose={handleClose}>
+    <Dialog open={isOpen} onClose={handleClose} size="md">
       <DialogTitle>Create Organization</DialogTitle>
       <DialogBody>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Organization Image Upload */}
-          <Field>
-            <Label>Organization Logo (optional)</Label>
-            <div className="flex items-center space-x-4">
-              {/* Avatar Preview */}
-              <div
-                className="relative w-20 h-20 rounded-full border-2 border-dashed border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200 cursor-pointer overflow-hidden"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {imagePreview ? (
-                  <>
-                    <img
-                      src={imagePreview}
-                      alt="Organization logo preview"
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveImage();
-                      }}
-                      className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm"
-                    >
-                      <XMarkIcon className="w-3 h-3" />
-                    </button>
-                  </>
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <PhotoIcon className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
-                  </div>
-                )}
-              </div>
-
-              {/* Upload Button and Info */}
-              <div className="flex-1">
-                <Button
-                  type="button"
-                  outline
-                  onClick={() => fileInputRef.current?.click()}
-                  className="text-sm mb-2"
-                >
-                  {imagePreview ? "Change Logo" : "Upload Logo"}
-                </Button>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Recommended: Square PNG or JPG, max 2MB
-                </p>
-              </div>
-
-              {/* Hidden File Input */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageSelect}
-                className="hidden"
-              />
+          {/* Organization Logo - Centered */}
+          <div className="flex flex-col items-center">
+            <div
+              className="w-16 h-16 rounded-lg border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-zinc-100 hover:bg-zinc-200 dark:border-zinc-600 dark:hover:border-zinc-500 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all duration-200 cursor-pointer overflow-hidden"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="Organization logo preview"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <PhotoIcon className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
+                </div>
+              )}
             </div>
-          </Field>
+            <div className="mt-1.5 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+              >
+                {imagePreview ? "Change logo" : "Add logo"}
+              </button>
+              {imagePreview && (
+                <>
+                  <span className="text-zinc-300 dark:text-zinc-600">·</span>
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
+                  >
+                    Remove
+                  </button>
+                </>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              className="hidden"
+            />
+          </div>
 
           <Field>
-            <Label>Organization Name</Label>
+            <Label>Name</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Enter organization name"
+              placeholder="Acme Inc."
             />
             {errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
           </Field>
 
           <Field>
-            <Label>Description (optional)</Label>
+            <Label>
+              Description
+              <span className="ml-1 text-zinc-400 dark:text-zinc-500 font-normal">·  optional</span>
+            </Label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter organization description"
-              rows={3}
+              placeholder="A brief description of the organization..."
+              rows={2}
             />
-            {errors.description && (
-              <ErrorMessage>{errors.description}</ErrorMessage>
-            )}
           </Field>
         </form>
       </DialogBody>

@@ -11,6 +11,7 @@ interface UpdateUserRequest {
 	private_metadata?: Record<string, unknown>;
 	disabled?: boolean;
 	profile_image?: File;
+	remove_profile_image?: boolean;
 }
 
 async function updateUser(
@@ -39,7 +40,9 @@ async function updateUser(
 	if (data.disabled !== undefined) {
 		formData.append("disabled", data.disabled.toString());
 	}
-	if (data.profile_image !== undefined) {
+	if (data.remove_profile_image) {
+		formData.append("remove_profile_image", "true");
+	} else if (data.profile_image !== undefined) {
 		formData.append("profile_image", data.profile_image);
 	}
 

@@ -9,12 +9,14 @@ const TableContext = createContext<{
   grid: boolean;
   striped: boolean;
   modern: boolean;
+  scrollable: boolean;
 }>({
   bleed: false,
   dense: false,
   grid: false,
   striped: false,
   modern: false,
+  scrollable: false,
 });
 
 export function Table({
@@ -23,6 +25,9 @@ export function Table({
   grid = false,
   striped = false,
   modern = true,
+  scrollable = true,
+  maxHeight = "60vh",
+  className,
   children,
 }: {
   bleed?: boolean;
@@ -30,16 +35,26 @@ export function Table({
   grid?: boolean;
   striped?: boolean;
   modern?: boolean;
+  scrollable?: boolean;
+  maxHeight?: string;
+  className?: string;
 } & React.ComponentPropsWithoutRef<"div">) {
   return (
     <TableContext.Provider
       value={
-        { bleed, dense, grid, striped, modern } as React.ContextType<
+        { bleed, dense, grid, striped, modern, scrollable } as React.ContextType<
           typeof TableContext
         >
       }
     >
-      <div className="overflow-x-auto border-t border-zinc-200 dark:border-zinc-700/50">
+      <div
+        className={clsx(
+          "border-t border-zinc-200 dark:border-zinc-700/50",
+          scrollable && "overflow-auto",
+          className
+        )}
+        style={scrollable ? { maxHeight } : undefined}
+      >
         <table className="min-w-full bg-white dark:bg-transparent">
           {children}
         </table>
@@ -52,6 +67,7 @@ export function TableHead({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"thead">) {
+  const { scrollable } = useContext(TableContext);
   return (
     <thead
       {...props}
@@ -59,6 +75,7 @@ export function TableHead({
         className,
         "border-b border-l border-r border-zinc-200 dark:border-zinc-700/50",
         "bg-zinc-50/50 dark:bg-zinc-800/30",
+        scrollable && "sticky top-0 z-10",
       )}
     />
   );

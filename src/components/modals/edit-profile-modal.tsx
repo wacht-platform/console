@@ -8,7 +8,7 @@ import {
   DialogActions,
 } from "@/components/ui/dialog";
 import { Field, Label } from "@/components/ui/fieldset";
-import { PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { PhotoIcon } from "@heroicons/react/24/outline";
 import { toast } from "sonner";
 import { useUpdateUser } from "@/lib/api/hooks/use-update-user";
 
@@ -74,9 +74,12 @@ export function EditProfileModal({
     reader.readAsDataURL(file);
   };
 
+  const [shouldRemoveImage, setShouldRemoveImage] = useState(false);
+
   const handleRemoveImage = () => {
     setSelectedImage(null);
     setImagePreview(null);
+    setShouldRemoveImage(true);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -92,6 +95,7 @@ export function EditProfileModal({
         last_name: lastName.trim() || undefined,
         username: username.trim() || undefined,
         profile_image: selectedImage || undefined,
+        remove_profile_image: shouldRemoveImage || undefined,
       });
       toast.success("Profile updated successfully!");
       onClose();
@@ -118,88 +122,77 @@ export function EditProfileModal({
   };
 
   return (
-    <Dialog open={isOpen} onClose={handleClose}>
+    <Dialog open={isOpen} onClose={handleClose} size="md">
       <DialogTitle>Edit Profile</DialogTitle>
       <DialogBody>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Profile Image Upload */}
-          <Field>
-            <Label>Profile Image (optional)</Label>
-            <div className="flex items-center space-x-4">
-              {/* Avatar Preview */}
-              <div
-                className="relative w-20 h-20 rounded-full border-2 border-dashed border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100 transition-all duration-200 cursor-pointer overflow-hidden"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {imagePreview ? (
-                  <>
-                    <img
-                      src={imagePreview}
-                      alt="Profile preview"
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveImage();
-                      }}
-                      className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm"
-                    >
-                      <XMarkIcon className="w-3 h-3" />
-                    </button>
-                  </>
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <PhotoIcon className="w-6 h-6 text-gray-400" />
-                  </div>
-                )}
-              </div>
-
-              {/* Upload Button and Info */}
-              <div className="flex-1">
-                <Button
-                  type="button"
-                  outline
-                  onClick={() => fileInputRef.current?.click()}
-                  className="text-sm mb-2"
-                >
-                  {imagePreview ? "Change Image" : "Upload Image"}
-                </Button>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Recommended: Square PNG or JPG, max 2MB
-                </p>
-              </div>
-
-              {/* Hidden File Input */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageSelect}
-                className="hidden"
-              />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Profile Image Upload - Centered */}
+          <div className="flex flex-col items-center pb-2">
+            <div
+              className="relative w-20 h-20 rounded-full border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-zinc-100 hover:bg-zinc-200 dark:border-zinc-600 dark:hover:border-zinc-500 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all duration-200 cursor-pointer overflow-hidden"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="Profile preview"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <PhotoIcon className="w-8 h-8 text-zinc-400 dark:text-zinc-500" />
+                </div>
+              )}
             </div>
-          </Field>
+            <div className="mt-2 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+              >
+                {imagePreview ? "Change photo" : "Add photo"}
+              </button>
+              {imagePreview && (
+                <>
+                  <span className="text-zinc-300 dark:text-zinc-600">·</span>
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
+                  >
+                    Remove
+                  </button>
+                </>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              className="hidden"
+            />
+          </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          {/* Name fields - side by side */}
+          <div className="grid grid-cols-2 gap-3">
             <Field>
-              <Label>First Name</Label>
+              <Label>First name</Label>
               <Input
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                placeholder="Enter first name"
+                placeholder="John"
               />
             </Field>
 
             <Field>
-              <Label>Last Name</Label>
+              <Label>Last name</Label>
               <Input
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                placeholder="Enter last name"
+                placeholder="Doe"
               />
             </Field>
           </div>
@@ -210,7 +203,7 @@ export function EditProfileModal({
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter username"
+              placeholder="johndoe"
             />
           </Field>
         </form>
@@ -225,7 +218,7 @@ export function EditProfileModal({
           Cancel
         </Button>
         <Button type="submit" onClick={handleSubmit} disabled={isLoading}>
-          {isLoading ? "Updating..." : "Update Profile"}
+          {isLoading ? "Saving..." : "Save Changes"}
         </Button>
       </DialogActions>
     </Dialog>

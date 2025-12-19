@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Field, Label, ErrorMessage } from "@/components/ui/fieldset";
 import { Input } from "@/components/ui/input";
-import { PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { PhotoIcon } from "@heroicons/react/24/outline";
 
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 import { toast } from 'sonner';
@@ -210,145 +210,141 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
     onClose();
   };
 
+  // Helper to render optional indicator
+  const renderLabel = (text: string, required: boolean) => (
+    <Label>
+      {text}
+      {!required && <span className="ml-1 text-zinc-400 dark:text-zinc-500 font-normal">·  optional</span>}
+    </Label>
+  );
+
   return (
-    <Dialog open={isOpen} onClose={handleClose}>
+    <Dialog open={isOpen} onClose={handleClose} size="md">
       <DialogTitle>Create User</DialogTitle>
       <DialogBody>
         {isLoading ? (
-          <div className="text-center py-4 text-zinc-600 dark:text-zinc-400">Loading settings...</div>
+          <div className="text-center py-8 text-zinc-500 dark:text-zinc-400">Loading settings...</div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Profile Image Upload */}
-            <Field>
-              <Label>Profile Image (optional)</Label>
-              <div className="flex items-center space-x-4">
-                {/* Avatar Preview */}
-                <div
-                  className="relative w-20 h-20 rounded-full border-2 border-dashed border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer overflow-hidden"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {imagePreview ? (
-                    <>
-                      <img
-                        src={imagePreview}
-                        alt="Profile preview"
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveImage();
-                        }}
-                        className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500 transition-colors shadow-sm"
-                      >
-                        <XMarkIcon className="w-3 h-3" />
-                      </button>
-                    </>
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <PhotoIcon className="w-6 h-6 text-gray-400 dark:text-gray-500" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Upload Button and Info */}
-                <div className="flex-1">
-                  <Button
-                    type="button"
-                    outline
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-sm mb-2"
-                  >
-                    {imagePreview ? "Change Image" : "Upload Image"}
-                  </Button>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Recommended: Square PNG or JPG, max 2MB
-                  </p>
-                </div>
-
-                {/* Hidden File Input */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageSelect}
-                  className="hidden"
-                />
+            {/* Profile Image Upload - Centered */}
+            <div className="flex flex-col items-center pb-2">
+              <div
+                className="relative w-20 h-20 rounded-full border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-zinc-100 hover:bg-zinc-200 dark:border-zinc-600 dark:hover:border-zinc-500 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all duration-200 cursor-pointer overflow-hidden"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Profile preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <PhotoIcon className="w-8 h-8 text-zinc-400 dark:text-zinc-500" />
+                  </div>
+                )}
               </div>
-            </Field>
-
-            {isFirstNameEnabled && (
-              <Field>
-                <Label>
-                  First Name{isFirstNameRequired ? "" : " (optional)"}
-                </Label>
-                <Input
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="Enter first name"
-                />
-                {errors.firstName && (
-                  <ErrorMessage>{errors.firstName}</ErrorMessage>
+              <div className="mt-2 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                >
+                  {imagePreview ? "Change photo" : "Add photo"}
+                </button>
+                {imagePreview && (
+                  <>
+                    <span className="text-zinc-300 dark:text-zinc-600">·</span>
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
+                    >
+                      Remove
+                    </button>
+                  </>
                 )}
-              </Field>
-            )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
+              />
+            </div>
 
-            {isLastNameEnabled && (
-              <Field>
-                <Label>
-                  Last Name{isLastNameRequired ? "" : " (optional)"}
-                </Label>
-                <Input
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Enter last name"
-                />
-                {errors.lastName && (
-                  <ErrorMessage>{errors.lastName}</ErrorMessage>
+            {/* Name fields - side by side */}
+            {(isFirstNameEnabled || isLastNameEnabled) && (
+              <div className="grid grid-cols-2 gap-3">
+                {isFirstNameEnabled && (
+                  <Field>
+                    {renderLabel("First name", isFirstNameRequired)}
+                    <Input
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="John"
+                    />
+                    {errors.firstName && (
+                      <ErrorMessage>{errors.firstName}</ErrorMessage>
+                    )}
+                  </Field>
                 )}
-              </Field>
+
+                {isLastNameEnabled && (
+                  <Field>
+                    {renderLabel("Last name", isLastNameRequired)}
+                    <Input
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Doe"
+                    />
+                    {errors.lastName && (
+                      <ErrorMessage>{errors.lastName}</ErrorMessage>
+                    )}
+                  </Field>
+                )}
+              </div>
             )}
 
             {isEmailEnabled && (
               <Field>
-                <Label>Email{isEmailRequired ? "" : " (optional)"}</Label>
+                {renderLabel("Email", isEmailRequired)}
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter email address"
+                  placeholder="john@example.com"
+                  autoComplete="off"
                 />
                 {errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
               </Field>
             )}
 
-            {isPhoneEnabled && (
-              <Field>
-                <Label>
-                  Phone Number{isPhoneRequired ? "" : " (optional)"}
-                </Label>
-                <Input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Enter phone number"
-                />
-                {errors.phone && <ErrorMessage>{errors.phone}</ErrorMessage>}
-              </Field>
-            )}
-
             {isUsernameEnabled && (
               <Field>
-                <Label>Username{isUsernameRequired ? "" : " (optional)"}</Label>
+                {renderLabel("Username", isUsernameRequired)}
                 <Input
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter username"
+                  placeholder="johndoe"
                 />
                 {errors.username && (
                   <ErrorMessage>{errors.username}</ErrorMessage>
                 )}
+              </Field>
+            )}
+
+            {isPhoneEnabled && (
+              <Field>
+                {renderLabel("Phone number", isPhoneRequired)}
+                <Input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+1 (555) 123-4567"
+                />
+                {errors.phone && <ErrorMessage>{errors.phone}</ErrorMessage>}
               </Field>
             )}
 
@@ -359,7 +355,8 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password"
+                  placeholder="••••••••"
+                  autoComplete="new-password"
                 />
                 {errors.password && (
                   <ErrorMessage>{errors.password}</ErrorMessage>
@@ -367,18 +364,18 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
               </Field>
             )}
 
-            <Field className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pt-1">
               <input
                 type="checkbox"
                 id="skipChecks"
                 checked={skipChecks}
                 onChange={(e) => setSkipChecks(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-800"
               />
-              <Label htmlFor="skipChecks" className="text-sm font-normal mb-0">
-                Skip password validation checks
-              </Label>
-            </Field>
+              <label htmlFor="skipChecks" className="text-sm text-zinc-600 dark:text-zinc-400">
+                Skip password validation
+              </label>
+            </div>
           </form>
         )}
       </DialogBody>

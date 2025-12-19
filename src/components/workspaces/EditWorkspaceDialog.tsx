@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, Label } from "@/components/ui/fieldset";
-import { PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { toast } from 'sonner';
+import { PhotoIcon } from "@heroicons/react/24/outline";
+import { toast } from "sonner";
 import { useUpdateWorkspace } from "@/lib/api/hooks/use-workspace-mutations";
 
 interface EditWorkspaceDialogProps {
@@ -39,7 +39,6 @@ export function EditWorkspaceDialog({
 
 	const updateWorkspaceMutation = useUpdateWorkspace();
 
-	// Initialize form data when workspace changes
 	useEffect(() => {
 		if (workspace) {
 			setName(workspace.name || "");
@@ -49,7 +48,6 @@ export function EditWorkspaceDialog({
 		}
 	}, [workspace]);
 
-	// Reset form when dialog closes
 	useEffect(() => {
 		if (!isOpen) {
 			setSelectedImage(null);
@@ -59,35 +57,35 @@ export function EditWorkspaceDialog({
 
 	const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
-		if (file) {
-			// Validate file type
-			if (!file.type.startsWith('image/')) {
-				toast.error('Please select a valid image file');
-				return;
-			}
+		if (!file) return;
 
-			// Validate file size (5MB limit)
-			if (file.size > 5 * 1024 * 1024) {
-				toast.error('Image size must be less than 5MB');
-				return;
-			}
-
-			setSelectedImage(file);
-			
-			// Create preview URL
-			const reader = new FileReader();
-			reader.onload = (e) => {
-				setImagePreview(e.target?.result as string);
-			};
-			reader.readAsDataURL(file);
+		if (!file.type.startsWith("image/")) {
+			toast.error("Please select a valid image file");
+			return;
 		}
+
+		if (file.size > 2 * 1024 * 1024) {
+			toast.error("Image size must be less than 2MB");
+			return;
+		}
+
+		setSelectedImage(file);
+
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			setImagePreview(e.target?.result as string);
+		};
+		reader.readAsDataURL(file);
 	};
+
+	const [shouldRemoveImage, setShouldRemoveImage] = useState(false);
 
 	const handleRemoveImage = () => {
 		setSelectedImage(null);
 		setImagePreview(null);
+		setShouldRemoveImage(true);
 		if (fileInputRef.current) {
-			fileInputRef.current.value = '';
+			fileInputRef.current.value = "";
 		}
 	};
 
@@ -102,15 +100,16 @@ export function EditWorkspaceDialog({
 		try {
 			const formData = new FormData();
 
-			// Only append fields that have changed
 			if (name.trim() !== workspace.name) {
-				formData.append('name', name.trim());
+				formData.append("name", name.trim());
 			}
 			if (description.trim() !== (workspace.description || "")) {
-				formData.append('description', description.trim());
+				formData.append("description", description.trim());
 			}
-			if (selectedImage) {
-				formData.append('workspace_image', selectedImage);
+			if (shouldRemoveImage) {
+				formData.append("remove_image", "true");
+			} else if (selectedImage) {
+				formData.append("workspace_image", selectedImage);
 			}
 
 			await updateWorkspaceMutation.mutateAsync({
@@ -126,104 +125,87 @@ export function EditWorkspaceDialog({
 	};
 
 	return (
-		<Dialog open={isOpen} onClose={onClose}>
+		<Dialog open={isOpen} onClose={onClose} size="md">
 			<DialogTitle>Edit Workspace</DialogTitle>
-
 			<DialogBody>
-				<form onSubmit={handleSubmit} className="space-y-6">
-					<div className="space-y-4">
-						{/* Workspace Image Upload */}
-						<Field>
-							<Label>Workspace Logo (optional)</Label>
-							<div className="flex items-center space-x-4">
-								{/* Avatar Preview */}
-								<div
-									className="relative w-20 h-20 rounded-full border-2 border-dashed border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200 cursor-pointer overflow-hidden"
-									onClick={() => fileInputRef.current?.click()}
-								>
-									{imagePreview ? (
-										<>
-											<img
-												src={imagePreview}
-												alt="Workspace logo preview"
-												className="w-full h-full object-cover"
-											/>
-											<button
-												type="button"
-												onClick={(e) => {
-													e.stopPropagation();
-													handleRemoveImage();
-												}}
-												className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
-											>
-												<XMarkIcon className="w-4 h-4" />
-											</button>
-										</>
-									) : (
-										<div className="flex flex-col items-center justify-center h-full">
-											<PhotoIcon className="w-8 h-8 text-zinc-400 dark:text-zinc-500 mb-1" />
-											<span className="text-xs text-zinc-500 dark:text-zinc-400 text-center px-1">
-												Click to upload
-											</span>
-										</div>
-									)}
-								</div>
-
-								{/* Hidden file input */}
-								<input
-									ref={fileInputRef}
-									type="file"
-									accept="image/*"
-									onChange={handleImageSelect}
-									className="hidden"
+				<form onSubmit={handleSubmit} className="space-y-4">
+					{/* Workspace Logo - Centered */}
+					<div className="flex flex-col items-center">
+						<div
+							className="w-16 h-16 rounded-lg border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-zinc-100 hover:bg-zinc-200 dark:border-zinc-600 dark:hover:border-zinc-500 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all duration-200 cursor-pointer overflow-hidden"
+							onClick={() => fileInputRef.current?.click()}
+						>
+							{imagePreview ? (
+								<img
+									src={imagePreview}
+									alt="Workspace logo preview"
+									className="w-full h-full object-cover"
 								/>
-
-								{/* Upload instructions */}
-								<div className="flex-1">
-									<p className="text-sm text-zinc-600 dark:text-zinc-400">
-										Upload a workspace logo. Recommended size: 200x200px.
-									</p>
-									<p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-										Supports: JPG, PNG, GIF, WEBP (max 5MB)
-									</p>
+							) : (
+								<div className="flex items-center justify-center h-full">
+									<PhotoIcon className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
 								</div>
-							</div>
-						</Field>
-
-						{/* Workspace Name */}
-						<Field>
-							<Label htmlFor="name">Workspace Name *</Label>
-							<Input
-								id="name"
-								type="text"
-								value={name}
-								onChange={(e) => setName(e.target.value)}
-								placeholder="Enter workspace name"
-								required
-							/>
-						</Field>
-
-						{/* Description */}
-						<Field>
-							<Label htmlFor="description">Description</Label>
-							<Textarea
-								id="description"
-								value={description}
-								onChange={(e) => setDescription(e.target.value)}
-								placeholder="Enter workspace description (optional)"
-								rows={3}
-							/>
-						</Field>
+							)}
+						</div>
+						<div className="mt-1.5 flex items-center gap-2">
+							<button
+								type="button"
+								onClick={() => fileInputRef.current?.click()}
+								className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+							>
+								{imagePreview ? "Change logo" : "Add logo"}
+							</button>
+							{imagePreview && (
+								<>
+									<span className="text-zinc-300 dark:text-zinc-600">·</span>
+									<button
+										type="button"
+										onClick={handleRemoveImage}
+										className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
+									>
+										Remove
+									</button>
+								</>
+							)}
+						</div>
+						<input
+							ref={fileInputRef}
+							type="file"
+							accept="image/*"
+							onChange={handleImageSelect}
+							className="hidden"
+						/>
 					</div>
+
+					<Field>
+						<Label>Name</Label>
+						<Input
+							value={name}
+							onChange={(e) => setName(e.target.value)}
+							placeholder="Engineering Team"
+						/>
+					</Field>
+
+					<Field>
+						<Label>
+							Description
+							<span className="ml-1 text-zinc-400 dark:text-zinc-500 font-normal">·  optional</span>
+						</Label>
+						<Textarea
+							value={description}
+							onChange={(e) => setDescription(e.target.value)}
+							placeholder="A brief description of the workspace..."
+							rows={2}
+						/>
+					</Field>
 				</form>
 			</DialogBody>
-
 			<DialogActions>
 				<Button outline onClick={onClose} disabled={updateWorkspaceMutation.isPending}>
 					Cancel
 				</Button>
 				<Button onClick={handleSubmit} disabled={updateWorkspaceMutation.isPending}>
-					{updateWorkspaceMutation.isPending ? "Updating..." : "Update Workspace"}
+					{updateWorkspaceMutation.isPending ? "Saving..." : "Save Changes"}
 				</Button>
 			</DialogActions>
 		</Dialog>
