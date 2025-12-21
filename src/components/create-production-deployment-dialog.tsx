@@ -15,7 +15,7 @@ import GithubIcon from "@/assets/github.svg";
 import GitlabIcon from "@/assets/gitlab.svg";
 import GoogleIcon from "@/assets/google.svg";
 import LinkedInIcon from "@/assets/linkedin.svg";
-import MicrosoftIcon from "@/assets/microsoft.svg";
+// import MicrosoftIcon from "@/assets/microsoft.svg";
 import { Dialog, DialogActions, DialogTitle, DialogBody, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/fieldset";
 import { Field } from "@/components/ui/fieldset";

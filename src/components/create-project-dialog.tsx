@@ -18,7 +18,7 @@ import GithubIcon from "@/assets/github.svg";
 import GitlabIcon from "@/assets/gitlab.svg";
 import GoogleIcon from "@/assets/google.svg";
 import LinkedInIcon from "@/assets/linkedin.svg";
-import MicrosoftIcon from "@/assets/microsoft.svg";
+// import MicrosoftIcon from "@/assets/microsoft.svg";
 import { Button } from "./ui/button";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 
