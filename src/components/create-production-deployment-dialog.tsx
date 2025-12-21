@@ -225,13 +225,14 @@ export function CreateProductionDeploymentDialog({
 								onClick={() => toggleAuthMethod("google_oauth")}
 								compact
 							/>
-							<AuthMethodCard
+							{/* Microsoft OAuth temporarily disabled - unverified credentials */}
+							{/* <AuthMethodCard
 								icon={<img src={MicrosoftIcon} alt="Microsoft" className="h-5 w-5" />}
 								label="Microsoft"
 								selected={selectedMethods.includes("microsoft_oauth")}
 								onClick={() => toggleAuthMethod("microsoft_oauth")}
 								compact
-							/>
+							/> */}
 							<AuthMethodCard
 								icon={<img src={GithubIcon} alt="GitHub" className="h-5 w-5" />}
 								label="GitHub"

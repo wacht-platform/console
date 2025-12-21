@@ -17,7 +17,7 @@ import GithubIcon from "@/assets/github.svg";
 import GitlabIcon from "@/assets/gitlab.svg";
 import GoogleIcon from "@/assets/google.svg";
 import LinkedInIcon from "@/assets/linkedin.svg";
-import MicrosoftIcon from "@/assets/microsoft.svg";
+// import MicrosoftIcon from "@/assets/microsoft.svg";
 import {
   Description,
   Field,
@@ -362,37 +362,38 @@ const PROVIDERS: {
   icon: string;
   provider: SocialConnectionProvider;
 }[] = [
-  {
-    name: "Google",
-    icon: GoogleIcon,
-    provider: SocialConnectionProvider.GoogleOauth,
-  },
-  {
-    name: "GitHub",
-    icon: GithubIcon,
-    provider: SocialConnectionProvider.GithubOauth,
-  },
-  {
-    name: "GitLab",
-    icon: GitlabIcon,
-    provider: SocialConnectionProvider.GitlabOauth,
-  },
-  {
-    name: "Microsoft",
-    icon: MicrosoftIcon,
-    provider: SocialConnectionProvider.MicrosoftOauth,
-  },
-  {
-    name: "LinkedIn",
-    icon: LinkedInIcon,
-    provider: SocialConnectionProvider.LinkedinOauth,
-  },
-  {
-    name: "Discord",
-    icon: DiscordIcon,
-    provider: SocialConnectionProvider.DiscordOauth,
-  },
-];
+    {
+      name: "Google",
+      icon: GoogleIcon,
+      provider: SocialConnectionProvider.GoogleOauth,
+    },
+    {
+      name: "GitHub",
+      icon: GithubIcon,
+      provider: SocialConnectionProvider.GithubOauth,
+    },
+    {
+      name: "GitLab",
+      icon: GitlabIcon,
+      provider: SocialConnectionProvider.GitlabOauth,
+    },
+    // Microsoft OAuth temporarily disabled - unverified credentials
+    // {
+    //   name: "Microsoft",
+    //   icon: MicrosoftIcon,
+    //   provider: SocialConnectionProvider.MicrosoftOauth,
+    // },
+    {
+      name: "LinkedIn",
+      icon: LinkedInIcon,
+      provider: SocialConnectionProvider.LinkedinOauth,
+    },
+    {
+      name: "Discord",
+      icon: DiscordIcon,
+      provider: SocialConnectionProvider.DiscordOauth,
+    },
+  ];
 
 type SelectedProviderInfo = {
   name: string;

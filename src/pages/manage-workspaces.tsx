@@ -295,6 +295,27 @@ export default function ManageWorkspacesPage() {
                   />
                 </div>
 
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-base font-medium">
+                      Enable IP allowlist
+                    </h2>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      Allow workspaces to create IP allowlists for their members.
+                    </p>
+                  </div>
+                  <Switch
+                    name="ip_allowlist_per_workspace_enabled"
+                    checked={settingsState.ip_allowlist_per_workspace_enabled}
+                    onChange={(checked) =>
+                      handleSettingChange(
+                        "ip_allowlist_per_workspace_enabled",
+                        checked
+                      )
+                    }
+                  />
+                </div>
+
                 <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
                   <div className="space-y-1">
                     <Subheading>
@@ -563,27 +584,6 @@ export default function ManageWorkspacesPage() {
                       handleSettingChange("workspaces_per_org_count", e)
                     }
                   />
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h2 className="text-base font-medium">
-                        Enable IP allowlist
-                      </h2>
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                        Allow workspaces to create ip allowlists for their
-                        members.
-                      </p>
-                    </div>
-                    <Switch
-                      name="ip_allowlist_per_workspace_enabled"
-                      checked={settingsState.ip_allowlist_per_workspace_enabled}
-                      onChange={(checked) =>
-                        handleSettingChange(
-                          "ip_allowlist_per_workspace_enabled",
-                          checked
-                        )
-                      }
-                    />
-                  </div>
                 </div>
               </section>
             </div>

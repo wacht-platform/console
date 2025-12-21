@@ -1,6 +1,6 @@
 // Import social login icons
 import GoogleIcon from "@/assets/google.svg";
-import MicrosoftIcon from "@/assets/microsoft.svg";
+// import MicrosoftIcon from "@/assets/microsoft.svg";
 import GithubIcon from "@/assets/github.svg";
 import DiscordIcon from "@/assets/discord.svg";
 import LinkedInIcon from "@/assets/linkedin.svg";
@@ -27,11 +27,12 @@ const socialAuthProviders = {
 		fullLabel: "Continue with Google",
 		icon: GoogleIcon,
 	},
-	microsoft: {
-		shortLabel: "Microsoft",
-		fullLabel: "Continue with Microsoft",
-		icon: MicrosoftIcon,
-	},
+	// Microsoft OAuth temporarily disabled - unverified credentials
+	// microsoft: {
+	// 	shortLabel: "Microsoft",
+	// 	fullLabel: "Continue with Microsoft",
+	// 	icon: MicrosoftIcon,
+	// },
 	github: {
 		shortLabel: "GitHub",
 		fullLabel: "Continue with GitHub",

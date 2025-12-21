@@ -63,8 +63,7 @@ function SignedInRoutes() {
     }
   }, [activeSignInId, activeOrgMembershipId, loading, session]);
 
-  // Don't render QueryProvider until interceptor is ready
-  if (!interceptorReady) {
+  if (!interceptorReady || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Spinner className="h-8 w-8" />

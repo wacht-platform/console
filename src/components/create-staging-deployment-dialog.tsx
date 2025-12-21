@@ -14,7 +14,7 @@ import GithubIcon from "@/assets/github.svg";
 import GitlabIcon from "@/assets/gitlab.svg";
 import GoogleIcon from "@/assets/google.svg";
 import LinkedInIcon from "@/assets/linkedin.svg";
-import MicrosoftIcon from "@/assets/microsoft.svg";
+// import MicrosoftIcon from "@/assets/microsoft.svg";
 import XIcon from "@/assets/x.svg";
 import { Dialog, DialogActions, DialogTitle, DialogBody, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "./ui/button";
@@ -160,13 +160,14 @@ export function CreateStagingDeploymentDialog({
 								onClick={() => toggleAuthMethod("google_oauth")}
 								compact
 							/>
-							<AuthMethodCard
+							{/* Microsoft OAuth temporarily disabled - unverified credentials */}
+							{/* <AuthMethodCard
 								icon={<img src={MicrosoftIcon} alt="Microsoft" className="h-5 w-5" />}
 								label="Microsoft"
 								selected={selectedMethods.includes("microsoft_oauth")}
 								onClick={() => toggleAuthMethod("microsoft_oauth")}
 								compact
-							/>
+							/> */}
 							<AuthMethodCard
 								icon={<img src={GithubIcon} alt="GitHub" className="h-5 w-5" />}
 								label="GitHub"
