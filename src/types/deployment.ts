@@ -63,6 +63,7 @@ export interface EmailLinkSettings {
 
 export interface PasskeySettings {
 	enabled: boolean;
+	prompt_registration_on_auth: boolean;
 	allow_autofill: boolean;
 }
 

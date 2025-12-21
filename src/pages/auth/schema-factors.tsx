@@ -734,6 +734,10 @@ function PasskeySettingsDialog({ open, onClose }: DialogProps) {
     updatePasskeySettings({ enabled: checked });
   };
 
+  const handlePasskeyPromptRegistrationChange = (checked: boolean) => {
+    updatePasskeySettings({ prompt_registration_on_auth: checked });
+  };
+
   const handlePasskeyAutofillChange = (checked: boolean) => {
     updatePasskeySettings({ allow_autofill: checked });
   };
@@ -742,7 +746,7 @@ function PasskeySettingsDialog({ open, onClose }: DialogProps) {
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Passkey Configuration</DialogTitle>
       <DialogDescription>
-        Choose experience of your end users.
+        Configure passkey authentication settings.
       </DialogDescription>
       <DialogBody className="space-y-3">
         <SwitchGroup>
@@ -753,6 +757,18 @@ function PasskeySettingsDialog({ open, onClose }: DialogProps) {
               name="passkey_enabled"
               checked={settings.passkey?.enabled}
               onChange={handlePasskeyEnabledChange}
+            />
+          </SwitchField>
+
+          <SwitchField>
+            <Label>Prompt registration after login</Label>
+            <Description>
+              Prompt users to register a passkey after they sign in with another method.
+            </Description>
+            <Switch
+              name="passkey_prompt_registration"
+              checked={settings.passkey?.prompt_registration_on_auth}
+              onChange={handlePasskeyPromptRegistrationChange}
             />
           </SwitchField>
 
@@ -1443,13 +1459,11 @@ export default function SchemaFactorsPage() {
                 />
               </SwitchField>
 
-              {/*<div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-sm font-medium">Passkeys</h3>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    Users can sign in with a passkey
-                  </p>
-                </div>
+              <SwitchField>
+                <Label>Passkeys</Label>
+                <Description>
+                  Users can sign in with a passkey
+                </Description>
                 <div className="flex items-center gap-2">
                   <Button plain onClick={() => setPasskeySettingsOpen(true)}>
                     <Cog6ToothIcon />
@@ -1462,7 +1476,7 @@ export default function SchemaFactorsPage() {
                     }
                   />
                 </div>
-              </div>*/}
+              </SwitchField>
             </div>
           </div>
 
