@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { TrashIcon } from "@heroicons/react/24/outline";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Select } from "../ui/select";
 import { Switch } from "../ui/switch";
-
+import { Checkbox } from "../ui/checkbox";
 import { Field, Label } from "../ui/fieldset";
 import {
   Dialog,
@@ -313,9 +314,9 @@ export function CreateToolDialog({
               </Field>
             </div>
 
-            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg py-4 border border-gray-200 dark:border-gray-800">
+            <div className="rounded-lg py-4 border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/30">
               <div className="flex items-center justify-between px-4">
-                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                   Authorize as user
                 </label>
                 <Switch
@@ -370,304 +371,158 @@ export function CreateToolDialog({
               )}
             </div>
 
-            {/* URL Parameters Schema */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  URL & Query Parameters
-                </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newParams = [
-                      ...(apiConfig.url_params_schema || []),
-                      {
-                        name: "",
-                        field_type: "string",
-                        required: true,
-                        description: "",
-                      },
-                    ];
-                    setFormData({
-                      ...formData,
-                      configuration: {
-                        ...apiConfig,
-                        url_params_schema: newParams,
-                      },
-                    });
-                  }}
-                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
-                >
-                  + Add Parameter
-                </button>
-              </div>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {(apiConfig.url_params_schema || []).length === 0 && (
-                  <div className="text-xs text-gray-500 dark:text-gray-400 italic p-2 text-center bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-800">
-                    No parameters defined. Click "Add Parameter" to add URL path or query parameters.
-                  </div>
-                )}
-                {(apiConfig.url_params_schema || []).map((param, index) => (
-                  <div key={index} className="p-2 bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-800">
-                    <div className="flex gap-2 items-center">
-                      <div className="flex-1">
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Parameter Name
-                        </label>
-                        <Input
-                          placeholder="userId, postId, search, limit, etc."
-                          value={param.name}
-                          onChange={(e) => {
-                            const newParams = [
-                              ...(apiConfig.url_params_schema || []),
-                            ];
-                            newParams[index] = {
-                              ...param,
-                              name: e.target.value,
-                            };
-                            setFormData({
-                              ...formData,
-                              configuration: {
-                                ...apiConfig,
-                                url_params_schema: newParams,
-                              },
-                            });
-                          }}
-                        />
-                      </div>
-                      <div className="w-24">
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Type
-                        </label>
-                        <Select
-                          value={param.field_type}
-                          onChange={(e) => {
-                            const newParams = [
-                              ...(apiConfig.url_params_schema || []),
-                            ];
-                            newParams[index] = {
-                              ...param,
-                              field_type: e.target.value,
-                            };
-                            setFormData({
-                              ...formData,
-                              configuration: {
-                                ...apiConfig,
-                                url_params_schema: newParams,
-                              },
-                            });
-                          }}
-                        >
-                          <option value="string">string</option>
-                          <option value="number">number</option>
-                          <option value="boolean">boolean</option>
-                        </Select>
-                      </div>
-                      <div className="w-16 flex flex-col">
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Required
-                        </label>
-                        <div className="flex items-center justify-center h-9">
-                          <input
-                            type="checkbox"
-                            checked={param.required}
-                            onChange={(e) => {
-                              const newParams = [
-                                ...(apiConfig.url_params_schema || []),
-                              ];
-                              newParams[index] = {
-                                ...param,
-                                required: e.target.checked,
-                              };
-                              setFormData({
-                                ...formData,
-                                configuration: {
-                                  ...apiConfig,
-                                  url_params_schema: newParams,
-                                },
-                              });
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <div className="w-8 flex flex-col">
-                        <div className="h-5 mb-1"></div>
-                        <div className="flex items-center justify-center h-9">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newParams = (
-                                apiConfig.url_params_schema || []
-                              ).filter((_, i) => i !== index);
-                              setFormData({
-                                ...formData,
-                                configuration: {
-                                  ...apiConfig,
-                                  url_params_schema: newParams,
-                                },
-                              });
-                            }}
-                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50 dark:hover:bg-red-900/20"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      </div>
+            {/* Parameters - Two Column Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* URL Parameters Schema */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    URL & Query Parameters
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newParams = [
+                        ...(apiConfig.url_params_schema || []),
+                        { name: "", field_type: "string", required: true, description: "" },
+                      ];
+                      setFormData({
+                        ...formData,
+                        configuration: { ...apiConfig, url_params_schema: newParams },
+                      });
+                    }}
+                    className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium"
+                  >
+                    + Add
+                  </button>
+                </div>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {(apiConfig.url_params_schema || []).length === 0 && (
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400 py-3 text-center rounded-lg border border-dashed border-zinc-300 dark:border-zinc-600 bg-zinc-50/50 dark:bg-zinc-800/20">
+                      No URL parameters
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-
-            {/* Request Body Schema */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Request Body Schema
-                </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newFields = [
-                      ...(apiConfig.request_body_schema || []),
-                      {
-                        name: "",
-                        field_type: "string",
-                        required: true,
-                        description: "",
-                      },
-                    ];
-                    setFormData({
-                      ...formData,
-                      configuration: {
-                        ...apiConfig,
-                        request_body_schema: newFields,
-                      },
-                    });
-                  }}
-                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
-                >
-                  + Add Body Field
-                </button>
-              </div>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {(apiConfig.request_body_schema || []).length === 0 && (
-                  <div className="text-xs text-gray-500 dark:text-gray-400 italic p-2 text-center bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-800">
-                    No body fields defined. Click "Add Body Field" to add one.
-                  </div>
-                )}
-                {(apiConfig.request_body_schema || []).map((field, index) => (
-                  <div key={index} className="p-2 bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-800">
-                    <div className="flex gap-2 items-center">
-                      <div className="flex-1">
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          JSON Key Name
-                        </label>
-                        <Input
-                          placeholder="name, email, age, etc."
-                          value={field.name}
-                          onChange={(e) => {
-                            const newFields = [
-                              ...(apiConfig.request_body_schema || []),
-                            ];
-                            newFields[index] = {
-                              ...field,
-                              name: e.target.value,
-                            };
-                            setFormData({
-                              ...formData,
-                              configuration: {
-                                ...apiConfig,
-                                request_body_schema: newFields,
-                              },
-                            });
-                          }}
-                        />
-                      </div>
-                      <div className="w-24">
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Type
-                        </label>
-                        <Select
-                          value={field.field_type}
-                          onChange={(e) => {
-                            const newFields = [
-                              ...(apiConfig.request_body_schema || []),
-                            ];
-                            newFields[index] = {
-                              ...field,
-                              field_type: e.target.value,
-                            };
-                            setFormData({
-                              ...formData,
-                              configuration: {
-                                ...apiConfig,
-                                request_body_schema: newFields,
-                              },
-                            });
-                          }}
-                        >
-                          <option value="string">string</option>
-                          <option value="number">number</option>
-                          <option value="boolean">boolean</option>
-                          <option value="array">array</option>
-                          <option value="object">object</option>
-                        </Select>
-                      </div>
-                      <div className="w-16 flex flex-col">
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Required
-                        </label>
-                        <div className="flex items-center justify-center h-9">
-                          <input
-                            type="checkbox"
-                            checked={field.required}
-                            onChange={(e) => {
-                              const newFields = [
-                                ...(apiConfig.request_body_schema || []),
-                              ];
-                              newFields[index] = {
-                                ...field,
-                                required: e.target.checked,
-                              };
-                              setFormData({
-                                ...formData,
-                                configuration: {
-                                  ...apiConfig,
-                                  request_body_schema: newFields,
-                                },
-                              });
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <div className="w-8 flex flex-col">
-                        <div className="h-5 mb-1"></div>
-                        <div className="flex items-center justify-center h-9">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newFields = (
-                                apiConfig.request_body_schema || []
-                              ).filter((_, i) => i !== index);
-                              setFormData({
-                                ...formData,
-                                configuration: {
-                                  ...apiConfig,
-                                  request_body_schema: newFields,
-                                },
-                              });
-                            }}
-                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50 dark:hover:bg-red-900/20"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      </div>
+                  )}
+                  {(apiConfig.url_params_schema || []).map((param, index) => (
+                    <div key={index} className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center py-1">
+                      <Input
+                        placeholder="name"
+                        value={param.name}
+                        onChange={(e) => {
+                          const newParams = [...(apiConfig.url_params_schema || [])];
+                          newParams[index] = { ...param, name: e.target.value };
+                          setFormData({ ...formData, configuration: { ...apiConfig, url_params_schema: newParams } });
+                        }}
+                      />
+                      <Select
+                        value={param.field_type}
+                        onChange={(e) => {
+                          const newParams = [...(apiConfig.url_params_schema || [])];
+                          newParams[index] = { ...param, field_type: e.target.value };
+                          setFormData({ ...formData, configuration: { ...apiConfig, url_params_schema: newParams } });
+                        }}
+                      >
+                        <option value="string">str</option>
+                        <option value="number">num</option>
+                        <option value="boolean">bool</option>
+                      </Select>
+                      <Switch
+                        checked={param.required}
+                        onChange={(checked) => {
+                          const newParams = [...(apiConfig.url_params_schema || [])];
+                          newParams[index] = { ...param, required: checked };
+                          setFormData({ ...formData, configuration: { ...apiConfig, url_params_schema: newParams } });
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newParams = (apiConfig.url_params_schema || []).filter((_, i) => i !== index);
+                          setFormData({ ...formData, configuration: { ...apiConfig, url_params_schema: newParams } });
+                        }}
+                        className="p-1 rounded text-zinc-400 hover:text-red-500 transition-colors"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              </div>
+
+              {/* Request Body Schema */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Request Body Schema
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newFields = [
+                        ...(apiConfig.request_body_schema || []),
+                        { name: "", field_type: "string", required: true, description: "" },
+                      ];
+                      setFormData({
+                        ...formData,
+                        configuration: { ...apiConfig, request_body_schema: newFields },
+                      });
+                    }}
+                    className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium"
+                  >
+                    + Add
+                  </button>
+                </div>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {(apiConfig.request_body_schema || []).length === 0 && (
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400 py-3 text-center rounded-lg border border-dashed border-zinc-300 dark:border-zinc-600 bg-zinc-50/50 dark:bg-zinc-800/20">
+                      No body fields
+                    </div>
+                  )}
+                  {(apiConfig.request_body_schema || []).map((field, index) => (
+                    <div key={index} className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center py-1">
+                      <Input
+                        placeholder="name"
+                        value={field.name}
+                        onChange={(e) => {
+                          const newFields = [...(apiConfig.request_body_schema || [])];
+                          newFields[index] = { ...field, name: e.target.value };
+                          setFormData({ ...formData, configuration: { ...apiConfig, request_body_schema: newFields } });
+                        }}
+                      />
+                      <Select
+                        value={field.field_type}
+                        onChange={(e) => {
+                          const newFields = [...(apiConfig.request_body_schema || [])];
+                          newFields[index] = { ...field, field_type: e.target.value };
+                          setFormData({ ...formData, configuration: { ...apiConfig, request_body_schema: newFields } });
+                        }}
+                      >
+                        <option value="string">str</option>
+                        <option value="number">num</option>
+                        <option value="boolean">bool</option>
+                        <option value="array">arr</option>
+                        <option value="object">obj</option>
+                      </Select>
+                      <Switch
+                        checked={field.required}
+                        onChange={(checked) => {
+                          const newFields = [...(apiConfig.request_body_schema || [])];
+                          newFields[index] = { ...field, required: checked };
+                          setFormData({ ...formData, configuration: { ...apiConfig, request_body_schema: newFields } });
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newFields = (apiConfig.request_body_schema || []).filter((_, i) => i !== index);
+                          setFormData({ ...formData, configuration: { ...apiConfig, request_body_schema: newFields } });
+                        }}
+                        className="p-1 rounded text-zinc-400 hover:text-red-500 transition-colors"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -686,43 +541,47 @@ export function CreateToolDialog({
 
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Field>
-                <Label>Knowledge Bases</Label>
-                <div className="space-y-2">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Select one or more knowledge bases to search</div>
-                  <div className="max-h-32 overflow-y-auto border border-gray-300 dark:border-gray-700 rounded-md p-2 bg-white dark:bg-gray-900">
-                    {knowledgeBases.length === 0 ? (
-                      <div className="text-sm text-gray-500 dark:text-gray-400 italic">No knowledge bases available</div>
-                    ) : (
-                      knowledgeBases.map((kb) => (
-                        <label key={kb.id} className="flex items-center space-x-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-800 px-1 rounded cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={(kbConfig.knowledge_base_ids || []).includes(kb.id.toString())}
-                            onChange={(e) => {
-                              const currentIds = kbConfig.knowledge_base_ids || [];
-                              const kbId = kb.id.toString();
-                              const newIds = e.target.checked
-                                ? [...currentIds, kbId]
-                                : currentIds.filter(id => id !== kbId);
-                              setFormData({
-                                ...formData,
-                                configuration: {
-                                  ...kbConfig,
-                                  knowledge_base_ids: newIds,
-                                },
-                              });
-                            }}
-                          />
-                          <span className="text-sm">{kb.name}</span>
-                        </label>
-                      ))
-                    )}
-                  </div>
+            <Field>
+              <Label>Knowledge Bases</Label>
+              <div className="space-y-2">
+                <div className="text-sm text-zinc-600 dark:text-zinc-400">Select one or more knowledge bases to search</div>
+                <div className="max-h-40 overflow-y-auto border border-zinc-200 dark:border-zinc-700 rounded-lg p-2 bg-zinc-50/50 dark:bg-zinc-800/30">
+                  {knowledgeBases.length === 0 ? (
+                    <div className="text-sm text-zinc-500 dark:text-zinc-400 py-3 text-center">No knowledge bases available</div>
+                  ) : (
+                    knowledgeBases.map((kb) => (
+                      <div
+                        key={kb.id}
+                        className="flex items-center gap-3 py-2 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-700/50 rounded-md cursor-pointer transition-colors"
+                        onClick={() => {
+                          const currentIds = kbConfig.knowledge_base_ids || [];
+                          const kbId = kb.id.toString();
+                          const newIds = currentIds.includes(kbId)
+                            ? currentIds.filter(id => id !== kbId)
+                            : [...currentIds, kbId];
+                          setFormData({
+                            ...formData,
+                            configuration: {
+                              ...kbConfig,
+                              knowledge_base_ids: newIds,
+                            },
+                          });
+                        }}
+                      >
+                        <Checkbox
+                          color="indigo"
+                          checked={(kbConfig.knowledge_base_ids || []).includes(kb.id.toString())}
+                          onChange={() => { }}
+                        />
+                        <span className="text-sm text-zinc-900 dark:text-zinc-100">{kb.name}</span>
+                      </div>
+                    ))
+                  )}
                 </div>
-              </Field>
+              </div>
+            </Field>
 
+            <div className="grid grid-cols-2 gap-4">
               <Field>
                 <Label>Max Results</Label>
                 <Input
@@ -745,9 +604,6 @@ export function CreateToolDialog({
                   }
                 />
               </Field>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Field>
                 <Label>Similarity Threshold</Label>
                 <Input
@@ -775,9 +631,9 @@ export function CreateToolDialog({
               </Field>
             </div>
 
-            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg py-4 border border-gray-200 dark:border-gray-800">
+            <div className="rounded-lg py-4 border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/30">
               <div className="flex items-center justify-between px-4">
-                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                   Include metadata
                 </label>
                 <Switch
@@ -797,7 +653,7 @@ export function CreateToolDialog({
                 />
               </div>
               <div className="flex items-center justify-between px-4 pt-4">
-                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                   Sort by relevance
                 </label>
                 <Switch
@@ -913,307 +769,160 @@ export function CreateToolDialog({
               />
             </Field>
 
-            {/* Input Parameters Schema */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Input Parameters
-                </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newParams = [
-                      ...(functionConfig.input_schema || []),
-                      {
-                        name: "",
-                        field_type: "string",
-                        required: true,
-                        description: "",
-                      },
-                    ];
-                    setFormData({
-                      ...formData,
-                      configuration: {
-                        ...functionConfig,
-                        input_schema: newParams,
-                      },
-                    });
-                  }}
-                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
-                >
-                  + Add Input Parameter
-                </button>
-              </div>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {(functionConfig.input_schema || []).length === 0 && (
-                  <div className="text-xs text-gray-500 dark:text-gray-400 italic p-2 text-center bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-800">
-                    No input parameters defined. Click "Add Input Parameter" to
-                    add one.
-                  </div>
-                )}
-                {(functionConfig.input_schema || []).map((param, index) => (
-                  <div key={index} className="p-2 bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-800">
-                    <div className="flex gap-2 items-center">
-                      <div className="flex-1">
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Parameter Name
-                        </label>
-                        <Input
-                          placeholder="score, userId, data, etc."
-                          value={param.name}
-                          onChange={(e) => {
-                            const newParams = [
-                              ...(functionConfig.input_schema || []),
-                            ];
-                            newParams[index] = {
-                              ...param,
-                              name: e.target.value,
-                            };
-                            setFormData({
-                              ...formData,
-                              configuration: {
-                                ...functionConfig,
-                                input_schema: newParams,
-                              },
-                            });
-                          }}
-                        />
-                      </div>
-                      <div className="w-24">
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Type
-                        </label>
-                        <Select
-                          value={param.field_type}
-                          onChange={(e) => {
-                            const newParams = [
-                              ...(functionConfig.input_schema || []),
-                            ];
-                            newParams[index] = {
-                              ...param,
-                              field_type: e.target.value,
-                            };
-                            setFormData({
-                              ...formData,
-                              configuration: {
-                                ...functionConfig,
-                                input_schema: newParams,
-                              },
-                            });
-                          }}
-                        >
-                          <option value="string">string</option>
-                          <option value="number">number</option>
-                          <option value="boolean">boolean</option>
-                          <option value="array">array</option>
-                          <option value="object">object</option>
-                        </Select>
-                      </div>
-                      <div className="w-16 flex flex-col">
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Required
-                        </label>
-                        <div className="flex items-center justify-center h-9">
-                          <input
-                            type="checkbox"
-                            checked={param.required}
-                            onChange={(e) => {
-                              const newParams = [
-                                ...(functionConfig.input_schema || []),
-                              ];
-                              newParams[index] = {
-                                ...param,
-                                required: e.target.checked,
-                              };
-                              setFormData({
-                                ...formData,
-                                configuration: {
-                                  ...functionConfig,
-                                  input_schema: newParams,
-                                },
-                              });
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <div className="w-8 flex flex-col">
-                        <div className="h-5 mb-1"></div>
-                        <div className="flex items-center justify-center h-9">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newParams = (
-                                functionConfig.input_schema || []
-                              ).filter((_, i) => i !== index);
-                              setFormData({
-                                ...formData,
-                                configuration: {
-                                  ...functionConfig,
-                                  input_schema: newParams,
-                                },
-                              });
-                            }}
-                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50 dark:hover:bg-red-900/20"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      </div>
+            {/* Parameters - Two Column Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Input Parameters Schema */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Input Parameters
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newParams = [
+                        ...(functionConfig.input_schema || []),
+                        { name: "", field_type: "string", required: true, description: "" },
+                      ];
+                      setFormData({
+                        ...formData,
+                        configuration: { ...functionConfig, input_schema: newParams },
+                      });
+                    }}
+                    className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium"
+                  >
+                    + Add
+                  </button>
+                </div>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {(functionConfig.input_schema || []).length === 0 && (
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400 py-3 text-center rounded-lg border border-dashed border-zinc-300 dark:border-zinc-600 bg-zinc-50/50 dark:bg-zinc-800/20">
+                      No input parameters
                     </div>
-                  </div>
-                ))}
+                  )}
+                  {(functionConfig.input_schema || []).map((param, index) => (
+                    <div key={index} className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center py-1">
+                      <Input
+                        placeholder="name"
+                        value={param.name}
+                        onChange={(e) => {
+                          const newParams = [...(functionConfig.input_schema || [])];
+                          newParams[index] = { ...param, name: e.target.value };
+                          setFormData({ ...formData, configuration: { ...functionConfig, input_schema: newParams } });
+                        }}
+                      />
+                      <Select
+                        value={param.field_type}
+                        onChange={(e) => {
+                          const newParams = [...(functionConfig.input_schema || [])];
+                          newParams[index] = { ...param, field_type: e.target.value };
+                          setFormData({ ...formData, configuration: { ...functionConfig, input_schema: newParams } });
+                        }}
+                      >
+                        <option value="string">str</option>
+                        <option value="number">num</option>
+                        <option value="boolean">bool</option>
+                        <option value="array">arr</option>
+                        <option value="object">obj</option>
+                      </Select>
+                      <Switch
+                        checked={param.required}
+                        onChange={(checked) => {
+                          const newParams = [...(functionConfig.input_schema || [])];
+                          newParams[index] = { ...param, required: checked };
+                          setFormData({ ...formData, configuration: { ...functionConfig, input_schema: newParams } });
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newParams = (functionConfig.input_schema || []).filter((_, i) => i !== index);
+                          setFormData({ ...formData, configuration: { ...functionConfig, input_schema: newParams } });
+                        }}
+                        className="p-1 rounded text-zinc-400 hover:text-red-500 transition-colors"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Output Parameters Schema */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Output Parameters
-                </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newParams = [
-                      ...(functionConfig.output_schema || []),
-                      {
-                        name: "",
-                        field_type: "string",
-                        required: true,
-                        description: "",
-                      },
-                    ];
-                    setFormData({
-                      ...formData,
-                      configuration: {
-                        ...functionConfig,
-                        output_schema: newParams,
-                      },
-                    });
-                  }}
-                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
-                >
-                  + Add Output Parameter
-                </button>
-              </div>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {(functionConfig.output_schema || []).length === 0 && (
-                  <div className="text-xs text-gray-500 dark:text-gray-400 italic p-2 text-center bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-800">
-                    No output parameters defined. Click "Add Output Parameter"
-                    to add one.
-                  </div>
-                )}
-                {(functionConfig.output_schema || []).map((param, index) => (
-                  <div key={index} className="p-2 bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-800">
-                    <div className="flex gap-2 items-center">
-                      <div className="flex-1">
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Parameter Name
-                        </label>
-                        <Input
-                          placeholder="result, status, message, etc."
-                          value={param.name}
-                          onChange={(e) => {
-                            const newParams = [
-                              ...(functionConfig.output_schema || []),
-                            ];
-                            newParams[index] = {
-                              ...param,
-                              name: e.target.value,
-                            };
-                            setFormData({
-                              ...formData,
-                              configuration: {
-                                ...functionConfig,
-                                output_schema: newParams,
-                              },
-                            });
-                          }}
-                        />
-                      </div>
-                      <div className="w-24">
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Type
-                        </label>
-                        <Select
-                          value={param.field_type}
-                          onChange={(e) => {
-                            const newParams = [
-                              ...(functionConfig.output_schema || []),
-                            ];
-                            newParams[index] = {
-                              ...param,
-                              field_type: e.target.value,
-                            };
-                            setFormData({
-                              ...formData,
-                              configuration: {
-                                ...functionConfig,
-                                output_schema: newParams,
-                              },
-                            });
-                          }}
-                        >
-                          <option value="string">string</option>
-                          <option value="number">number</option>
-                          <option value="boolean">boolean</option>
-                          <option value="array">array</option>
-                          <option value="object">object</option>
-                        </Select>
-                      </div>
-                      <div className="w-16 flex flex-col">
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Required
-                        </label>
-                        <div className="flex items-center justify-center h-9">
-                          <input
-                            type="checkbox"
-                            checked={param.required}
-                            onChange={(e) => {
-                              const newParams = [
-                                ...(functionConfig.output_schema || []),
-                              ];
-                              newParams[index] = {
-                                ...param,
-                                required: e.target.checked,
-                              };
-                              setFormData({
-                                ...formData,
-                                configuration: {
-                                  ...functionConfig,
-                                  output_schema: newParams,
-                                },
-                              });
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <div className="w-8 flex flex-col">
-                        <div className="h-5 mb-1"></div>
-                        <div className="flex items-center justify-center h-9">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newParams = (
-                                functionConfig.output_schema || []
-                              ).filter((_, i) => i !== index);
-                              setFormData({
-                                ...formData,
-                                configuration: {
-                                  ...functionConfig,
-                                  output_schema: newParams,
-                                },
-                              });
-                            }}
-                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 w-6 h-6 flex items-center justify-center rounded hover:bg-red-50 dark:hover:bg-red-900/20"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      </div>
+              {/* Output Parameters Schema */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Output Parameters
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newParams = [
+                        ...(functionConfig.output_schema || []),
+                        { name: "", field_type: "string", required: true, description: "" },
+                      ];
+                      setFormData({
+                        ...formData,
+                        configuration: { ...functionConfig, output_schema: newParams },
+                      });
+                    }}
+                    className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium"
+                  >
+                    + Add
+                  </button>
+                </div>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {(functionConfig.output_schema || []).length === 0 && (
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400 py-3 text-center rounded-lg border border-dashed border-zinc-300 dark:border-zinc-600 bg-zinc-50/50 dark:bg-zinc-800/20">
+                      No output parameters
                     </div>
-                  </div>
-                ))}
+                  )}
+                  {(functionConfig.output_schema || []).map((param, index) => (
+                    <div key={index} className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center py-1">
+                      <Input
+                        placeholder="name"
+                        value={param.name}
+                        onChange={(e) => {
+                          const newParams = [...(functionConfig.output_schema || [])];
+                          newParams[index] = { ...param, name: e.target.value };
+                          setFormData({ ...formData, configuration: { ...functionConfig, output_schema: newParams } });
+                        }}
+                      />
+                      <Select
+                        value={param.field_type}
+                        onChange={(e) => {
+                          const newParams = [...(functionConfig.output_schema || [])];
+                          newParams[index] = { ...param, field_type: e.target.value };
+                          setFormData({ ...formData, configuration: { ...functionConfig, output_schema: newParams } });
+                        }}
+                      >
+                        <option value="string">str</option>
+                        <option value="number">num</option>
+                        <option value="boolean">bool</option>
+                        <option value="array">arr</option>
+                        <option value="object">obj</option>
+                      </Select>
+                      <Switch
+                        checked={param.required}
+                        onChange={(checked) => {
+                          const newParams = [...(functionConfig.output_schema || [])];
+                          newParams[index] = { ...param, required: checked };
+                          setFormData({ ...formData, configuration: { ...functionConfig, output_schema: newParams } });
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newParams = (functionConfig.output_schema || []).filter((_, i) => i !== index);
+                          setFormData({ ...formData, configuration: { ...functionConfig, output_schema: newParams } });
+                        }}
+                        className="p-1 rounded text-zinc-400 hover:text-red-500 transition-colors"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -1303,8 +1012,8 @@ export function CreateToolDialog({
             {isSubmitting
               ? "Saving..."
               : isEditing
-              ? "Update Tool"
-              : "Create Tool"}
+                ? "Update Tool"
+                : "Create Tool"}
           </Button>
         </DialogActions>
       </form>
