@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
-import { Input, InputGroup } from "../ui/input";
-import { Textarea } from "../ui/textarea";
-import { Field, FieldGroup, Fieldset, Label } from "../ui/fieldset";
+import { Input } from "../ui/input";
+import { Field, Label } from "../ui/fieldset";
 import {
 	Dialog,
 	DialogActions,
@@ -15,7 +14,9 @@ import {
 	WrenchScrewdriverIcon,
 	FireIcon,
 	BookOpenIcon,
-	MagnifyingGlassIcon
+	XMarkIcon,
+	PlusIcon,
+	ChevronDownIcon
 } from "@heroicons/react/24/outline";
 import { toast } from 'sonner';
 
@@ -37,6 +38,7 @@ interface AgentFormData {
 	toolIds: string[];
 	workflowIds: string[];
 	knowledgeBaseIds: string[];
+	quickQuestions: string[];
 }
 
 interface FormErrors {
@@ -55,10 +57,13 @@ export function CreateAgentDialog({
 		toolIds: [],
 		workflowIds: [],
 		knowledgeBaseIds: [],
+		quickQuestions: [],
 	});
 
 	const [errors, setErrors] = useState<FormErrors>({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [newQuestion, setNewQuestion] = useState("");
+	const [isQuickQuestionsOpen, setIsQuickQuestionsOpen] = useState(false);
 
 	// Search states
 	const [toolsSearch, setToolsSearch] = useState("");
@@ -90,7 +95,12 @@ export function CreateAgentDialog({
 					toolIds: (agent.configuration?.tool_ids as string[]) || [],
 					workflowIds: (agent.configuration?.workflow_ids as string[]) || [],
 					knowledgeBaseIds: (agent.configuration?.knowledge_base_ids as string[]) || [],
+					quickQuestions: (agent.configuration?.quick_questions as string[]) || [],
 				});
+				const qq = agent.configuration?.quick_questions as string[] | undefined;
+				if (qq && qq.length > 0) {
+					setIsQuickQuestionsOpen(true);
+				}
 			} else {
 				setFormData({
 					name: "",
@@ -98,6 +108,7 @@ export function CreateAgentDialog({
 					toolIds: [],
 					workflowIds: [],
 					knowledgeBaseIds: [],
+					quickQuestions: [],
 				});
 			}
 			setErrors({});
@@ -142,6 +153,7 @@ export function CreateAgentDialog({
 					tool_ids: formData.toolIds,
 					workflow_ids: formData.workflowIds,
 					knowledge_base_ids: formData.knowledgeBaseIds,
+					quick_questions: formData.quickQuestions,
 				},
 			};
 
@@ -184,6 +196,25 @@ export function CreateAgentDialog({
 		setFormData({ ...formData, [fieldName]: newIds });
 	};
 
+	const handleAddQuestion = () => {
+		if (newQuestion.trim()) {
+			setFormData({
+				...formData,
+				quickQuestions: [...formData.quickQuestions, newQuestion.trim()]
+			});
+			setNewQuestion("");
+		}
+	};
+
+	const handleRemoveQuestion = (index: number) => {
+		const newQuestions = [...formData.quickQuestions];
+		newQuestions.splice(index, 1);
+		setFormData({
+			...formData,
+			quickQuestions: newQuestions
+		});
+	};
+
 	// Filter functions
 	const filteredTools = tools.filter(tool =>
 		toolsSearch === "" ||
@@ -203,7 +234,7 @@ export function CreateAgentDialog({
 	);
 
 	return (
-		<Dialog open={open} onClose={onClose} size="4xl">
+		<Dialog open={open} onClose={onClose} size="5xl">
 			<DialogTitle>{isEditing ? "Edit Agent" : "Create New Agent"}</DialogTitle>
 			<DialogDescription>
 				{isEditing
@@ -213,205 +244,243 @@ export function CreateAgentDialog({
 
 			<form onSubmit={handleSubmit}>
 				<DialogBody className="space-y-6">
-					{/* Basic Information */}
-					<Fieldset>
-						<FieldGroup className="space-y-4">
-							<Field>
-								<Label>Agent Name</Label>
-								<Input
-									required
-									placeholder="Enter agent name"
-									value={formData.name}
-									onChange={(e) =>
-										setFormData({ ...formData, name: e.target.value })
-									}
-									invalid={!!errors.name}
-								/>
-								{errors.name && (
-									<p className="text-sm text-red-600 mt-1">{errors.name}</p>
-								)}
-							</Field>
+					{/* Basic Information - Each on own line */}
+					<div className="space-y-4">
+						<Field>
+							<Label>Agent Name</Label>
+							<Input
+								required
+								placeholder="Enter agent name"
+								value={formData.name}
+								onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+								invalid={!!errors.name}
+							/>
+							{errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
+						</Field>
 
-							<Field>
-								<Label>Description</Label>
-								<Textarea
-									placeholder="Describe what this agent does"
-									value={formData.description}
-									onChange={(e) =>
-										setFormData({ ...formData, description: e.target.value })
-									}
-									rows={3}
-									invalid={!!errors.description}
-								/>
-								{errors.description && (
-									<p className="text-sm text-red-600 mt-1">{errors.description}</p>
-								)}
-								<p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-									{formData.description.length}/500 characters
-								</p>
-							</Field>
-						</FieldGroup>
-					</Fieldset>
+						<Field>
+							<Label>Description</Label>
+							<Input
+								placeholder="Describe what this agent does"
+								value={formData.description}
+								onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+								invalid={!!errors.description}
+							/>
+							{errors.description && <p className="text-sm text-red-600 mt-1">{errors.description}</p>}
+						</Field>
+					</div>
 
-
-
-					{/* Tools Selection */}
-					<Fieldset>
-						<div className="flex items-center justify-between mb-4">
-							<div className="flex items-center gap-2">
-								<WrenchScrewdriverIcon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-								<span className="text-sm text-zinc-900 dark:text-zinc-100">Tools ({formData.toolIds.length} selected)</span>
-							</div>
-							<InputGroup className="w-64">
-								<MagnifyingGlassIcon className="size-4" />
-								<Input
-									placeholder="Search tools..."
-									value={toolsSearch}
-									onChange={(e) => setToolsSearch(e.target.value)}
-								/>
-							</InputGroup>
-						</div>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-80 overflow-y-auto border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 bg-zinc-50/30 dark:bg-zinc-800/30">
-							{filteredTools.map((tool) => (
-								<div
-									key={tool.id}
-									className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-										formData.toolIds.includes(tool.id)
-											? 'border-indigo-300 dark:border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30'
-											: 'border-zinc-200 dark:border-zinc-700 hover:border-indigo-200 dark:hover:border-indigo-500 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/20'
-									}`}
-									onClick={() => toggleSelection(tool.id, 'tools')}
-								>
-									<div className="flex items-center gap-2">
-										<div className="flex h-6 w-6 items-center justify-center rounded bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400">
-											<WrenchScrewdriverIcon className="h-3 w-3" />
-										</div>
-										<div className="flex-1 min-w-0">
-											<p className="text-sm text-zinc-900 dark:text-zinc-100 truncate">{tool.name}</p>
-											<p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{tool.tool_type}</p>
-										</div>
-										{formData.toolIds.includes(tool.id) && (
-											<Badge color="indigo" className="text-xs">Selected</Badge>
-										)}
-									</div>
+					<div className="space-y-4">
+						<div className="rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+							<button
+								type="button"
+								onClick={() => setIsQuickQuestionsOpen(!isQuickQuestionsOpen)}
+								className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors"
+							>
+								<div className="flex items-center gap-2">
+									Quick Questions
+									{formData.quickQuestions.length > 0 && (
+										<span className="inline-flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+											{formData.quickQuestions.length}
+										</span>
+									)}
 								</div>
-							))}
-							{filteredTools.length === 0 && (
-								<div className="col-span-full text-center py-8 text-zinc-500 dark:text-zinc-400">
-									<WrenchScrewdriverIcon className="mx-auto h-8 w-8 text-zinc-400 dark:text-zinc-600 mb-2" />
-									<p className="text-sm">
-										{toolsSearch ? "No tools match your search" : "No tools available"}
+								<ChevronDownIcon
+									className={`h-5 w-5 text-zinc-500 transition-transform duration-200 ${isQuickQuestionsOpen ? 'rotate-180' : ''}`}
+								/>
+							</button>
+
+							{isQuickQuestionsOpen && (
+								<div className="px-4 pb-4 pt-2 border-t border-zinc-200 dark:border-zinc-700">
+									<p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">
+										Add suggested questions to help users start a conversation.
 									</p>
+									<div className="flex gap-2 mb-3">
+										<Input
+											className="flex-1"
+											placeholder="e.g. 'What are your capabilities?'"
+											value={newQuestion}
+											onChange={(e) => setNewQuestion(e.target.value)}
+											onKeyDown={(e) => {
+												if (e.key === 'Enter') {
+													e.preventDefault();
+													handleAddQuestion();
+												}
+											}}
+										/>
+										<Button type="button" outline onClick={handleAddQuestion}>
+											<PlusIcon className="h-4 w-4 mr-1.5" />
+											Add
+										</Button>
+									</div>
+
+									{formData.quickQuestions.length > 0 && (
+										<div className="flex flex-wrap gap-2">
+											{formData.quickQuestions.map((question, index) => (
+												<div key={index} className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 bg-zinc-100 dark:bg-zinc-800/50 rounded-md border border-zinc-200 dark:border-zinc-700/50 group hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors">
+													<span className="text-sm text-zinc-700 dark:text-zinc-300">{question}</span>
+													<button
+														type="button"
+														onClick={() => handleRemoveQuestion(index)}
+														className="p-0.5 text-zinc-400 hover:text-red-500 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+													>
+														<XMarkIcon className="h-3.5 w-3.5" />
+													</button>
+												</div>
+											))}
+										</div>
+									)}
 								</div>
 							)}
 						</div>
-					</Fieldset>
+					</div>
 
-					{/* Workflows Selection */}
-					<Fieldset>
-						<div className="flex items-center justify-between mb-4">
-							<div className="flex items-center gap-2">
-								<FireIcon className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-								<span className="text-sm text-zinc-900 dark:text-zinc-100">Workflows ({formData.workflowIds.length} selected)</span>
-							</div>
-							<InputGroup className="w-64">
-								<MagnifyingGlassIcon className="size-4" />
-								<Input
-									placeholder="Search workflows..."
-									value={workflowsSearch}
-									onChange={(e) => setWorkflowsSearch(e.target.value)}
-								/>
-							</InputGroup>
+					{/* Resources Section */}
+					<div className="space-y-4">
+						<div className="flex items-center gap-2 pb-2 border-b border-zinc-200 dark:border-zinc-700">
+							<span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Attach Resources</span>
+							<span className="text-xs text-zinc-400">(optional)</span>
 						</div>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-80 overflow-y-auto border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 bg-zinc-50/30 dark:bg-zinc-800/30">
-							{filteredWorkflows.map((workflow) => (
-								<div
-									key={workflow.id}
-									className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-										formData.workflowIds.includes(workflow.id)
-											? 'border-orange-300 dark:border-orange-500 bg-orange-50 dark:bg-orange-900/30'
-											: 'border-zinc-200 dark:border-zinc-700 hover:border-orange-200 dark:hover:border-orange-500 hover:bg-orange-50/30 dark:hover:bg-orange-900/20'
-									}`}
-									onClick={() => toggleSelection(workflow.id, 'workflows')}
-								>
-									<div className="flex items-center gap-2">
-										<div className="flex h-6 w-6 items-center justify-center rounded bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400">
-											<FireIcon className="h-3 w-3" />
+
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+							{/* Tools */}
+							<div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-800/50 dark:to-zinc-900/30 overflow-hidden">
+								<div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-700 bg-white/50 dark:bg-zinc-800/50">
+									<div className="flex items-center justify-between">
+										<div className="flex items-center gap-2">
+											<div className="p-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/50">
+												<WrenchScrewdriverIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+											</div>
+											<span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Tools</span>
+											{formData.toolIds.length > 0 && (
+												<Badge color="indigo" className="text-xs">{formData.toolIds.length}</Badge>
+											)}
 										</div>
-										<div className="flex-1 min-w-0">
-											<p className="text-sm text-zinc-900 dark:text-zinc-100 truncate">{workflow.name}</p>
-											<p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{workflow.description || 'No description'}</p>
-										</div>
-										{formData.workflowIds.includes(workflow.id) && (
-											<Badge color="orange" className="text-xs">Selected</Badge>
-										)}
 									</div>
 								</div>
-							))}
-							{filteredWorkflows.length === 0 && (
-								<div className="col-span-full text-center py-8 text-zinc-500 dark:text-zinc-400">
-									<FireIcon className="mx-auto h-8 w-8 text-zinc-400 dark:text-zinc-600 mb-2" />
-									<p className="text-sm">
-										{workflowsSearch ? "No workflows match your search" : "No workflows available"}
-									</p>
+								<div className="max-h-40 overflow-y-auto">
+									{filteredTools.length === 0 ? (
+										<div className="flex flex-col items-center justify-center py-6 px-4">
+											<div className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 mb-2">
+												<WrenchScrewdriverIcon className="h-5 w-5 text-zinc-400" />
+											</div>
+											<span className="text-sm text-zinc-500 text-center">No tools available</span>
+											<span className="text-xs text-zinc-400 mt-1">Create tools to attach</span>
+										</div>
+									) : (
+										filteredTools.map((tool) => (
+											<div
+												key={tool.id}
+												onClick={() => toggleSelection(tool.id, 'tools')}
+												className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer border-b border-zinc-100 dark:border-zinc-700/50 last:border-0 transition-colors ${formData.toolIds.includes(tool.id) ? 'bg-indigo-50 dark:bg-indigo-900/30' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
+													}`}
+											>
+												<div className={`w-4 h-4 rounded-sm border-2 flex items-center justify-center transition-colors ${formData.toolIds.includes(tool.id) ? 'bg-indigo-500 border-indigo-500' : 'border-zinc-300 dark:border-zinc-600'
+													}`}>
+													{formData.toolIds.includes(tool.id) && <span className="text-white text-xs font-bold">✓</span>}
+												</div>
+												<div className="flex-1 min-w-0">
+													<p className="text-sm text-zinc-900 dark:text-zinc-100 truncate">{tool.name}</p>
+													<p className="text-xs text-zinc-500 truncate">{tool.tool_type}</p>
+												</div>
+											</div>
+										))
+									)}
 								</div>
-							)}
-						</div>
-					</Fieldset>
-
-					{/* Knowledge Bases Selection */}
-					<Fieldset>
-						<div className="flex items-center justify-between mb-4">
-							<div className="flex items-center gap-2">
-								<BookOpenIcon className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-								<span className="text-sm text-zinc-900 dark:text-zinc-100">Knowledge Bases ({formData.knowledgeBaseIds.length} selected)</span>
 							</div>
-							<InputGroup className="w-64">
-								<MagnifyingGlassIcon className="size-4" />
-								<Input
-									placeholder="Search knowledge bases..."
-									value={knowledgeBasesSearch}
-									onChange={(e) => setKnowledgeBasesSearch(e.target.value)}
-								/>
-							</InputGroup>
-						</div>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-80 overflow-y-auto border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 bg-zinc-50/30 dark:bg-zinc-800/30">
-							{filteredKnowledgeBases.map((kb) => (
-								<div
-									key={kb.id}
-									className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-										formData.knowledgeBaseIds.includes(kb.id)
-											? 'border-emerald-300 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30'
-											: 'border-zinc-200 dark:border-zinc-700 hover:border-emerald-200 dark:hover:border-emerald-500 hover:bg-emerald-50/30 dark:hover:bg-emerald-900/20'
-									}`}
-									onClick={() => toggleSelection(kb.id, 'knowledgeBases')}
-								>
-									<div className="flex items-center gap-2">
-										<div className="flex h-6 w-6 items-center justify-center rounded bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400">
-											<BookOpenIcon className="h-3 w-3" />
+
+							{/* Workflows */}
+							<div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-800/50 dark:to-zinc-900/30 overflow-hidden">
+								<div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-700 bg-white/50 dark:bg-zinc-800/50">
+									<div className="flex items-center justify-between">
+										<div className="flex items-center gap-2">
+											<div className="p-1.5 rounded-lg bg-orange-100 dark:bg-orange-900/50">
+												<FireIcon className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+											</div>
+											<span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Workflows</span>
+											{formData.workflowIds.length > 0 && (
+												<Badge color="orange" className="text-xs">{formData.workflowIds.length}</Badge>
+											)}
 										</div>
-										<div className="flex-1 min-w-0">
-											<p className="text-sm text-zinc-900 dark:text-zinc-100 truncate">{kb.name}</p>
-											<p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{kb.documents_count} documents</p>
-										</div>
-										{formData.knowledgeBaseIds.includes(kb.id) && (
-											<Badge color="emerald" className="text-xs">Selected</Badge>
-										)}
 									</div>
 								</div>
-							))}
-							{filteredKnowledgeBases.length === 0 && (
-								<div className="col-span-full text-center py-8 text-zinc-500 dark:text-zinc-400">
-									<BookOpenIcon className="mx-auto h-8 w-8 text-zinc-400 dark:text-zinc-600 mb-2" />
-									<p className="text-sm">
-										{knowledgeBasesSearch ? "No knowledge bases match your search" : "No knowledge bases available"}
-									</p>
+								<div className="max-h-40 overflow-y-auto">
+									{filteredWorkflows.length === 0 ? (
+										<div className="flex flex-col items-center justify-center py-6 px-4">
+											<div className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 mb-2">
+												<FireIcon className="h-5 w-5 text-zinc-400" />
+											</div>
+											<span className="text-sm text-zinc-500 text-center">No workflows available</span>
+											<span className="text-xs text-zinc-400 mt-1">Create workflows to attach</span>
+										</div>
+									) : (
+										filteredWorkflows.map((workflow) => (
+											<div
+												key={workflow.id}
+												onClick={() => toggleSelection(workflow.id, 'workflows')}
+												className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer border-b border-zinc-100 dark:border-zinc-700/50 last:border-0 transition-colors ${formData.workflowIds.includes(workflow.id) ? 'bg-orange-50 dark:bg-orange-900/30' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
+													}`}
+											>
+												<div className={`w-4 h-4 rounded-sm border-2 flex items-center justify-center transition-colors ${formData.workflowIds.includes(workflow.id) ? 'bg-orange-500 border-orange-500' : 'border-zinc-300 dark:border-zinc-600'
+													}`}>
+													{formData.workflowIds.includes(workflow.id) && <span className="text-white text-xs font-bold">✓</span>}
+												</div>
+												<div className="flex-1 min-w-0">
+													<p className="text-sm text-zinc-900 dark:text-zinc-100 truncate">{workflow.name}</p>
+												</div>
+											</div>
+										))
+									)}
 								</div>
-							)}
+							</div>
+
+							{/* Knowledge Bases */}
+							<div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-800/50 dark:to-zinc-900/30 overflow-hidden">
+								<div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-700 bg-white/50 dark:bg-zinc-800/50">
+									<div className="flex items-center justify-between">
+										<div className="flex items-center gap-2">
+											<div className="p-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/50">
+												<BookOpenIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+											</div>
+											<span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Knowledge</span>
+											{formData.knowledgeBaseIds.length > 0 && (
+												<Badge color="emerald" className="text-xs">{formData.knowledgeBaseIds.length}</Badge>
+											)}
+										</div>
+									</div>
+								</div>
+								<div className="max-h-40 overflow-y-auto">
+									{filteredKnowledgeBases.length === 0 ? (
+										<div className="flex flex-col items-center justify-center py-6 px-4">
+											<div className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 mb-2">
+												<BookOpenIcon className="h-5 w-5 text-zinc-400" />
+											</div>
+											<span className="text-sm text-zinc-500 text-center">No knowledge bases</span>
+											<span className="text-xs text-zinc-400 mt-1">Create knowledge bases</span>
+										</div>
+									) : (
+										filteredKnowledgeBases.map((kb) => (
+											<div
+												key={kb.id}
+												onClick={() => toggleSelection(kb.id, 'knowledgeBases')}
+												className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer border-b border-zinc-100 dark:border-zinc-700/50 last:border-0 transition-colors ${formData.knowledgeBaseIds.includes(kb.id) ? 'bg-emerald-50 dark:bg-emerald-900/30' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
+													}`}
+											>
+												<div className={`w-4 h-4 rounded-sm border-2 flex items-center justify-center transition-colors ${formData.knowledgeBaseIds.includes(kb.id) ? 'bg-emerald-500 border-emerald-500' : 'border-zinc-300 dark:border-zinc-600'
+													}`}>
+													{formData.knowledgeBaseIds.includes(kb.id) && <span className="text-white text-xs font-bold">✓</span>}
+												</div>
+												<div className="flex-1 min-w-0">
+													<p className="text-sm text-zinc-900 dark:text-zinc-100 truncate">{kb.name}</p>
+													<p className="text-xs text-zinc-500 truncate">{kb.documents_count} documents</p>
+												</div>
+											</div>
+										))
+									)}
+								</div>
+							</div>
 						</div>
-					</Fieldset>
-
-
+					</div>
 				</DialogBody>
 
 				<DialogActions>
