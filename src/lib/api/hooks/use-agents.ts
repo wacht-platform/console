@@ -114,6 +114,53 @@ export function useAgent(agentId: string) {
   });
 }
 
+// Extended agent type with attached features
+export interface AgentWithFeatures extends Agent {
+  integrations: Array<{
+    id: string;
+    name: string;
+    integration_type: string;
+    config: Record<string, unknown>;
+    webhook_url: string;
+  }>;
+  tools: Array<{
+    id: string;
+    name: string;
+    tool_type: string;
+    description?: string;
+  }>;
+  workflows: Array<{
+    id: string;
+    name: string;
+    description?: string;
+  }>;
+  knowledge_bases: Array<{
+    id: string;
+    name: string;
+    description?: string;
+  }>;
+}
+
+async function fetchAgentDetails(
+  deploymentId: string,
+  agentId: string,
+): Promise<AgentWithFeatures> {
+  const { data } = await apiClient.get<AgentWithFeatures>(
+    `/deployments/${deploymentId}/ai-agents/${agentId}/details`,
+  );
+  return data;
+}
+
+export function useAgentById(agentId: string) {
+  const { selectedDeployment } = useProjects();
+
+  return useQuery({
+    queryKey: ["agent-details", selectedDeployment?.id, agentId],
+    queryFn: () => fetchAgentDetails(selectedDeployment!.id, agentId),
+    enabled: !!selectedDeployment?.id && !!agentId,
+  });
+}
+
 export function useCreateAgent() {
   const { selectedDeployment } = useProjects();
   const queryClient = useQueryClient();
@@ -164,5 +211,37 @@ export function useDeleteAgent() {
         queryKey: ["agents", selectedDeployment!.id],
       });
     },
+  });
+}
+
+// Agent Token Generation
+export interface GenerateAgentTokenRequest {
+  subject: string;
+  agent_name: string;
+  validity_hours?: number;
+}
+
+export interface GenerateAgentTokenResponse {
+  token: string;
+}
+
+async function generateAgentToken(
+  deploymentId: string,
+  request: GenerateAgentTokenRequest,
+): Promise<GenerateAgentTokenResponse> {
+  const { data } = await apiClient.post<GenerateAgentTokenResponse>(
+    `/deployments/${deploymentId}/token/agent`,
+    request,
+  );
+  console.log(data);
+  return data;
+}
+
+export function useGenerateAgentToken() {
+  const { selectedDeployment } = useProjects();
+
+  return useMutation({
+    mutationFn: (request: GenerateAgentTokenRequest) =>
+      generateAgentToken(selectedDeployment!.id, request),
   });
 }

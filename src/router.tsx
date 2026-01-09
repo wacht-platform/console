@@ -64,6 +64,9 @@ const ToolsPage = lazyImport(() => import("./pages/ai-agents/tools"));
 const KnowledgeBasePage = lazyImport(
   () => import("./pages/ai-agents/knowledge-base"),
 );
+const AgentDetailsPage = lazyImport(
+  () => import("./pages/ai-agents/agent-details"),
+);
 const WebhooksPage = lazyImport(() => import("./pages/webhooks"));
 const WebhookEndpointsPage = lazyImport(() => import("./pages/webhooks/endpoints"));
 const WebhookDeliveriesPage = lazyImport(() => import("./pages/webhooks/deliveries"));
@@ -286,6 +289,14 @@ export const router = createBrowserRouter([
             element: (
               <Suspense fallback={<SimpleFallback />}>
                 <CreateAgentsPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "ai-agents/:agentId",
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <AgentDetailsPage />
               </Suspense>
             ),
           },

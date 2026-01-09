@@ -9,8 +9,8 @@ import { useNavigate } from "react-router";
 import { useProjectStore } from "@/lib/store/project";
 import { CreateProjectDialog } from "@/components/create-project-dialog";
 import { BillingSetupDialog } from "@/components/billing-setup-dialog";
-import { useState } from "react";
-import { UserButton, OrganizationSwitcher } from "@wacht/react-router";
+import { useState, useEffect } from "react";
+import { UserButton, OrganizationSwitcher, useSession } from "@wacht/react-router";
 import { useBillingAccount } from "@/lib/api/hooks/use-billing";
 import { Tab, SimpleTabs } from "@/components/ui/simple-tabs";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -28,6 +28,9 @@ import {
   DialogActions,
 } from "@/components/ui/dialog";
 import { Text } from "@/components/ui/text";
+import { AgentConversationProvider, AgentConversationHub } from "@wacht/react-router";
+import { useGenerateAgentToken } from "@/lib/api/hooks/use-agents";
+
 
 export default function ProjectsPage() {
   const { projects, isLoading } = useProjects();
@@ -36,6 +39,24 @@ export default function ProjectsPage() {
   const [billingSetupDialogOpen, setBillingSetupDialogOpen] = useState(false);
   const [pendingBillingDialogOpen, setPendingBillingDialogOpen] =
     useState(false);
+
+  // Agent chat state
+  const { session } = useSession();
+  const generateAgentToken = useGenerateAgentToken();
+  const [agentToken, setAgentToken] = useState<string | null>(null);
+  const [agentChatOpen, setAgentChatOpen] = useState(false);
+
+  // Generate agent token when opening chat
+  useEffect(() => {
+    if (agentChatOpen && !agentToken && session?.active_signin?.user?.id) {
+      generateAgentToken.mutateAsync({
+        subject: session.active_signin.user.id,
+        agent_name: "Deliverability Manager", // Default agent name
+      }).then((response) => {
+        setAgentToken(response.token);
+      }).catch(console.error);
+    }
+  }, [agentChatOpen, agentToken, session?.active_signin?.user?.id]);
 
   const handleCreateProject = () => {
     if (!billingAccount) {
@@ -235,6 +256,36 @@ export default function ProjectsPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Agent Chat Button */}
+      <button
+        onClick={() => setAgentChatOpen(true)}
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg flex items-center justify-center transition-all hover:scale-105"
+        title="Chat with AI Assistant"
+      >
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+      </button>
+
+      {/* Agent Chat Dialog */}
+      <Dialog open={agentChatOpen} onClose={() => setAgentChatOpen(false)} size="4xl">
+        <div className="h-[600px]">
+          {agentToken ? (
+            <AgentConversationProvider
+              agentName="Deliverability Manager"
+              token={agentToken}
+              onError={(error) => console.error("Agent error:", error)}
+            >
+              <AgentConversationHub />
+            </AgentConversationProvider>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <Spinner size="lg" />
+            </div>
+          )}
+        </div>
+      </Dialog>
     </div>
   );
 }
@@ -261,7 +312,7 @@ function ProjectItem({
     let targetDeployment = highlightMode
       ? deployments.find((deployment) => deployment.mode === highlightMode)
       : deployments.find((deployment) => deployment.mode === "production") ||
-        deployments[0];
+      deployments[0];
 
     if (!targetDeployment) {
       targetDeployment = deployments[0];
