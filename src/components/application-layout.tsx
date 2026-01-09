@@ -180,7 +180,7 @@ export function ApplicationLayout() {
       current: pathname.includes("/webhooks"),
     },
     {
-      name: "Agents & LLMs",
+      name: "Agents Platform",
       href: createNavigationLink("llms/ai-agents"), // Default to first sub-page
       icon: CodeBracketSquareIcon,
       current: pathname.includes("llms/"),
