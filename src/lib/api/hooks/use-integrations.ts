@@ -104,6 +104,9 @@ export function useCreateIntegration(agentId: string) {
             queryClient.invalidateQueries({
                 queryKey: ["agent", selectedDeployment!.id, agentId],
             });
+            queryClient.invalidateQueries({
+                queryKey: ["agent-details", selectedDeployment!.id, agentId],
+            });
             toast.success("Integration created successfully!");
         },
         onError: () => {
@@ -132,6 +135,9 @@ export function useUpdateIntegration(agentId: string) {
             queryClient.invalidateQueries({
                 queryKey: ["agent", selectedDeployment!.id, agentId],
             });
+            queryClient.invalidateQueries({
+                queryKey: ["agent-details", selectedDeployment!.id, agentId],
+            });
             toast.success("Integration updated successfully!");
         },
         onError: () => {
@@ -152,6 +158,9 @@ export function useDeleteIntegration(agentId: string) {
             });
             queryClient.invalidateQueries({
                 queryKey: ["agent", selectedDeployment!.id, agentId],
+            });
+            queryClient.invalidateQueries({
+                queryKey: ["agent-details", selectedDeployment!.id, agentId],
             });
             toast.success("Integration deleted successfully!");
         },
