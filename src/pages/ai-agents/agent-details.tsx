@@ -143,7 +143,7 @@ export default function AgentDetailsPage() {
             <div className="flex items-start justify-between mb-6">
                 <div>
                     <Heading>{agent.name || "Unnamed Agent"}</Heading>
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2 max-w-2xl">
                         {agent.description || "No description"}
                     </p>
                 </div>
