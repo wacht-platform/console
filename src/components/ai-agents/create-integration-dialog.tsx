@@ -96,11 +96,8 @@ export function CreateIntegrationDialog({
                 };
             case "clickup":
                 return {
-                    api_token: formData.api_token,
-                    team_id: formData.team_id,
-                    // If using OAuth later:
-                    // client_id: formData.app_id,
-                    // client_secret: formData.app_password,
+                    app_id: formData.app_id,
+                    app_password: formData.app_password,
                 };
             default:
                 return {};
@@ -269,28 +266,38 @@ export function CreateIntegrationDialog({
                                     <h3 className="text-sm font-medium text-purple-800 dark:text-purple-300">
                                         ClickUp Integration
                                     </h3>
+                                    <div className="mt-2 text-sm text-purple-700 dark:text-purple-200">
+                                        <p>
+                                            <a
+                                                href="https://clickup.com/api/developer-portal/"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="underline hover:text-purple-600 dark:hover:text-purple-100"
+                                            >
+                                                Create ClickUp App &rarr;
+                                            </a>
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <Field>
-                            <Label>API Token (Personal Access Token)</Label>
-                            <Description>Your personal API token from ClickUp Settings</Description>
+                            <Label>Client ID</Label>
                             <Input
                                 required
-                                type="password"
-                                placeholder="pk_..."
-                                value={formData.api_token}
-                                onChange={(e) => setFormData({ ...formData, api_token: e.target.value })}
+                                placeholder="From ClickUp Developer Portal"
+                                value={formData.app_id}
+                                onChange={(e) => setFormData({ ...formData, app_id: e.target.value })}
                             />
                         </Field>
                         <Field>
-                            <Label>Team ID (Workspace ID)</Label>
-                            <Description>The ID of the ClickUp Workspace (numeric)</Description>
+                            <Label>Client Secret</Label>
                             <Input
                                 required
-                                placeholder="e.g. 12345678"
-                                value={formData.team_id}
-                                onChange={(e) => setFormData({ ...formData, team_id: e.target.value })}
+                                type="password"
+                                placeholder="From ClickUp Developer Portal"
+                                value={formData.app_password}
+                                onChange={(e) => setFormData({ ...formData, app_password: e.target.value })}
                             />
                         </Field>
                     </>

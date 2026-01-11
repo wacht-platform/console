@@ -41,8 +41,6 @@ const getIntegrationIcon = (type: string) => {
     }
 };
 
-
-
 export default function AgentDetailsPage() {
     const navigate = useNavigate();
     const { agentId } = useParams<{ agentId: string }>();
