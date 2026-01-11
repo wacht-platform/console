@@ -267,9 +267,9 @@ export function CreateIntegrationDialog({
                                         ClickUp Integration
                                     </h3>
                                     <div className="mt-2 text-sm text-purple-700 dark:text-purple-200">
-                                        <p>
+                                        <p className="mb-2">
                                             <a
-                                                href="https://clickup.com/api/developer-portal/"
+                                                href="https://app.clickup.com/settings/apps"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="underline hover:text-purple-600 dark:hover:text-purple-100"
@@ -277,6 +277,10 @@ export function CreateIntegrationDialog({
                                                 Create ClickUp App &rarr;
                                             </a>
                                         </p>
+                                        <p className="font-medium text-purple-900 dark:text-purple-100">Redirect URL:</p>
+                                        <code className="block mt-1 p-1 bg-purple-100 rounded dark:bg-purple-800/50 select-all">
+                                            https://agentlink.wacht.services/consent/clickup/callback
+                                        </code>
                                     </div>
                                 </div>
                             </div>

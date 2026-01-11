@@ -29,7 +29,8 @@ import type { AgentIntegration } from "@/types/agent-integration";
 type TabType = "integrations" | "tools" | "workflows" | "knowledge";
 
 const getIntegrationIcon = (type: string) => {
-    switch (type) {
+    const t = type.toLowerCase();
+    switch (t) {
         case "teams":
             return <BsMicrosoftTeams className="h-5 w-5 text-[#6264A7]" />;
         case "whatsapp":
@@ -38,6 +39,16 @@ const getIntegrationIcon = (type: string) => {
             return <SiClickup className="h-5 w-5 text-[#7B44AC]" />;
         default:
             return <LinkIcon className="h-5 w-5 text-gray-400" />;
+    }
+};
+
+const getIntegrationLabel = (type: string) => {
+    const t = type.toLowerCase();
+    switch (t) {
+        case "teams": return "Microsoft Teams";
+        case "whatsapp": return "WhatsApp";
+        case "clickup": return "ClickUp";
+        default: return type.charAt(0).toUpperCase() + type.slice(1);
     }
 };
 
@@ -202,7 +213,7 @@ export default function AgentDetailsPage() {
                         <ul className="divide-y divide-gray-100 dark:divide-zinc-800">
                             {agent.integrations.map((integration: any) => {
                                 return (
-                                    <li key={integration.id} className="py-4">
+                                    <li key={integration.id} className="py-6 first:pt-0 last:pb-0">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3">
                                                 {getIntegrationIcon(integration.integration_type)}
@@ -210,8 +221,8 @@ export default function AgentDetailsPage() {
                                                     <p className="font-medium text-gray-900 dark:text-white text-sm">
                                                         {integration.name}
                                                     </p>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                                                        {integration.integration_type}
+                                                    <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">
+                                                        {getIntegrationLabel(integration.integration_type)}
                                                     </p>
                                                 </div>
                                             </div>
@@ -243,7 +254,7 @@ export default function AgentDetailsPage() {
                                                 </MenuItems>
                                             </Menu>
                                         </div>
-                                        {integration.webhook_url && (
+                                        {integration.webhook_url && integration.integration_type !== "clickup" && (
                                             <div className="mt-3">
                                                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                                                     Webhook URL
