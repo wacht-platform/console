@@ -77,10 +77,17 @@ export function CreateToolDialog({
     if (validationErrors.length > 0) {
       setValidationErrors([]);
     }
-  }, [formData.name, formData.type, formData.configuration, validationErrors.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.name, formData.type, formData.configuration]);
 
-  // Initialize form data when editing
+  // Initialize form data when editing or when modal opens
   useEffect(() => {
+    if (!open) {
+      // Reset form when modal closes
+      setValidationErrors([]);
+      return;
+    }
+
     if (tool) {
       setFormData({
         name: tool.name,
@@ -105,7 +112,8 @@ export function CreateToolDialog({
         } as ApiToolConfiguration,
       });
     }
-  }, [tool]);
+    setValidationErrors([]);
+  }, [tool, open]);
 
   // Validation function
   const validateForm = (): string[] => {
@@ -119,14 +127,33 @@ export function CreateToolDialog({
     // Type-specific validation
     if (formData.type === "api") {
       const apiConfig = formData.configuration as ApiToolConfiguration;
-      if (!apiConfig.endpoint.trim()) {
+      // Remove invisible Unicode characters (zero-width chars, BOM, etc.)
+      const endpoint = apiConfig.endpoint.trim().replace(/[\u200B-\u200D\uFEFF\u00A0]/g, '');
+      if (!endpoint) {
         errors.push("API endpoint is required");
+      } else {
+        try {
+          const url = new URL(endpoint);
+          if (url.protocol !== "http:" && url.protocol !== "https:") {
+            errors.push("API endpoint must be a valid URL (http:// or https://)");
+          }
+        } catch {
+          errors.push("API endpoint must be a valid URL (http:// or https://)");
+        }
       }
-      if (
-        !apiConfig.endpoint.startsWith("http://") &&
-        !apiConfig.endpoint.startsWith("https://")
-      ) {
-        errors.push("API endpoint must be a valid URL (http:// or https://)");
+
+      if (apiConfig.url_params_schema && apiConfig.url_params_schema.length > 0) {
+        const emptyParams = apiConfig.url_params_schema.filter(p => !p.name.trim());
+        if (emptyParams.length > 0) {
+          errors.push("All URL parameters must have a name");
+        }
+      }
+
+      if (apiConfig.request_body_schema && apiConfig.request_body_schema.length > 0) {
+        const emptyFields = apiConfig.request_body_schema.filter(f => !f.name.trim());
+        if (emptyFields.length > 0) {
+          errors.push("All request body fields must have a name");
+        }
       }
     } else if (formData.type === "knowledge_base") {
       const kbConfig = formData.configuration as KnowledgeBaseToolConfiguration;
