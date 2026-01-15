@@ -12,6 +12,7 @@ import {
     TrashIcon,
     PlusIcon,
     EllipsisVerticalIcon,
+    CodeBracketIcon,
 } from "@heroicons/react/24/outline";
 import { Heading } from "../../components/ui/heading";
 import { Button } from "../../components/ui/button";
@@ -21,12 +22,14 @@ import { CreateAgentDialog } from "../../components/ai-agents/create-agent-dialo
 import { CreateIntegrationDialog } from "../../components/ai-agents/create-integration-dialog";
 import { useAgentById, useDeleteAgent, type Agent } from "../../lib/api/hooks/use-agents";
 import { useDeleteIntegration } from "../../lib/api/hooks/use-integrations";
+import { useGenerateAgentTicket } from "../../lib/hooks/use-generate-ticket";
+import { useProjects } from "../../lib/api/hooks/use-projects";
 import { BsMicrosoftTeams } from "react-icons/bs";
 import { SiWhatsapp, SiClickup } from "react-icons/si";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import type { AgentIntegration } from "@/types/agent-integration";
 
-type TabType = "integrations" | "tools" | "workflows" | "knowledge";
+type TabType = "integrations" | "tools" | "workflows" | "knowledge" | "debug";
 
 const getIntegrationIcon = (type: string) => {
     const t = type.toLowerCase();
@@ -66,9 +69,13 @@ export default function AgentDetailsPage() {
     const [confirmDeleteIntegrationOpen, setConfirmDeleteIntegrationOpen] = useState(false);
     const [integrationToDelete, setIntegrationToDelete] = useState<AgentIntegration | null>(null);
 
+    const [contextGroup, setContextGroup] = useState("");
+
     const { data: agent, isLoading, error } = useAgentById(agentId || "");
     const deleteAgentMutation = useDeleteAgent();
     const deleteIntegrationMutation = useDeleteIntegration(agentId || "");
+    const generateTicketMutation = useGenerateAgentTicket();
+    const { selectedDeployment } = useProjects();
 
     const handleCopyUrl = async (url: string) => {
         await navigator.clipboard.writeText(url);
@@ -119,6 +126,7 @@ export default function AgentDetailsPage() {
         { id: "tools" as const, label: "Tools", icon: WrenchIcon },
         { id: "workflows" as const, label: "Workflows", icon: ArrowPathIcon },
         { id: "knowledge" as const, label: "Knowledge Base", icon: BookOpenIcon },
+        { id: "debug" as const, label: "Debug", icon: CodeBracketIcon },
     ];
 
     if (isLoading) {
@@ -214,6 +222,11 @@ export default function AgentDetailsPage() {
                             {agent.integrations.map((integration: any) => {
                                 return (
                                     <li key={integration.id} className="py-6 first:pt-0 last:pb-0">
+                                        {console.log('Integration:', {
+                                            name: integration.name,
+                                            type: integration.integration_type,
+                                            hasWebhook: !!integration.webhook_url
+                                        })}
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3">
                                                 {getIntegrationIcon(integration.integration_type)}
@@ -360,6 +373,53 @@ export default function AgentDetailsPage() {
                             No knowledge bases attached. Click Edit to add some.
                         </p>
                     )}
+                </div>
+            )}
+
+            {activeTab === "debug" && (
+                <div className="space-y-6">
+                    <div>
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                            Test Agent
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            Enter a context group and click the button to test this agent in a new browser tab.
+                        </p>
+                        <div className="flex gap-3 items-end">
+                            <div className="flex-1">
+                                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Context Group
+                                </label>
+                                <input
+                                    type="text"
+                                    value={contextGroup}
+                                    onChange={(e) => setContextGroup(e.target.value)}
+                                    placeholder="e.g., user-123, test-session"
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                />
+                            </div>
+                            <Button
+                                onClick={async () => {
+                                    if (!contextGroup || !agent || !selectedDeployment) return;
+                                    try {
+                                        const result = await generateTicketMutation.mutateAsync({
+                                            deployment_id: String(selectedDeployment.id),
+                                            agent_ids: [agent.id],
+                                            context_group: contextGroup,
+                                            expires_in: 60 * 60 * 12,
+                                        });
+                                        const testUrl = `https://${selectedDeployment.backend_host}/vanity/agents?ticket=${result.ticket}`;
+                                        window.open(testUrl, '_blank');
+                                    } catch (err) {
+                                        console.error("Failed to generate ticket:", err);
+                                    }
+                                }}
+                                disabled={!contextGroup || generateTicketMutation.isPending || !selectedDeployment}
+                            >
+                                {generateTicketMutation.isPending ? "Opening..." : "Test Agent"}
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             )}
 

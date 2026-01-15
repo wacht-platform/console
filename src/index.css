@@ -6,17 +6,75 @@
 @theme {
     --color-zinc-850: #27272a;
 
+    /* Dark mode base colors */
+    --color-dark-bg: #211f1d;
+    --color-dark-text: #ececec;
+
     /* Primary accent color - indigo for light mode, lighter indigo for dark mode */
-    --color-primary-light: #4f46e5; /* indigo-600 */
-    --color-primary-dark: #818cf8; /* indigo-400 */
+    --color-primary-light: #4f46e5;
+    /* indigo-600 */
+    --color-primary-dark: #818cf8;
+    /* indigo-400 */
 
     /* Success color - emerald */
-    --color-success-light: #059669; /* emerald-600 */
-    --color-success-dark: #34d399; /* emerald-400 */
+    --color-success-light: #059669;
+    /* emerald-600 */
+    --color-success-dark: #34d399;
+    /* emerald-400 */
 
     /* Danger color - red */
-    --color-danger-light: #dc2626; /* red-600 */
-    --color-danger-dark: #f87171; /* red-400 */
+    --color-danger-light: #dc2626;
+    /* red-600 */
+    --color-danger-dark: #f87171;
+    /* red-400 */
+}
+
+/* Apply dark mode base colors */
+.dark {
+    --tw-bg-opacity: 1;
+}
+
+/* Override Tailwind neutral-900 for dark mode backgrounds */
+.dark .dark\:bg-neutral-900 {
+    background-color: #211f1d !important;
+}
+
+.dark .dark\:bg-zinc-900 {
+    background-color: #211f1d !important;
+}
+
+.dark .dark\:bg-zinc-800 {
+    background-color: #211f1d !important;
+}
+
+/* Override light mode classes that might interfere in dark mode */
+.dark .bg-gray-50 {
+    background-color: #211f1d !important;
+}
+
+.dark .bg-gray-50\/50 {
+    background-color: #211f1d !important;
+}
+
+/* Override the modal backdrop color */
+.bg-gray-900\/80 {
+    background-color: rgba(33, 31, 29, 0.8) !important;
+}
+
+/* Override dark mode text colors */
+.dark .dark\:text-white,
+.dark .dark\:text-gray-100,
+.dark .dark\:text-zinc-100 {
+    color: #ececec !important;
+}
+
+/* Override dark mode border colors (matching vanity-pages border-white/10) */
+.dark .dark\:border-zinc-700\/40,
+.dark .dark\:border-zinc-800\/40,
+.dark .dark\:border-gray-200\/40,
+.dark .dark\:border-neutral-800,
+.dark .dark\:border-zinc-700 {
+    border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Tab animations */
@@ -25,6 +83,7 @@
         opacity: 0;
         transform: translateY(8px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -41,27 +100,32 @@
     from {
         transform: rotate(0deg);
     }
+
     to {
         transform: rotate(360deg);
     }
 }
 
 @keyframes pulse {
+
     0%,
     100% {
         opacity: 1;
     }
+
     50% {
         opacity: 0.5;
     }
 }
 
 @keyframes bounce {
+
     0%,
     100% {
         transform: translateY(-25%);
         animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
     }
+
     50% {
         transform: translateY(0);
         animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
@@ -73,6 +137,7 @@
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -83,12 +148,14 @@
     0% {
         background-position: -200px 0;
     }
+
     100% {
         background-position: calc(200px + 100%) 0;
     }
 }
 
 @keyframes dots {
+
     0%,
     20% {
         color: rgba(0, 0, 0, 0);
@@ -96,17 +163,20 @@
             0.25em 0 0 rgba(0, 0, 0, 0),
             0.5em 0 0 rgba(0, 0, 0, 0);
     }
+
     40% {
         color: currentColor;
         text-shadow:
             0.25em 0 0 rgba(0, 0, 0, 0),
             0.5em 0 0 rgba(0, 0, 0, 0);
     }
+
     60% {
         text-shadow:
             0.25em 0 0 currentColor,
             0.5em 0 0 rgba(0, 0, 0, 0);
     }
+
     80%,
     100% {
         text-shadow:

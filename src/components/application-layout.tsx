@@ -421,7 +421,7 @@ export function ApplicationLayout() {
               </TransitionChild>
 
               {/* Mobile sidebar content */}
-              <div className="relative flex grow flex-col gap-y-4 overflow-y-auto overflow-x-hidden bg-gray-50/50 px-4 dark:bg-zinc-800 border-r border-gray-200/40 dark:border-zinc-700/40">
+              <div className="relative flex grow flex-col gap-y-4 overflow-y-auto overflow-x-hidden bg-gray-50/50 px-4 dark:bg-[#211f1d] border-r border-gray-200/40 dark:border-white/10">
                 <div className="relative flex h-16 shrink-0 items-center border-b border-gray-200/40 dark:border-zinc-700/40 -mx-4 px-4 mb-2">
                   <div className="w-full">
                     <OrganizationSwitcher />
@@ -578,7 +578,7 @@ export function ApplicationLayout() {
         </Dialog>
 
         {/* Static sidebar for desktop */}
-        <div className="hidden xl:fixed xl:inset-y-0 xl:z-50 xl:flex xl:w-72 xl:flex-col bg-gray-50 dark:bg-neutral-900 flex-shrink-0 max-w-72 border-r border-gray-200/40 dark:border-zinc-700/40">
+        <div className="hidden xl:fixed xl:inset-y-0 xl:z-50 xl:flex xl:w-72 xl:flex-col bg-gray-50 dark:bg-[#211f1d] flex-shrink-0 max-w-72 border-r border-gray-200/40 dark:border-white/10">
           {/* Fixed Header */}
           <div className="flex h-16 shrink-0 items-center border-b border-gray-200/40 dark:border-zinc-700/40 px-4">
             <div className="w-full">
@@ -723,7 +723,7 @@ export function ApplicationLayout() {
           </div>
 
           {/* Fixed Footer */}
-          <div className="shrink-0 border-t border-gray-200/40 dark:border-zinc-700/40 p-4 bg-gray-50 dark:bg-neutral-900">
+          <div className="shrink-0 border-t border-gray-200/40 dark:border-white/10 p-4 bg-gray-50 dark:bg-[#211f1d]">
             <div className="flex items-center gap-2">
               <div className="flex-1 min-w-0">
                 <UserButton showName={false} />
