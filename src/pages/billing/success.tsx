@@ -52,7 +52,7 @@ export default function BillingSuccessPage() {
               <Button onClick={() => navigate("../billing")}>
                 View Billing Details
               </Button>
-              <Button outline onClick={() => navigate("../..")}>
+              <Button variant="outline" onClick={() => navigate("../..")}>
                 Go to Dashboard
               </Button>
             </div>

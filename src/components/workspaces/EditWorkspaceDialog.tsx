@@ -1,14 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import {
 	Dialog,
+	DialogContent,
+	DialogHeader,
 	DialogTitle,
-	DialogBody,
-	DialogActions,
+	DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Field, Label } from "@/components/ui/fieldset";
+import { Label } from "@/components/ui/label";
 import { PhotoIcon } from "@heroicons/react/24/outline";
 import { toast } from "sonner";
 import { useUpdateWorkspace } from "@/lib/api/hooks/use-workspace-mutations";
@@ -125,89 +126,93 @@ export function EditWorkspaceDialog({
 	};
 
 	return (
-		<Dialog open={isOpen} onClose={onClose} size="md">
-			<DialogTitle>Edit Workspace</DialogTitle>
-			<DialogBody>
-				<form onSubmit={handleSubmit} className="space-y-4">
-					{/* Workspace Logo - Centered */}
-					<div className="flex flex-col items-center">
-						<div
-							className="w-16 h-16 rounded-lg border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-zinc-100 hover:bg-zinc-200 dark:border-zinc-600 dark:hover:border-zinc-500 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all duration-200 cursor-pointer overflow-hidden"
-							onClick={() => fileInputRef.current?.click()}
-						>
-							{imagePreview ? (
-								<img
-									src={imagePreview}
-									alt="Workspace logo preview"
-									className="w-full h-full object-cover"
-								/>
-							) : (
-								<div className="flex items-center justify-center h-full">
-									<PhotoIcon className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
-								</div>
-							)}
-						</div>
-						<div className="mt-1.5 flex items-center gap-2">
-							<button
-								type="button"
+		<Dialog open={isOpen} onOpenChange={(val) => !val && onClose()}>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Edit Workspace</DialogTitle>
+				</DialogHeader>
+				<div className="py-4">
+					<form onSubmit={handleSubmit} className="space-y-4">
+						{/* Workspace Logo - Centered */}
+						<div className="flex flex-col items-center">
+							<div
+								className="w-16 h-16 rounded-lg border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-zinc-100 hover:bg-zinc-200 dark:border-zinc-600 dark:hover:border-zinc-500 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all duration-200 cursor-pointer overflow-hidden"
 								onClick={() => fileInputRef.current?.click()}
-								className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
 							>
-								{imagePreview ? "Change logo" : "Add logo"}
-							</button>
-							{imagePreview && (
-								<>
-									<span className="text-zinc-300 dark:text-zinc-600">·</span>
-									<button
-										type="button"
-										onClick={handleRemoveImage}
-										className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
-									>
-										Remove
-									</button>
-								</>
-							)}
+								{imagePreview ? (
+									<img
+										src={imagePreview}
+										alt="Workspace logo preview"
+										className="w-full h-full object-cover"
+									/>
+								) : (
+									<div className="flex items-center justify-center h-full">
+										<PhotoIcon className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
+									</div>
+								)}
+							</div>
+							<div className="mt-1.5 flex items-center gap-2">
+								<button
+									type="button"
+									onClick={() => fileInputRef.current?.click()}
+									className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+								>
+									{imagePreview ? "Change logo" : "Add logo"}
+								</button>
+								{imagePreview && (
+									<>
+										<span className="text-zinc-300 dark:text-zinc-600">·</span>
+										<button
+											type="button"
+											onClick={handleRemoveImage}
+											className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
+										>
+											Remove
+										</button>
+									</>
+								)}
+							</div>
+							<input
+								ref={fileInputRef}
+								type="file"
+								accept="image/*"
+								onChange={handleImageSelect}
+								className="hidden"
+							/>
 						</div>
-						<input
-							ref={fileInputRef}
-							type="file"
-							accept="image/*"
-							onChange={handleImageSelect}
-							className="hidden"
-						/>
-					</div>
 
-					<Field>
-						<Label>Name</Label>
-						<Input
-							value={name}
-							onChange={(e) => setName(e.target.value)}
-							placeholder="Engineering Team"
-						/>
-					</Field>
+						<div className="space-y-2">
+							<Label>Name</Label>
+							<Input
+								value={name}
+								onChange={(e) => setName(e.target.value)}
+								placeholder="Engineering Team"
+							/>
+						</div>
 
-					<Field>
-						<Label>
-							Description
-							<span className="ml-1 text-zinc-400 dark:text-zinc-500 font-normal">·  optional</span>
-						</Label>
-						<Textarea
-							value={description}
-							onChange={(e) => setDescription(e.target.value)}
-							placeholder="A brief description of the workspace..."
-							rows={2}
-						/>
-					</Field>
-				</form>
-			</DialogBody>
-			<DialogActions>
-				<Button outline onClick={onClose} disabled={updateWorkspaceMutation.isPending}>
-					Cancel
-				</Button>
-				<Button onClick={handleSubmit} disabled={updateWorkspaceMutation.isPending}>
-					{updateWorkspaceMutation.isPending ? "Saving..." : "Save Changes"}
-				</Button>
-			</DialogActions>
+						<div className="space-y-2">
+							<Label>
+								Description
+								<span className="ml-1 text-zinc-400 dark:text-zinc-500 font-normal">·  optional</span>
+							</Label>
+							<Textarea
+								value={description}
+								onChange={(e) => setDescription(e.target.value)}
+								placeholder="A brief description of the workspace..."
+								rows={2}
+							/>
+						</div>
+					</form>
+				</div>
+				<DialogFooter>
+					<Button variant="outline" onClick={onClose} disabled={updateWorkspaceMutation.isPending}>
+						Cancel
+					</Button>
+					<Button onClick={handleSubmit} disabled={updateWorkspaceMutation.isPending}>
+						{updateWorkspaceMutation.isPending ? "Saving..." : "Save Changes"}
+					</Button>
+				</DialogFooter>
+			</DialogContent>
 		</Dialog>
 	);
 }

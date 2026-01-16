@@ -1,0 +1,43 @@
+import { Link } from "react-router";
+import { type Icon } from "@tabler/icons-react"
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar"
+
+export function NavMain({
+  items,
+  title,
+}: {
+  items: {
+    title: string
+    url: string
+    icon?: Icon
+    isActive?: boolean
+  }[]
+  title?: string
+}) {
+  return (
+    <SidebarGroup>
+      {title && <div className="py-2 text-xs font-normal text-muted-foreground">{title}</div>}
+      <SidebarGroupContent className="flex flex-col gap-2">
+
+        <SidebarMenu>
+          {items.map((item) => (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton asChild tooltip={item.title} isActive={item.isActive}>
+                <Link to={item.url}>
+                  {item.icon && <item.icon />}
+                  <span>{item.title}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  )
+}

@@ -3,9 +3,10 @@ import { useAddOrganizationMember } from "@/lib/api/hooks/use-organization-mutat
 import { useDeploymentUsers } from "@/lib/api/hooks/use-deployment-users";
 import {
 	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogFooter,
 	DialogTitle,
-	DialogBody,
-	DialogActions,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Field, Label } from "@/components/ui/fieldset";
@@ -84,17 +85,18 @@ export function AddMemberDialog({
 		return name;
 	};
 
-	return (
-		<Dialog open={isOpen} onClose={onClose}>
-			<DialogTitle>Add Organization Member</DialogTitle>
+	return (<Dialog open={isOpen} onOpenChange={(val) => !val && onClose()}>
+		<DialogContent className="sm:max-w-lg">
+			<DialogHeader>
+				<DialogTitle>Add Organization Member</DialogTitle>
+			</DialogHeader>
 
-			<DialogBody>
+			<div className="py-2">
 				<form onSubmit={handleSubmit} className="space-y-6">
 					<div className="space-y-4">
 						<Field>
 							<Label>Select User</Label>
 							<ModalCombobox
-								className="mt-2"
 								options={userOptions}
 								value={selectedUser}
 								onChange={setSelectedUser}
@@ -104,10 +106,10 @@ export function AddMemberDialog({
 									const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
 									const username = user.username?.toLowerCase() || "";
 									const email = user.primary_email_address?.toLowerCase() || "";
-									
-									return fullName.includes(searchTerm) || 
-									       username.includes(searchTerm) ||
-									       email.includes(searchTerm);
+
+									return fullName.includes(searchTerm) ||
+										username.includes(searchTerm) ||
+										email.includes(searchTerm);
 								}}
 								placeholder={usersLoading ? "Loading users..." : "Search for a user by name, username or email..."}
 								disabled={usersLoading}
@@ -120,36 +122,38 @@ export function AddMemberDialog({
 									Selected User
 								</div>
 								<div className="mt-1 text-sm text-blue-700 dark:text-blue-300">
-									{selectedUser.first_name} {selectedUser.last_name} 
+									{selectedUser.first_name} {selectedUser.last_name}
 									{selectedUser.primary_email_address && ` • ${selectedUser.primary_email_address}`}
 								</div>
 							</div>
 						)}
 
 						{availableRoles.length > 0 && (
-							<MultiSelect
-								label="Assign Roles (Optional)"
-								options={availableRoles.map(role => ({
-									id: role.id,
-									name: role.is_deployment_level ? `${role.name} (Default)` : role.name,
-									description: role.is_deployment_level
-										? `Default deployment role • ${role.permissions.length} permission${role.permissions.length !== 1 ? 's' : ''}`
-										: `${role.permissions.length} permission${role.permissions.length !== 1 ? 's' : ''}`
-								}))}
-								selectedValues={selectedRoles}
-								onChange={setSelectedRoles}
-								placeholder="Select roles to assign..."
-								modal={true}
-							/>
+							<div>
+								<MultiSelect
+									label="Assign Roles (Optional)"
+									options={availableRoles.map(role => ({
+										id: role.id,
+										name: role.is_deployment_level ? `${role.name} (Default)` : role.name,
+										description: role.is_deployment_level
+											? `Default deployment role • ${role.permissions.length} permission${role.permissions.length !== 1 ? 's' : ''}`
+											: `${role.permissions.length} permission${role.permissions.length !== 1 ? 's' : ''}`
+									}))}
+									selectedValues={selectedRoles}
+									onChange={setSelectedRoles}
+									placeholder="Select roles to assign..."
+									modal={true}
+								/>
+							</div>
 						)}
 					</div>
 				</form>
-			</DialogBody>
+			</div>
 
-			<DialogActions>
+			<DialogFooter>
 				<Button
 					type="button"
-					outline
+					variant="ghost"
 					onClick={onClose}
 					disabled={addMember.isPending}
 				>
@@ -162,7 +166,8 @@ export function AddMemberDialog({
 				>
 					{addMember.isPending ? "Adding..." : "Add Member"}
 				</Button>
-			</DialogActions>
-		</Dialog>
+			</DialogFooter>
+		</DialogContent >
+	</Dialog >
 	);
 }

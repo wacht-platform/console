@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Divider } from "@/components/ui/divider";
 import { Heading, Subheading } from "@/components/ui/heading";
-import { Select } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Strong, Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
@@ -215,7 +215,7 @@ export default function ManageOrganizationsPage() {
 
   return (
     <div className="flex flex-col gap-2 mb-2">
-      <Heading className="mb-8">Manage Organizations</Heading>
+      <Heading className="mb-4">Manage Organizations</Heading>
 
       <div className="flex items-start justify-between">
         <div>
@@ -228,7 +228,7 @@ export default function ManageOrganizationsPage() {
         <Switch
           name="organization_enabled"
           checked={settingsState.organizations_enabled}
-          onChange={(checked) =>
+          onCheckedChange={(checked) =>
             handleSettingChange("organizations_enabled", checked)
           }
         />
@@ -255,7 +255,7 @@ export default function ManageOrganizationsPage() {
                   <Switch
                     name="custom_org_role_enabled"
                     checked={settingsState.custom_org_role_enabled}
-                    onChange={(checked) =>
+                    onCheckedChange={(checked) =>
                       handleSettingChange("custom_org_role_enabled", checked)
                     }
                   />
@@ -274,7 +274,7 @@ export default function ManageOrganizationsPage() {
                   <Switch
                     name="ip_allowlist_per_org_enabled"
                     checked={settingsState.ip_allowlist_per_org_enabled}
-                    onChange={(checked) =>
+                    onCheckedChange={(checked) =>
                       handleSettingChange(
                         "ip_allowlist_per_org_enabled",
                         checked
@@ -295,7 +295,7 @@ export default function ManageOrganizationsPage() {
                   <Switch
                     name="enforce_mfa_per_org_enabled"
                     checked={settingsState.enforce_mfa_per_org_enabled}
-                    onChange={(checked) =>
+                    onCheckedChange={(checked) =>
                       handleSettingChange(
                         "enforce_mfa_per_org_enabled",
                         checked
@@ -316,7 +316,7 @@ export default function ManageOrganizationsPage() {
                   <Switch
                     name="enterprise_sso_enabled"
                     checked={settingsState.enterprise_sso_enabled}
-                    onChange={(checked) =>
+                    onCheckedChange={(checked) =>
                       handleSettingChange(
                         "enterprise_sso_enabled",
                         checked
@@ -341,23 +341,25 @@ export default function ManageOrganizationsPage() {
                   </div>
                   <div>
                     <Select
-                      aria-label="Roles"
                       name="roles"
                       value={settingsState.default_org_member_role_id}
-                      onChange={(e) =>
-                        handleSettingChange("default_org_member_role_id", e)
+                      onValueChange={(value) =>
+                        handleSettingChange("default_org_member_role_id", value)
                       }
                       disabled={isLoadingRoles || !!rolesError}
                     >
-                      {isLoadingRoles && <option>Loading roles...</option>}
-                      {rolesError && <option>Error loading roles</option>}
-                      {!isLoadingRoles &&
-                        !rolesError &&
-                        orgRoles?.map((role) => (
-                          <option key={role.id} value={role.id}>
-                            {role.name}
-                          </option>
-                        ))}
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={isLoadingRoles ? "Loading roles..." : "Select a role"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {!isLoadingRoles &&
+                          !rolesError &&
+                          orgRoles?.map((role) => (
+                            <SelectItem key={role.id} value={role.id}>
+                              {role.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
                     </Select>
                   </div>
                 </section>
@@ -374,23 +376,25 @@ export default function ManageOrganizationsPage() {
                   </div>
                   <div>
                     <Select
-                      aria-label="Roles"
                       name="roles"
                       value={settingsState.default_org_creator_role_id}
-                      onChange={(e) =>
-                        handleSettingChange("default_org_creator_role_id", e)
+                      onValueChange={(value) =>
+                        handleSettingChange("default_org_creator_role_id", value)
                       }
                       disabled={isLoadingRoles || !!rolesError}
                     >
-                      {isLoadingRoles && <option>Loading roles...</option>}
-                      {rolesError && <option>Error loading roles</option>}
-                      {!isLoadingRoles &&
-                        !rolesError &&
-                        orgRoles?.map((role) => (
-                          <option key={role.id} value={role.id}>
-                            {role.name}
-                          </option>
-                        ))}
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={isLoadingRoles ? "Loading roles..." : "Select a role"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {!isLoadingRoles &&
+                          !rolesError &&
+                          orgRoles?.map((role) => (
+                            <SelectItem key={role.id} value={role.id}>
+                              {role.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
                     </Select>
                   </div>
                 </section>
@@ -432,7 +436,7 @@ export default function ManageOrganizationsPage() {
                             setNewPermission("");
                           }
                         }}
-                        outline
+                        variant="outline"
                       >
                         <PlusIcon className="h-4 w-4" />
                       </Button>
@@ -482,9 +486,9 @@ export default function ManageOrganizationsPage() {
                 </div>
                 <div className="space-y-4">
                   <RadioGroup
-                    name="membership"
+                    className="space-y-4"
                     value={settingsState.membership_limit_type}
-                    onChange={(value) =>
+                    onValueChange={(value) =>
                       handleSettingChange("membership_limit_type", value)
                     }
                   >
@@ -538,7 +542,7 @@ export default function ManageOrganizationsPage() {
                   <Checkbox
                     name="deletable"
                     checked={settingsState.allow_org_deletion}
-                    onChange={(checked) =>
+                    onCheckedChange={(checked: boolean) =>
                       handleSettingChange("allow_org_deletion", checked)
                     }
                   />
@@ -566,7 +570,7 @@ export default function ManageOrganizationsPage() {
                     <Checkbox
                       name="allow_creation_org"
                       checked={settingsState.allow_users_to_create_orgs}
-                      onChange={(checked) =>
+                      onCheckedChange={(checked: boolean) =>
                         handleSettingChange(
                           "allow_users_to_create_orgs",
                           checked
@@ -577,8 +581,9 @@ export default function ManageOrganizationsPage() {
                   </CheckboxField>
 
                   <RadioGroup
+                    className="space-y-4"
                     value={settingsState.creation_limit_type}
-                    onChange={(value) =>
+                    onValueChange={(value: "unlimited" | "limited") =>
                       handleSettingChange("creation_limit_type", value)
                     }
                   >
@@ -587,7 +592,7 @@ export default function ManageOrganizationsPage() {
                         value="unlimited"
                         disabled={!settingsState.allow_users_to_create_orgs}
                       />
-                      <Label className="font-semibold">
+                      <Label className="font-normal">
                         Users can create unlimited organizations
                       </Label>
                     </RadioField>

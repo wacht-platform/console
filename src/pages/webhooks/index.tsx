@@ -1,12 +1,8 @@
 import { useState } from "react";
 import { useParams } from "react-router";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Heading } from "@/components/ui/heading";
-import { Stat } from "@/components/stat";
-import {
-  BoltIcon,
-} from "@heroicons/react/24/outline";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BoltIcon } from "@heroicons/react/24/outline";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { webhookApi } from "@/lib/api/webhooks";
 import { toast } from "sonner";
@@ -38,7 +34,7 @@ export default function WebhooksPage() {
     queryKey: ["webhook-analytics", deploymentId, dateRangeHours],
     queryFn: () => webhookApi.getAnalytics(deploymentId!, getDateRange()),
     enabled: !!status?.is_activated,
-    staleTime: 30 * 1000, 
+    staleTime: 30 * 1000,
   });
 
   const activateMutation = useMutation({
@@ -85,13 +81,12 @@ export default function WebhooksPage() {
   if (!status?.is_activated) {
     return (
       <div>
-        <Heading>Webhooks</Heading>
         <div className="text-center py-12">
-          <BoltIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
-          <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
+          <BoltIcon className="mx-auto h-12 w-12 text-muted-foreground" />
+          <h3 className="mt-2 text-sm font-normal">
             Webhooks not enabled
           </h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm text-muted-foreground">
             Get started by enabling webhooks to receive real-time platform
             events.
           </p>
@@ -122,149 +117,173 @@ export default function WebhooksPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center">
-        <div>
-          <Heading>Webhooks</Heading>
-          <p className="text-zinc-500 mt-1 dark:text-zinc-400">
-            Manage webhook endpoints and monitor deliveries
-          </p>
+      <div className="space-y-6">
+        <div className="flex justify-end">
+          <DateRangeSelector
+            value={dateRange}
+            onChange={(value, hours) => {
+              setDateRange(value);
+              setDateRangeHours(hours);
+            }}
+          />
         </div>
-        <Badge color={app?.is_active ? "green" : "zinc"}>
-          {app?.is_active ? "Active" : "Inactive"}
-        </Badge>
-      </div>
 
-      {/* Date Range Selector */}
-      <div className="mt-6 flex justify-end">
-        <DateRangeSelector
-          value={dateRange}
-          onChange={(value, hours) => {
-            setDateRange(value);
-            setDateRangeHours(hours);
-          }}
-        />
-      </div>
-
-      {/* Stats */}
-      <div className="mt-4 grid gap-8 sm:grid-cols-2 xl:grid-cols-5">
-        <Stat
-          title="Active Endpoints"
-          value={stats?.active_endpoints?.toString() || "0"}
-          change=""
-          showPeriodText={false}
-        />
-        <Stat
-          title="Total Deliveries"
-          value={
-            isAnalyticsLoading
-              ? "Loading..."
-              : analytics?.total_deliveries !== undefined
-                ? analytics.total_deliveries.toLocaleString()
-                : stats?.total_deliveries !== undefined
-                  ? stats.total_deliveries.toLocaleString()
-                  : "0"
-          }
-          change=""
-          showPeriodText={false}
-        />
-        <Stat
-          title="Success Rate"
-          value={
-            isAnalyticsLoading
-              ? "Loading..."
-              : analytics?.success_rate !== undefined
-                ? `${analytics.success_rate.toFixed(1)}%`
-                : stats?.success_rate !== undefined
-                  ? `${stats.success_rate.toFixed(1)}%`
-                  : "N/A"
-          }
-          change=""
-          showPeriodText={false}
-        />
-        <Stat
-          title="Failed Deliveries"
-          value={analytics?.failed_deliveries?.toString() || "0"}
-          change=""
-          showPeriodText={false}
-        />
-        <Stat
-          title="Avg Response Time"
-          value={
-            analytics?.avg_response_time_ms
-              ? `${analytics.avg_response_time_ms.toFixed(0)}ms`
-              : "N/A"
-          }
-          change=""
-          showPeriodText={false}
-        />
-      </div>
-
-      {/* Configuration */}
-      <div className="mt-14">
-        <div className="mb-4">
-          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            Webhook Configuration
-          </h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Manage your webhook app settings and signing secret
-          </p>
+        {/* Stats Row */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Active Endpoints
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats?.active_endpoints?.toString() || "0"}</div>
+              <p className="text-xs text-muted-foreground">
+                Active webhook destinations
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Deliveries
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {isAnalyticsLoading
+                  ? "Loading..."
+                  : analytics?.total_deliveries !== undefined
+                    ? analytics.total_deliveries.toLocaleString()
+                    : stats?.total_deliveries !== undefined
+                      ? stats.total_deliveries.toLocaleString()
+                      : "0"}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Across all endpoints
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Success Rate
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {isAnalyticsLoading
+                  ? "Loading..."
+                  : analytics?.success_rate !== undefined
+                    ? `${analytics.success_rate.toFixed(1)}%`
+                    : stats?.success_rate !== undefined
+                      ? `${stats.success_rate.toFixed(1)}%`
+                      : "N/A"}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Delivery success rate
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Failed Deliveries
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {analytics?.failed_deliveries?.toString() || "0"}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Requires attention
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Avg Response Time
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {analytics?.avg_response_time_ms
+                  ? `${analytics.avg_response_time_ms.toFixed(0)}ms`
+                  : "N/A"}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Average endpoint latency
+              </p>
+            </CardContent>
+          </Card>
         </div>
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-gray-900 dark:text-white">
-              App Name
-            </label>
-            <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">{app?.name}</p>
-          </div>
 
-          <div>
-            <label className="text-sm font-medium text-gray-900 dark:text-white">
-              Signing Secret
-            </label>
-            <div className="flex items-center gap-2 mt-1">
-              <code className="flex-1 px-3 py-2 bg-gray-50 rounded-md text-sm font-mono text-gray-900 dark:bg-zinc-800 dark:text-gray-100">
-                {showSecret
-                  ? app?.signing_secret
-                  : "••••••••••••••••••••••••"}
-              </code>
-              <Button
-                outline
-                onClick={() => setShowSecret(!showSecret)}
-              >
-                {showSecret ? "Hide" : "Show"}
-              </Button>
-              <Button
-                outline
-                onClick={() => rotateSecretMutation.mutate()}
-                disabled={rotateSecretMutation.isPending}
-              >
-                {rotateSecretMutation.isPending ? (
-                  <>
-                    <Spinner size="xs" className="mr-2" />
-                    Rotating...
-                  </>
-                ) : (
-                  "Rotate"
-                )}
-              </Button>
+        {/* Configuration Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Webhook Configuration</CardTitle>
+            <CardDescription>
+              Manage your webhook app settings and signing secret for securing your endpoints.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-1">
+                <label className="text-sm font-medium leading-none">
+                  App Name
+                </label>
+                <p className="text-sm text-muted-foreground">{app?.name}</p>
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium leading-none">
+                  Created At
+                </label>
+                <p className="text-sm text-muted-foreground">
+                  {app?.created_at
+                    ? new Date(app.created_at).toLocaleDateString()
+                    : "N/A"}
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              Use this secret to verify webhook signatures in your
-              application
-            </p>
-          </div>
 
-          <div>
-            <label className="text-sm font-medium text-gray-900 dark:text-white">
-              Created
-            </label>
-            <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">
-              {app?.created_at
-                ? new Date(app.created_at).toLocaleDateString()
-                : "N/A"}
-            </p>
-          </div>
-        </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium leading-none">
+                Signing Secret
+              </label>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 px-3 py-2 bg-muted rounded-md text-sm font-mono text-foreground break-all">
+                  {showSecret
+                    ? app?.signing_secret
+                    : "••••••••••••••••••••••••••••••••••••••••••••••••"}
+                </code>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSecret(!showSecret)}
+                >
+                  {showSecret ? "Hide" : "Show"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => rotateSecretMutation.mutate()}
+                  disabled={rotateSecretMutation.isPending}
+                >
+                  {rotateSecretMutation.isPending ? (
+                    <>
+                      <Spinner size="xs" className="mr-2" />
+                      Rotating...
+                    </>
+                  ) : (
+                    "Rotate"
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Use this secret to verify webhook signatures in your application.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

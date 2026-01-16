@@ -2,8 +2,9 @@ import { Button } from "../ui/button";
 import {
   Dialog,
   DialogTitle,
-  DialogBody,
-  DialogActions,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
 } from "../ui/dialog";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
@@ -35,39 +36,38 @@ export function ConfirmationDialog({
   };
 
   return (
-    <Dialog open={isOpen} onClose={onClose}>
-      <DialogBody>
-        <div className="flex items-start gap-4">
-          {isDestructive && (
-            <div className="flex-shrink-0">
-              <ExclamationTriangleIcon className="h-6 w-6 text-red-600 dark:text-red-500" />
+    <Dialog open={isOpen} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <div className="flex items-start gap-4">
+            {isDestructive && (
+              <div className="flex-shrink-0 mt-0.5">
+                <ExclamationTriangleIcon className="h-6 w-6 text-red-600 dark:text-red-500" />
+              </div>
+            )}
+            <div className="flex-1">
+              <DialogTitle className={isDestructive ? "text-red-900 dark:text-red-400" : ""}>
+                {title}
+              </DialogTitle>
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{message}</p>
             </div>
-          )}
-          <div className="flex-1">
-            <DialogTitle className={isDestructive ? "text-red-900 dark:text-red-400" : ""}>
-              {title}
-            </DialogTitle>
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{message}</p>
           </div>
-        </div>
-      </DialogBody>
-      <DialogActions>
-        <Button type="button" outline onClick={onClose} disabled={isLoading}>
-          {cancelText}
-        </Button>
-        <Button
-          type="button"
-          onClick={handleConfirm}
-          disabled={isLoading}
-          className={
-            isDestructive
-              ? "bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500 text-white"
-              : ""
-          }
-        >
-          {isLoading ? "Processing..." : confirmText}
-        </Button>
-      </DialogActions>
+        </DialogHeader>
+
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>
+            {cancelText}
+          </Button>
+          <Button
+            type="button"
+            onClick={handleConfirm}
+            disabled={isLoading}
+            variant={isDestructive ? "destructive" : "default"}
+          >
+            {isLoading ? "Processing..." : confirmText}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

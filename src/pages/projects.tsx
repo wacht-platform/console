@@ -1,4 +1,4 @@
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Navbar, NavbarSpacer } from "@/components/ui/navbar";
 import { useProjects } from "@/lib/api/hooks/use-projects";
@@ -25,7 +25,9 @@ import {
   Dialog,
   DialogTitle,
   DialogDescription,
-  DialogActions,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Text } from "@/components/ui/text";
 
@@ -201,40 +203,44 @@ export default function ProjectsPage() {
         open={pendingBillingDialogOpen}
         onClose={() => setPendingBillingDialogOpen(false)}
       >
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-            <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600 dark:text-yellow-500" />
-          </div>
-          <DialogTitle>Subscription Not Complete</DialogTitle>
-        </div>
-        <DialogDescription>
-          <Text>
-            Your billing account has been created but the subscription payment
-            has not been completed yet. This could mean:
-          </Text>
-          <ul className="list-disc list-inside mt-3 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
-            <li>You closed the payment page before completing checkout</li>
-            <li>The payment is still processing (please wait a few minutes)</li>
-            <li>There was an issue with your payment method</li>
-          </ul>
-          <Text className="mt-4">
-            You can try completing the checkout again, or wait a few minutes if
-            you've already completed payment.
-          </Text>
-        </DialogDescription>
-        <DialogActions>
-          <Button plain onClick={() => setPendingBillingDialogOpen(false)}>
-            Close
-          </Button>
-          <Button
-            onClick={() => {
-              setPendingBillingDialogOpen(false);
-              setBillingSetupDialogOpen(true);
-            }}
-          >
-            Complete Checkout
-          </Button>
-        </DialogActions>
+        <DialogContent>
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+                <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600 dark:text-yellow-500" />
+              </div>
+              <DialogTitle>Subscription Not Complete</DialogTitle>
+            </div>
+            <DialogDescription>
+              <Text>
+                Your billing account has been created but the subscription payment
+                has not been completed yet. This could mean:
+              </Text>
+              <ul className="list-disc list-inside mt-3 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                <li>You closed the payment page before completing checkout</li>
+                <li>The payment is still processing (please wait a few minutes)</li>
+                <li>There was an issue with your payment method</li>
+              </ul>
+              <Text className="mt-4">
+                You can try completing the checkout again, or wait a few minutes if
+                you've already completed payment.
+              </Text>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setPendingBillingDialogOpen(false)}>
+              Close
+            </Button>
+            <Button
+              onClick={() => {
+                setPendingBillingDialogOpen(false);
+                setBillingSetupDialogOpen(true);
+              }}
+            >
+              Complete Checkout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </div>
   );
@@ -292,9 +298,12 @@ function ProjectItem({
         <div className="flex items-center gap-4">
           <Avatar
             className="w-10 h-10"
-            initials={name.charAt(0)}
-            src={image_url}
-          />
+          >
+            <AvatarImage
+              src={image_url}
+            />
+            <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+          </Avatar>
           <div className="space-y-1">
             <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
               {name}

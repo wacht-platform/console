@@ -2,8 +2,9 @@ import { useState, useRef } from "react";
 import {
   Dialog,
   DialogTitle,
-  DialogBody,
-  DialogActions,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Field, Label, ErrorMessage } from "@/components/ui/fieldset";
@@ -219,174 +220,180 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
   );
 
   return (
-    <Dialog open={isOpen} onClose={handleClose} size="md">
-      <DialogTitle>Create User</DialogTitle>
-      <DialogBody>
-        {isLoading ? (
-          <div className="text-center py-8 text-zinc-500 dark:text-zinc-400">Loading settings...</div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Profile Image Upload - Centered */}
-            <div className="flex flex-col items-center pb-2">
-              <div
-                className="relative w-20 h-20 rounded-full border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-zinc-100 hover:bg-zinc-200 dark:border-zinc-600 dark:hover:border-zinc-500 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all duration-200 cursor-pointer overflow-hidden"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {imagePreview ? (
-                  <img
-                    src={imagePreview}
-                    alt="Profile preview"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <PhotoIcon className="w-8 h-8 text-zinc-400 dark:text-zinc-500" />
-                  </div>
-                )}
-              </div>
-              <div className="mt-2 flex items-center gap-2">
-                <button
-                  type="button"
+    <Dialog open={isOpen} onOpenChange={(val) => !val && handleClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Create User</DialogTitle>
+        </DialogHeader>
+
+        <div className="py-4">
+          {isLoading ? (
+            <div className="text-center py-8 text-zinc-500 dark:text-zinc-400">Loading settings...</div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Profile Image Upload - Centered */}
+              <div className="flex flex-col items-center pb-2">
+                <div
+                  className="relative w-20 h-20 rounded-full border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-zinc-100 hover:bg-zinc-200 dark:border-zinc-600 dark:hover:border-zinc-500 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all duration-200 cursor-pointer overflow-hidden"
                   onClick={() => fileInputRef.current?.click()}
-                  className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                 >
-                  {imagePreview ? "Change photo" : "Add photo"}
-                </button>
-                {imagePreview && (
-                  <>
-                    <span className="text-zinc-300 dark:text-zinc-600">·</span>
-                    <button
-                      type="button"
-                      onClick={handleRemoveImage}
-                      className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
-                    >
-                      Remove
-                    </button>
-                  </>
-                )}
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageSelect}
-                className="hidden"
-              />
-            </div>
-
-            {/* Name fields - side by side */}
-            {(isFirstNameEnabled || isLastNameEnabled) && (
-              <div className="grid grid-cols-2 gap-3">
-                {isFirstNameEnabled && (
-                  <Field>
-                    {renderLabel("First name", isFirstNameRequired)}
-                    <Input
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="John"
+                  {imagePreview ? (
+                    <img
+                      src={imagePreview}
+                      alt="Profile preview"
+                      className="w-full h-full object-cover"
                     />
-                    {errors.firstName && (
-                      <ErrorMessage>{errors.firstName}</ErrorMessage>
-                    )}
-                  </Field>
-                )}
-
-                {isLastNameEnabled && (
-                  <Field>
-                    {renderLabel("Last name", isLastNameRequired)}
-                    <Input
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Doe"
-                    />
-                    {errors.lastName && (
-                      <ErrorMessage>{errors.lastName}</ErrorMessage>
-                    )}
-                  </Field>
-                )}
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <PhotoIcon className="w-8 h-8 text-zinc-400 dark:text-zinc-500" />
+                    </div>
+                  )}
+                </div>
+                <div className="mt-2 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                  >
+                    {imagePreview ? "Change photo" : "Add photo"}
+                  </button>
+                  {imagePreview && (
+                    <>
+                      <span className="text-zinc-300 dark:text-zinc-600">·</span>
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
+                      >
+                        Remove
+                      </button>
+                    </>
+                  )}
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                />
               </div>
-            )}
 
-            {isEmailEnabled && (
-              <Field>
-                {renderLabel("Email", isEmailRequired)}
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="john@example.com"
-                  autoComplete="off"
+              {/* Name fields - side by side */}
+              {(isFirstNameEnabled || isLastNameEnabled) && (
+                <div className="grid grid-cols-2 gap-3">
+                  {isFirstNameEnabled && (
+                    <Field>
+                      {renderLabel("First name", isFirstNameRequired)}
+                      <Input
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        placeholder="John"
+                      />
+                      {errors.firstName && (
+                        <ErrorMessage>{errors.firstName}</ErrorMessage>
+                      )}
+                    </Field>
+                  )}
+
+                  {isLastNameEnabled && (
+                    <Field>
+                      {renderLabel("Last name", isLastNameRequired)}
+                      <Input
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        placeholder="Doe"
+                      />
+                      {errors.lastName && (
+                        <ErrorMessage>{errors.lastName}</ErrorMessage>
+                      )}
+                    </Field>
+                  )}
+                </div>
+              )}
+
+              {isEmailEnabled && (
+                <Field>
+                  {renderLabel("Email", isEmailRequired)}
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="john@example.com"
+                    autoComplete="off"
+                  />
+                  {errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
+                </Field>
+              )}
+
+              {isUsernameEnabled && (
+                <Field>
+                  {renderLabel("Username", isUsernameRequired)}
+                  <Input
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="johndoe"
+                  />
+                  {errors.username && (
+                    <ErrorMessage>{errors.username}</ErrorMessage>
+                  )}
+                </Field>
+              )}
+
+              {isPhoneEnabled && (
+                <Field>
+                  {renderLabel("Phone number", isPhoneRequired)}
+                  <Input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+1 (555) 123-4567"
+                  />
+                  {errors.phone && <ErrorMessage>{errors.phone}</ErrorMessage>}
+                </Field>
+              )}
+
+              {isPasswordEnabled && (
+                <Field>
+                  <Label>Password</Label>
+                  <Input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                  />
+                  {errors.password && (
+                    <ErrorMessage>{errors.password}</ErrorMessage>
+                  )}
+                </Field>
+              )}
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="skipChecks"
+                  checked={skipChecks}
+                  onChange={(e) => setSkipChecks(e.target.checked)}
+                  className="h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-800"
                 />
-                {errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
-              </Field>
-            )}
+                <label htmlFor="skipChecks" className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Skip password validation
+                </label>
+              </div>
+            </form>
+          )}
+        </div>
 
-            {isUsernameEnabled && (
-              <Field>
-                {renderLabel("Username", isUsernameRequired)}
-                <Input
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="johndoe"
-                />
-                {errors.username && (
-                  <ErrorMessage>{errors.username}</ErrorMessage>
-                )}
-              </Field>
-            )}
-
-            {isPhoneEnabled && (
-              <Field>
-                {renderLabel("Phone number", isPhoneRequired)}
-                <Input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+1 (555) 123-4567"
-                />
-                {errors.phone && <ErrorMessage>{errors.phone}</ErrorMessage>}
-              </Field>
-            )}
-
-            {isPasswordEnabled && (
-              <Field>
-                <Label>Password</Label>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete="new-password"
-                />
-                {errors.password && (
-                  <ErrorMessage>{errors.password}</ErrorMessage>
-                )}
-              </Field>
-            )}
-
-            <div className="flex items-center gap-2 pt-1">
-              <input
-                type="checkbox"
-                id="skipChecks"
-                checked={skipChecks}
-                onChange={(e) => setSkipChecks(e.target.checked)}
-                className="h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-800"
-              />
-              <label htmlFor="skipChecks" className="text-sm text-zinc-600 dark:text-zinc-400">
-                Skip password validation
-              </label>
-            </div>
-          </form>
-        )}
-      </DialogBody>
-      <DialogActions>
-        <Button outline onClick={handleClose}>
-          Cancel
-        </Button>
-        <Button onClick={handleSubmit} disabled={createUserMutation.isPending}>
-          {createUserMutation.isPending ? "Creating..." : "Create User"}
-        </Button>
-      </DialogActions>
+        <DialogFooter>
+          <Button variant="ghost" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} disabled={createUserMutation.isPending}>
+            {createUserMutation.isPending ? "Creating..." : "Create User"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

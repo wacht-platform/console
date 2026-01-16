@@ -10,7 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Input, InputGroup } from "@/components/ui/input";
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import { Spinner } from "@/components/ui/spinner";
-import { SimpleTabs, Tab } from "@/components/ui/simple-tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import Editor from "@monaco-editor/react";
 import { DeleteConfirmationDialog } from "@/components/organizations/DeleteConfirmationDialog";
 import { EditWorkspaceDialog } from "@/components/workspaces/EditWorkspaceDialog";
@@ -22,7 +24,7 @@ import { useDeleteWorkspaceRole } from "@/lib/api/hooks/use-workspace-role-mutat
 import { useRemoveWorkspaceMember } from "@/lib/api/hooks/use-workspace-mutations";
 import { SegmentManager } from "@/components/segments/SegmentManager";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { WorkspaceRole } from "@/types/organization";
 import { toast } from "sonner";
 
@@ -40,9 +42,9 @@ export default function WorkspaceDetailsPage() {
   const { id } = useParams();
   const workspaceId = id;
   const isDarkMode = useDarkMode();
-  
-  // Tab state - needs to be declared before use
-  const [activeTab, setActiveTab] = useState(0);
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState("overview");
 
   // Member search and sort state
   const [search, setSearch] = useState("");
@@ -51,7 +53,7 @@ export default function WorkspaceDetailsPage() {
   const [sortOrder, setSortOrder] = useState("desc");
   const [page, setPage] = useState(0);
   const pageSize = 20;
-  
+
   const {
     data: workspace,
     isLoading,
@@ -63,18 +65,18 @@ export default function WorkspaceDetailsPage() {
   const deleteWorkspaceRole = useDeleteWorkspaceRole();
   const updateWorkspace = useUpdateWorkspace();
 
-  // Fetch members only when Members tab is active (tab index 1)
+  // Fetch members only when Members tab is active
   const {
     data: membersData,
     isLoading: membersLoading,
   } = useWorkspaceMembers(
-    workspaceId, 
-    page * pageSize, 
-    pageSize, 
+    workspaceId,
+    page * pageSize,
+    pageSize,
     debouncedSearch,
     sortKey,
     sortOrder,
-    activeTab === 1
+    activeTab === "members"
   );
 
   // Metadata editor states
@@ -93,7 +95,7 @@ export default function WorkspaceDetailsPage() {
   const [editRoleModalOpen, setEditRoleModalOpen] = useState(false);
   const [deleteRoleModalOpen, setDeleteRoleModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<WorkspaceRole | null>(null);
-  
+
   // Member management states
   const [addMemberModalOpen, setAddMemberModalOpen] = useState(false);
   const [editMemberModalOpen, setEditMemberModalOpen] = useState(false);
@@ -155,11 +157,11 @@ export default function WorkspaceDetailsPage() {
     try {
       // Parse the JSON to validate it
       const parsedMetadata = JSON.parse(publicMetadata);
-      
+
       // Create FormData with the updated public metadata
       const formData = new FormData();
       formData.append("public_metadata", JSON.stringify(parsedMetadata));
-      
+
       await updateWorkspace.mutateAsync({
         workspaceId: workspaceId!,
         data: formData,
@@ -181,11 +183,11 @@ export default function WorkspaceDetailsPage() {
     try {
       // Parse the JSON to validate it
       const parsedMetadata = JSON.parse(privateMetadata);
-      
+
       // Create FormData with the updated private metadata
       const formData = new FormData();
       formData.append("private_metadata", JSON.stringify(parsedMetadata));
-      
+
       await updateWorkspace.mutateAsync({
         workspaceId: workspaceId!,
         data: formData,
@@ -259,540 +261,536 @@ export default function WorkspaceDetailsPage() {
   };
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-4">
-          <div>
-            <h1 className="text-lg text-zinc-900 dark:text-zinc-100">
-              {workspace.name}
-            </h1>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">Workspace ID: {workspace.id}</p>
+    <div className="space-y-6">
+      {/* Header with Stats */}
+      <div className="space-y-6">
+        <div className="flex flex-col gap-6 sm:flex-row sm:justify-between sm:items-start">
+          <div className="flex items-start gap-4">
+            <Avatar className="h-16 w-16 rounded-none border border-zinc-200 dark:border-zinc-800">
+              <AvatarImage src={workspace.image_url} alt={workspace.name} className="object-cover" />
+              <AvatarFallback className="rounded-none text-lg">
+                {workspace.name.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                {workspace.name}
+              </h1>
+              <div className="mt-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+                <span>Workspace ID: {workspace.id}</span>
+                <span>•</span>
+                <span>Created {format(new Date(workspace.created_at), "MMM d, yyyy")}</span>
+              </div>
+              {workspace.description && (
+                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 max-w-2xl">
+                  {workspace.description}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setEditModalOpen(true)}
+            >
+              <PencilIcon className="mr-2 h-4 w-4" />
+              Edit Workspace
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => setDeleteModalOpen(true)}
+            >
+              <TrashIcon className="mr-2 h-4 w-4" />
+              Delete
+            </Button>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button
-            outline
-            className="p-2"
-            onClick={() => setEditModalOpen(true)}
-          >
-            <PencilIcon className="h-4 w-4" />
-            <span className="sr-only">Edit Workspace</span>
-          </Button>
-          <Button
-            color="red"
-            className="p-2"
-            onClick={() => setDeleteModalOpen(true)}
-          >
-            <TrashIcon className="h-4 w-4" />
-            <span className="sr-only">Delete Workspace</span>
-          </Button>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-normal text-zinc-900 dark:text-zinc-50">
+                {workspace.member_count ?? 0}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Total Members
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-normal text-zinc-900 dark:text-zinc-50">
+                {workspace.roles ? workspace.roles.length : 0}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Roles
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-normal text-zinc-900 dark:text-zinc-50">
+                {workspace.organization_name}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Organization
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Profile Sidebar */}
-        <div className="lg:col-span-1 lg:border-r lg:border-gray-200 dark:lg:border-zinc-800 lg:pr-8">
-          <div className="py-6">
-            {/* Workspace Avatar */}
-            <div className="flex flex-col items-center mb-6">
-              <Avatar
-                className="size-24 mb-4"
-                src={workspace.image_url}
-                initials={workspace.name.substring(0, 2).toUpperCase()}
-                alt={`${workspace.name} logo`}
-              />
-              <h2 className="text-lg text-zinc-900 dark:text-zinc-100 text-center mb-2">
-                {workspace.name}
-              </h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
-                Created {format(new Date(workspace.created_at), "MMM d, yyyy")}
-              </p>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="members">Members</TabsTrigger>
+          <TabsTrigger value="roles">Roles</TabsTrigger>
+          <TabsTrigger value="metadata">Metadata</TabsTrigger>
+        </TabsList>
 
-              {/* Quick Stats */}
-              <div className="w-full space-y-3 mb-6">
-                <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-zinc-800">
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">Members</span>
-                  <span className="text-sm text-zinc-900 dark:text-zinc-100">
-                    {workspace.member_count ?? 0}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">Roles</span>
-                  <span className="text-sm text-zinc-900 dark:text-zinc-100">
-                    {workspace.roles ? workspace.roles.length : 0}
-                  </span>
-                </div>
-
-                {/* Segments */}
-                <div className="py-2 border-t border-gray-100 dark:border-zinc-800 mt-2">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Segments
-                    </span>
-                  </div>
-                  
-                  <SegmentManager
-                    targetId={workspace.id}
-                    targetType="workspace"
-                    currentSegments={workspace.segments}
-                  />
-                </div>
-              </div>
-
-              {/* Workspace Details */}
-              <div className="w-full space-y-3">
-                {workspace.description && (
-                  <div className="py-2 border-b border-gray-100 dark:border-zinc-800">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Description</span>
-                    <p className="text-sm text-zinc-900 dark:text-zinc-100 mt-1">{workspace.description}</p>
-                  </div>
-                )}
-                <div className="py-2 border-b border-gray-100 dark:border-zinc-800">
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">Organization</span>
-                  <p className="text-sm text-zinc-900 dark:text-zinc-100 mt-1">{workspace.organization_name}</p>
-                </div>
-                <div className="py-2 border-b border-gray-100 dark:border-zinc-800">
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">Created</span>
-                  <p className="text-sm text-zinc-900 dark:text-zinc-100 mt-1">
-                    {format(new Date(workspace.created_at), "MMM d, yyyy 'at' h:mm a")}
+        <TabsContent value="overview" className="mt-6">
+          <div className="pt-6">
+            <div className="mb-8">
+              <h3 className="text-base text-zinc-900 dark:text-zinc-100 mb-4">
+                Workspace Details
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="space-y-1">
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Workspace ID
+                  </p>
+                  <p className="text-sm text-zinc-900 dark:text-zinc-100 font-mono">
+                    {workspace.id}
                   </p>
                 </div>
-                <div className="py-2">
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">Last Updated</span>
-                  <p className="text-sm text-zinc-900 dark:text-zinc-100 mt-1">
-                    {format(new Date(workspace.updated_at), "MMM d, yyyy 'at' h:mm a")}
+                <div className="space-y-1">
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Parent Organization
+                  </p>
+                  <p className="text-sm text-zinc-900 dark:text-zinc-100">
+                    {workspace.organization_name}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Created
+                  </p>
+                  <p className="text-sm text-zinc-900 dark:text-zinc-100">
+                    {format(new Date(workspace.created_at), "MMM d, yyyy")}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Last Updated
+                  </p>
+                  <p className="text-sm text-zinc-900 dark:text-zinc-100">
+                    {format(new Date(workspace.updated_at), "MMM d, yyyy")}
                   </p>
                 </div>
               </div>
             </div>
+
+            {/* Segments Section */}
+            <div className="pt-6 border-t border-gray-100 dark:border-zinc-800">
+              <h3 className="text-sm text-zinc-900 dark:text-zinc-100 mb-3">
+                Segments
+              </h3>
+              <SegmentManager
+                targetId={workspace.id}
+                targetType="workspace"
+                currentSegments={workspace.segments}
+              />
+            </div>
           </div>
-        </div>
+        </TabsContent>
 
-        {/* Main Content Area */}
-        <div className="lg:col-span-2">
-          <SimpleTabs defaultTab={0} onChange={setActiveTab}>
-              <Tab label="Overview">
-                <div className="px-4 py-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Total Members
-                      </h3>
-                      <p className="text-base text-zinc-900 dark:text-zinc-100">
-                        {workspace.member_count}
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Total Roles
-                      </h3>
-                      <p className="text-base text-zinc-900 dark:text-zinc-100">
-                        {workspace.roles.length}
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Parent Organization
-                      </h3>
-                      <p className="text-base text-zinc-900 dark:text-zinc-100">
-                        {workspace.organization_name}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </Tab>
+        <TabsContent value="members" className="mt-6">
+          <div className="pt-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-base text-zinc-900 dark:text-zinc-100">
+                Workspace Members
+              </h3>
+              <Button onClick={() => setAddMemberModalOpen(true)}>
+                Add Member
+              </Button>
+            </div>
 
-              <Tab label="Members">
-                <div className="px-4 py-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-base text-zinc-900 dark:text-zinc-100">Workspace Members</h3>
-                    <Button
-                      onClick={() => setAddMemberModalOpen(true)}
-                      className="flex items-center gap-2"
-                    >
-                      <PlusIcon className="h-4 w-4" />
-                      Add Member
-                    </Button>
-                  </div>
-
-                  {/* Search and Sort Controls */}
-                  <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                    <div className="relative flex-1">
-                      <InputGroup>
-                        <MagnifyingGlassIcon />
-                        <Input
-                          name="search"
-                          placeholder="Search members..."
-                          value={search}
-                          onChange={(e) => {
-                            setSearch(e.target.value);
-                            setPage(0); // Reset to first page on search
-                          }}
-                        />
-                      </InputGroup>
-                    </div>
-                    <div className="w-full sm:w-64">
-                      <Listbox
-                        value={`${sortKey}-${sortOrder}`}
-                        onChange={(value) => {
-                          const [key, order] = value.split("-");
-                          setSortKey(key);
-                          setSortOrder(order);
+            {membersLoading ? (
+              <div className="flex justify-center py-8">
+                <Spinner className="h-6 w-6" />
+              </div>
+            ) : !membersData?.data || membersData.data.length === 0 ? (
+              <EmptyState
+                title={search ? "No members found" : "No members added yet"}
+                description={
+                  search
+                    ? "Try adjusting your search terms."
+                    : "Get started by adding your first workspace member."
+                }
+                actionLabel={search ? undefined : "Add Member"}
+                onAction={
+                  search ? undefined : () => setAddMemberModalOpen(true)
+                }
+                icon={<PlusIcon className="h-10 w-10 text-zinc-400" />}
+              />
+            ) : (
+              <>
+                {/* Search and Sort Controls */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                  <div className="relative flex-1">
+                    <InputGroup>
+                      <MagnifyingGlassIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        name="search"
+                        placeholder="Search members..."
+                        className="pl-8"
+                        value={search}
+                        onChange={(e) => {
+                          setSearch(e.target.value);
+                          setPage(0); // Reset to first page on search
                         }}
-                      >
-                        <ListboxOption value="created_at-desc">
-                          <ListboxLabel>Date Joined (Newest)</ListboxLabel>
-                        </ListboxOption>
-                        <ListboxOption value="created_at-asc">
-                          <ListboxLabel>Date Joined (Oldest)</ListboxLabel>
-                        </ListboxOption>
-                        <ListboxOption value="first_name-asc">
-                          <ListboxLabel>First Name (A-Z)</ListboxLabel>
-                        </ListboxOption>
-                        <ListboxOption value="first_name-desc">
-                          <ListboxLabel>First Name (Z-A)</ListboxLabel>
-                        </ListboxOption>
-                        <ListboxOption value="last_name-asc">
-                          <ListboxLabel>Last Name (A-Z)</ListboxLabel>
-                        </ListboxOption>
-                        <ListboxOption value="last_name-desc">
-                          <ListboxLabel>Last Name (Z-A)</ListboxLabel>
-                        </ListboxOption>
-                        <ListboxOption value="email-asc">
-                          <ListboxLabel>Email (A-Z)</ListboxLabel>
-                        </ListboxOption>
-                        <ListboxOption value="email-desc">
-                          <ListboxLabel>Email (Z-A)</ListboxLabel>
-                        </ListboxOption>
-                        <ListboxOption value="username-asc">
-                          <ListboxLabel>Username (A-Z)</ListboxLabel>
-                        </ListboxOption>
-                        <ListboxOption value="username-desc">
-                          <ListboxLabel>Username (Z-A)</ListboxLabel>
-                        </ListboxOption>
-                      </Listbox>
-                    </div>
+                      />
+                    </InputGroup>
                   </div>
-
-                  {membersLoading ? (
-                    <div className="flex justify-center py-8">
-                      <Spinner className="h-6 w-6" />
-                    </div>
-                  ) : !membersData?.data || membersData.data.length === 0 ? (
-                    <EmptyState
-                      title={search ? "No members found" : "No members found"}
-                      description={search ? "Try adjusting your search terms." : "This workspace doesn't have any members yet."}
-                      icon={
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
-                          />
-                        </svg>
-                      }
-                    />
-                  ) : (
-                    <>
-                      <div className="divide-y divide-gray-200 dark:divide-zinc-800">
-                        {membersData.data.map((member) => (
-                          <div key={member.id} className="py-4 first:pt-0 last:pb-0">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <Avatar
-                                  className="size-10"
-                                  initials={`${member.first_name?.[0] || ''}${member.last_name?.[0] || ''}`}
-                                  alt={`${member.first_name} ${member.last_name}`}
-                                />
-                                <div>
-                                  <p className="text-sm text-zinc-900 dark:text-zinc-100">
-                                    {member.first_name} {member.last_name}
-                                  </p>
-                                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                    {member.roles.length > 0 ? member.roles[0].name : 'No role'}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Button
-                                  outline
-                                  onClick={() => {
-                                    setSelectedMember(member);
-                                    setEditMemberModalOpen(true);
-                                  }}
-                                  className="p-1.5"
-                                >
-                                  <PencilIcon className="h-3.5 w-3.5" />
-                                  <span className="sr-only">Edit Member</span>
-                                </Button>
-                                <Button
-                                  outline
-                                  onClick={() => {
-                                    setSelectedMember(member);
-                                    setDeleteMemberModalOpen(true);
-                                  }}
-                                  className="p-1.5 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-                                >
-                                  <TrashIcon className="h-3.5 w-3.5" />
-                                  <span className="sr-only">Remove Member</span>
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Pagination Controls */}
-                      <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100 dark:border-zinc-800">
-                        <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                          Showing {page * pageSize + 1} to {Math.min((page + 1) * pageSize, (page * pageSize) + membersData.data.length)}
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            outline
-                            disabled={page === 0}
-                            onClick={() => setPage(p => Math.max(0, p - 1))}
-                            className="p-2"
-                          >
-                            <ChevronLeftIcon className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            outline
-                            disabled={!membersData.has_more}
-                            onClick={() => setPage(p => p + 1)}
-                            className="p-2"
-                          >
-                            <ChevronRightIcon className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </>
-                  )}
+                  <div className="w-full sm:w-64">
+                    <Listbox
+                      value={`${sortKey}-${sortOrder}`}
+                      onChange={(value) => {
+                        const [key, order] = value.split("-");
+                        setSortKey(key);
+                        setSortOrder(order);
+                      }}
+                    >
+                      <ListboxOption value="created_at-desc">
+                        <ListboxLabel>Date Joined (Newest)</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="created_at-asc">
+                        <ListboxLabel>Date Joined (Oldest)</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="first_name-asc">
+                        <ListboxLabel>First Name (A-Z)</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="first_name-desc">
+                        <ListboxLabel>First Name (Z-A)</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="last_name-asc">
+                        <ListboxLabel>Last Name (A-Z)</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="last_name-desc">
+                        <ListboxLabel>Last Name (Z-A)</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="email-asc">
+                        <ListboxLabel>Email (A-Z)</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="email-desc">
+                        <ListboxLabel>Email (Z-A)</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="username-asc">
+                        <ListboxLabel>Username (A-Z)</ListboxLabel>
+                      </ListboxOption>
+                      <ListboxOption value="username-desc">
+                        <ListboxLabel>Username (Z-A)</ListboxLabel>
+                      </ListboxOption>
+                    </Listbox>
+                  </div>
                 </div>
-              </Tab>
 
-              <Tab label="Roles">
-                <div className="px-4 py-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-base text-zinc-900 dark:text-zinc-100">Workspace Roles</h3>
-                    {workspace.roles && workspace.roles.length > 0 && (
-                      <Button
-                        onClick={() => setCreateRoleModalOpen(true)}
-                      >
-                        Create Role
-                      </Button>
-                    )}
-                  </div>
-                  {!workspace.roles || workspace.roles.length === 0 ? (
-                    <EmptyState
-                      title="No custom roles created yet"
-                      description="Create custom roles to manage permissions within your workspace."
-                      actionLabel="Create Role"
-                      onAction={() => setCreateRoleModalOpen(true)}
-                      icon={
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
-                          />
-                        </svg>
-                      }
-                    />
-                  ) : (
-                    <div className="divide-y divide-gray-200 dark:divide-zinc-800">
-                      {workspace.roles.map((role) => (
-                        <div
-                          key={role.id}
-                          className="py-4 first:pt-0 last:pb-0"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <span className="text-sm text-zinc-900 dark:text-zinc-100">
-                                  {role.name}
-                                </span>
-                                {role.is_deployment_level && (
-                                  <span className="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-900/20 px-2 py-1 text-xs font-medium text-blue-700 dark:text-blue-400 ring-1 ring-inset ring-blue-700/10 dark:ring-blue-400/20">
-                                    Default
-                                  </span>
-                                )}
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Roles</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {membersData.data.map((member) => (
+                        <TableRow key={member.id}>
+                          <TableCell>
+                            <div>
+                              <div className="text-sm">
+                                {member.first_name} {member.last_name}
                               </div>
-                              <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                                {role.permissions.length} permissions
-                                {role.is_deployment_level && " • Cannot be edited or deleted"}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {!role.is_deployment_level && (
-                                <>
-                                  <button
-                                    type="button"
-                                    className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                                    onClick={() => handleEditRole(role)}
-                                  >
-                                    <PencilIcon className="h-4 w-4" />
-                                    <span className="sr-only">Edit</span>
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-                                    onClick={() => handleDeleteRole(role)}
-                                  >
-                                    <TrashIcon className="h-4 w-4" />
-                                    <span className="sr-only">Delete</span>
-                                  </button>
-                                </>
+                              {member.username && (
+                                <div className="text-xs text-muted-foreground">
+                                  @{member.username}
+                                </div>
                               )}
                             </div>
-                          </div>
-                        </div>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {member.primary_email_address}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {member.roles && member.roles.length > 0
+                              ? member.roles.map((role) => role.name).join(", ")
+                              : "No roles"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setSelectedMember(member);
+                                  setEditMemberModalOpen(true);
+                                }}
+                              >
+                                <PencilIcon className="h-4 w-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
+                                <span className="sr-only">Edit</span>
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setSelectedMember(member);
+                                  setDeleteMemberModalOpen(true);
+                                }}
+                                className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                              >
+                                <TrashIcon className="h-4 w-4" />
+                                <span className="sr-only">Remove</span>
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </div>
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="flex items-center justify-between mt-6 border-gray-100 dark:border-zinc-800">
+                  <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                    Showing {page * pageSize + 1} to{" "}
+                    {Math.min(
+                      (page + 1) * pageSize,
+                      page * pageSize + membersData.data.length
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      disabled={page === 0}
+                      onClick={() => setPage((p) => Math.max(0, p - 1))}
+                      className="p-2"
+                    >
+                      <ChevronLeftIcon className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      disabled={!membersData.has_more}
+                      onClick={() => setPage((p) => p + 1)}
+                      className="p-2"
+                    >
+                      <ChevronRightIcon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="roles" className="mt-6">
+          <div className="pt-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-base text-zinc-900 dark:text-zinc-100">
+                Workspace Roles
+              </h3>
+              {workspace.roles && workspace.roles.length > 0 && (
+                <Button onClick={() => setCreateRoleModalOpen(true)}>
+                  Create Role
+                </Button>
+              )}
+            </div>
+            {!workspace.roles || workspace.roles.length === 0 ? (
+              <EmptyState
+                title="No custom roles created yet"
+                description="Create custom roles to manage permissions within your workspace."
+                actionLabel="Create Role"
+                onAction={() => setCreateRoleModalOpen(true)}
+                icon={<PlusIcon className="h-10 w-10 text-zinc-400" />}
+              />
+            ) : (
+              <div className="border rounded-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Permissions</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {workspace.roles.map((role) => (
+                      <TableRow key={role.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm">{role.name}</span>
+                            {role.is_deployment_level && (
+                              <span className="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-900/20 px-2 py-1 text-xs font-normal text-blue-700 dark:text-blue-400 ring-1 ring-inset ring-blue-700/10 dark:ring-blue-400/20">
+                                Default
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {role.permissions.length} permissions
+                          {role.is_deployment_level && " • Cannot be edited or deleted"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {!role.is_deployment_level && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleEditRole(role)}
+                                >
+                                  <PencilIcon className="h-4 w-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
+                                  <span className="sr-only">Edit</span>
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDeleteRole(role)}
+                                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                >
+                                  <TrashIcon className="h-4 w-4" />
+                                  <span className="sr-only">Delete</span>
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="metadata" className="mt-6">
+          <div className="px-4 py-6 space-y-8">
+            {/* Public Metadata */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base text-zinc-900 dark:text-zinc-100">
+                  Public Metadata
+                </h3>
+                <div className="flex gap-2">
+                  {isEditingPublicMetadata ? (
+                    <>
+                      <Button variant="outline" onClick={handleCancelPublicMetadata}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSavePublicMetadata}>Save</Button>
+                    </>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsEditingPublicMetadata(true)}
+                    >
+                      <PencilIcon className="mr-2 h-4 w-4" />
+                      Edit Public Metadata
+                    </Button>
                   )}
                 </div>
-              </Tab>
+              </div>
+              <div className="border border-gray-200 dark:border-zinc-800 rounded-lg overflow-hidden">
+                <Editor
+                  height="200px"
+                  language="json"
+                  value={publicMetadata}
+                  onChange={(value) => setPublicMetadata(value || "{}")}
+                  theme={isDarkMode ? "vs-dark" : "vs"}
+                  options={{
+                    readOnly: !isEditingPublicMetadata,
+                    minimap: { enabled: false },
+                    fontSize: 13,
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    formatOnPaste: true,
+                    formatOnType: true,
+                    wordWrap: "on",
+                    lineNumbers: "off",
+                    folding: false,
+                    autoIndent: "full",
+                    padding: { top: 8, bottom: 8 },
+                    scrollbar: {
+                      vertical: "auto",
+                      horizontal: "hidden",
+                    },
+                  }}
+                />
+              </div>
+            </div>
 
-              <Tab label="Metadata">
-                 <div className="px-4 py-6 space-y-8">
-                   {/* Public Metadata */}
-                   <div>
-                     <div className="flex items-center justify-between mb-4">
-                       <h3 className="text-base text-zinc-900 dark:text-zinc-100">Public Metadata</h3>
-                       <div className="flex gap-2">
-                         {isEditingPublicMetadata ? (
-                           <>
-                             <Button
-                               outline
-                               onClick={handleCancelPublicMetadata}
-                             >
-                               Cancel
-                             </Button>
-                             <Button
-                               onClick={handleSavePublicMetadata}
-                             >
-                               Save
-                             </Button>
-                           </>
-                         ) : (
-                           <Button
-                             outline
-                             className="p-2"
-                             onClick={() => setIsEditingPublicMetadata(true)}
-                           >
-                             <PencilIcon className="h-4 w-4" />
-                             <span className="sr-only">Edit Public Metadata</span>
-                           </Button>
-                         )}
-                       </div>
-                     </div>
-                     <div className="border border-gray-200 dark:border-zinc-800 rounded-lg overflow-hidden">
-                       <Editor
-                         height="200px"
-                         language="json"
-                         value={publicMetadata}
-                         onChange={(value) => setPublicMetadata(value || "{}")}
-                         theme={isDarkMode ? "vs-dark" : "vs"}
-                         options={{
-                           readOnly: !isEditingPublicMetadata,
-                           minimap: { enabled: false },
-                           fontSize: 13,
-                           scrollBeyondLastLine: false,
-                           automaticLayout: true,
-                           formatOnPaste: true,
-                           formatOnType: true,
-                           wordWrap: "on",
-                           lineNumbers: "off",
-                           folding: false,
-                           autoIndent: "full",
-                           padding: { top: 8, bottom: 8 },
-                           scrollbar: {
-                             vertical: "auto",
-                             horizontal: "hidden",
-                           },
-                         }}
-                       />
-                     </div>
-                   </div>
+            {/* Private Metadata */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg text-zinc-900 dark:text-zinc-100">
+                  Private Metadata
+                </h3>
+                <div className="flex gap-2">
+                  {isEditingPrivateMetadata ? (
+                    <>
+                      <Button variant="outline" onClick={handleCancelPrivateMetadata}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSavePrivateMetadata}>Save</Button>
+                    </>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsEditingPrivateMetadata(true)}
+                    >
+                      <PencilIcon className="mr-2 h-4 w-4" />
+                      Edit Private Metadata
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <div className="border border-gray-200 dark:border-zinc-800 rounded-lg overflow-hidden">
+                <Editor
+                  height="200px"
+                  language="json"
+                  value={privateMetadata}
+                  onChange={(value) => setPrivateMetadata(value || "{}")}
+                  theme={isDarkMode ? "vs-dark" : "vs"}
+                  options={{
+                    readOnly: !isEditingPrivateMetadata,
+                    minimap: { enabled: false },
+                    fontSize: 13,
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    formatOnPaste: true,
+                    formatOnType: true,
+                    wordWrap: "on",
+                    lineNumbers: "off",
+                    folding: false,
+                    autoIndent: "full",
+                    padding: { top: 8, bottom: 8 },
+                    scrollbar: {
+                      vertical: "auto",
+                      horizontal: "hidden",
+                    },
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
 
-                   {/* Private Metadata */}
-                   <div>
-                     <div className="flex items-center justify-between mb-4">
-                       <h3 className="text-lg text-zinc-900 dark:text-zinc-100">Private Metadata</h3>
-                       <div className="flex gap-2">
-                         {isEditingPrivateMetadata ? (
-                           <>
-                             <Button
-                               outline
-                               onClick={handleCancelPrivateMetadata}
-                             >
-                               Cancel
-                             </Button>
-                             <Button
-                               onClick={handleSavePrivateMetadata}
-                             >
-                               Save
-                             </Button>
-                           </>
-                         ) : (
-                           <Button
-                             outline
-                             className="p-2"
-                             onClick={() => setIsEditingPrivateMetadata(true)}
-                           >
-                             <PencilIcon className="h-4 w-4" />
-                             <span className="sr-only">Edit Private Metadata</span>
-                           </Button>
-                         )}
-                       </div>
-                     </div>
-                     <div className="border border-gray-200 dark:border-zinc-800 rounded-lg overflow-hidden">
-                       <Editor
-                         height="200px"
-                         language="json"
-                         value={privateMetadata}
-                         onChange={(value) => setPrivateMetadata(value || "{}")}
-                         theme={isDarkMode ? "vs-dark" : "vs"}
-                         options={{
-                           readOnly: !isEditingPrivateMetadata,
-                           minimap: { enabled: false },
-                           fontSize: 13,
-                           scrollBeyondLastLine: false,
-                           automaticLayout: true,
-                           formatOnPaste: true,
-                           formatOnType: true,
-                           wordWrap: "on",
-                           lineNumbers: "off",
-                           folding: false,
-                           autoIndent: "full",
-                           padding: { top: 8, bottom: 8 },
-                           scrollbar: {
-                             vertical: "auto",
-                             horizontal: "hidden",
-                           },
-                         }}
-                       />
-                     </div>
-                   </div>
-                 </div>
-               </Tab>
-            </SimpleTabs>
-        </div>
-      </div>
 
       {/* Edit Workspace Dialog */}
       <EditWorkspaceDialog
@@ -841,7 +839,7 @@ export default function WorkspaceDetailsPage() {
         confirmText="Delete Role"
         isLoading={deleteWorkspaceRole.isPending}
       />
-      
+
       {/* Add Workspace Member Dialog */}
       {workspaceId && (
         <AddWorkspaceMemberDialog

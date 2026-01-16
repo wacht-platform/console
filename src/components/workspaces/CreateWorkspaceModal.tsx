@@ -1,14 +1,15 @@
 import { useState, useRef } from "react";
 import {
   Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
   DialogTitle,
-  DialogBody,
-  DialogActions,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Field, Label, ErrorMessage } from "@/components/ui/fieldset";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label"; // Assuming shadcn Label exists or use standard
 import { PhotoIcon } from "@heroicons/react/24/outline";
 import { useCreateWorkspace } from "@/lib/api/hooks/use-workspace-mutations";
 import { toast } from "sonner";
@@ -140,102 +141,106 @@ export function CreateWorkspaceModal({
   };
 
   return (
-    <Dialog open={isOpen} onClose={handleClose} size="md">
-      <DialogTitle>Create Workspace</DialogTitle>
-      <DialogBody>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Workspace Logo - Centered */}
-          <div className="flex flex-col items-center">
-            <div
-              className="w-16 h-16 rounded-lg border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-zinc-100 hover:bg-zinc-200 dark:border-zinc-600 dark:hover:border-zinc-500 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all duration-200 cursor-pointer overflow-hidden"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              {imagePreview ? (
-                <img
-                  src={imagePreview}
-                  alt="Workspace logo preview"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <PhotoIcon className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
-                </div>
-              )}
-            </div>
-            <div className="mt-1.5 flex items-center gap-2">
-              <button
-                type="button"
+    <Dialog open={isOpen} onOpenChange={(val) => !val && handleClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create Workspace</DialogTitle>
+        </DialogHeader>
+        <div className="py-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Workspace Logo - Centered */}
+            <div className="flex flex-col items-center">
+              <div
+                className="w-16 h-16 rounded-lg border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-zinc-100 hover:bg-zinc-200 dark:border-zinc-600 dark:hover:border-zinc-500 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all duration-200 cursor-pointer overflow-hidden"
                 onClick={() => fileInputRef.current?.click()}
-                className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
               >
-                {imagePreview ? "Change logo" : "Add logo"}
-              </button>
-              {imagePreview && (
-                <>
-                  <span className="text-zinc-300 dark:text-zinc-600">·</span>
-                  <button
-                    type="button"
-                    onClick={handleRemoveImage}
-                    className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
-                  >
-                    Remove
-                  </button>
-                </>
-              )}
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Workspace logo preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <PhotoIcon className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
+                  </div>
+                )}
+              </div>
+              <div className="mt-1.5 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                >
+                  {imagePreview ? "Change logo" : "Add logo"}
+                </button>
+                {imagePreview && (
+                  <>
+                    <span className="text-zinc-300 dark:text-zinc-600">·</span>
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
+                    >
+                      Remove
+                    </button>
+                  </>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
+              />
             </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleImageSelect}
-              className="hidden"
-            />
-          </div>
 
-          <Field>
-            <Label>Organization</Label>
-            <div className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md text-sm text-zinc-600 dark:text-zinc-400">
-              {organizationName}
+            <div className="space-y-2">
+              <Label>Organization</Label>
+              <div className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md text-sm text-zinc-600 dark:text-zinc-400">
+                {organizationName}
+              </div>
             </div>
-          </Field>
 
-          <Field>
-            <Label>Name</Label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Engineering Team"
-            />
-            {errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
-          </Field>
+            <div className="space-y-2">
+              <Label>Name</Label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Engineering Team"
+              />
+              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+            </div>
 
-          <Field>
-            <Label>
-              Description
-              <span className="ml-1 text-zinc-400 dark:text-zinc-500 font-normal">·  optional</span>
-            </Label>
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="A brief description of the workspace..."
-              rows={2}
-            />
-          </Field>
-        </form>
-      </DialogBody>
-      <DialogActions>
-        <Button outline onClick={handleClose}>
-          Cancel
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          disabled={createWorkspaceMutation.isPending}
-        >
-          {createWorkspaceMutation.isPending
-            ? "Creating..."
-            : "Create Workspace"}
-        </Button>
-      </DialogActions>
+            <div className="space-y-2">
+              <Label>
+                Description
+                <span className="ml-1 text-zinc-400 dark:text-zinc-500 font-normal">·  optional</span>
+              </Label>
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="A brief description of the workspace..."
+                rows={2}
+              />
+            </div>
+          </form>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={createWorkspaceMutation.isPending}
+          >
+            {createWorkspaceMutation.isPending
+              ? "Creating..."
+              : "Create Workspace"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

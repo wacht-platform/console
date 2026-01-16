@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
-import { Field, Label } from "../ui/fieldset";
+import { Label } from "../ui/label";
 import {
 	Dialog,
-	DialogActions,
-	DialogBody,
+	DialogContent,
+	DialogHeader,
 	DialogDescription,
 	DialogTitle,
 } from "../ui/dialog";
@@ -15,10 +15,7 @@ import {
 	WrenchScrewdriverIcon,
 	FireIcon,
 	BookOpenIcon,
-	XMarkIcon,
-	PlusIcon,
-	ChevronUpIcon,
-	InformationCircleIcon
+	CheckIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from 'sonner';
 
@@ -27,6 +24,7 @@ import { useCreateAgent, useUpdateAgent } from "../../lib/api/hooks/use-agents";
 import { useTools } from "../../lib/api/hooks/use-tools";
 import { useWorkflows } from "../../lib/api/hooks/use-workflows";
 import { useKnowledgeBases } from "../../lib/api/hooks/use-knowledge-bases";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
 interface CreateAgentDialogProps {
 	open: boolean;
@@ -41,7 +39,6 @@ interface AgentFormData {
 	workflowIds: string[];
 	knowledgeBaseIds: string[];
 	integrationIds: string[];
-	quickQuestions: string[];
 }
 
 interface FormErrors {
@@ -49,56 +46,12 @@ interface FormErrors {
 	description?: string;
 }
 
-function CollapsibleSection({
-	title,
-	children,
-	isOpen,
-	onToggle,
-	badgeCount = 0,
-	icon: Icon
-}: {
-	title: string;
-	children: React.ReactNode;
-	isOpen: boolean;
-	onToggle: () => void;
-	badgeCount?: number;
-	icon?: React.ElementType;
-}) {
-	return (
-		<div className="border-b border-zinc-300 dark:border-zinc-600 last:border-b-0">
-			<button
-				type="button"
-				onClick={onToggle}
-				className="flex w-full items-center justify-between py-3 text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
-			>
-				<div className="flex items-center gap-2">
-					{Icon && <Icon className={`h-4 w-4 ${isOpen ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500'}`} />}
-					<span>{title}</span>
-					{badgeCount > 0 && (
-						<Badge className="ml-1" color="zinc">{badgeCount}</Badge>
-					)}
-				</div>
-				<ChevronUpIcon
-					className={`h-4 w-4 text-zinc-500 transition-transform duration-200 ${isOpen ? '' : 'rotate-180'}`}
-				/>
-			</button>
-
-			{isOpen && (
-				<div className="pb-4 animate-in slide-in-from-top-1 duration-150">
-					{children}
-				</div>
-			)}
-		</div>
-	);
-}
-
 export function CreateAgentDialog({
 	open,
 	onClose,
 	agent,
 }: CreateAgentDialogProps) {
-	const [openSections, setOpenSections] = useState<Set<string>>(new Set(['basic']));
-
+	const [activeTab, setActiveTab] = useState("details");
 	const [formData, setFormData] = useState<AgentFormData>({
 		name: "",
 		description: "",
@@ -106,12 +59,10 @@ export function CreateAgentDialog({
 		workflowIds: [],
 		knowledgeBaseIds: [],
 		integrationIds: [],
-		quickQuestions: [],
 	});
 
 	const [errors, setErrors] = useState<FormErrors>({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [newQuestion, setNewQuestion] = useState("");
 
 	const isEditing = !!agent;
 
@@ -131,7 +82,7 @@ export function CreateAgentDialog({
 	// Reset form when dialog opens/closes
 	useEffect(() => {
 		if (open) {
-			setOpenSections(new Set(['basic']));
+			setActiveTab("details");
 			if (agent) {
 				setFormData({
 					name: agent.name,
@@ -140,7 +91,6 @@ export function CreateAgentDialog({
 					workflowIds: (agent.configuration?.workflow_ids as string[]) || [],
 					knowledgeBaseIds: (agent.configuration?.knowledge_base_ids as string[]) || [],
 					integrationIds: (agent.configuration?.integration_ids as string[]) || [],
-					quickQuestions: (agent.configuration?.quick_questions as string[]) || [],
 				});
 			} else {
 				setFormData({
@@ -150,7 +100,6 @@ export function CreateAgentDialog({
 					workflowIds: [],
 					knowledgeBaseIds: [],
 					integrationIds: [],
-					quickQuestions: [],
 				});
 			}
 			setErrors({});
@@ -196,7 +145,7 @@ export function CreateAgentDialog({
 					workflow_ids: formData.workflowIds,
 					knowledge_base_ids: formData.knowledgeBaseIds,
 					integration_ids: formData.integrationIds,
-					quick_questions: formData.quickQuestions,
+					quick_questions: [],
 				},
 			};
 
@@ -221,16 +170,11 @@ export function CreateAgentDialog({
 		}
 	};
 
-	const handleCancel = () => {
-		onClose();
-	};
-
-	const toggleSelection = (id: string, type: 'tools' | 'workflows' | 'knowledgeBases' | 'integrations') => {
+	const toggleSelection = (id: string, type: 'tools' | 'workflows' | 'knowledgeBases') => {
 		const fieldMap = {
 			tools: 'toolIds',
 			workflows: 'workflowIds',
 			knowledgeBases: 'knowledgeBaseIds',
-			integrations: 'integrationIds'
 		} as const;
 		const fieldName = fieldMap[type];
 		const currentIds = formData[fieldName];
@@ -241,244 +185,201 @@ export function CreateAgentDialog({
 		setFormData({ ...formData, [fieldName]: newIds });
 	};
 
-	const handleAddQuestion = () => {
-		if (newQuestion.trim()) {
-			setFormData({
-				...formData,
-				quickQuestions: [...formData.quickQuestions, newQuestion.trim()]
-			});
-			setNewQuestion("");
-		}
-	};
-
-	const handleRemoveQuestion = (index: number) => {
-		const newQuestions = [...formData.quickQuestions];
-		newQuestions.splice(index, 1);
-		setFormData({
-			...formData,
-			quickQuestions: newQuestions
-		});
-	};
-
 	return (
-		<Dialog open={open} onClose={onClose} size="4xl">
-			<DialogTitle>{isEditing ? "Edit Agent" : "Create New Agent"}</DialogTitle>
-			<DialogDescription>
-				{isEditing
-					? "Update the agent configuration and relationships."
-					: "Create a new AI agent by configuring its properties and selecting resources."}
-			</DialogDescription>
+		<Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+			<DialogContent className="sm:max-w-5xl max-h-[90vh] flex flex-col p-0 gap-0">
+				<DialogHeader className="p-6 pb-2">
+					<DialogTitle>{isEditing ? "Edit Agent" : "Create Agent"}</DialogTitle>
+					<DialogDescription>
+						{isEditing
+							? "Update agent configuration."
+							: "Configure your new AI agent."}
+					</DialogDescription>
+				</DialogHeader>
 
-			<form onSubmit={handleSubmit}>
-				<DialogBody className="space-y-0">
-					{/* Basic Information */}
-					<CollapsibleSection
-						title="Basic Information"
-						icon={InformationCircleIcon}
-						isOpen={openSections.has('basic')}
-						onToggle={() => {
-							const next = new Set(openSections);
-							if (next.has('basic')) next.delete('basic'); else next.add('basic');
-							setOpenSections(next);
-						}}
-					>
-						<div className="space-y-4">
-							<Field>
-								<Label>Agent Name</Label>
-								<Input
-									required
-									placeholder="Enter agent name"
-									value={formData.name}
-									onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-									invalid={!!errors.name}
-								/>
-								{errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
-							</Field>
-
-							<Field>
-								<Label>Description</Label>
-								<Textarea
-									placeholder="Describe what this agent does..."
-									value={formData.description}
-									onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-									rows={5}
-								/>
-								{errors.description && <p className="text-sm text-red-600 mt-1">{errors.description}</p>}
-							</Field>
+				<form onSubmit={handleSubmit} className="flex-1 overflow-hidden flex flex-col">
+					<Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+						<div className="px-6">
+							<TabsList className="grid w-full grid-cols-2">
+								<TabsTrigger value="details">Details</TabsTrigger>
+								<TabsTrigger value="capabilities">Capabilities</TabsTrigger>
+							</TabsList>
 						</div>
-					</CollapsibleSection>
 
-					<CollapsibleSection
-						title="Tools"
-						badgeCount={formData.toolIds.length}
-						icon={WrenchScrewdriverIcon}
-						isOpen={openSections.has('tools')}
-						onToggle={() => {
-							const next = new Set(openSections);
-							if (next.has('tools')) next.delete('tools'); else next.add('tools');
-							setOpenSections(next);
-						}}
-					>
-						<div className="space-y-2 max-h-60 overflow-y-auto">
-							{tools.length === 0 ? (
-								<p className="text-sm text-zinc-500 text-center py-4">No tools available</p>
-							) : (
-								tools.map((tool) => (
-									<div
-										key={tool.id}
-										onClick={() => toggleSelection(tool.id, 'tools')}
-										className={`flex items-center gap-3 px-4 py-3 cursor-pointer rounded-md border transition-colors ${formData.toolIds.includes(tool.id) ? 'bg-indigo-50 border-indigo-200 dark:bg-indigo-900/30 dark:border-indigo-800' : 'bg-white border-zinc-200 dark:bg-zinc-800 dark:border-zinc-700 hover:border-indigo-300'}`}
-									>
-										<div className={`w-4 h-4 rounded-sm border-2 flex items-center justify-center transition-colors ${formData.toolIds.includes(tool.id) ? 'bg-indigo-500 border-indigo-500' : 'border-zinc-300 dark:border-zinc-600'}`}>
-											{formData.toolIds.includes(tool.id) && <span className="text-white text-xs font-bold">✓</span>}
-										</div>
-										<div>
-											<p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{tool.name}</p>
-											<p className="text-xs text-zinc-500">{tool.tool_type}</p>
-										</div>
+						<div className="flex-1 overflow-y-auto p-6">
+							<TabsContent value="details" className="mt-0 space-y-6">
+								<div className="space-y-4">
+									<div className="space-y-2">
+										<Label>Agent Name <span className="text-destructive">*</span></Label>
+										<Input
+											required
+											placeholder="e.g. Customer Support Bot"
+											value={formData.name}
+											onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+										/>
+										{errors.name && <p className="text-sm text-destructive mt-1">{errors.name}</p>}
 									</div>
-								))
-							)}
-						</div>
-					</CollapsibleSection>
 
-					<CollapsibleSection
-						title="Workflows"
-						badgeCount={formData.workflowIds.length}
-						icon={FireIcon}
-						isOpen={openSections.has('workflows')}
-						onToggle={() => {
-							const next = new Set(openSections);
-							if (next.has('workflows')) next.delete('workflows'); else next.add('workflows');
-							setOpenSections(next);
-						}}
-					>
-						<div className="space-y-2 max-h-60 overflow-y-auto">
-							{workflows.length === 0 ? (
-								<p className="text-sm text-zinc-500 text-center py-4">No workflows available</p>
-							) : (
-								workflows.map((workflow) => (
-									<div
-										key={workflow.id}
-										onClick={() => toggleSelection(workflow.id, 'workflows')}
-										className={`flex items-center gap-3 px-4 py-3 cursor-pointer rounded-md border transition-colors ${formData.workflowIds.includes(workflow.id) ? 'bg-orange-50 border-orange-200 dark:bg-orange-900/30 dark:border-orange-800' : 'bg-white border-zinc-200 dark:bg-zinc-800 dark:border-zinc-700 hover:border-orange-300'}`}
-									>
-										<div className={`w-4 h-4 rounded-sm border-2 flex items-center justify-center transition-colors ${formData.workflowIds.includes(workflow.id) ? 'bg-orange-500 border-orange-500' : 'border-zinc-300 dark:border-zinc-600'}`}>
-											{formData.workflowIds.includes(workflow.id) && <span className="text-white text-xs font-bold">✓</span>}
-										</div>
-										<div>
-											<p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{workflow.name}</p>
-											<p className="text-xs text-zinc-500">{workflow.description || "No description"}</p>
-										</div>
+									<div className="space-y-2">
+										<Label>Description</Label>
+										<Textarea
+											placeholder="Describe the agent's purpose and personality..."
+											value={formData.description}
+											onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+											rows={6}
+										/>
+										{errors.description && <p className="text-sm text-destructive mt-1">{errors.description}</p>}
 									</div>
-								))
-							)}
-						</div>
-					</CollapsibleSection>
-
-					<CollapsibleSection
-						title="Knowledge Bases"
-						badgeCount={formData.knowledgeBaseIds.length}
-						icon={BookOpenIcon}
-						isOpen={openSections.has('knowledgeBases')}
-						onToggle={() => {
-							const next = new Set(openSections);
-							if (next.has('knowledgeBases')) next.delete('knowledgeBases'); else next.add('knowledgeBases');
-							setOpenSections(next);
-						}}
-					>
-						<div className="space-y-2 max-h-60 overflow-y-auto">
-							{knowledgeBases.length === 0 ? (
-								<p className="text-sm text-zinc-500 text-center py-4">No knowledge bases available</p>
-							) : (
-								knowledgeBases.map((kb) => (
-									<div
-										key={kb.id}
-										onClick={() => toggleSelection(kb.id, 'knowledgeBases')}
-										className={`flex items-center gap-3 px-4 py-3 cursor-pointer rounded-md border transition-colors ${formData.knowledgeBaseIds.includes(kb.id) ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800' : 'bg-white border-zinc-200 dark:bg-zinc-800 dark:border-zinc-700 hover:border-emerald-300'}`}
-									>
-										<div className={`w-4 h-4 rounded-sm border-2 flex items-center justify-center transition-colors ${formData.knowledgeBaseIds.includes(kb.id) ? 'bg-emerald-500 border-emerald-500' : 'border-zinc-300 dark:border-zinc-600'}`}>
-											{formData.knowledgeBaseIds.includes(kb.id) && <span className="text-white text-xs font-bold">✓</span>}
-										</div>
-										<div>
-											<p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{kb.name}</p>
-											<p className="text-xs text-zinc-500">{kb.documents_count} documents</p>
-										</div>
-									</div>
-								))
-							)}
-						</div>
-					</CollapsibleSection>
-
-					<CollapsibleSection
-						title="Quick Questions"
-						badgeCount={formData.quickQuestions.length}
-						icon={PlusIcon}
-						isOpen={openSections.has('quickQuestions')}
-						onToggle={() => {
-							const next = new Set(openSections);
-							if (next.has('quickQuestions')) next.delete('quickQuestions'); else next.add('quickQuestions');
-							setOpenSections(next);
-						}}
-					>
-						<div className="space-y-4">
-							<p className="text-sm text-zinc-500 dark:text-zinc-400">
-								Add suggested questions to help users start a conversation.
-							</p>
-							<div className="flex gap-2">
-								<Input
-									className="flex-1"
-									placeholder="e.g. 'What are your capabilities?'"
-									value={newQuestion}
-									onChange={(e) => setNewQuestion(e.target.value)}
-									onKeyDown={(e) => {
-										if (e.key === 'Enter') {
-											e.preventDefault();
-											handleAddQuestion();
-										}
-									}}
-								/>
-								<Button type="button" outline onClick={handleAddQuestion}>
-									<PlusIcon className="h-4 w-4 mr-1.5" />
-									Add
-								</Button>
-							</div>
-
-							{formData.quickQuestions.length > 0 && (
-								<div className="space-y-2">
-									{formData.quickQuestions.map((question, index) => (
-										<div key={index} className="flex items-center justify-between pl-4 pr-2 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 rounded-md border border-zinc-200 dark:border-zinc-700">
-											<span className="text-sm text-zinc-900 dark:text-zinc-100">{question}</span>
-											<button
-												type="button"
-												onClick={() => handleRemoveQuestion(index)}
-												className="p-1 text-zinc-400 hover:text-red-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors"
-											>
-												<XMarkIcon className="h-4 w-4" />
-											</button>
-										</div>
-									))}
 								</div>
-							)}
-						</div>
-					</CollapsibleSection>
-				</DialogBody>
+							</TabsContent>
 
-				<DialogActions>
-					<Button outline onClick={handleCancel} disabled={isSubmitting}>
-						Cancel
-					</Button>
-					<Button
-						type="submit"
-						disabled={isSubmitting || !formData.name.trim()}
-					>
-						{isSubmitting
-							? (isEditing ? "Updating..." : "Creating...")
-							: (isEditing ? "Update Agent" : "Create Agent")
-						}
-					</Button>
-				</DialogActions>
-			</form>
+							<TabsContent value="capabilities" className="mt-0 space-y-8">
+								{/* Tools Section */}
+								<div className="space-y-3">
+									<div className="flex items-center justify-between">
+										<Label className="flex items-center gap-2 text-base">
+											<WrenchScrewdriverIcon className="h-4 w-4 text-primary" />
+											Tools
+										</Label>
+										{formData.toolIds.length > 0 && (
+											<Badge variant="secondary">{formData.toolIds.length} selected</Badge>
+										)}
+									</div>
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+										{tools.length === 0 ? (
+											<div className="col-span-full text-sm text-muted-foreground py-2 italic text-center border border-dashed rounded-lg">
+												No tools available
+											</div>
+										) : (
+											tools.map((tool) => (
+												<div
+													key={tool.id}
+													onClick={() => toggleSelection(tool.id, 'tools')}
+													className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all hover:bg-muted/50 ${formData.toolIds.includes(tool.id)
+														? "border-primary bg-primary/5 hover:bg-primary/10"
+														: "border-border"
+														}`}
+												>
+													<div className={`mt-0.5 h-4 w-4 rounded flex items-center justify-center border ${formData.toolIds.includes(tool.id)
+														? "bg-primary border-primary text-primary-foreground"
+														: "border-muted-foreground"
+														}`}>
+														{formData.toolIds.includes(tool.id) && <CheckIcon className="h-3 w-3" />}
+													</div>
+													<div className="flex-1 min-w-0">
+														<div className="font-medium text-sm truncate">{tool.name}</div>
+														<div className="text-xs text-muted-foreground truncate">{tool.tool_type}</div>
+													</div>
+												</div>
+											))
+										)}
+									</div>
+								</div>
+
+								{/* Workflows Section */}
+								<div className="space-y-3">
+									<div className="flex items-center justify-between">
+										<Label className="flex items-center gap-2 text-base">
+											<FireIcon className="h-4 w-4 text-orange-500" />
+											Workflows
+										</Label>
+										{formData.workflowIds.length > 0 && (
+											<Badge variant="secondary">{formData.workflowIds.length} selected</Badge>
+										)}
+									</div>
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+										{workflows.length === 0 ? (
+											<div className="col-span-full text-sm text-muted-foreground py-2 italic text-center border border-dashed rounded-lg">
+												No workflows available
+											</div>
+										) : (
+											workflows.map((workflow) => (
+												<div
+													key={workflow.id}
+													onClick={() => toggleSelection(workflow.id, 'workflows')}
+													className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all hover:bg-muted/50 ${formData.workflowIds.includes(workflow.id)
+														? "border-primary bg-primary/5 hover:bg-primary/10"
+														: "border-border"
+														}`}
+												>
+													<div className={`mt-0.5 h-4 w-4 rounded flex items-center justify-center border ${formData.workflowIds.includes(workflow.id)
+														? "bg-primary border-primary text-primary-foreground"
+														: "border-muted-foreground"
+														}`}>
+														{formData.workflowIds.includes(workflow.id) && <CheckIcon className="h-3 w-3" />}
+													</div>
+													<div className="flex-1 min-w-0">
+														<div className="font-medium text-sm truncate">{workflow.name}</div>
+														<div className="text-xs text-muted-foreground truncate">{workflow.description || "No description"}</div>
+													</div>
+												</div>
+											))
+										)}
+									</div>
+								</div>
+
+								{/* Knowledge Base Section */}
+								<div className="space-y-3">
+									<div className="flex items-center justify-between">
+										<Label className="flex items-center gap-2 text-base">
+											<BookOpenIcon className="h-4 w-4 text-blue-500" />
+											Knowledge Bases
+										</Label>
+										{formData.knowledgeBaseIds.length > 0 && (
+											<Badge variant="secondary">{formData.knowledgeBaseIds.length} selected</Badge>
+										)}
+									</div>
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+										{knowledgeBases.length === 0 ? (
+											<div className="col-span-full text-sm text-muted-foreground py-2 italic text-center border border-dashed rounded-lg">
+												No knowledge bases available
+											</div>
+										) : (
+											knowledgeBases.map((kb) => (
+												<div
+													key={kb.id}
+													onClick={() => toggleSelection(kb.id, 'knowledgeBases')}
+													className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all hover:bg-muted/50 ${formData.knowledgeBaseIds.includes(kb.id)
+														? "border-primary bg-primary/5 hover:bg-primary/10"
+														: "border-border"
+														}`}
+												>
+													<div className={`mt-0.5 h-4 w-4 rounded flex items-center justify-center border ${formData.knowledgeBaseIds.includes(kb.id)
+														? "bg-primary border-primary text-primary-foreground"
+														: "border-muted-foreground"
+														}`}>
+														{formData.knowledgeBaseIds.includes(kb.id) && <CheckIcon className="h-3 w-3" />}
+													</div>
+													<div className="flex-1 min-w-0">
+														<div className="font-medium text-sm truncate">{kb.name}</div>
+														<div className="text-xs text-muted-foreground truncate">{kb.documents_count} documents</div>
+													</div>
+												</div>
+											))
+										)}
+									</div>
+								</div>
+							</TabsContent>
+						</div>
+
+						<div className="flex items-center justify-end gap-3 p-4 border-t bg-muted/40 shrink-0">
+							<Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
+								Cancel
+							</Button>
+							<Button
+								type="submit"
+								onClick={handleSubmit}
+								disabled={isSubmitting || !formData.name.trim()}
+							>
+								{isSubmitting
+									? (isEditing ? "Updating..." : "Creating...")
+									: (isEditing ? "Update Agent" : "Create Agent")
+								}
+							</Button>
+						</div>
+					</Tabs>
+				</form>
+			</DialogContent>
 		</Dialog>
 	);
 }

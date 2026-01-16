@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
   DialogTitle,
-  DialogBody,
-  DialogActions,
 } from "@/components/ui/dialog";
 import { Field, Label } from "@/components/ui/fieldset";
 import { Switch } from "@/components/ui/switch";
@@ -52,65 +53,71 @@ export function AddEmailModal({
   };
 
   return (
-    <Dialog open={isOpen} onClose={handleClose}>
-      <DialogTitle>Add Email Address</DialogTitle>
-      <DialogBody>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Field>
-            <Label>Email Address</Label>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter email address"
-              required
-            />
-          </Field>
+    <Dialog open={isOpen} onOpenChange={(val) => !val && handleClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add Email Address</DialogTitle>
+        </DialogHeader>
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  Verified
-                </label>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Mark this email as verified
-                </p>
-              </div>
-              <Switch checked={verified} onChange={setVerified} />
-            </div>
+        <div className="py-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <Field>
+              <Label>Email Address</Label>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter email address"
+                required
+              />
+            </Field>
 
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  Primary
-                </label>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Set as primary email address
-                </p>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    Verified
+                  </label>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Mark this email as verified
+                  </p>
+                </div>
+                <Switch checked={verified} onCheckedChange={setVerified} />
               </div>
-              <Switch checked={isPrimary} onChange={setIsPrimary} />
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    Primary
+                  </label>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Set as primary email address
+                  </p>
+                </div>
+                <Switch checked={isPrimary} onCheckedChange={setIsPrimary} />
+              </div>
             </div>
-          </div>
-        </form>
-      </DialogBody>
-      <DialogActions>
-        <Button
-          type="button"
-          outline
-          onClick={handleClose}
-          disabled={isLoading}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          onClick={handleSubmit}
-          disabled={isLoading || !email.trim()}
-        >
-          {isLoading ? "Adding..." : "Add Email"}
-        </Button>
-      </DialogActions>
+          </form>
+        </div>
+
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={handleClose}
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={isLoading || !email.trim()}
+          >
+            {isLoading ? "Adding..." : "Add Email"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

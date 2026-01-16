@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Select } from "../ui/select";
-import { Field, Label, Description } from "../ui/fieldset";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "../ui/select";
+import { Label } from "../ui/label";
 import {
     Dialog,
-    DialogActions,
-    DialogBody,
+    DialogContent,
+    DialogHeader,
+    DialogFooter,
     DialogDescription,
     DialogTitle,
 } from "../ui/dialog";
@@ -161,7 +168,7 @@ export function CreateIntegrationDialog({
                                 </div>
                             </div>
                         </div>
-                        <Field>
+                        <div className="space-y-2">
                             <Label>Microsoft App ID (Client ID)</Label>
                             <Input
                                 required
@@ -169,10 +176,10 @@ export function CreateIntegrationDialog({
                                 value={formData.app_id}
                                 onChange={(e) => setFormData({ ...formData, app_id: e.target.value })}
                             />
-                        </Field>
-                        <Field>
+                        </div>
+                        <div className="space-y-2">
                             <Label>Client Secret</Label>
-                            <Description>From "Certificates & secrets" in Azure Portal</Description>
+                            <p className="text-sm text-zinc-500">From "Certificates & secrets" in Azure Portal</p>
                             <Input
                                 required
                                 type="password"
@@ -180,17 +187,17 @@ export function CreateIntegrationDialog({
                                 value={formData.app_password}
                                 onChange={(e) => setFormData({ ...formData, app_password: e.target.value })}
                             />
-                        </Field>
-                        <Field>
+                        </div>
+                        <div className="space-y-2">
                             <Label>Tenant ID</Label>
-                            <Description>Your Azure AD tenant ID (required for Single-Tenant bots)</Description>
+                            <p className="text-sm text-zinc-500">Your Azure AD tenant ID (required for Single-Tenant bots)</p>
                             <Input
                                 required
                                 placeholder="e.g. b7d70e3b-d7ba-44aa-91ac-..."
                                 value={formData.tenant_id}
                                 onChange={(e) => setFormData({ ...formData, tenant_id: e.target.value })}
                             />
-                        </Field>
+                        </div>
                     </>
                 );
 
@@ -221,7 +228,7 @@ export function CreateIntegrationDialog({
                                 </div>
                             </div>
                         </div>
-                        <Field>
+                        <div className="space-y-2">
                             <Label>Phone Number ID</Label>
                             <Input
                                 required
@@ -229,10 +236,10 @@ export function CreateIntegrationDialog({
                                 value={formData.app_id}
                                 onChange={(e) => setFormData({ ...formData, app_id: e.target.value })}
                             />
-                        </Field>
-                        <Field>
+                        </div>
+                        <div className="space-y-2">
                             <Label>System User Access Token</Label>
-                            <Description>Permanent token from System User</Description>
+                            <p className="text-sm text-zinc-500">Permanent token from System User</p>
                             <Input
                                 required
                                 type="password"
@@ -240,17 +247,17 @@ export function CreateIntegrationDialog({
                                 value={formData.app_password}
                                 onChange={(e) => setFormData({ ...formData, app_password: e.target.value })}
                             />
-                        </Field>
-                        <Field>
+                        </div>
+                        <div className="space-y-2">
                             <Label>Verify Token</Label>
-                            <Description>Used for webhook verification</Description>
+                            <p className="text-sm text-zinc-500">Used for webhook verification</p>
                             <Input
                                 required
                                 placeholder="Your custom verify token"
                                 value={formData.signing_secret}
                                 onChange={(e) => setFormData({ ...formData, signing_secret: e.target.value })}
                             />
-                        </Field>
+                        </div>
                     </>
                 );
 
@@ -285,7 +292,7 @@ export function CreateIntegrationDialog({
                                 </div>
                             </div>
                         </div>
-                        <Field>
+                        <div className="space-y-2">
                             <Label>Client ID</Label>
                             <Input
                                 required
@@ -293,8 +300,8 @@ export function CreateIntegrationDialog({
                                 value={formData.app_id}
                                 onChange={(e) => setFormData({ ...formData, app_id: e.target.value })}
                             />
-                        </Field>
-                        <Field>
+                        </div>
+                        <div className="space-y-2">
                             <Label>Client Secret</Label>
                             <Input
                                 required
@@ -303,7 +310,7 @@ export function CreateIntegrationDialog({
                                 value={formData.app_password}
                                 onChange={(e) => setFormData({ ...formData, app_password: e.target.value })}
                             />
-                        </Field>
+                        </div>
                     </>
                 );
 
@@ -313,66 +320,75 @@ export function CreateIntegrationDialog({
     };
 
     return (
-        <Dialog open={open} onClose={onClose} size="lg">
-            <form onSubmit={handleSubmit}>
-                <DialogTitle>{isEditing ? "Edit Integration" : "Add Integration"}</DialogTitle>
-                <DialogDescription>
-                    Connect your AI agents to external platforms
-                </DialogDescription>
+        <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+            <DialogContent className="sm:max-w-lg mb-16">
+                <DialogHeader>
+                    <DialogTitle>{isEditing ? "Edit Integration" : "Add Integration"}</DialogTitle>
+                    <DialogDescription>
+                        Connect your AI agents to external platforms
+                    </DialogDescription>
+                </DialogHeader>
 
-                <DialogBody className="space-y-4">
-                    <Field>
-                        <Label>Name</Label>
-                        <Input
-                            required
-                            placeholder="My Integration"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        />
-                    </Field>
-
-                    <Field>
-                        <Label>Platform</Label>
-                        <div className="relative">
-                            <Select
-                                value={formData.integration_type}
-                                onChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        integration_type: e.target.value as IntegrationType,
-                                        // Reset config
-                                        app_id: "",
-                                        app_password: "",
-                                        tenant_id: "",
-                                        bot_token: "",
-                                        signing_secret: "",
-                                        api_token: "",
-                                        team_id: "",
-                                    })
-                                }
-                                disabled={isEditing}
-                            >
-                                <option value="teams">Microsoft Teams</option>
-                                <option value="clickup">ClickUp</option>
-                                <option value="whatsapp">WhatsApp</option>
-                            </Select>
+                <form onSubmit={handleSubmit}>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label>Name</Label>
+                            <Input
+                                required
+                                placeholder="My Integration"
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            />
                         </div>
-                    </Field>
 
-                    <div className="border-t border-zinc-200 dark:border-zinc-700 pt-4 mt-4 space-y-4">
-                        {renderConfigFields()}
+                        <div className="space-y-2">
+                            <Label>Platform</Label>
+                            <div className="relative">
+                                <Select
+                                    value={formData.integration_type}
+                                    onValueChange={(value) =>
+                                        setFormData({
+                                            ...formData,
+                                            integration_type: value as IntegrationType,
+                                            // Reset config
+                                            app_id: "",
+                                            app_password: "",
+                                            tenant_id: "",
+                                            bot_token: "",
+                                            signing_secret: "",
+                                            api_token: "",
+                                            team_id: "",
+                                        })
+                                    }
+                                    disabled={isEditing}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select platform" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="teams">Microsoft Teams</SelectItem>
+                                        <SelectItem value="clickup">ClickUp</SelectItem>
+                                        <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <div className="border-t border-zinc-200 dark:border-zinc-700 pt-4 mt-4 space-y-4 max-h-[40vh] overflow-y-auto">
+                            {renderConfigFields()}
+                        </div>
                     </div>
-                </DialogBody>
 
-                <DialogActions>
-                    <Button type="button" outline onClick={onClose}>
-                        Cancel
-                    </Button>
-                    <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? "Saving..." : isEditing ? "Update" : "Create"}
-                    </Button>
-                </DialogActions>
-            </form>
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={onClose}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? "Saving..." : isEditing ? "Update" : "Create"}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
         </Dialog>
     );
 }

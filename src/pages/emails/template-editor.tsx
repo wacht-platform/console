@@ -203,7 +203,7 @@ export default function EmailTemplateEditor() {
         </button>
         <div className="flex items-center justify-between">
           <div>
-            <Heading className="text-2xl font-normal text-gray-900 dark:text-gray-100">
+            <Heading className="text-xl font-normal text-gray-900 dark:text-gray-100">
               {formData.template_name || "Email Template"}
             </Heading>
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Customize your email template content and settings</p>

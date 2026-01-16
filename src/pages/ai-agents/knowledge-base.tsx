@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import {
 	BookOpenIcon,
-	PlusIcon,
 	MagnifyingGlassIcon,
 	DocumentTextIcon,
-	ChevronDownIcon,
 	TrashIcon,
+	PlusIcon,
+	FolderIcon,
+	ChevronRightIcon,
 } from "@heroicons/react/24/outline";
-import { Heading } from "../../components/ui/heading";
 import { Button } from "../../components/ui/button";
-import { Input, InputGroup } from "../../components/ui/input";
+import { Input } from "../../components/ui/input";
 import {
 	Table,
 	TableBody,
@@ -20,13 +20,6 @@ import {
 } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
 import { Spinner } from "../../components/ui/spinner";
-import {
-	Dropdown,
-	DropdownButton,
-	DropdownItem,
-	DropdownLabel,
-	DropdownMenu,
-} from "../../components/ui/dropdown";
 import { EnhancedUploadDialog } from "../../components/ai-agents/enhanced-upload-dialog";
 import { CreateKnowledgeBaseFormDialog } from "../../components/ai-agents/create-knowledge-base-form-dialog";
 import { ConfirmationDialog } from "../../components/modals/confirmation-dialog";
@@ -49,8 +42,6 @@ function formatFileSize(bytes: number): string {
 	return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
-// Remove the local interface since we're importing it from the API hooks
-
 const getTypeIcon = (fileType: string) => {
 	if (fileType.includes("pdf")) {
 		return <DocumentTextIcon className="h-4 w-4" />;
@@ -60,8 +51,6 @@ const getTypeIcon = (fileType: string) => {
 	}
 	return <DocumentTextIcon className="h-4 w-4" />;
 };
-
-
 
 const getFileTypeLabel = (fileType: string) => {
 	if (fileType.includes("pdf")) return "PDF";
@@ -153,8 +142,6 @@ export default function KnowledgeBasePage() {
 		setIsCreateDialogOpen(true);
 	};
 
-
-
 	const handleDeleteDocument = (documentId: string, documentTitle: string) => {
 		setDeleteDocumentDialog({
 			isOpen: true,
@@ -188,7 +175,7 @@ export default function KnowledgeBasePage() {
 		try {
 			await deleteKnowledgeBaseMutation.mutateAsync(deleteKnowledgeBaseDialog.knowledgeBaseId);
 			setDeleteKnowledgeBaseDialog({ isOpen: false, knowledgeBaseId: null, knowledgeBaseName: null });
-			
+
 			// Reset selected knowledge base if it was deleted
 			if (selectedKnowledgeBase?.id === deleteKnowledgeBaseDialog.knowledgeBaseId) {
 				setSelectedKnowledgeBase(null);
@@ -212,314 +199,261 @@ export default function KnowledgeBasePage() {
 		}
 	};
 
-	// Show loading state while fetching knowledge bases
+	// Loading state
 	if (isLoadingKnowledgeBases) {
 		return (
 			<div className="flex flex-col items-center justify-center min-h-[400px] py-12">
 				<Spinner size="lg" />
-				<p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">Loading knowledge bases...</p>
+				<p className="mt-4 text-sm text-muted-foreground">Loading knowledge bases...</p>
 			</div>
 		);
 	}
 
-	// Show error state if knowledge bases failed to load
+	// Error state
 	if (knowledgeBasesError) {
 		return (
 			<div className="text-center py-12">
-				<div className="text-red-500">
-					<p className="text-sm">Error loading knowledge bases</p>
-					<p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{knowledgeBasesError.message}</p>
-				</div>
-			</div>
-		);
-	}
-
-	// Show create knowledge base prompt if no knowledge bases exist
-	if (knowledgeBases.length === 0) {
-		return (
-			<div>
-				<div className="flex flex-col gap-2 mb-2">
-					<Heading>Knowledge Base</Heading>
-					<p className="text-sm text-zinc-600 dark:text-zinc-400">
-						Upload and manage documents that AI agents can reference
-					</p>
-				</div>
-
-				<div className="text-center py-12">
-					<BookOpenIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
-					<h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
-						No knowledge bases
-					</h3>
-					<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-						Get started by creating your first knowledge base.
-					</p>
-					<div className="mt-6">
-						<Button onClick={() => setIsCreateKnowledgeBaseDialogOpen(true)}>
-							<PlusIcon className="mr-2 h-4 w-4" />
-							Create Knowledge Base
-						</Button>
-					</div>
-				</div>
-
-				{/* Create Knowledge Base Dialog */}
-				<CreateKnowledgeBaseFormDialog
-					open={isCreateKnowledgeBaseDialogOpen}
-					onClose={() => setIsCreateKnowledgeBaseDialogOpen(false)}
-					onCreate={handleCreateKnowledgeBase}
-				/>
+				<p className="text-destructive">Error loading knowledge bases</p>
+				<p className="text-xs text-muted-foreground mt-1">{knowledgeBasesError.message}</p>
 			</div>
 		);
 	}
 
 	return (
-		<div>
-			<div className="flex flex-col gap-2 mb-2">
-				<Heading>Knowledge Base</Heading>
-				<p className="text-sm text-gray-600 dark:text-gray-400">
-					Upload and manage documents that AI agents can reference
-				</p>
+		<div className="flex flex-col h-[calc(100vh-10rem)]">
+			{/* Header */}
+			<div className="flex items-center justify-between mb-4 shrink-0">
+				<div>
+					<h1 className="text-xl font-normal tracking-tight">Knowledge Base</h1>
+					<p className="text-sm text-muted-foreground">
+						Manage your documents and knowledge sources
+					</p>
+				</div>
+				<div className="flex items-center gap-2">
+					<Button variant="ghost" onClick={() => setIsCreateKnowledgeBaseDialogOpen(true)}>
+						<FolderIcon className="h-4 w-4 mr-2" />
+						New Knowledge Base
+					</Button>
+					<Button onClick={handleCreateDocument} disabled={!selectedKnowledgeBase}>
+						<PlusIcon className="h-4 w-4 mr-2" />
+						Upload File
+					</Button>
+				</div>
 			</div>
 
-			{/* Knowledge Base Selector */}
-			<div className="mb-6">
-				<div className="bg-white dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-zinc-700 p-4">
-					<div className="space-y-4">
-						{/* Knowledge Base Selector Row */}
-						<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-							<div className="flex flex-col sm:flex-row sm:items-center gap-4 min-w-0 flex-1">
-								<div className="flex items-center gap-2 shrink-0">
-									<span className="text-sm font-medium text-gray-700 dark:text-gray-300">Knowledge Base:</span>
-								</div>
-								<div className="min-w-0 flex-1 max-w-md">
-									<Dropdown>
-										<DropdownButton outline className="w-full justify-between">
-											<span className="truncate">
-												{selectedKnowledgeBase?.name || "Select Knowledge Base"}
-											</span>
-											<ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
-										</DropdownButton>
-										<DropdownMenu>
-											{knowledgeBases.map((kb) => (
-												<DropdownItem
-													key={kb.id}
-													onClick={() => handleKnowledgeBaseChange(kb)}
-												>
-													<DropdownLabel className="truncate" title={kb.name}>
-														{kb.name}
-													</DropdownLabel>
-												</DropdownItem>
-											))}
-											<DropdownItem onClick={() => setIsCreateKnowledgeBaseDialogOpen(true)}>
-												<DropdownLabel>+ Create New Knowledge Base</DropdownLabel>
-											</DropdownItem>
-										</DropdownMenu>
-									</Dropdown>
-								</div>
-								{selectedKnowledgeBase && (
-									<div className="text-sm text-gray-500 dark:text-gray-400 shrink-0">
-										{selectedKnowledgeBase.documents_count} documents • {formatFileSize(selectedKnowledgeBase.total_size)}
+			{/* Main Content - Split Layout */}
+			<div className="flex flex-1 gap-6 min-h-0 border rounded-lg bg-background overflow-hidden relative">
+
+				{/* Sidebar (Folder List) */}
+				<div className="w-64 border-r flex flex-col bg-muted/10">
+					<div className="p-3 border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+						Knowledge Bases
+					</div>
+					<div className="flex-1 overflow-y-auto p-2 space-y-1">
+						{knowledgeBases.length === 0 ? (
+							<div className="text-center py-8 px-4">
+								<p className="text-xs text-muted-foreground">No knowledge bases yet</p>
+							</div>
+						) : (
+							knowledgeBases.map((kb) => (
+								<button
+									key={kb.id}
+									onClick={() => handleKnowledgeBaseChange(kb)}
+									className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors text-left group relative ${selectedKnowledgeBase?.id === kb.id
+											? "bg-primary/10 text-primary font-medium"
+											: "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+										}`}
+								>
+									<FolderIcon className={`h-4 w-4 shrink-0 ${selectedKnowledgeBase?.id === kb.id ? "text-primary fill-primary/20" : "text-muted-foreground"
+										}`} />
+									<span className="truncate flex-1">{kb.name}</span>
+									<span className="text-xs opacity-50 tabular-nums">{kb.documents_count}</span>
+
+									{/* Hover Actions */}
+									<div className={`absolute right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-muted/50 rounded p-0.5 ${selectedKnowledgeBase?.id === kb.id ? "bg-background/50" : ""}`}>
+										<TrashIcon
+											className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive cursor-pointer"
+											onClick={(e) => {
+												e.stopPropagation();
+												handleDeleteKnowledgeBase(kb.id, kb.name);
+											}}
+										/>
 									</div>
-								)}
-							</div>
-							
-							{/* Action Buttons */}
-							{selectedKnowledgeBase && (
-								<div className="flex gap-2 shrink-0">
-									<Button
-										onClick={handleCreateDocument}
-										disabled={!selectedKnowledgeBase}
-									>
-										<PlusIcon className="mr-2 h-4 w-4" />
-										Upload Document
-									</Button>
-									<Button
-										outline
-										className="text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
-										onClick={() => handleDeleteKnowledgeBase(selectedKnowledgeBase.id, selectedKnowledgeBase.name)}
-										disabled={deleteKnowledgeBaseMutation.isPending}
-									>
-										Delete Knowledge Base
-									</Button>
-								</div>
-							)}
-						</div>
-						
-						{/* Description Row */}
-						{selectedKnowledgeBase?.description && (
-							<div className="text-sm text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-3">
-								{selectedKnowledgeBase.description}
-							</div>
+								</button>
+							))
 						)}
 					</div>
 				</div>
-			</div>
 
-			{selectedKnowledgeBase && (
-				<div className="mb-4">
-					<InputGroup className="max-w-md">
-						<MagnifyingGlassIcon className="size-4" />
-						<Input
-							name="search"
-							placeholder="Search documents..."
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-						/>
-					</InputGroup>
+				{/* Main Area (File List) */}
+				<div className="flex-1 flex flex-col min-w-0 bg-background">
+					{selectedKnowledgeBase ? (
+						<>
+							{/* Toolbar */}
+							<div className="flex items-center gap-4 p-3 border-b shrink-0">
+								<div className="flex items-center text-sm text-muted-foreground overflow-hidden whitespace-nowrap">
+									<FolderIcon className="h-4 w-4 mr-2 text-muted-foreground/70" />
+									<span className="font-medium text-foreground">{selectedKnowledgeBase.name}</span>
+									<ChevronRightIcon className="h-4 w-4 mx-2 text-muted-foreground/50" />
+									<span>{selectedKnowledgeBase.documents_count} items</span>
+									<span className="mx-2 text-muted-foreground/30">•</span>
+									<span>{formatFileSize(selectedKnowledgeBase.total_size)}</span>
+								</div>
+
+								<div className="ml-auto w-64 max-w-sm">
+									<div className="relative">
+										<MagnifyingGlassIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+										<Input
+											placeholder="Filter documents..."
+											value={searchQuery}
+											onChange={(e) => setSearchQuery(e.target.value)}
+											className="pl-9 h-8 text-sm"
+										/>
+									</div>
+								</div>
+							</div>
+
+							{/* Description Banner (optional) */}
+							{selectedKnowledgeBase.description && (
+								<div className="px-4 py-2 bg-muted/20 border-b text-xs text-muted-foreground">
+									{selectedKnowledgeBase.description}
+								</div>
+							)}
+
+							{/* File Grid/List */}
+							<div className="flex-1 overflow-y-auto">
+								{isLoadingDocuments ? (
+									<div className="flex flex-col items-center justify-center h-full">
+										<Spinner />
+									</div>
+								) : documentsError ? (
+									<div className="flex flex-col items-center justify-center h-full text-destructive text-sm">
+										Failed to load documents
+									</div>
+								) : documents.length === 0 ? (
+									<div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+										<div className="h-12 w-12 rounded-xl bg-muted/50 flex items-center justify-center mb-3">
+											<DocumentTextIcon className="h-6 w-6 opacity-50" />
+										</div>
+										<p className="text-sm font-medium">This folder is empty</p>
+										<p className="text-xs mt-1">Upload files to get started</p>
+									</div>
+								) : (
+									<Table>
+										<TableHeader className="bg-muted/5 sticky top-0 z-10">
+											<TableRow className="hover:bg-transparent border-b-muted/10">
+												<TableHead className="w-[40%] pl-4 h-9 text-xs uppercase tracking-wider font-medium">Name</TableHead>
+												<TableHead className="h-9 text-xs uppercase tracking-wider font-medium">Type</TableHead>
+												<TableHead className="h-9 text-xs uppercase tracking-wider font-medium">Size</TableHead>
+												<TableHead className="h-9 text-xs uppercase tracking-wider font-medium">Date Modified</TableHead>
+												<TableHead className="w-[50px] h-9"></TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{documents
+												.filter((doc) =>
+													searchQuery === "" ||
+													doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+													doc.description?.toLowerCase().includes(searchQuery.toLowerCase())
+												)
+												.map((doc) => (
+													<TableRow key={doc.id} className="group hover:bg-muted/30 border-b-muted/10">
+														<TableCell className="pl-4 py-2">
+															<div className="flex items-center gap-3">
+																<div className="h-8 w-8 rounded bg-background border flex items-center justify-center text-muted-foreground shrink-0 group-hover:border-primary/20 group-hover:text-primary transition-colors">
+																	{getTypeIcon(doc.file_type)}
+																</div>
+																<div className="flex flex-col min-w-0">
+																	<span className="text-sm font-medium truncate text-foreground group-hover:text-primary transition-colors">
+																		{doc.title}
+																	</span>
+																	{doc.description && (
+																		<span className="text-xs text-muted-foreground truncate max-w-[200px]">
+																			{doc.description}
+																		</span>
+																	)}
+																</div>
+															</div>
+														</TableCell>
+														<TableCell className="py-2">
+															<Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-normal">
+																{getFileTypeLabel(doc.file_type)}
+															</Badge>
+														</TableCell>
+														<TableCell className="text-xs text-muted-foreground tabular-nums py-2">
+															{formatFileSize(doc.file_size)}
+														</TableCell>
+														<TableCell className="text-xs text-muted-foreground tabular-nums py-2">
+															{new Date(doc.created_at).toLocaleDateString()}
+														</TableCell>
+														<TableCell className="py-2 pr-2 text-right">
+															<Button
+																variant="ghost"
+																size="icon"
+																className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-all hover:text-destructive hover:bg-destructive/10"
+																onClick={() => handleDeleteDocument(doc.id, doc.title)}
+																title="Delete file"
+															>
+																<TrashIcon className="h-3.5 w-3.5" />
+															</Button>
+														</TableCell>
+													</TableRow>
+												))}
+										</TableBody>
+									</Table>
+								)}
+							</div>
+
+							{/* Footer stats */}
+							<div className="border-t bg-muted/5 p-2 px-4 text-xs text-muted-foreground flex justify-between shrink-0">
+								<span>{documents.length} items</span>
+								<span>
+									Page {documentsPage + 1}
+									{(documents.length === documentsLimit || hasMoreDocuments) && (
+										<span className="ml-2 gap-2 inline-flex">
+											<button
+												disabled={documentsPage === 0}
+												onClick={() => setDocumentsPage(Math.max(0, documentsPage - 1))}
+												className="hover:text-foreground disabled:opacity-50"
+											>
+												Prev
+											</button>
+											<span className="text-muted-foreground/30">|</span>
+											<button
+												disabled={!hasMoreDocuments}
+												onClick={() => setDocumentsPage(documentsPage + 1)}
+												className="hover:text-foreground disabled:opacity-50"
+											>
+												Next
+											</button>
+										</span>
+									)}
+								</span>
+							</div>
+						</>
+					) : (
+						<div className="flex flex-col items-center justify-center h-full text-muted-foreground/50">
+							<FolderIcon className="h-16 w-16 mb-4 opacity-20" />
+							<p className="text-lg font-medium text-foreground/50">No Knowledge Base Selected</p>
+							<p className="text-sm">Select a knowledge base from the sidebar to view files</p>
+						</div>
+					)}
 				</div>
-			)}
-
-			<div className="mt-6">
-				{!selectedKnowledgeBase ? (
-					<div className="text-center py-12">
-						<BookOpenIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
-						<h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
-							Select a knowledge base
-						</h3>
-						<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-							Choose a knowledge base from the dropdown above to view its documents.
-						</p>
-					</div>
-				) : isLoadingDocuments ? (
-					<div className="flex flex-col items-center justify-center min-h-[300px] py-12">
-						<Spinner size="lg" />
-						<p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">Loading documents...</p>
-					</div>
-				) : documentsError ? (
-					<div className="text-center py-12">
-						<div className="text-red-500">
-							<p className="text-sm">Error loading documents</p>
-							<p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{documentsError.message}</p>
-						</div>
-					</div>
-				) : documents.length === 0 ? (
-					<div className="text-center py-12">
-						<BookOpenIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
-						<h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
-							No documents
-						</h3>
-						<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-							Get started by uploading your first document.
-						</p>
-						<div className="mt-6">
-							<Button onClick={handleCreateDocument}>
-								<PlusIcon className="mr-2 h-4 w-4" />
-								Upload Document
-							</Button>
-						</div>
-					</div>
-				) : (
-					<Table>
-						<TableHead>
-							<TableRow>
-								<TableHeader>Title</TableHeader>
-								<TableHeader>Description</TableHeader>
-								<TableHeader>Type</TableHeader>
-								<TableHeader>Size</TableHeader>
-								<TableHeader className="w-[150px]">Actions</TableHeader>
-							</TableRow>
-						</TableHead>
-						<TableBody>
-							{documents
-								.filter((doc) =>
-									searchQuery === "" ||
-									doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-									doc.description?.toLowerCase().includes(searchQuery.toLowerCase())
-								)
-								.map((doc) => (
-									<TableRow key={doc.id}>
-										<TableCell>
-											<div className="flex items-center gap-3">
-												<div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-													{getTypeIcon(doc.file_type)}
-												</div>
-												<div className="flex flex-col">
-													<span className="font-medium">{doc.title}</span>
-													<span className="text-xs text-zinc-500 dark:text-zinc-400">{doc.file_name}</span>
-												</div>
-											</div>
-										</TableCell>
-										<TableCell>
-											<div className="max-w-xs">
-												<p className="text-sm text-gray-900 dark:text-gray-100 truncate">
-													{doc.description || "No description"}
-												</p>
-											</div>
-										</TableCell>
-										<TableCell>
-											<Badge className="bg-blue-100 text-blue-800">
-												{getFileTypeLabel(doc.file_type)}
-											</Badge>
-										</TableCell>
-										<TableCell>
-											<div className="text-sm">
-												<div>{formatFileSize(doc.file_size)}</div>
-												<div className="text-xs text-zinc-500 dark:text-zinc-400">
-													{new Date(doc.created_at).toLocaleDateString()}
-												</div>
-											</div>
-										</TableCell>
-
-										<TableCell>
-											<div className="flex gap-2">
-												<Button
-													outline
-													className="text-red-600 hover:bg-red-50"
-													onClick={() => handleDeleteDocument(doc.id, doc.title)}
-													disabled={deleteDocumentMutation.isPending}
-												>
-													<TrashIcon className="h-4 w-4" />
-												</Button>
-											</div>
-										</TableCell>
-									</TableRow>
-								))}
-						</TableBody>
-					</Table>
-				)}
-
-				{/* Pagination Controls */}
-				{documents.length > 0 && (
-					<div className="mt-6 flex items-center justify-between">
-						<div className="text-sm text-gray-700 dark:text-gray-300">
-							Showing {documentsPage * documentsLimit + 1} to{" "}
-							{Math.min((documentsPage + 1) * documentsLimit, documentsPage * documentsLimit + documents.length)} of{" "}
-							{documentsPage * documentsLimit + documents.length}{hasMoreDocuments ? "+" : ""} documents
-						</div>
-						<div className="flex gap-2">
-							<Button
-								outline
-								onClick={() => setDocumentsPage(Math.max(0, documentsPage - 1))}
-								disabled={documentsPage === 0}
-							>
-								Previous
-							</Button>
-							<Button
-								outline
-								onClick={() => setDocumentsPage(documentsPage + 1)}
-								disabled={!hasMoreDocuments}
-							>
-								Next
-							</Button>
-						</div>
-					</div>
-				)}
 			</div>
 
-			{/* Upload Document Dialog */}
+			{/* Dialogs - kept the same */}
 			<EnhancedUploadDialog
 				open={isCreateDialogOpen}
 				onClose={() => setIsCreateDialogOpen(false)}
 				knowledgeBaseId={selectedKnowledgeBase?.id || ""}
 			/>
 
-			{/* Create Knowledge Base Dialog */}
 			<CreateKnowledgeBaseFormDialog
 				open={isCreateKnowledgeBaseDialogOpen}
 				onClose={() => setIsCreateKnowledgeBaseDialogOpen(false)}
 				onCreate={handleCreateKnowledgeBase}
 			/>
 
-			{/* Delete Document Confirmation Dialog */}
 			<ConfirmationDialog
 				isOpen={deleteDocumentDialog.isOpen}
 				onClose={() => setDeleteDocumentDialog({ isOpen: false, documentId: null, documentTitle: null })}
@@ -531,7 +465,6 @@ export default function KnowledgeBasePage() {
 				isLoading={deleteDocumentMutation.isPending}
 			/>
 
-			{/* Delete Knowledge Base Confirmation Dialog */}
 			<ConfirmationDialog
 				isOpen={deleteKnowledgeBaseDialog.isOpen}
 				onClose={() => setDeleteKnowledgeBaseDialog({ isOpen: false, knowledgeBaseId: null, knowledgeBaseName: null })}

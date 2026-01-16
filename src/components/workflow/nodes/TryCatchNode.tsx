@@ -23,9 +23,8 @@ const TryCatchNode = memo(({ data, selected }: TryCatchNodeProps) => {
 
   return (
     <div
-      className={`relative shadow-lg rounded-xl bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border-2 min-w-[280px] min-h-[220px] transition-all duration-300 hover:shadow-xl ${
-        selected ? "border-yellow-500 ring-2 ring-yellow-200 dark:ring-yellow-800" : "border-yellow-400 hover:border-yellow-500 dark:border-yellow-600 dark:hover:border-yellow-500"
-      }`}
+      className={`relative shadow-lg rounded-xl bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border-2 min-w-[280px] min-h-[220px] transition-all duration-300 hover:shadow-xl ${selected ? "border-yellow-500 ring-2 ring-yellow-200 dark:ring-yellow-800" : "border-yellow-400 hover:border-yellow-500 dark:border-yellow-600 dark:hover:border-yellow-500"
+        }`}
       style={{ zIndex: 0 }}
       data-node-type="try-catch"
     >
@@ -50,7 +49,7 @@ const TryCatchNode = memo(({ data, selected }: TryCatchNodeProps) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ExclamationTriangleIcon className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
-            <div className="font-semibold text-sm text-gray-900 dark:text-gray-100">{data.label}</div>
+            <div className="font-normal text-sm text-gray-900 dark:text-gray-100">{data.label}</div>
           </div>
           <div className={`w-2 h-2 rounded-full ${containedNodesCount === 1 ? 'bg-green-500' : 'bg-gray-400'}`}></div>
         </div>

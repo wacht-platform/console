@@ -1,8 +1,9 @@
 import {
   Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
   DialogTitle,
-  DialogBody,
-  DialogActions,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -26,26 +27,30 @@ export function DeleteConfirmationDialog({
   isLoading = false,
 }: DeleteConfirmationDialogProps) {
   return (
-    <Dialog open={isOpen} onClose={onClose}>
-      <DialogTitle className="text-red-600">{title}</DialogTitle>
+    <Dialog open={isOpen} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-red-600">{title}</DialogTitle>
+        </DialogHeader>
 
-      <DialogBody>
-        <p className="text-zinc-600 dark:text-zinc-400">{description}</p>
-      </DialogBody>
+        <div className="py-2">
+          <p className="text-zinc-600 dark:text-zinc-400">{description}</p>
+        </div>
 
-      <DialogActions>
-        <Button type="button" outline onClick={onClose} disabled={isLoading}>
-          Cancel
-        </Button>
-        <Button
-          type="button"
-          color="red"
-          onClick={onConfirm}
-          disabled={isLoading}
-        >
-          {isLoading ? "Deleting..." : confirmText}
-        </Button>
-      </DialogActions>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={onConfirm}
+            disabled={isLoading}
+          >
+            {isLoading ? "Deleting..." : confirmText}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

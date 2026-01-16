@@ -2,7 +2,7 @@ import { Heading, Subheading } from "@/components/ui/heading";
 import { Strong, Text } from "@/components/ui/text";
 import { ClipboardIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
-import { Tooltip } from "@/components/ui/tooltip";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Divider } from "@/components/ui/divider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,14 +89,17 @@ export default function ApplicationSettingsPage() {
             <Text>Unique identifier for your application.</Text>
             <div className="relative flex items-center gap-3 mt-2">
               <Input type="text" value={applicationId} readOnly size={25} />
-              <Tooltip message="Copied!" trigger={copiedAppId}>
-                <Button
-                  onClick={() => handleCopy(applicationId, setCopiedAppId)}
-                  className="p-2"
-                  outline
-                >
-                  <ClipboardIcon className="w-5 h-5" />
-                </Button>
+              <Tooltip open={copiedAppId}>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => handleCopy(applicationId, setCopiedAppId)}
+                    className="p-2"
+                    variant="outline"
+                  >
+                    <ClipboardIcon className="w-5 h-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Copied!</TooltipContent>
               </Tooltip>
             </div>
           </div>
@@ -107,14 +110,17 @@ export default function ApplicationSettingsPage() {
             <Text>Unique identifier for your application instance.</Text>
             <div className="relative flex items-center gap-3 mt-2">
               <Input type="text" value={instanceId} readOnly size={25} />
-              <Tooltip message="Copied!" trigger={copiedInstanceId}>
-                <Button
-                  onClick={() => handleCopy(instanceId, setCopiedInstanceId)}
-                  className="p-2"
-                  outline
-                >
-                  <ClipboardIcon className="w-5 h-5" />
-                </Button>
+              <Tooltip open={copiedInstanceId}>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => handleCopy(instanceId, setCopiedInstanceId)}
+                    className="p-2"
+                    variant="outline"
+                  >
+                    <ClipboardIcon className="w-5 h-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Copied!</TooltipContent>
               </Tooltip>
             </div>
           </div>
@@ -163,7 +169,7 @@ export default function ApplicationSettingsPage() {
             <Text>Upload .jpeg, .png, .gif, or .webp files.</Text>
             <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) handleFileUpload('logo', file); }} id="logo-upload" />
             <div className="flex items-center gap-4">
-              <Button className="mt-2" outline onClick={() => document.getElementById('logo-upload')?.click()}>
+              <Button className="mt-2" variant="outline" onClick={() => document.getElementById('logo-upload')?.click()}>
                 Upload Logo
               </Button>
               {logoPreview && (
@@ -180,7 +186,7 @@ export default function ApplicationSettingsPage() {
             <Text>Upload image/x-icon or image/vnd.microsoft.icon files.</Text>
             <input type="file" accept="image/x-icon,image/vnd.microsoft.icon" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) handleFileUpload('favicon', file); }} id="favicon-upload" />
             <div className="flex items-center gap-4">
-              <Button className="mt-2" outline onClick={() => document.getElementById('favicon-upload')?.click()}>
+              <Button className="mt-2" variant="outline" onClick={() => document.getElementById('favicon-upload')?.click()}>
                 Upload Favicon
               </Button>
               {faviconPreview && (
@@ -202,7 +208,7 @@ export default function ApplicationSettingsPage() {
             <Text>Sign in and sign up with test credentials.</Text>
             <Switch
               checked={testMode}
-              onChange={setTestMode}
+              onCheckedChange={setTestMode}
               className="mt-2"
             />
           </div>
@@ -241,7 +247,7 @@ export default function ApplicationSettingsPage() {
               <Strong>Transfer Ownership</Strong>
             </Subheading>
             <Text>Transfer ownership of this application to another user.</Text>
-            <Button className="mt-2" outline>
+            <Button className="mt-2" variant="outline">
               Transfer Ownership
             </Button>
           </div>
@@ -264,7 +270,7 @@ export default function ApplicationSettingsPage() {
               <Strong>User Exports</Strong>
             </Subheading>
             <Text>Export and download your users.</Text>
-            <Button className="mt-2" outline>
+            <Button className="mt-2" variant="outline">
               Export All Users
             </Button>
           </div>
@@ -273,7 +279,7 @@ export default function ApplicationSettingsPage() {
         <Divider className="my-10" soft />
 
         <div className="flex justify-end gap-4">
-          <Button type="reset" plain>Reset</Button>
+          <Button type="reset" variant="ghost">Reset</Button>
           <Button type="submit">Save Changes</Button>
         </div>
       </div>

@@ -5,7 +5,7 @@ import {
   ClipboardIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useRef, useState, useMemo } from "react";
-import { Tooltip } from "@/components/ui/tooltip";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Divider } from "@/components/ui/divider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -948,7 +948,7 @@ export default function DeploymentSettingsPage() {
               Default profile image for users who haven't uploaded one.
             </Text>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 flex justify-end">
             <ImageUpload
               label=""
               imageType="user-profile"
@@ -975,7 +975,7 @@ export default function DeploymentSettingsPage() {
               Default profile image for organizations that haven't uploaded one.
             </Text>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 flex justify-end">
             <ImageUpload
               label=""
               imageType="org-profile"
@@ -1002,7 +1002,7 @@ export default function DeploymentSettingsPage() {
               Default profile image for workspaces that haven't uploaded one.
             </Text>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 flex justify-end">
             <ImageUpload
               label=""
               imageType="workspace-profile"
@@ -1030,7 +1030,7 @@ export default function DeploymentSettingsPage() {
             <Switch
               name="use_initials_for_user_profile_image"
               checked={useInitialsForUserProfileImage}
-              onChange={(checked) =>
+              onCheckedChange={(checked) =>
                 updateBooleanField(setUseInitialsForUserProfileImage, checked)
               }
             />
@@ -1050,7 +1050,7 @@ export default function DeploymentSettingsPage() {
             <Switch
               name="use_initials_for_organization_profile_image"
               checked={useInitialsForOrganizationProfileImage}
-              onChange={(checked) =>
+              onCheckedChange={(checked) =>
                 updateBooleanField(
                   setUseInitialsForOrganizationProfileImage,
                   checked,
@@ -1100,7 +1100,7 @@ export default function DeploymentSettingsPage() {
             <Switch
               name="signup_terms_statement_shown"
               checked={signupTermsStatementShown}
-              onChange={(checked) =>
+              onCheckedChange={(checked) =>
                 updateBooleanField(setSignupTermsStatementShown, checked)
               }
             />
@@ -1185,22 +1185,23 @@ export default function DeploymentSettingsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Tooltip
-                    message="Copied!"
-                    trigger={copiedIndex === item.index}
-                  >
-                    <Button
-                      outline
-                      onClick={() => copyToClipboard(item.demoLink, item.index)}
-                      className="p-2"
-                    >
-                      <ClipboardIcon className="h-4 w-4" />
-                    </Button>
+                  <Tooltip open={copiedIndex === item.index}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => copyToClipboard(item.demoLink, item.index)}
+                        disabled={!item.demoLink}
+                      >
+                        <ClipboardIcon className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Copied!</TooltipContent>
                   </Tooltip>
                   <Button
-                    outline
+                    size="icon"
                     onClick={() => window.open(item.demoLink, "_blank")}
-                    className="p-2"
+                    disabled={!item.demoLink}
                   >
                     <ArrowTopRightOnSquareIcon className="h-4 w-4" />
                   </Button>

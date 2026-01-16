@@ -22,9 +22,11 @@ import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
   DialogTitle,
   DialogDescription,
-  DialogActions,
 } from "@/components/ui/dialog";
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
@@ -233,7 +235,7 @@ export default function BillingPage() {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+                <h3 className="text-xl font-normal text-zinc-900 dark:text-zinc-100">
                   {currentPlan.name} Plan
                 </h3>
                 <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200">
@@ -247,7 +249,7 @@ export default function BillingPage() {
                   <div className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">
                     Monthly Cost
                   </div>
-                  <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                  <div className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
                     {currentPlan.priceDisplay}
                     {currentPlan.price ? (
                       <span className="text-sm font-normal text-zinc-600 dark:text-zinc-400">
@@ -261,7 +263,7 @@ export default function BillingPage() {
                   <div className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">
                     MAU Included
                   </div>
-                  <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                  <div className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
                     {typeof currentPlan.monthlyActiveUsers === "number"
                       ? currentPlan.monthlyActiveUsers.toLocaleString()
                       : currentPlan.monthlyActiveUsers}
@@ -272,7 +274,7 @@ export default function BillingPage() {
                   <div className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">
                     Projects
                   </div>
-                  <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                  <div className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
                     {currentPlan.projects}
                   </div>
                 </div>
@@ -289,14 +291,14 @@ export default function BillingPage() {
               Manage Billing
             </Button>
             <Button
-              outline
+              variant="outline"
               onClick={handleOpenPortal}
               disabled={customerPortal.isPending}
             >
               <DocumentTextIcon className="h-4 w-4 mr-2" />
               View Invoices
             </Button>
-            <Button plain onClick={() => setCancelDialogOpen(true)}>
+            <Button variant="ghost" onClick={() => setCancelDialogOpen(true)}>
               Cancel Subscription
             </Button>
           </div>
@@ -315,7 +317,7 @@ export default function BillingPage() {
       ) : (
         <div className="mb-8 bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900/50 dark:to-zinc-800/50 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700">
           <div className="text-center">
-            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+            <h3 className="text-lg font-normal text-zinc-900 dark:text-zinc-100 mb-2">
               You're on the Free Starter Plan
             </h3>
             <Text className="mb-4">
@@ -335,7 +337,7 @@ export default function BillingPage() {
         <>
           <div className="mb-10">
             <div className="mb-6">
-              <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+              <h3 className="text-xl font-normal text-zinc-900 dark:text-zinc-100 mb-2">
                 Current Usage
               </h3>
               <Text>Your usage for {usageData.billing_period}</Text>
@@ -367,7 +369,7 @@ export default function BillingPage() {
                     <div className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">
                       {label}
                     </div>
-                    <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                    <div className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
                       {snapshot.quantity.toLocaleString()}
                     </div>
                     {snapshot.cost_cents && snapshot.cost_cents > 0 && (
@@ -388,7 +390,7 @@ export default function BillingPage() {
       {/* Plans Comparison */}
       <div className="mb-10">
         <div className="mb-6">
-          <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+          <h3 className="text-xl font-normal text-zinc-900 dark:text-zinc-100 mb-2">
             Choose Your Plan
           </h3>
           <Text>Select the plan that best fits your needs</Text>
@@ -416,7 +418,7 @@ export default function BillingPage() {
                 )}
 
                 <div className="mb-6">
-                  <h4 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                  <h4 className="text-lg font-normal text-zinc-900 dark:text-zinc-100 mb-2">
                     {plan.name}
                   </h4>
                   <Text className="text-sm mb-4">{plan.description}</Text>
@@ -503,7 +505,7 @@ export default function BillingPage() {
       {/* Usage-based Pricing */}
       <div className="mb-10">
         <div className="mb-6">
-          <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+          <h3 className="text-xl font-normal text-zinc-900 dark:text-zinc-100 mb-2">
             Usage-Based Pricing
           </h3>
           <Text>Pay only for what you use beyond your plan limits</Text>
@@ -524,7 +526,7 @@ export default function BillingPage() {
                   <div className="font-medium text-zinc-900 dark:text-zinc-100 text-sm mb-1">
                     {item.item}
                   </div>
-                  <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                  <div className="text-lg font-normal text-zinc-900 dark:text-zinc-100">
                     {item.price}
                   </div>
                   <div className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -549,32 +551,33 @@ export default function BillingPage() {
       />
 
       {/* Cancel Subscription Dialog */}
-      <Dialog
-        open={cancelDialogOpen}
-        onClose={() => setCancelDialogOpen(false)}
-      >
-        <DialogTitle>Cancel Subscription</DialogTitle>
-        <DialogDescription>
-          Are you sure you want to cancel your subscription? You'll continue to
-          have access until the end of your current billing period, then you'll
-          be downgraded to the free Starter plan.
-        </DialogDescription>
-        <DialogActions>
-          <Button plain onClick={() => setCancelDialogOpen(false)}>
-            Keep Subscription
-          </Button>
-          <Button
-            color="red"
-            onClick={handleCancelSubscription}
-            disabled={cancelSubscription.isPending}
-          >
-            {cancelSubscription.isPending ? (
-              <Spinner size="sm" />
-            ) : (
-              "Confirm Cancellation"
-            )}
-          </Button>
-        </DialogActions>
+      <Dialog open={cancelDialogOpen} onOpenChange={(val) => !val && setCancelDialogOpen(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Subscription</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel your subscription? You'll continue to
+              have access until the end of your current billing period, then you'll
+              be downgraded to the free Starter plan.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setCancelDialogOpen(false)}>
+              Keep Subscription
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleCancelSubscription}
+              disabled={cancelSubscription.isPending}
+            >
+              {cancelSubscription.isPending ? (
+                <Spinner size="sm" />
+              ) : (
+                "Confirm Cancellation"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </div>
   );

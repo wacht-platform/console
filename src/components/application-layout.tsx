@@ -1,90 +1,26 @@
-import {
-  Outlet,
-  useLocation,
-  useNavigate,
-  useParams,
-  Link,
-} from "react-router";
-import { useCallback, useState, useEffect } from "react";
-import { Spinner } from "./ui/spinner";
-import {
-  Dialog,
-  DialogBackdrop,
-  DialogPanel,
-  TransitionChild,
-} from "@headlessui/react";
-import {
-  LockClosedIcon,
-  UserGroupIcon,
-  ViewColumnsIcon,
-  BuildingOffice2Icon,
-  CodeBracketSquareIcon,
-  Cog6ToothIcon,
-  BoltIcon,
-  XMarkIcon,
-  Bars3Icon,
-  KeyIcon,
-  RectangleStackIcon,
-} from "@heroicons/react/24/outline";
-import {
-  useProjects,
-  useCreateStagingDeployment,
-} from "@/lib/api/hooks/use-projects";
-
+import { Outlet, useNavigate, useLocation, useParams } from "react-router";
+import { useState, useEffect } from "react";
+import { useProjects } from "@/lib/api/hooks/use-projects";
 import { CreateProjectDialog } from "./create-project-dialog";
 import { BillingSetupDialog } from "./billing-setup-dialog";
 import { CreateProductionDeploymentDialog } from "./create-production-deployment-dialog";
-import { CreateStagingDeploymentDialog } from "./create-staging-deployment-dialog";
-import { useBillingAccount } from "@/lib/api/hooks/use-billing";
-import {
-  NotificationBell,
-  OrganizationSwitcher,
-  UserButton,
-} from "@wacht/react-router";
 import { setNavigationFunction } from "@/lib/store/project";
-import { ProjectDeploymentSelector } from "./project-deployment-selector";
-import { ThemeToggle } from "./ui/theme-toggle";
-import { ProjectWithDeployments } from "@/types/project";
-import { Deployment } from "@/types/deployment";
-
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(" ");
-}
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
+import { SiteHeader } from "@/components/site-header";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function ApplicationLayout() {
-  const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { projectId, deploymentId } = useParams();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isCreateProjectDialogOpen, setIsCreateProjectDialogOpen] =
-    useState(false);
-  const [isBillingSetupDialogOpen, setIsBillingSetupDialogOpen] =
-    useState(false);
-  const [isCreateProductionDialogOpen, setIsCreateProductionDialogOpen] =
-    useState(false);
-  const [isCreateStagingDialogOpen, setIsCreateStagingDialogOpen] =
-    useState(false);
+  const location = useLocation();
+  const params = useParams();
+  const [isCreateProjectDialogOpen, setIsCreateProjectDialogOpen] = useState(false);
+  const [isBillingSetupDialogOpen, setIsBillingSetupDialogOpen] = useState(false);
+  const [isCreateProductionDialogOpen, setIsCreateProductionDialogOpen] = useState(false);
+
   const {
-    projects,
-    isLoading,
     selectedProject,
-    selectedDeployment,
-    setSelectedProject,
-    setSelectedDeployment,
-    initializeFromUrl,
   } = useProjects();
-
-  const { data: billingAccount } = useBillingAccount();
-  const { createStagingDeployment, isLoading: isCreatingStagingDeployment } =
-    useCreateStagingDeployment();
-
-  const handleCreateProject = () => {
-    if (!billingAccount) {
-      setIsBillingSetupDialogOpen(true);
-    } else {
-      setIsCreateProjectDialogOpen(true);
-    }
-  };
 
   const handleBillingSetupSuccess = () => {
     setIsBillingSetupDialogOpen(false);
@@ -95,748 +31,148 @@ export function ApplicationLayout() {
     setNavigationFunction(navigate);
   }, [navigate]);
 
-  const handleCreateStagingDeployment = async (authMethods: string[]) => {
-    if (!selectedProject) return;
+  // Determine current section and tab
+  const isUsersRoute = location.pathname.includes('/users');
+  const isB2BRoute = location.pathname.includes('/b2b-settings');
+  const isCustomizationRoute = location.pathname.includes('/customization');
+  const isAuthRoute = location.pathname.includes('/auth/') || location.pathname.endsWith('/auth');
+  const isWebhooksRoute = location.pathname.includes('/webhooks');
+  const isLLMRoute = location.pathname.includes('/llms/');
 
-    try {
-      const deployment = await createStagingDeployment({
-        projectId: selectedProject.id,
-        authMethods,
-      });
-      setIsCreateStagingDialogOpen(false);
-      // Navigate to the new staging deployment
-      setSelectedDeployment(deployment, true);
-    } catch (error) {
-      console.error("Failed to create staging deployment:", error);
-    }
-  };
-
-  // Check deployment limits
-  const hasProductionDeployment = selectedProject?.deployments.some(
-    (deployment) => deployment.mode === "production",
-  );
-  const stagingDeploymentCount =
-    selectedProject?.deployments.filter(
-      (deployment) => deployment.mode === "staging",
-    ).length || 0;
-  const canCreateStagingDeployment = stagingDeploymentCount === 0;
-  const canCreateProductionDeployment = !hasProductionDeployment;
-
-  // Sync store with URL parameters when they change
-  useEffect(() => {
-    if (projects && projectId && deploymentId) {
-      initializeFromUrl(projectId, deploymentId);
-    }
-  }, [projects, projectId, deploymentId, initializeFromUrl]);
-
-  const createNavigationLink = useCallback(
-    (pathname: string) => {
-      return `/project/${selectedProject?.id}/deployment/${selectedDeployment?.id}/${pathname}`;
-    },
-    [selectedDeployment, selectedProject],
-  );
-
-  const overviewNavigation = [
-    {
-      name: "Overview",
-      href: createNavigationLink("/"),
-      icon: ViewColumnsIcon,
-      current: pathname === "/" || pathname.endsWith("//"),
-    },
-  ];
-
-  const managementNavigation = [
-    {
-      name: "Users",
-      href: createNavigationLink("users/active"),
-      icon: UserGroupIcon,
-      current: pathname.includes("/users"),
-    },
-    {
-      name: "Organizations",
-      href: createNavigationLink("organizations"),
-      icon: BuildingOffice2Icon,
-      current: pathname.includes("/organizations"),
-    },
-    {
-      name: "Segments",
-      href: createNavigationLink("segments"),
-      icon: RectangleStackIcon,
-      current: pathname.includes("segments"),
-    },
-  ];
-
-  const developerNavigation = [
-    {
-      name: "API Keys",
-      href: createNavigationLink("api-keys"),
-      icon: KeyIcon,
-      current: pathname.includes("/api-keys"),
-    },
-    {
-      name: "Webhooks",
-      href: createNavigationLink("webhooks"),
-      icon: BoltIcon,
-      current: pathname.includes("/webhooks"),
-    },
-    {
-      name: "Agents Platform",
-      href: createNavigationLink("llms/ai-agents"), // Default to first sub-page
-      icon: CodeBracketSquareIcon,
-      current: pathname.includes("llms/"),
-    },
-  ];
-
-  const settingsNavigation = [
-    {
-      name: "Authentication",
-      href: createNavigationLink("auth/schema-factors"), // Default to first sub-page
-      icon: LockClosedIcon,
-      current: pathname.includes("auth/"),
-    },
-    {
-      name: "B2B Settings",
-      href: createNavigationLink("manage-organizations"), // Default to first sub-page
-      icon: BuildingOffice2Icon,
-      current: pathname.includes("manage-"),
-    },
-    {
-      name: "Customization",
-      href: createNavigationLink("deployment-settings"), // Default to first sub-page
-      icon: Cog6ToothIcon,
-      current:
-        pathname.includes("deployment-settings") || pathname.includes("emails"),
-    },
-  ];
-
-  // Sub-navigation for horizontal tabs (only shown when in that section)
-  const userSections = [
-    {
-      name: "Active",
-      href: createNavigationLink("users/active"),
-      current:
-        pathname.includes("users/active") ||
-        (pathname.includes("users") &&
-          !pathname.includes("users/invited") &&
-          !pathname.includes("users/waitlist")),
-    },
-    {
-      name: "Invited",
-      href: createNavigationLink("users/invited"),
-      current: pathname.includes("users/invited"),
-    },
-    {
-      name: "Waitlist",
-      href: createNavigationLink("users/waitlist"),
-      current: pathname.includes("users/waitlist"),
-    },
-  ];
-
-  const agentSections = [
-    {
-      name: "AI Agents",
-      href: createNavigationLink("llms/ai-agents"),
-      current: pathname.includes("ai-agents"),
-    },
-    {
-      name: "Workflows",
-      href: createNavigationLink("llms/workflows"),
-      current: pathname.includes("workflows"),
-    },
-    {
-      name: "Tools",
-      href: createNavigationLink("llms/tools"),
-      current: pathname.includes("tools"),
-    },
-    {
-      name: "Knowledge Base",
-      href: createNavigationLink("llms/knowledge-base"),
-      current: pathname.includes("knowledge-base"),
-    },
-  ];
-
-  const authSections = [
-    {
-      name: "Auth Settings",
-      href: createNavigationLink("auth/schema-factors"),
-      current: pathname.includes("auth/schema-factors"),
-    },
-    {
-      name: "Configure SSO",
-      href: createNavigationLink("auth/sso"),
-      current: pathname.includes("auth/sso"),
-    },
-    {
-      name: "Sessions",
-      href: createNavigationLink("auth/sessions"),
-      current: pathname.includes("auth/sessions"),
-    },
-    {
-      name: "Restrictions",
-      href: createNavigationLink("auth/restrictions"),
-      current: pathname.includes("auth/restrictions"),
-    },
-    {
-      name: "JWT Templates",
-      href: createNavigationLink("auth/jwt-templates"),
-      current: pathname.includes("auth/jwt-templates"),
-    },
-  ];
-
-  const b2bSections = [
-    {
-      name: "Organizations",
-      href: createNavigationLink("manage-organizations"),
-      current: pathname.includes("manage-organizations"),
-    },
-    {
-      name: "Workspaces",
-      href: createNavigationLink("manage-workspaces"),
-      current: pathname.includes("manage-workspaces"),
-    },
-  ];
-
-  const customizationSections = [
-    {
-      name: "Deployment Settings",
-      href: createNavigationLink("deployment-settings"),
-      current: pathname.includes("deployment-settings"),
-    },
-    {
-      name: "Email Settings",
-      href: createNavigationLink("emails"),
-      current: pathname.includes("emails"),
-    },
-  ];
-
-  const webhookSections = [
-    {
-      name: "Overview",
-      href: createNavigationLink("webhooks"),
-      current:
-        pathname === createNavigationLink("webhooks") ||
-        (pathname.includes("webhooks") &&
-          !pathname.includes("webhooks/endpoints") &&
-          !pathname.includes("webhooks/deliveries") &&
-          !pathname.includes("webhooks/analytics")),
-    },
-    {
-      name: "Endpoints",
-      href: createNavigationLink("webhooks/endpoints"),
-      current: pathname.includes("webhooks/endpoints"),
-    },
-    {
-      name: "Deliveries",
-      href: createNavigationLink("webhooks/deliveries"),
-      current: pathname.includes("webhooks/deliveries"),
-    },
-    {
-      name: "Analytics",
-      href: createNavigationLink("webhooks/analytics"),
-      current: pathname.includes("webhooks/analytics"),
-    },
-  ];
-
-  // Get current section for horizontal navigation
-  const getCurrentSection = () => {
-    if (pathname.includes("users")) return "users";
-    if (pathname.includes("llms/")) return "agents";
-    if (pathname.includes("auth/")) return "auth";
-    if (pathname.includes("manage-")) return "b2b";
-    if (pathname.includes("segments")) return "segments";
-    if (pathname.includes("deployment-settings") || pathname.includes("emails"))
-      return "customization";
-    if (pathname.includes("webhooks")) return "webhooks";
-    return "main";
-  };
-
-  const currentSection = getCurrentSection();
-
-  const getHorizontalNavigation = () => {
-    switch (currentSection) {
-      case "users":
-        return userSections;
-      case "agents":
-        return agentSections;
-      case "auth":
-        return authSections;
-      case "b2b":
-        return b2bSections;
-      case "customization":
-        return customizationSections;
-      case "webhooks":
-        return webhookSections;
-      default:
-        return [];
-    }
-  };
-
-  const horizontalNavigation = getHorizontalNavigation();
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen w-full">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner size="lg" />
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Loading your workspace...
-          </span>
-        </div>
-      </div>
-    );
+  let currentTab = '';
+  if (isUsersRoute) {
+    currentTab = location.pathname.includes('/users/invited') ? 'invited' :
+      location.pathname.includes('/users/waitlist') ? 'waitlist' : 'active';
+  } else if (isB2BRoute) {
+    currentTab = location.pathname.includes('/b2b-settings/workspaces') ? 'workspaces' : 'organizations';
+  } else if (isCustomizationRoute) {
+    currentTab = location.pathname.includes('/customization/emails') ? 'emails' : 'deployment-settings';
+  } else if (isAuthRoute) {
+    currentTab = location.pathname.includes('/auth/sso') ? 'sso' :
+      location.pathname.includes('/auth/sessions') ? 'sessions' :
+        location.pathname.includes('/auth/restrictions') ? 'restrictions' :
+          location.pathname.includes('/auth/jwt-templates') ? 'jwt-templates' : 'schema-factors';
+  } else if (isWebhooksRoute) {
+    currentTab = location.pathname.includes('/webhooks/endpoints') ? 'endpoints' :
+      location.pathname.includes('/webhooks/deliveries') ? 'deliveries' :
+        location.pathname.includes('/webhooks/analytics') ? 'analytics' : 'overview';
+  } else if (isLLMRoute) {
+    currentTab = location.pathname.includes('/workflows') ? 'workflows' :
+      location.pathname.includes('/tools') ? 'tools' :
+        location.pathname.includes('/knowledge-base') ? 'knowledge-base' : 'ai-agents';
   }
 
+  const handleTabChange = (value: string) => {
+    const basePath = `/project/${params.projectId}/deployment/${params.deploymentId}`;
+    if (isUsersRoute) {
+      navigate(`${basePath}/users${value === 'active' ? '' : `/${value}`}`);
+    } else if (isB2BRoute) {
+      navigate(`${basePath}/b2b-settings${value === 'organizations' ? '' : `/${value}`}`);
+    } else if (isCustomizationRoute) {
+      navigate(`${basePath}/customization${value === 'deployment-settings' ? '' : `/${value}`}`);
+    } else if (isAuthRoute) {
+      navigate(`${basePath}/auth/${value}`);
+    } else if (isWebhooksRoute) {
+      navigate(`${basePath}/webhooks${value === 'overview' ? '' : `/${value}`}`);
+    } else if (isLLMRoute) {
+      navigate(`${basePath}/llms/${value}`);
+    }
+  };
+
   return (
-    <>
-      <div className="flex min-h-screen overflow-hidden">
-        {/* Mobile sidebar */}
-        <Dialog
-          open={sidebarOpen}
-          onClose={setSidebarOpen}
-          className="relative z-50 xl:hidden"
-        >
-          <DialogBackdrop
-            transition
-            className="fixed inset-0 bg-gray-900/80 transition-opacity duration-300 ease-linear data-closed:opacity-0"
-          />
-          <div className="fixed inset-0 flex">
-            <DialogPanel
-              transition
-              className="relative mr-16 flex w-full max-w-xs flex-1 transform transition duration-300 ease-in-out data-closed:-translate-x-full"
-            >
-              <TransitionChild>
-                <div className="absolute top-0 left-full flex w-16 justify-center pt-5 duration-300 ease-in-out data-closed:opacity-0">
-                  <button
-                    type="button"
-                    onClick={() => setSidebarOpen(false)}
-                    className="-m-2.5 p-2.5"
-                  >
-                    <span className="sr-only">Close sidebar</span>
-                    <XMarkIcon
-                      aria-hidden="true"
-                      className="size-6 text-white"
-                    />
-                  </button>
-                </div>
-              </TransitionChild>
-
-              {/* Mobile sidebar content */}
-              <div className="relative flex grow flex-col gap-y-4 overflow-y-auto overflow-x-hidden bg-gray-50/50 px-4 dark:bg-[#211f1d] border-r border-gray-200/40 dark:border-white/10">
-                <div className="relative flex h-16 shrink-0 items-center border-b border-gray-200/40 dark:border-zinc-700/40 -mx-4 px-4 mb-2">
-                  <div className="w-full">
-                    <OrganizationSwitcher />
-                  </div>
-                </div>
-                <nav className="relative flex flex-1 flex-col">
-                  <ul role="list" className="flex flex-1 flex-col gap-y-6">
-                    {/* Overview */}
-                    <li>
-                      <ul role="list" className="-mx-2 space-y-1">
-                        {overviewNavigation.map((item) => (
-                          <li key={item.name}>
-                            <Link
-                              to={item.href}
-                              className={classNames(
-                                item.current
-                                  ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400"
-                                  : "text-gray-800 hover:bg-gray-50/70 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
-                                "group flex gap-x-3 rounded-lg p-2 text-sm font-normal transition-all duration-150",
-                              )}
-                            >
-                              <item.icon
-                                aria-hidden="true"
-                                className={classNames(
-                                  item.current
-                                    ? "text-indigo-600 dark:text-indigo-400"
-                                    : "text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400",
-                                  "size-5 shrink-0 transition-colors duration-150",
-                                )}
-                              />
-                              {item.name}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
-
-                    {/* Management */}
-                    <li>
-                      <div className="text-xs font-normal text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                        Management
-                      </div>
-                      <ul role="list" className="-mx-2 mt-2 space-y-1">
-                        {managementNavigation.map((item) => (
-                          <li key={item.name}>
-                            <Link
-                              to={item.href}
-                              className={classNames(
-                                item.current
-                                  ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400"
-                                  : "text-gray-800 hover:bg-gray-50/70 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
-                                "group flex gap-x-3 rounded-lg p-2 text-sm font-normal transition-all duration-150",
-                              )}
-                            >
-                              <item.icon
-                                aria-hidden="true"
-                                className={classNames(
-                                  item.current
-                                    ? "text-indigo-600 dark:text-indigo-400"
-                                    : "text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400",
-                                  "size-5 shrink-0 transition-colors duration-150",
-                                )}
-                              />
-                              {item.name}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
-
-                    {/* Configuration */}
-                    <li>
-                      <div className="text-xs font-normal text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                        Configuration
-                      </div>
-                      <ul role="list" className="-mx-2 mt-2 space-y-1">
-                        {settingsNavigation.map((item) => (
-                          <li key={item.name}>
-                            <Link
-                              to={item.href}
-                              className={classNames(
-                                item.current
-                                  ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400"
-                                  : "text-gray-800 hover:bg-gray-50/70 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
-                                "group flex gap-x-3 rounded-lg p-2 text-sm font-normal transition-all duration-150",
-                              )}
-                            >
-                              <item.icon
-                                aria-hidden="true"
-                                className={classNames(
-                                  item.current
-                                    ? "text-indigo-600 dark:text-indigo-400"
-                                    : "text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400",
-                                  "size-5 shrink-0 transition-colors duration-150",
-                                )}
-                              />
-                              {item.name}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
-
-                    {/* Developers */}
-                    <li>
-                      <div className="text-xs font-normal text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                        Developers
-                      </div>
-                      <ul role="list" className="-mx-2 mt-2 space-y-1">
-                        {developerNavigation.map((item) => (
-                          <li key={item.name}>
-                            <Link
-                              to={item.href}
-                              className={classNames(
-                                item.current
-                                  ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400"
-                                  : "text-gray-800 hover:bg-gray-50/70 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
-                                "group flex gap-x-3 rounded-lg p-2 text-sm font-normal transition-all duration-150",
-                              )}
-                            >
-                              <item.icon
-                                aria-hidden="true"
-                                className={classNames(
-                                  item.current
-                                    ? "text-indigo-600 dark:text-indigo-400"
-                                    : "text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400",
-                                  "size-5 shrink-0 transition-colors duration-150",
-                                )}
-                              />
-                              {item.name}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
-
-                    <li className="-mx-6 mt-auto">
-                      <div className="border-t border-gray-100 dark:border-gray-800 pt-3 pb-3 px-6">
-                        <div className="flex items-center gap-2">
-                          <div className="flex-shrink-0">
-                            <ThemeToggle />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <UserButton showName={false} />
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  </ul>
-                </nav>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+      className="h-svh overflow-hidden"
+    >
+      <AppSidebar variant="inset" />
+      <SidebarInset className="h-full overflow-hidden">
+        <SiteHeader
+          onCreateProject={() => setIsCreateProjectDialogOpen(true)}
+          onCreateStaging={() => console.log("Create Staging")}
+          onCreateProduction={() => setIsCreateProductionDialogOpen(true)}
+          canCreateStaging={true}
+          canCreateProduction={!!selectedProject}
+        />
+        <div className="flex flex-1 flex-col overflow-y-auto">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            {(isUsersRoute || isB2BRoute || isCustomizationRoute || isAuthRoute || isWebhooksRoute || isLLMRoute) && (
+              <div className="px-4 pt-4 lg:px-6 lg:pt-6">
+                <Tabs value={currentTab} onValueChange={handleTabChange}>
+                  <TabsList>
+                    {isUsersRoute && (
+                      <>
+                        <TabsTrigger value="active">Active</TabsTrigger>
+                        <TabsTrigger value="invited">Invited</TabsTrigger>
+                        <TabsTrigger value="waitlist">Waitlist</TabsTrigger>
+                      </>
+                    )}
+                    {isB2BRoute && (
+                      <>
+                        <TabsTrigger value="organizations">Organizations</TabsTrigger>
+                        <TabsTrigger value="workspaces">Workspaces</TabsTrigger>
+                      </>
+                    )}
+                    {isCustomizationRoute && (
+                      <>
+                        <TabsTrigger value="deployment-settings">Deployment Settings</TabsTrigger>
+                        <TabsTrigger value="emails">Email Settings</TabsTrigger>
+                      </>
+                    )}
+                    {isAuthRoute && (
+                      <>
+                        <TabsTrigger value="schema-factors">Schema & Factors</TabsTrigger>
+                        <TabsTrigger value="sso">SSO</TabsTrigger>
+                        <TabsTrigger value="sessions">Sessions</TabsTrigger>
+                        <TabsTrigger value="restrictions">Restrictions</TabsTrigger>
+                        <TabsTrigger value="jwt-templates">JWT Templates</TabsTrigger>
+                      </>
+                    )}
+                    {isWebhooksRoute && (
+                      <>
+                        <TabsTrigger value="overview">Overview</TabsTrigger>
+                        <TabsTrigger value="endpoints">Endpoints</TabsTrigger>
+                        <TabsTrigger value="deliveries">Deliveries</TabsTrigger>
+                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                      </>
+                    )}
+                    {isLLMRoute && (
+                      <>
+                        <TabsTrigger value="ai-agents">AI Agents</TabsTrigger>
+                        <TabsTrigger value="workflows">Workflows</TabsTrigger>
+                        <TabsTrigger value="tools">Tools</TabsTrigger>
+                        <TabsTrigger value="knowledge-base">Knowledge Base</TabsTrigger>
+                      </>
+                    )}
+                  </TabsList>
+                </Tabs>
               </div>
-            </DialogPanel>
-          </div>
-        </Dialog>
-
-        {/* Static sidebar for desktop */}
-        <div className="hidden xl:fixed xl:inset-y-0 xl:z-50 xl:flex xl:w-72 xl:flex-col bg-gray-50 dark:bg-[#211f1d] flex-shrink-0 max-w-72 border-r border-gray-200/40 dark:border-white/10">
-          {/* Fixed Header */}
-          <div className="flex h-16 shrink-0 items-center border-b border-gray-200/40 dark:border-zinc-700/40 px-4">
-            <div className="w-full">
-              <OrganizationSwitcher />
-            </div>
-          </div>
-
-          {/* Scrollable Navigation */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-4">
-            <nav className="flex flex-1 flex-col min-w-0">
-              <ul role="list" className="flex flex-1 flex-col gap-y-6">
-                {/* Overview */}
-                <li>
-                  <ul role="list" className="-mx-2 space-y-1">
-                    {overviewNavigation.map((item) => (
-                      <li key={item.name}>
-                        <Link
-                          to={item.href}
-                          className={classNames(
-                            item.current
-                              ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400"
-                              : "text-gray-800 hover:bg-gray-50/70 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
-                            "group flex gap-x-3 rounded-lg p-2 text-sm font-normal transition-all duration-150",
-                          )}
-                        >
-                          <item.icon
-                            aria-hidden="true"
-                            className={classNames(
-                              item.current
-                                ? "text-indigo-600 dark:text-indigo-400"
-                                : "text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400",
-                              "size-5 shrink-0 transition-colors duration-150",
-                            )}
-                          />
-                          {item.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-
-                {/* Management */}
-                <li>
-                  <div className="text-xs font-normal text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                    Management
-                  </div>
-                  <ul role="list" className="-mx-2 mt-2 space-y-1">
-                    {managementNavigation.map((item) => (
-                      <li key={item.name}>
-                        <Link
-                          to={item.href}
-                          className={classNames(
-                            item.current
-                              ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400"
-                              : "text-gray-800 hover:bg-gray-50/70 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
-                            "group flex gap-x-3 rounded-lg p-2 text-sm font-normal transition-all duration-150",
-                          )}
-                        >
-                          <item.icon
-                            aria-hidden="true"
-                            className={classNames(
-                              item.current
-                                ? "text-indigo-600 dark:text-indigo-400"
-                                : "text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400",
-                              "size-5 shrink-0 transition-colors duration-150",
-                            )}
-                          />
-                          {item.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-
-                {/* Configuration */}
-                <li>
-                  <div className="text-xs font-normal text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                    Configuration
-                  </div>
-                  <ul role="list" className="-mx-2 mt-2 space-y-1">
-                    {settingsNavigation.map((item) => (
-                      <li key={item.name}>
-                        <Link
-                          to={item.href}
-                          className={classNames(
-                            item.current
-                              ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400"
-                              : "text-gray-800 hover:bg-gray-50/70 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
-                            "group flex gap-x-3 rounded-lg p-2 text-sm font-normal transition-all duration-150",
-                          )}
-                        >
-                          <item.icon
-                            aria-hidden="true"
-                            className={classNames(
-                              item.current
-                                ? "text-indigo-600 dark:text-indigo-400"
-                                : "text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400",
-                              "size-5 shrink-0 transition-colors duration-150",
-                            )}
-                          />
-                          {item.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-
-                {/* Developers */}
-                <li>
-                  <div className="text-xs font-normal text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                    Developers
-                  </div>
-                  <ul role="list" className="-mx-2 mt-2 space-y-1">
-                    {developerNavigation.map((item) => (
-                      <li key={item.name}>
-                        <Link
-                          to={item.href}
-                          className={classNames(
-                            item.current
-                              ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400"
-                              : "text-gray-800 hover:bg-gray-50/70 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
-                            "group flex gap-x-3 rounded-lg p-2 text-sm font-normal transition-all duration-150",
-                          )}
-                        >
-                          <item.icon
-                            aria-hidden="true"
-                            className={classNames(
-                              item.current
-                                ? "text-indigo-600 dark:text-indigo-400"
-                                : "text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400",
-                              "size-5 shrink-0 transition-colors duration-150",
-                            )}
-                          />
-                          {item.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-              </ul>
-            </nav>
-          </div>
-
-          {/* Fixed Footer */}
-          <div className="shrink-0 border-t border-gray-200/40 dark:border-white/10 p-4 bg-gray-50 dark:bg-[#211f1d]">
-            <div className="flex items-center gap-2">
-              <div className="flex-1 min-w-0">
-                <UserButton showName={false} />
-              </div>
-              <div className="flex-shrink-0">
-                <ThemeToggle />
-              </div>
-              <div className="flex-shrink-0">
-                <NotificationBell showBadge />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="xl:pl-72 min-w-0 flex-1">
-          {/* Header with bottom border */}
-          <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 bg-white px-4 sm:px-6 lg:px-8 dark:bg-neutral-900 min-w-0 border-b border-gray-200/40 dark:border-zinc-800/40">
-            <button
-              type="button"
-              onClick={() => setSidebarOpen(true)}
-              className="-m-2.5 p-2.5 text-gray-900 xl:hidden dark:text-white"
-            >
-              <span className="sr-only">Open sidebar</span>
-              <Bars3Icon aria-hidden="true" className="size-5" />
-            </button>
-
-            {/* Custom project and deployment selector */}
-            <ProjectDeploymentSelector
-              projects={projects}
-              selectedProject={selectedProject || undefined}
-              selectedDeployment={selectedDeployment || undefined}
-              onProjectSelect={(project) =>
-                setSelectedProject(
-                  project as unknown as ProjectWithDeployments,
-                  true,
-                )
-              }
-              onDeploymentSelect={(deployment) =>
-                setSelectedDeployment(deployment as unknown as Deployment, true)
-              }
-              onCreateProject={handleCreateProject}
-              onCreateStaging={() => setIsCreateStagingDialogOpen(true)}
-              onCreateProduction={() => setIsCreateProductionDialogOpen(true)}
-              canCreateStaging={canCreateStagingDeployment}
-              canCreateProduction={canCreateProductionDeployment}
-            />
-
-            <div className="flex-1"></div>
-
-            <div className="flex items-center gap-x-4">
-              {/*<NotificationBell />*/}
-            </div>
-          </div>
-
-          <main>
-            {/* Horizontal sub-navigation */}
-            {horizontalNavigation.length > 0 && (
-              <header className="border-b border-gray-200/40 dark:border-zinc-800/40 bg-white dark:bg-neutral-900">
-                <nav
-                  className="-mb-px flex overflow-x-auto px-4 sm:px-6 lg:px-8"
-                  aria-label="Tabs"
-                >
-                  <div className="flex space-x-8">
-                    {horizontalNavigation.map((item) => (
-                      <Link
-                        key={item.name}
-                        to={item.href}
-                        className={classNames(
-                          item.current
-                            ? "border-gray-900 text-gray-900 dark:border-white dark:text-white"
-                            : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-200",
-                          "whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors duration-150",
-                        )}
-                      >
-                        {item.name}
-                      </Link>
-                    ))}
-                  </div>
-                </nav>
-              </header>
             )}
-            <div className="px-4 py-6 sm:px-6 lg:px-8 bg-white min-h-screen dark:bg-neutral-900 min-w-0">
+            <div className="flex flex-col gap-4 px-4 py-4 md:gap-6 md:py-6 lg:px-6">
               <Outlet />
             </div>
-          </main>
+          </div>
         </div>
-      </div>
+      </SidebarInset>
 
       {/* Dialogs */}
       <CreateProjectDialog
         open={isCreateProjectDialogOpen}
         onClose={() => setIsCreateProjectDialogOpen(false)}
       />
-      {selectedProject && (
-        <>
-          <CreateStagingDeploymentDialog
-            open={isCreateStagingDialogOpen}
-            onOpenChange={setIsCreateStagingDialogOpen}
-            onCreateStagingDeployment={handleCreateStagingDeployment}
-            isLoading={isCreatingStagingDeployment}
-          />
-          <CreateProductionDeploymentDialog
-            open={isCreateProductionDialogOpen}
-            onClose={() => setIsCreateProductionDialogOpen(false)}
-            projectId={selectedProject.id}
-          />
-        </>
-      )}
       <BillingSetupDialog
         open={isBillingSetupDialogOpen}
-        onClose={() => setIsBillingSetupDialogOpen(false)}
-        onSuccess={handleBillingSetupSuccess}
+        onClose={handleBillingSetupSuccess}
       />
-    </>
+      {selectedProject && <CreateProductionDeploymentDialog
+        open={isCreateProductionDialogOpen}
+        onClose={() => setIsCreateProductionDialogOpen(false)}
+        projectId={selectedProject!.id}
+      />}
+    </SidebarProvider>
   );
 }

@@ -11,8 +11,8 @@ export function Divider({
 			className={clsx(
 				className,
 				"w-full border-t",
-				soft && "border-zinc-950/5 dark:border-white/5",
-				!soft && "border-zinc-950/10 dark:border-white/10",
+				soft && "border-border/40",
+				!soft && "border-border",
 			)}
 		/>
 	);

@@ -15,15 +15,21 @@ import {
 } from "@/lib/api/hooks/use-organization-sso";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
-  DialogActions,
-  DialogBody,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Alert, AlertTitle, AlertDescription, AlertActions } from "@/components/ui/alert";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
@@ -253,7 +259,7 @@ function SCIMSection({ organizationId, connectionId }: { organizationId: string;
                       {scimToken?.scim_base_url || "Loading..."}
                     </code>
                     <Button
-                      plain
+                      variant="ghost"
                       className="p-1"
                       onClick={() => handleCopy(scimToken?.scim_base_url || "")}
                     >
@@ -271,7 +277,7 @@ function SCIMSection({ organizationId, connectionId }: { organizationId: string;
                         {generatedToken}
                       </code>
                       <Button
-                        plain
+                        variant="ghost"
                         className="p-1 text-green-600"
                         onClick={() => handleCopy(generatedToken)}
                       >
@@ -305,7 +311,7 @@ function SCIMSection({ organizationId, connectionId }: { organizationId: string;
                   </Button>
                   {scimToken?.exists && scimToken?.token?.enabled && (
                     <Button
-                      plain
+                      variant="ghost"
                       onClick={() => setShowRevokeConfirm(true)}
                       className="text-xs text-red-600 hover:text-red-700"
                     >
@@ -322,18 +328,22 @@ function SCIMSection({ organizationId, connectionId }: { organizationId: string;
       </div>
 
       {/* Revoke Confirmation Dialog */}
-      <Alert open={showRevokeConfirm} onClose={() => setShowRevokeConfirm(false)}>
-        <AlertTitle>Revoke SCIM Token</AlertTitle>
-        <AlertDescription>
-          Are you sure you want to revoke this SCIM token? Any IdP using this token will lose access immediately.
-        </AlertDescription>
-        <AlertActions>
-          <Button plain onClick={() => setShowRevokeConfirm(false)}>Cancel</Button>
-          <Button color="red" onClick={handleRevoke} disabled={revokeToken.isPending}>
-            {revokeToken.isPending ? <Spinner className="h-4 w-4" /> : "Revoke Token"}
-          </Button>
-        </AlertActions>
-      </Alert>
+      <Dialog open={showRevokeConfirm} onOpenChange={(val) => !val && setShowRevokeConfirm(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Revoke SCIM Token</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to revoke this SCIM token? Any IdP using this token will lose access immediately.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowRevokeConfirm(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleRevoke} disabled={revokeToken.isPending}>
+              {revokeToken.isPending ? <Spinner className="h-4 w-4" /> : "Revoke Token"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
@@ -496,356 +506,366 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
         </div>
         <Button onClick={() => setIsDialogOpen(true)}>Add Connection</Button>
 
-        <Dialog open={isDialogOpen} onClose={handleOpenChange} size="2xl">
-          <DialogTitle>
-            {editingConnection ? "Edit Connection" : "Add New Connection"}
-          </DialogTitle>
-          <DialogDescription className="mt-2 text-zinc-500 dark:text-zinc-400">
-            Configure your Identity Provider (IdP) settings for SAML or OIDC authentication.
-            {editingConnection ? " Update the details below." : " Select a protocol and verify your domain first."}
-          </DialogDescription>
-          <DialogBody className="mt-6">
-            <form
-              id="connection-form"
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-6"
-            >
-              {/* IdP Template Selector - only shown when creating new connection */}
-              {!editingConnection && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      Choose Identity Provider
-                    </label>
-                    {selectedTemplate && (
-                      <button
-                        type="button"
-                        onClick={clearTemplate}
-                        className="text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 underline"
-                      >
-                        Clear selection
-                      </button>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-4 gap-2">
-                    {IDP_TEMPLATES.map((template) => (
-                      <button
-                        key={template.id}
-                        type="button"
-                        onClick={() => selectTemplate(template)}
-                        className={`
-                          relative flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-all
-                          hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20
-                          ${selectedTemplate?.id === template.id
-                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 ring-2 ring-blue-500/20'
-                            : 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50'
-                          }
-                        `}
-                      >
-                        <img
-                          src={template.logo}
-                          alt={template.name}
-                          className="h-6 w-auto object-contain"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                          }}
-                        />
-                        <span className="hidden text-lg font-bold text-zinc-600 dark:text-zinc-400">
-                          {template.name.charAt(0)}
-                        </span>
-                        <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300 text-center leading-tight">
-                          {template.name}
-                        </span>
-                        <span className={`
-                          text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide
-                          ${template.protocol === 'saml'
-                            ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
-                            : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
-                          }
-                        `}>
-                          {template.protocol}
-                        </span>
-                        {selectedTemplate?.id === template.id && (
-                          <div className="absolute -top-1 -right-1 h-4 w-4 bg-blue-500 rounded-full flex items-center justify-center">
-                            <svg className="h-2.5 w-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                  {selectedTemplate && (
-                    <div className="flex items-center gap-2 p-2 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
-                      <span className="text-xs text-blue-700 dark:text-blue-300">
-                        📚 <a href={selectedTemplate.docUrl} target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
-                          View {selectedTemplate.name} setup documentation
-                        </a>
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
+        <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {editingConnection ? "Edit Connection" : "Add New Connection"}
+              </DialogTitle>
+              <DialogDescription className="mt-2 text-zinc-500 dark:text-zinc-400">
+                Configure your Identity Provider (IdP) settings for SAML or OIDC authentication.
+                {editingConnection ? " Update the details below." : " Select a protocol and verify your domain first."}
+              </DialogDescription>
+            </DialogHeader>
 
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                  <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-white dark:bg-zinc-900 px-2 text-xs text-zinc-500 uppercase tracking-wider">
-                    {selectedTemplate ? `${selectedTemplate.name} Configuration` : 'Manual Configuration'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="space-y-4">
-                  {/* Only show Protocol dropdown when no template selected */}
-                  {!selectedTemplate && (
-                    <div className="space-y-2">
+            <div className="py-2">
+              <form
+                id="connection-form"
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
+                {/* IdP Template Selector - only shown when creating new connection */}
+                {!editingConnection && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
                       <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                        Protocol
+                        Choose Identity Provider
                       </label>
-                      <Select
-                        disabled={!!editingConnection}
-                        name="protocol"
-                        value={form.watch("protocol")}
-                        onChange={(e) =>
-                          form.setValue(
-                            "protocol",
-                            e.target.value as "saml" | "oidc",
-                          )
-                        }
-                        className="dark:bg-zinc-800"
-                      >
-                        <option value="saml">SAML 2.0</option>
-                        <option value="oidc">OpenID Connect</option>
-                      </Select>
+                      {selectedTemplate && (
+                        <button
+                          type="button"
+                          onClick={clearTemplate}
+                          className="text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 underline"
+                        >
+                          Clear selection
+                        </button>
+                      )}
                     </div>
-                  )}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      Domain (Optional)
-                    </label>
-                    <Select
-                      disabled={!!editingConnection}
-                      name="domain_id"
-                      value={form.watch("domain_id")}
-                      onChange={(e) => form.setValue("domain_id", e.target.value)}
-                      className="dark:bg-zinc-800"
-                    >
-                      <option value="none">Select a verified domain...</option>
-                      {domains
-                        ?.filter((d) => d.verified)
-                        .map((domain) => (
-                          <option key={domain.id} value={domain.id}>
-                            {domain.fqdn}
-                          </option>
-                        ))}
-                    </Select>
+                    <div className="grid grid-cols-4 gap-2">
+                      {IDP_TEMPLATES.map((template) => (
+                        <button
+                          key={template.id}
+                          type="button"
+                          onClick={() => selectTemplate(template)}
+                          className={`
+                            relative flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-all
+                            hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20
+                            ${selectedTemplate?.id === template.id
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 ring-2 ring-blue-500/20'
+                              : 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50'
+                            }
+                          `}
+                        >
+                          <img
+                            src={template.logo}
+                            alt={template.name}
+                            className="h-6 w-auto object-contain"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                          <span className="hidden text-lg font-bold text-zinc-600 dark:text-zinc-400">
+                            {template.name.charAt(0)}
+                          </span>
+                          <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300 text-center leading-tight">
+                            {template.name}
+                          </span>
+                          <span className={`
+                            text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide
+                            ${template.protocol === 'saml'
+                              ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
+                              : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                            }
+                          `}>
+                            {template.protocol}
+                          </span>
+                          {selectedTemplate?.id === template.id && (
+                            <div className="absolute -top-1 -right-1 h-4 w-4 bg-blue-500 rounded-full flex items-center justify-center">
+                              <svg className="h-2.5 w-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                    {selectedTemplate && (
+                      <div className="flex items-center gap-2 p-2 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                        <span className="text-xs text-blue-700 dark:text-blue-300">
+                          📚 <a href={selectedTemplate.docUrl} target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
+                            View {selectedTemplate.name} setup documentation
+                          </a>
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                    <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-white dark:bg-zinc-900 px-2 text-xs text-zinc-500 uppercase tracking-wider">
+                      {selectedTemplate ? `${selectedTemplate.name} Configuration` : 'Manual Configuration'}
+                    </span>
                   </div>
                 </div>
 
-                {domains?.filter((d) => d.verified).length === 0 &&
-                  !editingConnection && (
-                    <div className="rounded-md bg-amber-50 dark:bg-amber-950/30 p-3 border border-amber-200 dark:border-amber-900/50">
-                      <div className="flex">
-                        <div className="flex-shrink-0">
-                          <span className="text-amber-600 dark:text-amber-500 text-lg">⚠️</span>
+                <div className="space-y-4">
+                  <div className="space-y-4">
+                    {/* Only show Protocol dropdown when no template selected */}
+                    {!selectedTemplate && (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          Protocol
+                        </label>
+                        <Select
+                          disabled={!editingConnection}
+                          value={form.watch("protocol")}
+                          onValueChange={(value) => form.setValue("protocol", value as "saml" | "oidc")}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select protocol" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="saml">SAML 2.0</SelectItem>
+                            <SelectItem value="oidc">OIDC</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
+                    <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          Template
+                        </label>
+                        <Select
+                          disabled={!editingConnection}
+                          value={selectedTemplate?.name}
+                          onValueChange={(value) => {
+                            const template = IDP_TEMPLATES.find(t => t.name === value);
+                            if (template) selectTemplate(template);
+                          }}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Choose a template (optional)" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {IDP_TEMPLATES.map((t) => (
+                              <SelectItem key={t.name} value={t.name}>
+                                {t.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {domains?.filter((d) => d.verified).length === 0 &&
+                      !editingConnection && (
+                        <div className="rounded-md bg-amber-50 dark:bg-amber-950/30 p-3 border border-amber-200 dark:border-amber-900/50">
+                          <div className="flex">
+                            <div className="flex-shrink-0">
+                              <span className="text-amber-600 dark:text-amber-500 text-lg">⚠️</span>
+                            </div>
+                            <div className="ml-3">
+                              <h3 className="text-sm font-medium text-amber-800 dark:text-amber-400">No verified domains</h3>
+                              <div className="mt-1 text-sm text-amber-700 dark:text-amber-500/90">
+                                <p>You need to verify a domain before you can link it to this connection.</p>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="ml-3">
-                          <h3 className="text-sm font-medium text-amber-800 dark:text-amber-400">No verified domains</h3>
-                          <div className="mt-1 text-sm text-amber-700 dark:text-amber-500/90">
-                            <p>You need to verify a domain before you can link it to this connection.</p>
+                      )}
+                  </div>
+
+                  {form.watch("protocol") === "saml" ? (
+                    <div className="space-y-4">
+                      <div className="space-y-3">
+                        <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          IdP Entity ID (Issuer)
+                        </label>
+                        <Input
+                          {...form.register("idp_entity_id")}
+                          placeholder="https://idp.example.com/metadata"
+                          className="dark:bg-zinc-800/50"
+                        />
+                        <p className="text-xs text-zinc-500">The unique identifier for your Identity Provider.</p>
+                      </div>
+
+                      <div className="space-y-3">
+                        <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          IdP SSO URL
+                        </label>
+                        <Input
+                          {...form.register("idp_sso_url")}
+                          placeholder="https://idp.example.com/sso"
+                          className="dark:bg-zinc-800/50"
+                        />
+                        {form.formState.errors.idp_sso_url && (
+                          <p className="text-sm text-red-500">{form.formState.errors.idp_sso_url.message}</p>
+                        )}
+                        <p className="text-xs text-zinc-500">The endpoint where we'll redirect users to sign in.</p>
+                      </div>
+
+                      <div className="space-y-3">
+                        <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          X.509 Certificate
+                        </label>
+                        <Textarea
+                          {...form.register("idp_certificate")}
+                          placeholder="-----BEGIN CERTIFICATE-----..."
+                          className="font-mono text-xs h-32 dark:bg-zinc-800/50"
+                        />
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          Paste the entire PEM-encoded certificate, including headers.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="space-y-3">
+                        <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          Issuer URL
+                        </label>
+                        <Input
+                          {...form.register("oidc_issuer_url")}
+                          placeholder="https://login.example.com"
+                          className="dark:bg-zinc-800/50"
+                        />
+                        {form.formState.errors.oidc_issuer_url && (
+                          <p className="text-sm text-red-500">{form.formState.errors.oidc_issuer_url.message}</p>
+                        )}
+                        <p className="text-xs text-zinc-500">The base URL of your OIDC provider (e.g., https://login.example.com).</p>
+                      </div>
+
+                      <div className="space-y-3">
+                        <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          Client ID
+                        </label>
+                        <Input
+                          {...form.register("oidc_client_id")}
+                          placeholder="your-client-id"
+                          className="dark:bg-zinc-800/50"
+                        />
+                        <p className="text-xs text-zinc-500">The OAuth 2.0 client ID for your application.</p>
+                      </div>
+
+                      <div className="space-y-3">
+                        <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          Client Secret
+                        </label>
+                        <Input
+                          {...form.register("oidc_client_secret")}
+                          type="password"
+                          placeholder="Enter client secret"
+                          className="dark:bg-zinc-800/50"
+                        />
+                        <p className="text-xs text-zinc-500">
+                          {editingConnection ? "Leave blank to keep existing secret." : "The OAuth 2.0 client secret."}
+                        </p>
+                      </div>
+
+                      <div className="space-y-3">
+                        <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          Scopes
+                        </label>
+                        <Input
+                          {...form.register("oidc_scopes")}
+                          placeholder="openid profile email"
+                          className="dark:bg-zinc-800/50"
+                        />
+                        <p className="text-xs text-zinc-500">Space-separated list of OAuth scopes to request.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* JIT Provisioning Toggle */}
+                  <div className="pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        {...form.register("jit_enabled")}
+                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-600"
+                      />
+                      <span className="font-medium text-sm">Enable JIT Provisioning</span>
+                    </label>
+                    <p className="text-xs text-zinc-500 mt-1 ml-7">
+                      When enabled, new users are automatically created on their first SSO login.
+                    </p>
+                  </div>
+
+                  {/* Attribute Mapping (Collapsible) */}
+                  <div className="pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                    <details className="group">
+                      <summary className="text-sm font-medium text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">
+                        Advanced: Attribute Mapping
+                      </summary>
+                      <div className="mt-4 space-y-4 pl-0.5">
+                        <p className="text-xs text-zinc-500">
+                          Map IdP attribute names to Wacht user fields. Leave empty to use defaults.
+                        </p>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                              First Name
+                            </label>
+                            <Input
+                              {...form.register("attr_first_name")}
+                              placeholder={form.watch("protocol") === "saml" ? "givenName" : "given_name"}
+                              className="dark:bg-zinc-800/50"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                              Last Name
+                            </label>
+                            <Input
+                              {...form.register("attr_last_name")}
+                              placeholder={form.watch("protocol") === "saml" ? "surname" : "family_name"}
+                              className="dark:bg-zinc-800/50"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                              Email
+                            </label>
+                            <Input
+                              {...form.register("attr_email")}
+                              placeholder="email"
+                              className="dark:bg-zinc-800/50"
+                            />
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-              </div>
-
-              {form.watch("protocol") === "saml" ? (
-                <div className="space-y-4">
-                  <div className="space-y-3">
-                    <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      IdP Entity ID (Issuer)
-                    </label>
-                    <Input
-                      {...form.register("idp_entity_id")}
-                      placeholder="https://idp.example.com/metadata"
-                      className="dark:bg-zinc-800/50"
-                    />
-                    <p className="text-xs text-zinc-500">The unique identifier for your Identity Provider.</p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      IdP SSO URL
-                    </label>
-                    <Input
-                      {...form.register("idp_sso_url")}
-                      placeholder="https://idp.example.com/sso"
-                      className="dark:bg-zinc-800/50"
-                    />
-                    {form.formState.errors.idp_sso_url && (
-                      <p className="text-sm text-red-500">{form.formState.errors.idp_sso_url.message}</p>
-                    )}
-                    <p className="text-xs text-zinc-500">The endpoint where we'll redirect users to sign in.</p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      X.509 Certificate
-                    </label>
-                    <Textarea
-                      {...form.register("idp_certificate")}
-                      placeholder="-----BEGIN CERTIFICATE-----..."
-                      className="font-mono text-xs h-32 dark:bg-zinc-800/50"
-                    />
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                      Paste the entire PEM-encoded certificate, including headers.
-                    </p>
+                    </details>
                   </div>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="space-y-3">
-                    <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      Issuer URL
-                    </label>
-                    <Input
-                      {...form.register("oidc_issuer_url")}
-                      placeholder="https://login.example.com"
-                      className="dark:bg-zinc-800/50"
-                    />
-                    {form.formState.errors.oidc_issuer_url && (
-                      <p className="text-sm text-red-500">{form.formState.errors.oidc_issuer_url.message}</p>
-                    )}
-                    <p className="text-xs text-zinc-500">The base URL of your OIDC provider (e.g., https://login.example.com).</p>
-                  </div>
+              </form>
+            </div>
 
-                  <div className="space-y-3">
-                    <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      Client ID
-                    </label>
-                    <Input
-                      {...form.register("oidc_client_id")}
-                      placeholder="your-client-id"
-                      className="dark:bg-zinc-800/50"
-                    />
-                    <p className="text-xs text-zinc-500">The OAuth 2.0 client ID for your application.</p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      Client Secret
-                    </label>
-                    <Input
-                      {...form.register("oidc_client_secret")}
-                      type="password"
-                      placeholder="Enter client secret"
-                      className="dark:bg-zinc-800/50"
-                    />
-                    <p className="text-xs text-zinc-500">
-                      {editingConnection ? "Leave blank to keep existing secret." : "The OAuth 2.0 client secret."}
-                    </p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      Scopes
-                    </label>
-                    <Input
-                      {...form.register("oidc_scopes")}
-                      placeholder="openid profile email"
-                      className="dark:bg-zinc-800/50"
-                    />
-                    <p className="text-xs text-zinc-500">Space-separated list of OAuth scopes to request.</p>
-                  </div>
-                </div>
-              )}
-
-              {/* JIT Provisioning Toggle */}
-              <div className="pt-4 border-t border-zinc-200 dark:border-zinc-700">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    {...form.register("jit_enabled")}
-                    className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-600"
-                  />
-                  <span className="font-medium text-sm">Enable JIT Provisioning</span>
-                </label>
-                <p className="text-xs text-zinc-500 mt-1 ml-7">
-                  When enabled, new users are automatically created on their first SSO login.
-                </p>
-              </div>
-
-              {/* Attribute Mapping (Collapsible) */}
-              <div className="pt-4 border-t border-zinc-200 dark:border-zinc-700">
-                <details className="group">
-                  <summary className="text-sm font-medium text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">
-                    Advanced: Attribute Mapping
-                  </summary>
-                  <div className="mt-4 space-y-4 pl-0.5">
-                    <p className="text-xs text-zinc-500">
-                      Map IdP attribute names to Wacht user fields. Leave empty to use defaults.
-                    </p>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                          First Name
-                        </label>
-                        <Input
-                          {...form.register("attr_first_name")}
-                          placeholder={form.watch("protocol") === "saml" ? "givenName" : "given_name"}
-                          className="dark:bg-zinc-800/50"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                          Last Name
-                        </label>
-                        <Input
-                          {...form.register("attr_last_name")}
-                          placeholder={form.watch("protocol") === "saml" ? "surname" : "family_name"}
-                          className="dark:bg-zinc-800/50"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                          Email
-                        </label>
-                        <Input
-                          {...form.register("attr_email")}
-                          placeholder="email"
-                          className="dark:bg-zinc-800/50"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </details>
-              </div>
-            </form>
-          </DialogBody>
-          <DialogActions className="mt-8 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-            <Button plain onClick={() => handleOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              form="connection-form"
-              disabled={
-                createConnection.isPending || updateConnection.isPending
-              }
-            >
-              {createConnection.isPending || updateConnection.isPending ? (
-                <Spinner className="h-4 w-4" />
-              ) : (
-                "Save Connection"
-              )}
-            </Button>
-          </DialogActions>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => handleOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                form="connection-form"
+                disabled={
+                  createConnection.isPending || updateConnection.isPending
+                }
+              >
+                {createConnection.isPending || updateConnection.isPending ? (
+                  <Spinner className="h-4 w-4" />
+                ) : (
+                  "Save Connection"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
         </Dialog>
       </div>
 
@@ -871,7 +891,7 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                          <h4 className="text-sm font-normal text-zinc-900 dark:text-zinc-100">
                             {connection.protocol.toUpperCase()} Connection
                           </h4>
                           {connection.domain_id ? (
@@ -899,14 +919,14 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                   </div>
                   <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
-                      plain
+                      variant="ghost"
                       className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
                       onClick={() => handleEdit(connection)}
                     >
                       <PencilIcon className="w-4 h-4" />
                     </Button>
                     <Button
-                      plain
+                      variant="ghost"
                       className="p-2 text-zinc-400 hover:text-red-500 transition-colors"
                       onClick={() => setDeletingConnectionId(connection.id)}
                     >
@@ -922,18 +942,22 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
       )}
 
       {/* Delete Connection Confirmation */}
-      <Alert open={!!deletingConnectionId} onClose={() => setDeletingConnectionId(null)}>
-        <AlertTitle>Delete Connection</AlertTitle>
-        <AlertDescription>
-          Are you sure you want to delete this connection? This action cannot be undone.
-        </AlertDescription>
-        <AlertActions>
-          <Button plain onClick={() => setDeletingConnectionId(null)}>Cancel</Button>
-          <Button color="red" onClick={handleDelete} disabled={deleteConnection.isPending}>
-            {deleteConnection.isPending ? <Spinner className="h-4 w-4" /> : "Delete"}
-          </Button>
-        </AlertActions>
-      </Alert>
+      <Dialog open={!!deletingConnectionId} onOpenChange={(val) => !val && setDeletingConnectionId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Connection</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this connection? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDeletingConnectionId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleteConnection.isPending}>
+              {deleteConnection.isPending ? <Spinner className="h-4 w-4" /> : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

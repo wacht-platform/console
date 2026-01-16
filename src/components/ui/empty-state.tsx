@@ -38,7 +38,7 @@ export function EmptyState({
           />
         </svg>
       )}
-      <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{title}</h3>
+      <h3 className="mt-2 text-sm font-normal text-zinc-900 dark:text-zinc-100">{title}</h3>
       {description && (
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{description}</p>
       )}

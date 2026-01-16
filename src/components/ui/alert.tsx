@@ -59,7 +59,7 @@ export function AlertTitle({
       {...props}
       className={clsx(
         className,
-        'text-center text-base/6 font-semibold text-balance text-zinc-950 sm:text-left sm:text-sm/6 sm:text-wrap dark:text-zinc-50'
+        'text-center text-base/6 font-normal text-balance text-zinc-950 sm:text-left sm:text-sm/6 sm:text-wrap dark:text-zinc-50'
       )}
     />
   )

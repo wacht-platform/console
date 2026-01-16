@@ -1,29 +1,24 @@
-import { Fragment, useState } from 'react';
-import * as Headless from '@headlessui/react';
+import { useState } from 'react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
-import { Avatar } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { capitalize } from '@/lib/capitalize';
-
-interface Project {
-  id: string;
-  name: string;
-  image_url?: string;
-  deployments: Deployment[];
-}
-
-interface Deployment {
-  id: string;
-  name?: string;
-  mode: string;
-}
+import { ProjectWithDeployments } from "@/types/project";
+import { Deployment } from "@/types/deployment";
 
 interface ProjectDeploymentSelectorProps {
-  projects?: Project[];
-  selectedProject?: Project;
+  projects?: ProjectWithDeployments[];
+  selectedProject?: ProjectWithDeployments;
   selectedDeployment?: Deployment;
-  onProjectSelect: (project: Project) => void;
+  onProjectSelect: (project: ProjectWithDeployments) => void;
   onDeploymentSelect: (deployment: Deployment) => void;
   onCreateProject: () => void;
   onCreateStaging: () => void;
@@ -44,7 +39,6 @@ export function ProjectDeploymentSelector({
   canCreateStaging,
   canCreateProduction,
 }: ProjectDeploymentSelectorProps) {
-  // Initialize with all projects expanded
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(
     new Set(projects.map(p => p.id))
   );
@@ -59,201 +53,127 @@ export function ProjectDeploymentSelector({
     setExpandedProjects(newExpanded);
   };
 
-  const handleProjectClick = (e: React.MouseEvent, project: Project, close: () => void) => {
+  const handleProjectClick = (e: Event, project: ProjectWithDeployments) => {
     if (project.deployments.length > 0) {
-      // Prevent menu from closing
       e.preventDefault();
-      e.stopPropagation();
-      
-      // Toggle expansion
       toggleProjectExpanded(project.id);
     } else {
-      // If no deployments, select the project and close
       onProjectSelect(project);
-      close();
     }
   };
 
-  const handleDeploymentClick = (project: Project, deployment: Deployment) => {
+  const handleDeploymentClick = (project: ProjectWithDeployments, deployment: Deployment) => {
     onProjectSelect(project);
     onDeploymentSelect(deployment);
   };
 
-  const currentDisplay = selectedProject
-    ? selectedDeployment
-      ? `${selectedProject.name} / ${selectedDeployment.name || capitalize(selectedDeployment.mode)}`
-      : selectedProject.name
-    : "Select Project";
-
   return (
-    <Headless.Menu as="div" className="relative">
-      {() => (
-        <>
-          <Headless.MenuButton className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-zinc-100 border border-gray-200 dark:border-zinc-800/60 rounded-md bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors">
-            {selectedProject && (
-              <Avatar
-                src={selectedProject.image_url}
-                initials={selectedProject.name.substring(0, 2).toUpperCase()}
-                className="h-5 w-5 text-[10px]"
-              />
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 outline-none focus-visible:ring-2 focus-visible:ring-zinc-400">
+          <div className="flex items-center gap-2">
+            {selectedProject ? (
+              <Avatar className="h-5 w-5 rounded-md">
+                <AvatarImage src={selectedProject.image_url} />
+                <AvatarFallback className="text-[9px]">{selectedProject.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+              </Avatar>
+            ) : (
+              <div className="flex h-5 w-5 items-center justify-center rounded-md border border-dashed border-zinc-300 dark:border-zinc-700">
+                <PlusIcon className="h-3 w-3 text-zinc-500" />
+              </div>
             )}
-            <span>{currentDisplay}</span>
-            <ChevronDownIcon className="h-4 w-4 text-gray-400 ml-auto" />
-          </Headless.MenuButton>
 
-          <Headless.Transition
-            as={Fragment}
-            enter="transition ease-out duration-100"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="transition ease-in duration-75"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <Headless.MenuItems className="absolute left-0 z-50 mt-2 w-80 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800/60 rounded-md shadow-sm max-h-96 overflow-y-auto">
-              {() => (
+            <div className="flex items-center text-sm">
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                {selectedProject ? selectedProject.name : "Select Project"}
+              </span>
+              <span className="mx-1.5 text-zinc-400 dark:text-zinc-600">/</span>
+              <span className="text-zinc-600 dark:text-zinc-400">
+                {selectedDeployment ? (selectedDeployment.name || capitalize(selectedDeployment.mode)) : "..."}
+              </span>
+            </div>
+          </div>
+          <ChevronDownIcon className="h-4 w-4 text-zinc-400 opacity-50" />
+        </button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent className="w-64 max-h-[400px] overflow-y-auto" align="start">
+        {projects.map((project) => {
+          const isExpanded = expandedProjects.has(project.id);
+          const isProjectSelected = selectedProject?.id === project.id;
+
+          return (
+            <div key={project.id}>
+              <DropdownMenuItem
+                onSelect={(e) => handleProjectClick(e, project)}
+                className={clsx(
+                  'w-full flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer',
+                  isProjectSelected && !isExpanded && 'bg-zinc-100 dark:bg-zinc-800/50'
+                )}
+              >
+                {project.deployments.length > 0 && (
+                  <ChevronRightIcon
+                    className={clsx(
+                      'h-3 w-3 text-zinc-400 transition-transform',
+                      isExpanded && 'rotate-90'
+                    )}
+                  />
+                )}
+                <Avatar className="h-5 w-5 rounded-md">
+                  <AvatarImage src={project.image_url} />
+                  <AvatarFallback className="text-[9px]">{project.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <span className="flex-1 truncate font-medium">{project.name}</span>
+              </DropdownMenuItem>
+
+              {isExpanded && (
                 <>
-                  {projects.map((project) => {
-                    const isExpanded = expandedProjects.has(project.id);
-                    const isProjectSelected = selectedProject?.id === project.id;
-                    
-                    return (
-                      <div key={project.id}>
-                        <Headless.MenuItem>
-                          {({ active }) => (
-                            <button
-                              onClick={(e) => handleProjectClick(e, project, close)}
-                              className={clsx(
-                                active ? 'bg-gray-50 dark:bg-zinc-800' : '',
-                                'w-full flex items-center px-4 py-3 text-sm transition-colors'
-                              )}
-                            >
-                              {project.deployments.length > 0 && (
-                                <ChevronRightIcon
-                                  className={clsx(
-                                    'h-3 w-3 mr-1 text-gray-400 transition-transform',
-                                    isExpanded && 'rotate-90'
-                                  )}
-                                />
-                              )}
-                              <Avatar
-                                src={project.image_url}
-                                initials={project.name.substring(0, 2).toUpperCase()}
-                                className="mr-2 h-5 w-5 text-[10px]"
-                              />
-                              <span className={clsx(
-                                'flex-1 text-left',
-                                isProjectSelected ? 'font-medium text-zinc-900 dark:text-zinc-100' : 'text-zinc-700 dark:text-zinc-300'
-                              )}>
-                                {project.name}
-                              </span>
-                              {project.deployments.length === 0 && isProjectSelected && (
-                                <div className="h-2 w-2 rounded-full bg-blue-600" />
-                              )}
-                            </button>
-                          )}
-                        </Headless.MenuItem>
-
-                        {isExpanded && (
-                          <>
-                            {project.deployments.map((deployment) => {
-                              const isDeploymentSelected = selectedDeployment?.id === deployment.id;
-                              
-                              return (
-                                <Headless.MenuItem key={deployment.id}>
-                                  {({ active }) => (
-                                    <button
-                                      onClick={() => handleDeploymentClick(project, deployment)}
-                                      className={clsx(
-                                        active ? 'bg-gray-50 dark:bg-zinc-800' : '',
-                                        'w-full flex items-center pl-12 pr-4 py-2.5 text-sm transition-colors'
-                                      )}
-                                    >
-                                      <div className={clsx(
-                                        'h-1.5 w-1.5 rounded-full mr-2',
-                                        deployment.mode === 'production' ? 'bg-green-500' : 'bg-yellow-500'
-                                      )} />
-                                      <span className={clsx(
-                                        'flex-1 text-left',
-                                        isDeploymentSelected ? 'font-medium text-zinc-900 dark:text-zinc-100' : 'text-zinc-600 dark:text-zinc-400'
-                                      )}>
-                                        {deployment.name || capitalize(deployment.mode)}
-                                      </span>
-                                      {isDeploymentSelected && (
-                                        <div className="h-2 w-2 rounded-full bg-blue-600" />
-                                      )}
-                                    </button>
-                                  )}
-                                </Headless.MenuItem>
-                              );
-                            })}
-
-                            {isProjectSelected && (canCreateStaging || canCreateProduction) && (
-                              <>
-                                {canCreateStaging && (
-                                  <Headless.MenuItem>
-                                    {({ active }) => (
-                                      <button
-                                        onClick={() => onCreateStaging()}
-                                        className={clsx(
-                                          active ? 'bg-gray-50 dark:bg-zinc-800' : '',
-                                          'w-full flex items-center pl-12 pr-4 py-2.5 text-sm text-zinc-500 dark:text-zinc-400 transition-colors'
-                                        )}
-                                      >
-                                        <PlusIcon className="mr-2 h-3 w-3" />
-                                        Add staging
-                                      </button>
-                                    )}
-                                  </Headless.MenuItem>
-                                )}
-                                {canCreateProduction && (
-                                  <Headless.MenuItem>
-                                    {({ active }) => (
-                                      <button
-                                        onClick={() => onCreateProduction()}
-                                        className={clsx(
-                                          active ? 'bg-gray-50 dark:bg-zinc-800' : '',
-                                          'w-full flex items-center pl-12 pr-4 py-2.5 text-sm text-zinc-500 dark:text-zinc-400 transition-colors'
-                                        )}
-                                      >
-                                        <PlusIcon className="mr-2 h-3 w-3" />
-                                        Add production
-                                      </button>
-                                    )}
-                                  </Headless.MenuItem>
-                                )}
-                              </>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    );
-                  })}
-
-                  <div className="border-t border-gray-200 dark:border-zinc-800">
-                    <Headless.MenuItem>
-                      {({ active }) => (
-                        <button
-                          onClick={() => onCreateProject()}
-                          className={clsx(
-                            active ? 'bg-gray-50 dark:bg-gray-800' : '',
-                            'w-full flex items-center px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400 transition-colors'
-                          )}
-                        >
-                          <div className="h-5 w-5 rounded-full border border-dashed border-gray-400 flex items-center justify-center mr-2">
-                            <PlusIcon className="h-3 w-3" />
-                          </div>
-                          Create new project
-                        </button>
+                  {project.deployments.map((deployment) => (
+                    <DropdownMenuItem
+                      key={deployment.id}
+                      onSelect={() => handleDeploymentClick(project, deployment)}
+                      className={clsx(
+                        'w-full flex items-center pl-9 pr-2 py-1.5 text-sm cursor-pointer',
+                        selectedDeployment?.id === deployment.id && 'bg-zinc-100 dark:bg-zinc-800/50'
                       )}
-                    </Headless.MenuItem>
-                  </div>
+                    >
+                      <div className={clsx(
+                        'h-1.5 w-1.5 rounded-full mr-2',
+                        deployment.mode === 'production' ? 'bg-green-500' : 'bg-yellow-500'
+                      )} />
+                      <span className="truncate text-zinc-600 dark:text-zinc-400">
+                        {deployment.name || capitalize(deployment.mode)}
+                      </span>
+                    </DropdownMenuItem>
+                  ))}
+                  {isProjectSelected && (canCreateStaging || canCreateProduction) && (
+                    <>
+                      <DropdownMenuSeparator className="mx-2 my-1" />
+                      {canCreateStaging && (
+                        <DropdownMenuItem onSelect={onCreateStaging} className="pl-9 pr-2 py-1.5 text-xs text-zinc-500">
+                          <PlusIcon className="mr-1 h-3 w-3" /> Add Staging
+                        </DropdownMenuItem>
+                      )}
+                      {canCreateProduction && (
+                        <DropdownMenuItem onSelect={onCreateProduction} className="pl-9 pr-2 py-1.5 text-xs text-zinc-500">
+                          <PlusIcon className="mr-1 h-3 w-3" /> Add Production
+                        </DropdownMenuItem>
+                      )}
+                    </>
+                  )}
                 </>
               )}
-            </Headless.MenuItems>
-          </Headless.Transition>
-        </>
-      )}
-    </Headless.Menu>
+            </div>
+          );
+        })}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={onCreateProject} className="gap-2">
+          <div className="flex h-5 w-5 items-center justify-center rounded-md border border-dashed border-zinc-300">
+            <PlusIcon className="h-3 w-3" />
+          </div>
+          <span>Create new project</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

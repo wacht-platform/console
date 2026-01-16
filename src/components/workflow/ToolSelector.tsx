@@ -92,7 +92,7 @@ export default function ToolSelector({
           <Label>Select Tool</Label>
           <Select
             value={selectedToolId || ""}
-            onChange={(e) => handleToolChange(e.target.value)}
+            onValueChange={(value) => handleToolChange(value)}
           >
             <option value="">No tool selected</option>
             {filteredTools.map((tool) => (

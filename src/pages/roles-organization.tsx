@@ -43,7 +43,7 @@ export function OrganizationRolesTab() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-lg font-semibold">Manage Roles</h2>
+      <h2 className="text-lg font-normal">Manage Roles</h2>
 
       {/* Add Role */}
       <div className="flex gap-2">
@@ -69,7 +69,7 @@ export function OrganizationRolesTab() {
             <TableRow>
               <TableCell colSpan={2} className="text-center py-12">
                 <ShieldCheckIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
-                <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                <h3 className="mt-2 text-sm font-normal text-zinc-900 dark:text-zinc-100">
                   No roles found
                 </h3>
                 <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
@@ -80,31 +80,31 @@ export function OrganizationRolesTab() {
           ) : (
             roles.map((role) => (
               <TableRow key={role.id}>
-              <TableCell>
-                {editingRole === role.id ? (
-                  <Input
-                    value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
-                  />
-                ) : (
-                  role.name
-                )}
-              </TableCell>
-              <TableCell className="flex gap-2">
-                {editingRole === role.id ? (
-                  <Button onClick={() => handleSaveEdit(role.id)}>
-                    Save
+                <TableCell>
+                  {editingRole === role.id ? (
+                    <Input
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                    />
+                  ) : (
+                    role.name
+                  )}
+                </TableCell>
+                <TableCell className="flex gap-2">
+                  {editingRole === role.id ? (
+                    <Button onClick={() => handleSaveEdit(role.id)}>
+                      Save
+                    </Button>
+                  ) : (
+                    <Button onClick={() => handleEditRole(role.id, role.name)}>
+                      Edit
+                    </Button>
+                  )}
+                  <Button onClick={() => handleDeleteRole(role.id)}>
+                    Delete
                   </Button>
-                ) : (
-                  <Button onClick={() => handleEditRole(role.id, role.name)}>
-                    Edit
-                  </Button>
-                )}
-                <Button onClick={() => handleDeleteRole(role.id)}>
-                  Delete
-                </Button>
-              </TableCell>
-            </TableRow>
+                </TableCell>
+              </TableRow>
             ))
           )}
         </TableBody>

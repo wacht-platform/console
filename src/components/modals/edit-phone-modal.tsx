@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
   DialogTitle,
-  DialogBody,
-  DialogActions,
 } from "@/components/ui/dialog";
 import { Field, Label } from "@/components/ui/fieldset";
 import { Switch } from "@/components/ui/switch";
@@ -89,74 +90,80 @@ export function EditPhoneModal({
   };
 
   return (
-    <Dialog open={isOpen} onClose={handleClose}>
-      <DialogTitle>Edit Phone Number</DialogTitle>
-      <DialogBody>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Field>
-            <Label>Phone Number</Label>
-            <Input
-              type="tel"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="Enter phone number"
-              required
-            />
-          </Field>
+    <Dialog open={isOpen} onOpenChange={(val) => !val && handleClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Phone Number</DialogTitle>
+        </DialogHeader>
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  Verified
-                </label>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Mark this phone number as verified
-                </p>
-              </div>
-              <Switch checked={verified} onChange={setVerified} />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  Primary
-                </label>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {isPrimary && userData?.primary_phone_number_id === phoneData?.id 
-                    ? "This is the primary phone number" 
-                    : "Set as primary phone number"}
-                </p>
-              </div>
-              <Switch 
-                checked={isPrimary} 
-                disabled={isPrimary && userData?.primary_phone_number_id === phoneData?.id}
-                onChange={(checked) => {
-                  setIsPrimary(checked);
-                  setHasUserInteracted(true);
-                }} 
+        <div className="py-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <Field>
+              <Label>Phone Number</Label>
+              <Input
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="Enter phone number"
+                required
               />
+            </Field>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    Verified
+                  </label>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Mark this phone number as verified
+                  </p>
+                </div>
+                <Switch checked={verified} onCheckedChange={(c) => setVerified(c)} />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    Primary
+                  </label>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {isPrimary && userData?.primary_phone_number_id === phoneData?.id
+                      ? "This is the primary phone number"
+                      : "Set as primary phone number"}
+                  </p>
+                </div>
+                <Switch
+                  checked={isPrimary}
+                  disabled={isPrimary && userData?.primary_phone_number_id === phoneData?.id}
+                  onCheckedChange={(checked) => {
+                    setIsPrimary(checked);
+                    setHasUserInteracted(true);
+                  }}
+                />
+              </div>
             </div>
-          </div>
-        </form>
-      </DialogBody>
-      <DialogActions>
-        <Button
-          type="button"
-          outline
-          onClick={handleClose}
-          disabled={isLoading}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          onClick={handleSubmit}
-          disabled={isLoading || !phoneNumber.trim()}
-        >
-          {isLoading ? "Updating..." : "Update Phone"}
-        </Button>
-      </DialogActions>
+          </form>
+        </div>
+
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={handleClose}
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={isLoading || !phoneNumber.trim()}
+          >
+            {isLoading ? "Updating..." : "Update Phone"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

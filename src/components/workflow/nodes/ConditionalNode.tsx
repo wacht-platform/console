@@ -10,7 +10,7 @@ const ConditionalNode = ({ data }: { data: BaseNodeData }) => {
         className="w-3 h-3 bg-amber-600!"
       />
 
-      <div className="text-center text-sm font-semibold text-amber-800 mb-2">{data.label}</div>
+      <div className="text-center text-sm font-normal text-amber-800 mb-2">{data.label}</div>
 
       {(data.description as string) && (
         <div className="text-xs text-amber-700 text-center mb-3 bg-amber-100 p-2 rounded">
@@ -27,7 +27,7 @@ const ConditionalNode = ({ data }: { data: BaseNodeData }) => {
 
       <div className="flex justify-between items-center mt-4">
         <div className="text-center">
-          <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold mb-2 border border-green-300">
+          <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-normal mb-2 border border-green-300">
             ✓ True
           </div>
           <Handle
@@ -39,7 +39,7 @@ const ConditionalNode = ({ data }: { data: BaseNodeData }) => {
         </div>
 
         <div className="text-center">
-          <div className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-semibold mb-2 border border-red-300">
+          <div className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-normal mb-2 border border-red-300">
             ✗ False
           </div>
           <Handle

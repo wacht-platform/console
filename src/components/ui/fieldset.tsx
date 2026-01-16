@@ -1,115 +1,89 @@
-import * as Headless from "@headlessui/react";
-import clsx from "clsx";
-import type React from "react";
+import * as React from "react"
+import * as LabelPrimitive from "@radix-ui/react-label"
+import { cn } from "@/lib/utils"
 
-export function Fieldset({
-  className,
-  ...props
-}: { className?: string } & Omit<Headless.FieldsetProps, "as" | "className">) {
-  return (
-    <Headless.Fieldset
-      {...props}
-      className={clsx(
-        className,
-        "*:data-[slot=text]:mt-1 [&>*+[data-slot=control]]:mt-6",
-      )}
-    />
-  );
-}
+const FieldContext = React.createContext<{ id: string } | undefined>(undefined)
 
-export function Legend({
+export function Field({
   className,
+  children,
   ...props
-}: { className?: string } & Omit<Headless.LegendProps, "as" | "className">) {
+}: React.ComponentProps<"div">) {
+  const id = React.useId()
+
   return (
-    <Headless.Legend
-      data-slot="legend"
-      {...props}
-      className={clsx(
-        className,
-        "text-base/6 font-semibold text-zinc-950 data-disabled:opacity-50 sm:text-sm/6 dark:text-white",
-      )}
-    />
-  );
+    <FieldContext.Provider value={{ id }}>
+      <div className={cn("flex flex-col gap-2", className)} {...props}>
+        {children}
+      </div>
+    </FieldContext.Provider>
+  )
 }
 
 export function FieldGroup({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
-  return <div data-slot="control" {...props} className={clsx(className)} />;
+}: React.ComponentProps<"div">) {
+  return <div className={cn("flex flex-col gap-4", className)} {...props} />
 }
 
-export function Field({
+export function Fieldset({
   className,
   ...props
-}: { className?: string } & Omit<Headless.FieldProps, "as" | "className">) {
+}: React.ComponentProps<"fieldset">) {
+  return <fieldset className={cn("flex flex-col gap-6", className)} {...props} />
+}
+
+export function Legend({ className, ...props }: React.ComponentProps<"legend">) {
   return (
-    <Headless.Field
+    <legend
+      className={cn("text-base font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-foreground", className)}
       {...props}
-      className={clsx(
-        className,
-        "[&>[data-slot=label]+[data-slot=control]]:mt-2",
-        "[&>[data-slot=label]+[data-slot=description]]:mt-1",
-        "[&>[data-slot=description]+[data-slot=control]]:mt-2",
-        "[&>[data-slot=control]+[data-slot=description]]:mt-2",
-        "[&>[data-slot=control]+[data-slot=error]]:mt-2",
-        "*:data-[slot=label]:font-medium",
-      )}
     />
-  );
+  )
 }
 
 export function Label({
   className,
   ...props
-}: { className?: string } & Omit<Headless.LabelProps, "as" | "className">) {
+}: React.ComponentProps<typeof LabelPrimitive.Root>) {
+  const { id } = React.useContext(FieldContext) || {}
+
   return (
-    <Headless.Label
-      data-slot="label"
-      {...props}
-      className={clsx(
-        className,
-        "text-base/6 text-zinc-950 select-none data-disabled:opacity-50 sm:text-sm/6 dark:text-white",
+    <LabelPrimitive.Root
+      htmlFor={id}
+      className={cn(
+        "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-foreground",
+        className
       )}
+      {...props}
     />
-  );
+  )
 }
 
 export function Description({
   className,
   ...props
-}: { className?: string } & Omit<
-  Headless.DescriptionProps,
-  "as" | "className"
->) {
+}: React.ComponentProps<"p">) {
   return (
-    <Headless.Description
-      data-slot="description"
+    <p
+      className={cn("text-[0.8rem] text-muted-foreground", className)}
       {...props}
-      className={clsx(
-        className,
-        "text-base/6 text-zinc-500 data-disabled:opacity-50 sm:text-sm/6 dark:text-zinc-400",
-      )}
     />
-  );
+  )
 }
 
 export function ErrorMessage({
   className,
   ...props
-}: { className?: string } & Omit<
-  Headless.DescriptionProps,
-  "as" | "className"
->) {
+}: React.ComponentProps<"p">) {
   return (
-    <Headless.Description
-      data-slot="error"
+    <p
+      className={cn("text-[0.8rem] font-medium text-destructive", className)}
       {...props}
-      className={clsx(
-        className,
-        "text-base/6 text-red-600 data-disabled:opacity-50 sm:text-sm/6 dark:text-red-500",
-      )}
     />
-  );
+  )
 }
+
+export { useId } from "react"
+export const useFieldContext = () => React.useContext(FieldContext)

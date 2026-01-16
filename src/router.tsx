@@ -38,6 +38,9 @@ const ManageOrganizationsPage = lazyImport(
   () => import("./pages/manage-organizations"),
 );
 const ManageWorkspacesPage = lazyImport(() => import("./pages/manage-workspaces"));
+const AuthLayout = lazyImport(() => import("./pages/auth/layout"));
+const B2BSettingsLayout = lazyImport(() => import("./pages/b2b-settings/layout"));
+const CustomizationLayout = lazyImport(() => import("./pages/customization/layout"));
 const PortalPage = lazyImport(() => import("./pages/portal"));
 const DeploymentSettingsPage = lazyImport(
   () => import("./pages/deployment-settings"),
@@ -201,7 +204,20 @@ export const router = createBrowserRouter([
       },
       {
         path: "auth",
+        element: (
+          <Suspense fallback={<SimpleFallback />}>
+            <AuthLayout />
+          </Suspense>
+        ),
         children: [
+          {
+            index: true,
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <SchemaFactorsPage />
+              </Suspense>
+            ),
+          },
           {
             path: "schema-factors",
             element: (
@@ -343,20 +359,30 @@ export const router = createBrowserRouter([
         ],
       },
       {
-        path: "manage-organizations",
+        path: "b2b-settings",
         element: (
           <Suspense fallback={<SimpleFallback />}>
-            <ManageOrganizationsPage />
+            <B2BSettingsLayout />
           </Suspense>
         ),
-      },
-      {
-        path: "manage-workspaces",
-        element: (
-          <Suspense fallback={<SimpleFallback />}>
-            <ManageWorkspacesPage />
-          </Suspense>
-        ),
+        children: [
+          {
+            index: true,
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <ManageOrganizationsPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "workspaces",
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <ManageWorkspacesPage />
+              </Suspense>
+            ),
+          },
+        ],
       },
       {
         path: "portal",
@@ -367,31 +393,41 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "deployment-settings",
+        path: "customization",
         element: (
           <Suspense fallback={<SimpleFallback />}>
-            <DeploymentSettingsPage />
+            <CustomizationLayout />
           </Suspense>
         ),
-      },
-      {
-        path: "emails",
         children: [
           {
             index: true,
             element: (
               <Suspense fallback={<SimpleFallback />}>
-                <EmailsPage />
+                <DeploymentSettingsPage />
               </Suspense>
             ),
           },
           {
-            path: ":templateId",
-            element: (
-              <Suspense fallback={<SimpleFallback />}>
-                <EmailTemplateEditor />
-              </Suspense>
-            ),
+            path: "emails",
+            children: [
+              {
+                index: true,
+                element: (
+                  <Suspense fallback={<SimpleFallback />}>
+                    <EmailsPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ":templateId",
+                element: (
+                  <Suspense fallback={<SimpleFallback />}>
+                    <EmailTemplateEditor />
+                  </Suspense>
+                ),
+              },
+            ],
           },
         ],
       },

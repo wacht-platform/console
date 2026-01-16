@@ -3,9 +3,10 @@ import { useUpdateOrganizationRole } from "@/lib/api/hooks/use-organization-muta
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 import {
   Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
   DialogTitle,
-  DialogBody,
-  DialogActions,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,7 +76,7 @@ export function EditRoleDialog({
               : undefined,
           permissions:
             JSON.stringify(formData.permissions) !==
-            JSON.stringify(role.permissions.map((p) => p))
+              JSON.stringify(role.permissions.map((p) => p))
               ? formData.permissions
               : undefined,
         },
@@ -87,55 +88,59 @@ export function EditRoleDialog({
   };
 
   return (
-    <Dialog open={isOpen} onClose={onClose}>
-      <DialogTitle>Edit Organization Role</DialogTitle>
+    <Dialog open={isOpen} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Organization Role</DialogTitle>
+        </DialogHeader>
 
-      <DialogBody>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            <Field>
-              <Label htmlFor="name">Role Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, name: e.target.value }))
+        <div className="py-2">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <Field>
+                <Label htmlFor="name">Role Name</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  placeholder="Enter role name"
+                  required
+                />
+              </Field>
+
+              <MultiSelect
+                label="Permissions"
+                options={availablePermissions}
+                selectedValues={formData.permissions}
+                onChange={(permissions) =>
+                  setFormData((prev) => ({ ...prev, permissions }))
                 }
-                placeholder="Enter role name"
-                required
+                placeholder="Select permissions for this role..."
               />
-            </Field>
+            </div>
+          </form>
+        </div>
 
-            <MultiSelect
-              label="Permissions"
-              options={availablePermissions}
-              selectedValues={formData.permissions}
-              onChange={(permissions) =>
-                setFormData((prev) => ({ ...prev, permissions }))
-              }
-              placeholder="Select permissions for this role..."
-            />
-          </div>
-        </form>
-      </DialogBody>
-
-      <DialogActions>
-        <Button
-          type="button"
-          outline
-          onClick={onClose}
-          disabled={updateRole.isPending}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          onClick={handleSubmit}
-          disabled={updateRole.isPending || !formData.name.trim()}
-        >
-          {updateRole.isPending ? "Updating..." : "Update Role"}
-        </Button>
-      </DialogActions>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onClose}
+            disabled={updateRole.isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={updateRole.isPending || !formData.name.trim()}
+          >
+            {updateRole.isPending ? "Updating..." : "Update Role"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

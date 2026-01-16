@@ -8,7 +8,7 @@ export default function Home() {
 
 	return (
 		<div className="p-10 max-w-7xl mx-auto flex flex-col justify-center items-center min-h-screen">
-			<h1 className="text-2xl font-bold mb-8">Authentication Form Builder</h1>
+			<h1 className="text-xl font-bold mb-8">Authentication Form Builder</h1>
 			<p className="text-zinc-500 dark:text-zinc-400 mb-8 max-w-2xl text-center">
 				Design and customize your authentication experience with our visual
 				builder. Select the authentication methods you want to support and see a

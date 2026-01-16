@@ -8,12 +8,16 @@ import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 import {
-  ArrowLeftIcon,
-  MagnifyingGlassIcon,
   PencilIcon,
   TrashIcon,
+  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-import { Input, InputGroup } from "@/components/ui/input";
+import {
+  IconUser,
+  IconBuilding,
+  IconBriefcase,
+} from "@tabler/icons-react";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -23,7 +27,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { SkeletonTableRows, Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 import { AnalyzedEntity } from "@/types/segment";
@@ -108,14 +111,14 @@ export default function SegmentDetailsPage() {
     return (
       <div className="space-y-6">
         <div className="flex flex-col gap-4">
-          <Skeleton className="w-24 h-4" variant="text" />
+          <Skeleton className="w-24 h-4" />
           <div className="flex justify-between items-start">
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <Skeleton className="w-48 h-8" variant="text" />
-                <Skeleton className="w-16 h-6 rounded-md" />
+                <Skeleton className="w-48 h-8" />
+                <Skeleton className="size-6 rounded-md" />
               </div>
-              <Skeleton className="w-96 h-4" variant="text" />
+              <Skeleton className="w-96 h-4" />
             </div>
             <div className="flex gap-2">
               <Skeleton className="w-20 h-9 rounded-md" />
@@ -127,13 +130,13 @@ export default function SegmentDetailsPage() {
         <div className="space-y-4">
           <Skeleton className="w-full max-w-lg h-10 rounded-md" />
           <Table>
-            <TableHead>
+            <TableHeader>
               <TableRow>
-                <TableHeader>ID</TableHeader>
-                <TableHeader>Name</TableHeader>
-                <TableHeader>Last Name</TableHeader>
+                <TableHead>ID</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Last Name</TableHead>
               </TableRow>
-            </TableHead>
+            </TableHeader>
             <TableBody>
               <SkeletonTableRows rows={5} columns={3} />
             </TableBody>
@@ -147,8 +150,8 @@ export default function SegmentDetailsPage() {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <Text>Segment not found.</Text>
-        <Button className="mt-4" href=".." plain>
-          <ArrowLeftIcon className="w-4 h-4 mr-2" /> Back to Segments
+        <Button className="mt-4" onClick={() => navigate("..")} variant="ghost">
+          Back to Segments
         </Button>
       </div>
     );
@@ -175,14 +178,17 @@ export default function SegmentDetailsPage() {
 
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 pt-4">
           <div className="flex justify-between items-start">
             <div>
               <div className="flex items-center gap-3">
                 <Heading>{segment.name}</Heading>
-                <Badge color="zinc" className="capitalize">
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-xs font-medium capitalize">
+                  {segment.type === 'user' && <IconUser className="size-3 text-blue-500" />}
+                  {segment.type === 'organization' && <IconBuilding className="size-3 text-emerald-500" />}
+                  {segment.type === 'workspace' && <IconBriefcase className="size-3 text-amber-500" />}
                   {segment.type}
-                </Badge>
+                </div>
               </div>
               <Text className="text-zinc-500 mt-2 max-w-2xl">
                 {segment.description || "No description provided."}
@@ -191,18 +197,23 @@ export default function SegmentDetailsPage() {
                 Created {format(new Date(segment.created_at), "MMM d, yyyy")}
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button outline onClick={() => setCreateModalOpen(true)}>
-                <PencilIcon className="size-4 mr-2" />
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCreateModalOpen(true)}
+                className="h-8 gap-1.5 font-normal"
+              >
+                <PencilIcon className="h-4 w-4" />
                 Edit
               </Button>
               <Button
-                outline
+                variant="destructive"
+                size="icon"
+                className="h-8 w-8"
                 onClick={() => setDeleteConfirmationOpen(true)}
-                className="text-red-600 hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-900/20"
               >
-                <TrashIcon className="size-4 mr-2" />
-                Delete
+                <TrashIcon className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -211,14 +222,15 @@ export default function SegmentDetailsPage() {
         {/* Content */}
         <div className="space-y-4">
           <div className="flex justify-between items-center gap-4">
-            <InputGroup className="flex-1 max-w-lg">
-              <MagnifyingGlassIcon className="size-4" />
+            <div className="relative flex-1 max-w-lg">
+              <MagnifyingGlassIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder={`Search ${segment.type}s...`}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
               />
-            </InputGroup>
+            </div>
 
             <div className="text-sm text-zinc-500">
               {entities.length} results
@@ -226,19 +238,19 @@ export default function SegmentDetailsPage() {
           </div>
 
           <Table>
-            <TableHead>
+            <TableHeader>
               <TableRow>
-                <TableHeader>ID</TableHeader>
+                <TableHead>ID</TableHead>
                 {segment.type === "user" ? (
                   <>
-                    <TableHeader>First Name</TableHeader>
-                    <TableHeader>Last Name</TableHeader>
+                    <TableHead>First Name</TableHead>
+                    <TableHead>Last Name</TableHead>
                   </>
                 ) : (
-                  <TableHeader>Name</TableHeader>
+                  <TableHead>Name</TableHead>
                 )}
               </TableRow>
-            </TableHead>
+            </TableHeader>
             <TableBody>
               {isAnalyzing ? (
                 <SkeletonTableRows rows={5} columns={3} />

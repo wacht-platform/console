@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
   DialogTitle,
-  DialogBody,
-  DialogActions,
 } from "@/components/ui/dialog";
 import { Field, Label } from "@/components/ui/fieldset";
 import { PhotoIcon } from "@heroicons/react/24/outline";
@@ -122,105 +123,111 @@ export function EditProfileModal({
   };
 
   return (
-    <Dialog open={isOpen} onClose={handleClose} size="md">
-      <DialogTitle>Edit Profile</DialogTitle>
-      <DialogBody>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Profile Image Upload - Centered */}
-          <div className="flex flex-col items-center pb-2">
-            <div
-              className="relative w-20 h-20 rounded-full border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-zinc-100 hover:bg-zinc-200 dark:border-zinc-600 dark:hover:border-zinc-500 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all duration-200 cursor-pointer overflow-hidden"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              {imagePreview ? (
-                <img
-                  src={imagePreview}
-                  alt="Profile preview"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <PhotoIcon className="w-8 h-8 text-zinc-400 dark:text-zinc-500" />
-                </div>
-              )}
-            </div>
-            <div className="mt-2 flex items-center gap-2">
-              <button
-                type="button"
+    <Dialog open={isOpen} onOpenChange={(val) => !val && handleClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Profile</DialogTitle>
+        </DialogHeader>
+
+        <div className="py-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Profile Image Upload - Centered */}
+            <div className="flex flex-col items-center pb-2">
+              <div
+                className="relative w-20 h-20 rounded-full border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-zinc-100 hover:bg-zinc-200 dark:border-zinc-600 dark:hover:border-zinc-500 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all duration-200 cursor-pointer overflow-hidden"
                 onClick={() => fileInputRef.current?.click()}
-                className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
               >
-                {imagePreview ? "Change photo" : "Add photo"}
-              </button>
-              {imagePreview && (
-                <>
-                  <span className="text-zinc-300 dark:text-zinc-600">·</span>
-                  <button
-                    type="button"
-                    onClick={handleRemoveImage}
-                    className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
-                  >
-                    Remove
-                  </button>
-                </>
-              )}
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Profile preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <PhotoIcon className="w-8 h-8 text-zinc-400 dark:text-zinc-500" />
+                  </div>
+                )}
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                >
+                  {imagePreview ? "Change photo" : "Add photo"}
+                </button>
+                {imagePreview && (
+                  <>
+                    <span className="text-zinc-300 dark:text-zinc-600">·</span>
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
+                    >
+                      Remove
+                    </button>
+                  </>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
+              />
             </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleImageSelect}
-              className="hidden"
-            />
-          </div>
 
-          {/* Name fields - side by side */}
-          <div className="grid grid-cols-2 gap-3">
+            {/* Name fields - side by side */}
+            <div className="grid grid-cols-2 gap-3">
+              <Field>
+                <Label>First name</Label>
+                <Input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="John"
+                />
+              </Field>
+
+              <Field>
+                <Label>Last name</Label>
+                <Input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Doe"
+                />
+              </Field>
+            </div>
+
             <Field>
-              <Label>First name</Label>
+              <Label>Username</Label>
               <Input
                 type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="John"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="johndoe"
               />
             </Field>
+          </form>
+        </div>
 
-            <Field>
-              <Label>Last name</Label>
-              <Input
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                placeholder="Doe"
-              />
-            </Field>
-          </div>
-
-          <Field>
-            <Label>Username</Label>
-            <Input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="johndoe"
-            />
-          </Field>
-        </form>
-      </DialogBody>
-      <DialogActions>
-        <Button
-          type="button"
-          outline
-          onClick={handleClose}
-          disabled={isLoading}
-        >
-          Cancel
-        </Button>
-        <Button type="submit" onClick={handleSubmit} disabled={isLoading}>
-          {isLoading ? "Saving..." : "Save Changes"}
-        </Button>
-      </DialogActions>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={handleClose}
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" onClick={handleSubmit} disabled={isLoading}>
+            {isLoading ? "Saving..." : "Save Changes"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

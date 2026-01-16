@@ -4,7 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Divider } from "@/components/ui/divider";
 import { Input } from "@/components/ui/input";
 import { Field, FieldGroup } from "@/components/ui/fieldset";
-import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import {
   Cog6ToothIcon,
@@ -12,8 +18,9 @@ import {
 import { useState, useEffect } from "react";
 import {
   Dialog,
-  DialogActions,
-  DialogBody,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -25,8 +32,8 @@ import { Spinner } from "@/components/ui/spinner";
 export default function SessionsPage() {
   const [isOpen, setIsOpen] = useState(false);
   const { isLoading } = useInitializeAuthSettings();
-  const { 
-    settings, 
+  const {
+    settings,
     isDirty,
     updateSessionValidityPeriod,
     updateSessionInactiveTimeout,
@@ -45,7 +52,7 @@ export default function SessionsPage() {
   const [multiSessionEnabled, setMultiSessionEnabled] = useState(false);
   const [maxAccountsPerSession, setMaxAccountsPerSession] = useState(1);
   const [maxSessionsPerAccount, setMaxSessionsPerAccount] = useState(1);
-  
+
   // Flag to prevent store updates during form reset
   const [isResetting, setIsResetting] = useState(false);
 
@@ -57,7 +64,7 @@ export default function SessionsPage() {
 
       // Convert session_validity_period from seconds to appropriate unit (matching auth settings logic)
       const validitySeconds = settings.session_validity_period || 2592000; // 30 days default
-      const validityUnit = validitySeconds / 86400 > 1 ? "days" : validitySeconds / 3600 > 1 ? "hours" : "minutes";
+      const validityUnit = validitySeconds / 86400 >= 1 ? "days" : validitySeconds / 3600 >= 1 ? "hours" : "minutes";
 
       if (validityUnit === "days") {
         setSessionValidityValue(Math.floor(validitySeconds / 86400));
@@ -72,7 +79,7 @@ export default function SessionsPage() {
 
       // Convert session_inactive_timeout from seconds to appropriate unit (matching auth settings logic)
       const inactivitySeconds = settings.session_inactive_timeout || 604800; // 7 days default
-      const inactivityUnit = inactivitySeconds / 86400 > 1 ? "days" : inactivitySeconds / 3600 > 1 ? "hours" : "minutes";
+      const inactivityUnit = inactivitySeconds / 86400 >= 1 ? "days" : inactivitySeconds / 3600 >= 1 ? "hours" : "minutes";
 
       if (inactivityUnit === "days") {
         setInactivityTimeoutValue(Math.floor(inactivitySeconds / 86400));
@@ -87,7 +94,7 @@ export default function SessionsPage() {
 
       // Convert session_token_lifetime from seconds to appropriate unit (matching auth settings logic)
       const tokenSeconds = settings.session_token_lifetime || 1800; // 30 minutes default
-      const tokenUnit = tokenSeconds / 3600 > 1 ? "hours" : "minutes"; // Note: token lifetime only uses hours/minutes
+      const tokenUnit = tokenSeconds / 3600 >= 1 ? "hours" : "minutes"; // Note: token lifetime only uses hours/minutes
 
       if (tokenUnit === "hours") {
         setTokenExpirationValue(Math.floor(tokenSeconds / 3600));
@@ -101,7 +108,7 @@ export default function SessionsPage() {
       setMultiSessionEnabled(settings.multi_session_support?.enabled || false);
       setMaxAccountsPerSession(settings.multi_session_support?.max_accounts_per_session || 1);
       setMaxSessionsPerAccount(settings.multi_session_support?.max_sessions_per_account || 1);
-      
+
       // Re-enable store updates after reset is complete
       setTimeout(() => setIsResetting(false), 0);
     }
@@ -181,16 +188,15 @@ export default function SessionsPage() {
     );
   }
 
-
-
-
-
   return (
     <div>
-      <Heading>Sessions</Heading>
-      <div className="mt-8 space-y-10">
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
-          <div className="space-y-1 col-span-2">
+      <div className="mb-6">
+        <Heading>Sessions</Heading>
+      </div>
+
+      <div className="space-y-10">
+        <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="max-w-xl space-y-1">
             <Subheading>Session Validity</Subheading>
             <Text>
               The maximum lifetime of a session, regardless of user activity.
@@ -198,120 +204,114 @@ export default function SessionsPage() {
               log in again.
             </Text>
           </div>
-          <Field className="flex items-center gap-x-4">
-            <FieldGroup>
-              <Input
-                aria-label="Duration"
-                name="sessionValidityValue"
-                inputClassName="text-right"
-                type="number"
-                min="1"
-                value={sessionValidityValue}
-                onChange={(e) => handleSessionValidityChange(parseInt(e.target.value) || 1, sessionValidityUnit)}
-              />
-            </FieldGroup>
-            <FieldGroup className="flex-1">
-              <Listbox name="sessionValidityUnit" value={sessionValidityUnit} onChange={(unit) => handleSessionValidityChange(sessionValidityValue, unit)}>
-                <ListboxOption value="minutes">
-                  <ListboxLabel>Minutes</ListboxLabel>
-                </ListboxOption>
-                <ListboxOption value="hours">
-                  <ListboxLabel>Hours</ListboxLabel>
-                </ListboxOption>
-                <ListboxOption value="days">
-                  <ListboxLabel>Days</ListboxLabel>
-                </ListboxOption>
-              </Listbox>
-            </FieldGroup>
-          </Field>
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            <Input
+              aria-label="Duration"
+              name="sessionValidityValue"
+              className="w-20 text-right"
+              type="number"
+              min="1"
+              value={sessionValidityValue}
+              onChange={(e) => handleSessionValidityChange(parseInt(e.target.value) || 1, sessionValidityUnit)}
+            />
+            <Select
+              value={sessionValidityUnit}
+              onValueChange={(unit) => handleSessionValidityChange(sessionValidityValue, unit)}
+            >
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="minutes">Minutes</SelectItem>
+                <SelectItem value="hours">Hours</SelectItem>
+                <SelectItem value="days">Days</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </section>
 
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
-          <div className="space-y-1 col-span-2">
+        <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="max-w-xl space-y-1">
             <Subheading>Inactivity Timeout</Subheading>
             <Text>
               The maximum period of inactivity after which a session is
               terminated.
             </Text>
           </div>
-          <Field className="flex items-center gap-x-4">
-            <FieldGroup>
-              <Input
-                aria-label="Duration"
-                inputClassName="text-right"
-                name="inactivityTimeoutValue"
-                type="number"
-                min="1"
-                value={inactivityTimeoutValue}
-                onChange={(e) => handleInactivityTimeoutChange(parseInt(e.target.value) || 1, inactivityTimeoutUnit)}
-              />
-            </FieldGroup>
-            <FieldGroup className="flex-1">
-              <Listbox name="inactivityTimeoutUnit" value={inactivityTimeoutUnit} onChange={(unit) => handleInactivityTimeoutChange(inactivityTimeoutValue, unit)}>
-                <ListboxOption value="minutes">
-                  <ListboxLabel>Minutes</ListboxLabel>
-                </ListboxOption>
-                <ListboxOption value="hours">
-                  <ListboxLabel>Hours</ListboxLabel>
-                </ListboxOption>
-                <ListboxOption value="days">
-                  <ListboxLabel>Days</ListboxLabel>
-                </ListboxOption>
-              </Listbox>
-            </FieldGroup>
-          </Field>
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            <Input
+              aria-label="Duration"
+              className="w-20 text-right"
+              name="inactivityTimeoutValue"
+              type="number"
+              min="1"
+              value={inactivityTimeoutValue}
+              onChange={(e) => handleInactivityTimeoutChange(parseInt(e.target.value) || 1, inactivityTimeoutUnit)}
+            />
+            <Select
+              value={inactivityTimeoutUnit}
+              onValueChange={(unit) => handleInactivityTimeoutChange(inactivityTimeoutValue, unit)}
+            >
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="minutes">Minutes</SelectItem>
+                <SelectItem value="hours">Hours</SelectItem>
+                <SelectItem value="days">Days</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </section>
 
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
-          <div className="space-y-1 col-span-2">
+        <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="max-w-xl space-y-1">
             <Subheading>Token Expiration</Subheading>
             <Text>
               The maximum lifetime of a token. After that, the token will be
               expired and the token with be revalidated.
             </Text>
           </div>
-          <Field className="flex items-center gap-x-4">
-            <FieldGroup>
-              <Input
-                aria-label="Duration"
-                name="tokenExpirationValue"
-                inputClassName="text-right"
-                type="number"
-                min="1"
-                value={tokenExpirationValue}
-                onChange={(e) => handleTokenExpirationChange(parseInt(e.target.value) || 1, tokenExpirationUnit)}
-              />
-            </FieldGroup>
-            <FieldGroup className="flex-1">
-              <Listbox name="tokenExpirationUnit" value={tokenExpirationUnit} onChange={(unit) => handleTokenExpirationChange(tokenExpirationValue, unit)}>
-                <ListboxOption value="minutes">
-                  <ListboxLabel>Minutes</ListboxLabel>
-                </ListboxOption>
-                <ListboxOption value="hours">
-                  <ListboxLabel>Hours</ListboxLabel>
-                </ListboxOption>
-              </Listbox>
-            </FieldGroup>
-          </Field>
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            <Input
+              aria-label="Duration"
+              name="tokenExpirationValue"
+              className="w-20 text-right"
+              type="number"
+              min="1"
+              value={tokenExpirationValue}
+              onChange={(e) => handleTokenExpirationChange(parseInt(e.target.value) || 1, tokenExpirationUnit)}
+            />
+            <Select
+              value={tokenExpirationUnit}
+              onValueChange={(unit) => handleTokenExpirationChange(tokenExpirationValue, unit)}
+            >
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="minutes">Minutes</SelectItem>
+                <SelectItem value="hours">Hours</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </section>
       </div>
 
       <Divider className="my-10" soft />
 
-      <section className="space-y-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <Subheading className="text-sm font-medium">
-              Multi Session Support
-            </Subheading>
-            <Text className="text-sm text-zinc-500 dark:text-zinc-400">
+      <section>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="max-w-xl space-y-1">
+            <Subheading>Multi Session Support</Subheading>
+            <Text>
               Enable multi-session support to allow users to have multiple
               sessions at the same time.
             </Text>
           </div>
           <div className="flex items-center gap-2">
             <Button
-              plain
+              variant="ghost"
               type="button"
               onClick={() => setIsOpen(true)}
               disabled={!multiSessionEnabled}
@@ -320,17 +320,18 @@ export default function SessionsPage() {
             </Button>
             <Dialog
               open={isOpen}
-              onClose={setIsOpen}
-              className="rounded-xl p-6"
+              onOpenChange={setIsOpen}
             >
-              <>
-                <DialogTitle className="mb-2">
-                  Customize session token
-                </DialogTitle>
-                <DialogDescription className="mb-6">
-                  Customize the session token to include additional information.
-                </DialogDescription>
-                <DialogBody className="space-y-8">
+              <DialogContent className="sm:max-w-xl">
+                <DialogHeader>
+                  <DialogTitle>
+                    Customize session token
+                  </DialogTitle>
+                  <DialogDescription>
+                    Customize the session token to include additional information.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-8 py-4">
                   <section className="grid gap-6 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Subheading>Maximum accounts per session</Subheading>
@@ -345,7 +346,7 @@ export default function SessionsPage() {
                           <Input
                             aria-label="Max accounts"
                             name="maxAccounts"
-                            inputClassName="text-right"
+                            className="w-20 text-right"
                             type="number"
                             min="1"
                             max="10"
@@ -374,7 +375,7 @@ export default function SessionsPage() {
                           <Input
                             aria-label="Max user logins"
                             name="maxUserLogins"
-                            inputClassName="text-right"
+                            className="w-20 text-right"
                             type="number"
                             min="1"
                             max="10"
@@ -386,21 +387,19 @@ export default function SessionsPage() {
                       <Text>Set a value between 1 and 10.</Text>
                     </div>
                   </section>
-
-                  <Divider className="my-8" soft />
-                </DialogBody>
-                <DialogActions className="flex justify-end gap-4 mt-6">
-                  <Button plain onClick={() => setIsOpen(false)}>
+                </div>
+                <DialogFooter>
+                  <Button variant="ghost" onClick={() => setIsOpen(false)}>
                     Cancel
                   </Button>
                   <Button onClick={() => setIsOpen(false)}>Submit</Button>
-                </DialogActions>
-              </>
+                </DialogFooter>
+              </DialogContent>
             </Dialog>
             <Switch
               name="multi_session_enabled"
               checked={multiSessionEnabled}
-              onChange={handleMultiSessionChange}
+              onCheckedChange={handleMultiSessionChange}
             />
           </div>
         </div>
@@ -415,7 +414,7 @@ export default function SessionsPage() {
               You have unsaved changes.
             </p>
             <div className="flex gap-3">
-              <Button outline onClick={handleReset} disabled={isSaving}>
+              <Button variant="outline" onClick={handleReset} disabled={isSaving}>
                 Discard
               </Button>
               <Button onClick={handleSave} disabled={isSaving}>

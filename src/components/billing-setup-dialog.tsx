@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   Dialog,
-  DialogActions,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
   DialogTitle,
-  DialogBody,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -203,192 +204,198 @@ export function BillingSetupDialog({
   const isFormValid = formData.legal_name && formData.billing_email;
 
   return (
-    <Dialog open={open} onClose={isPolling ? () => { } : onClose} size="3xl">
-      {isPolling ? (
-        <div className="p-12">
-          <div className="flex flex-col items-center justify-center space-y-8">
-            {/* Animated spinner with pulse effect */}
-            <div className="relative flex items-center justify-center">
-              <div className="absolute w-20 h-20 border-4 border-blue-200 dark:border-blue-900 rounded-full animate-ping opacity-20"></div>
-              <div className="absolute w-16 h-16 border-4 border-blue-300 dark:border-blue-800 rounded-full animate-pulse"></div>
-              <div className="relative w-12 h-12 border-4 border-t-blue-600 dark:border-t-blue-400 border-blue-200 dark:border-blue-900 rounded-full animate-spin"></div>
-            </div>
-
-            <div className="text-center space-y-3 max-w-md">
-              <DialogTitle className="text-xl">
-                Waiting for Checkout Completion
-              </DialogTitle>
-              <Text className="text-zinc-600 dark:text-zinc-400">
-                {checkoutWindowClosed
-                  ? "Checkout window was closed. Checking if payment was completed..."
-                  : "Complete your payment in the checkout window to continue."}
-              </Text>
-            </div>
-
-            {checkoutWindowClosed && (
-              <div className="flex gap-3 pt-4">
-                <Button outline onClick={stopPolling}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSubmit}>Reopen Checkout</Button>
+    <Dialog open={open} onClose={isPolling ? () => { } : onClose}>
+      <DialogContent className="max-w-3xl">
+        {isPolling ? (
+          <div className="p-12">
+            <div className="flex flex-col items-center justify-center space-y-8">
+              {/* Animated spinner with pulse effect */}
+              <div className="relative flex items-center justify-center">
+                <div className="absolute w-20 h-20 border-4 border-blue-200 dark:border-blue-900 rounded-full animate-ping opacity-20"></div>
+                <div className="absolute w-16 h-16 border-4 border-blue-300 dark:border-blue-800 rounded-full animate-pulse"></div>
+                <div className="relative w-12 h-12 border-4 border-t-blue-600 dark:border-t-blue-400 border-blue-200 dark:border-blue-900 rounded-full animate-spin"></div>
               </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        <>
-          <DialogTitle>Set Up Billing</DialogTitle>
-          <DialogBody className="max-h-[70vh] overflow-y-auto">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Plan Selection */}
-              <div>
-                <Text className="text-sm text-zinc-900 dark:text-zinc-100 mb-3">
-                  Choose Your Plan
+
+              <DialogHeader>
+                <DialogTitle className="text-xl text-center">
+                  Waiting for Checkout Completion
+                </DialogTitle>
+              </DialogHeader>
+              <div className="text-center space-y-3 max-w-md">
+                <Text className="text-zinc-600 dark:text-zinc-400">
+                  {checkoutWindowClosed
+                    ? "Checkout window was closed. Checking if payment was completed..."
+                    : "Complete your payment in the checkout window to continue."}
                 </Text>
-                <div className="grid grid-cols-3 gap-3">
-                  {plans.map((plan) => (
-                    <button
-                      key={plan.id}
-                      type="button"
-                      onClick={() => handlePlanSelect(plan.id)}
-                      className={clsx(
-                        "relative p-3 rounded-lg border text-left transition-all",
-                        selectedPlanId === plan.id
-                          ? "border-blue-600 dark:border-blue-500 bg-blue-50 dark:bg-blue-950/20"
-                          : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600",
-                      )}
-                    >
-                      {selectedPlanId === plan.id && (
-                        <div className="absolute top-2 right-2">
-                          <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
-                            <CheckIcon className="w-3 h-3 text-white" />
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="text-sm text-zinc-900 dark:text-zinc-100 mb-1">
-                        {plan.name}
-                      </div>
-                      <div className="text-lg text-zinc-900 dark:text-zinc-100 mb-2">
-                        {plan.price}
-                        <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                          /mo
-                        </span>
-                      </div>
-                      <div className="space-y-0.5 text-xs text-zinc-600 dark:text-zinc-400">
-                        <div>{plan.mau}</div>
-                        <div>{plan.projects}</div>
-                        <div>{plan.orgs}</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
               </div>
 
-              {/* Basic Information */}
-              <div>
-                <Text className="text-sm text-zinc-900 dark:text-zinc-100 mb-3">
-                  Basic Information
-                </Text>
-                <div className="space-y-4">
-                  <Field>
-                    <Label>Full Name or Company Name</Label>
-                    <Input
-                      type="text"
-                      required
-                      value={formData.legal_name}
-                      onChange={(e) =>
-                        handleInputChange("legal_name", e.target.value)
-                      }
-                      placeholder="John Doe or Acme Corp"
-                      autoFocus
-                    />
-                    <Description>This will appear on your invoices</Description>
-                  </Field>
-
-                  <Field>
-                    <Label>Billing Email</Label>
-                    <Input
-                      type="email"
-                      required
-                      value={formData.billing_email}
-                      onChange={(e) =>
-                        handleInputChange("billing_email", e.target.value)
-                      }
-                      placeholder="billing@example.com"
-                    />
-                    <Description>
-                      We'll send invoices and receipts to this email
-                    </Description>
-                  </Field>
-
-                  <Field>
-                    <Label>Phone Number (Optional)</Label>
-                    <Input
-                      type="tel"
-                      value={formData.billing_phone}
-                      onChange={(e) =>
-                        handleInputChange("billing_phone", e.target.value)
-                      }
-                      placeholder="+1 (555) 123-4567"
-                    />
-                    <Description>
-                      {formData.billing_phone?.startsWith("+")
-                        ? "International format detected"
-                        : "US/Canada format: (555) 123-4567 or +1 for international"}
-                    </Description>
-                  </Field>
-
-                  <Field>
-                    <Label>Tax ID / VAT (Optional)</Label>
-                    <Input
-                      type="text"
-                      value={formData.tax_id}
-                      onChange={(e) =>
-                        handleInputChange("tax_id", e.target.value)
-                      }
-                      placeholder="e.g., VAT123456789"
-                    />
-                  </Field>
+              {checkoutWindowClosed && (
+                <div className="flex gap-3 pt-4">
+                  <Button variant="outline" onClick={stopPolling}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSubmit}>Reopen Checkout</Button>
                 </div>
-              </div>
-
-              {/* Info Box */}
-              <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900">
-                <InformationCircleIcon className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <Text className="text-sm text-blue-900 dark:text-blue-100 font-medium mb-1">
-                    Payment & Address Details
-                  </Text>
-                  <Text className="text-sm text-blue-800 dark:text-blue-200">
-                    You'll enter your billing address and payment information
-                    securely on the next screen.
-                  </Text>
-                </div>
-              </div>
-            </form>
-          </DialogBody>
-
-          <DialogActions>
-            <Button plain onClick={onClose}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={!isFormValid || createCheckout.isPending}
-            >
-              {createCheckout.isPending ? (
-                <>
-                  <Spinner size="sm" />
-                  Opening Checkout...
-                </>
-              ) : (
-                "Continue to Payment"
               )}
-            </Button>
-          </DialogActions>
-        </>
-      )}
+            </div>
+          </div>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>Set Up Billing</DialogTitle>
+            </DialogHeader>
+            <div className="max-h-[70vh] overflow-y-auto py-4">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Plan Selection */}
+                <div>
+                  <Text className="text-sm text-zinc-900 dark:text-zinc-100 mb-3">
+                    Choose Your Plan
+                  </Text>
+                  <div className="grid grid-cols-3 gap-3">
+                    {plans.map((plan) => (
+                      <button
+                        key={plan.id}
+                        type="button"
+                        onClick={() => handlePlanSelect(plan.id)}
+                        className={clsx(
+                          "relative p-3 rounded-lg border text-left transition-all",
+                          selectedPlanId === plan.id
+                            ? "border-blue-600 dark:border-blue-500 bg-blue-50 dark:bg-blue-950/20"
+                            : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600",
+                        )}
+                      >
+                        {selectedPlanId === plan.id && (
+                          <div className="absolute top-2 right-2">
+                            <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
+                              <CheckIcon className="w-3 h-3 text-white" />
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="text-sm text-zinc-900 dark:text-zinc-100 mb-1">
+                          {plan.name}
+                        </div>
+                        <div className="text-lg text-zinc-900 dark:text-zinc-100 mb-2">
+                          {plan.price}
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                            /mo
+                          </span>
+                        </div>
+                        <div className="space-y-0.5 text-xs text-zinc-600 dark:text-zinc-400">
+                          <div>{plan.mau}</div>
+                          <div>{plan.projects}</div>
+                          <div>{plan.orgs}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Basic Information */}
+                <div>
+                  <Text className="text-sm text-zinc-900 dark:text-zinc-100 mb-3">
+                    Basic Information
+                  </Text>
+                  <div className="space-y-4">
+                    <Field>
+                      <Label>Full Name or Company Name</Label>
+                      <Input
+                        type="text"
+                        required
+                        value={formData.legal_name}
+                        onChange={(e) =>
+                          handleInputChange("legal_name", e.target.value)
+                        }
+                        placeholder="John Doe or Acme Corp"
+                        autoFocus
+                      />
+                      <Description>This will appear on your invoices</Description>
+                    </Field>
+
+                    <Field>
+                      <Label>Billing Email</Label>
+                      <Input
+                        type="email"
+                        required
+                        value={formData.billing_email}
+                        onChange={(e) =>
+                          handleInputChange("billing_email", e.target.value)
+                        }
+                        placeholder="billing@example.com"
+                      />
+                      <Description>
+                        We'll send invoices and receipts to this email
+                      </Description>
+                    </Field>
+
+                    <Field>
+                      <Label>Phone Number (Optional)</Label>
+                      <Input
+                        type="tel"
+                        value={formData.billing_phone}
+                        onChange={(e) =>
+                          handleInputChange("billing_phone", e.target.value)
+                        }
+                        placeholder="+1 (555) 123-4567"
+                      />
+                      <Description>
+                        {formData.billing_phone?.startsWith("+")
+                          ? "International format detected"
+                          : "US/Canada format: (555) 123-4567 or +1 for international"}
+                      </Description>
+                    </Field>
+
+                    <Field>
+                      <Label>Tax ID / VAT (Optional)</Label>
+                      <Input
+                        type="text"
+                        value={formData.tax_id}
+                        onChange={(e) =>
+                          handleInputChange("tax_id", e.target.value)
+                        }
+                        placeholder="e.g., VAT123456789"
+                      />
+                    </Field>
+                  </div>
+                </div>
+
+                {/* Info Box */}
+                <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900">
+                  <InformationCircleIcon className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <Text className="text-sm text-blue-900 dark:text-blue-100 font-medium mb-1">
+                      Payment & Address Details
+                    </Text>
+                    <Text className="text-sm text-blue-800 dark:text-blue-200">
+                      You'll enter your billing address and payment information
+                      securely on the next screen.
+                    </Text>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <DialogFooter>
+              <Button variant="ghost" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={!isFormValid || createCheckout.isPending}
+              >
+                {createCheckout.isPending ? (
+                  <>
+                    <Spinner size="sm" />
+                    Opening Checkout...
+                  </>
+                ) : (
+                  "Continue to Payment"
+                )}
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
     </Dialog>
   );
 }

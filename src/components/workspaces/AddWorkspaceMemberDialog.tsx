@@ -3,12 +3,13 @@ import { useAddWorkspaceMember } from "@/lib/api/hooks/use-workspace-mutations";
 import { useDeploymentUsers } from "@/lib/api/hooks/use-deployment-users";
 import {
 	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogFooter,
 	DialogTitle,
-	DialogBody,
-	DialogActions,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Field, Label } from "@/components/ui/fieldset";
+import { Label } from "@/components/ui/label";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { ModalCombobox } from "@/components/ui/modal-combobox";
 import type { WorkspaceRole } from "@/types/organization";
@@ -85,84 +86,88 @@ export function AddWorkspaceMemberDialog({
 	};
 
 	return (
-		<Dialog open={isOpen} onClose={onClose}>
-			<DialogTitle>Add Workspace Member</DialogTitle>
+		<Dialog open={isOpen} onOpenChange={(val) => !val && onClose()}>
+			<DialogContent className="sm:max-w-md overflow-visible">
+				<DialogHeader>
+					<DialogTitle>Add Workspace Member</DialogTitle>
+				</DialogHeader>
 
-			<DialogBody>
-				<form onSubmit={handleSubmit} className="space-y-6">
-					<div className="space-y-4">
-						<Field>
-							<Label>Select User</Label>
-							<ModalCombobox
-								className="mt-2"
-								options={userOptions}
-								value={selectedUser}
-								onChange={setSelectedUser}
-								displayValue={displayUserValue}
-								filterFunction={(user: UserWithIdentifiers, query: string) => {
-									const searchTerm = query.toLowerCase();
-									const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
-									const username = user.username?.toLowerCase() || "";
-									const email = user.primary_email_address?.toLowerCase() || "";
-									
-									return fullName.includes(searchTerm) || 
-									       username.includes(searchTerm) ||
-									       email.includes(searchTerm);
-								}}
-								placeholder={usersLoading ? "Loading users..." : "Search for a user by name, username or email..."}
-								disabled={usersLoading}
-							/>
-						</Field>
+				<div className="py-2">
+					<form onSubmit={handleSubmit} className="space-y-6">
+						<div className="space-y-4">
+							<div className="space-y-2">
+								<Label>Select User</Label>
+								<ModalCombobox
+									className="mt-2"
+									options={userOptions}
+									value={selectedUser}
+									onChange={setSelectedUser}
+									displayValue={displayUserValue}
+									filterFunction={(user: UserWithIdentifiers, query: string) => {
+										const searchTerm = query.toLowerCase();
+										const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
+										const username = user.username?.toLowerCase() || "";
+										const email = user.primary_email_address?.toLowerCase() || "";
 
-						{selectedUser && (
-							<div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-3">
-								<div className="text-sm font-medium text-blue-900 dark:text-blue-100">
-									Selected User
-								</div>
-								<div className="mt-1 text-sm text-blue-700 dark:text-blue-300">
-									{selectedUser.first_name} {selectedUser.last_name} 
-									{selectedUser.primary_email_address && ` • ${selectedUser.primary_email_address}`}
-								</div>
+										return fullName.includes(searchTerm) ||
+											username.includes(searchTerm) ||
+											email.includes(searchTerm);
+									}}
+									placeholder={usersLoading ? "Loading users..." : "Search for a user by name, username or email..."}
+									disabled={usersLoading}
+								/>
 							</div>
-						)}
 
-						{availableRoles.length > 0 && (
-							<MultiSelect
-								label="Assign Roles (Optional)"
-								options={availableRoles.map(role => ({
-									id: role.id,
-									name: role.is_deployment_level ? `${role.name} (Default)` : role.name,
-									description: role.is_deployment_level
-										? `Default deployment role • ${role.permissions.length} permission${role.permissions.length !== 1 ? 's' : ''}`
-										: `${role.permissions.length} permission${role.permissions.length !== 1 ? 's' : ''}`
-								}))}
-								selectedValues={selectedRoles}
-								onChange={setSelectedRoles}
-								placeholder="Select roles to assign..."
-								modal={true}
-							/>
-						)}
-					</div>
-				</form>
-			</DialogBody>
+							{selectedUser && (
+								<div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-3">
+									<div className="text-sm font-medium text-blue-900 dark:text-blue-100">
+										Selected User
+									</div>
+									<div className="mt-1 text-sm text-blue-700 dark:text-blue-300">
+										{selectedUser.first_name} {selectedUser.last_name}
+										{selectedUser.primary_email_address && ` • ${selectedUser.primary_email_address}`}
+									</div>
+								</div>
+							)}
 
-			<DialogActions>
-				<Button
-					type="button"
-					outline
-					onClick={onClose}
-					disabled={addMember.isPending}
-				>
-					Cancel
-				</Button>
-				<Button
-					type="submit"
-					onClick={handleSubmit}
-					disabled={addMember.isPending || !selectedUser}
-				>
-					{addMember.isPending ? "Adding..." : "Add Member"}
-				</Button>
-			</DialogActions>
+							{availableRoles.length > 0 && (
+								<MultiSelect
+									label="Assign Roles (Optional)"
+									options={availableRoles.map(role => ({
+										id: role.id,
+										name: role.is_deployment_level ? `${role.name} (Default)` : role.name,
+										description: role.is_deployment_level
+											? `Default deployment role • ${role.permissions.length} permission${role.permissions.length !== 1 ? 's' : ''}`
+											: `${role.permissions.length} permission${role.permissions.length !== 1 ? 's' : ''}`
+									}))}
+									selectedValues={selectedRoles}
+									onChange={setSelectedRoles}
+									placeholder="Select roles to assign..."
+									modal={true}
+								/>
+							)}
+						</div>
+					</form>
+				</div>
+
+				<DialogFooter>
+					<Button
+						type="button"
+						variant="outline"
+						onClick={onClose}
+						disabled={addMember.isPending}
+					>
+						Cancel
+					</Button>
+					<Button
+						type="submit"
+						onClick={handleSubmit}
+						disabled={addMember.isPending || !selectedUser}
+					>
+						{addMember.isPending ? "Adding..." : "Add Member"}
+					</Button>
+				</DialogFooter>
+			</DialogContent>
 		</Dialog>
 	);
 }

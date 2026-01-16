@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heading } from "@/components/ui/heading";
-import { Input, InputGroup } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -12,13 +12,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import {
   ArrowPathIcon,
   MagnifyingGlassIcon,
   ClockIcon,
   ChevronRightIcon,
-  FunnelIcon,
 } from "@heroicons/react/24/outline";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { webhookApi } from "@/lib/api/webhooks";
@@ -121,244 +119,208 @@ export default function WebhookDeliveriesPage() {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <Heading>Webhook Deliveries</Heading>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          <h1 className="text-xl font-normal tracking-tight">Webhook Deliveries</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Monitor and manage webhook delivery attempts
           </p>
         </div>
         <Button onClick={() => refetch()}>
-          <ArrowPathIcon className="h-4 w-4" />
+          <ArrowPathIcon className="h-4 w-4 mr-2" />
           Refresh
         </Button>
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 mb-6">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 shrink-0">
-            <FunnelIcon className="h-4 w-4" />
-            <span className="font-medium">Filters</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <InputGroup>
-              <MagnifyingGlassIcon className="size-4" />
-              <Input
-                name="search"
-                placeholder="Search by event name..."
-                value={eventFilter}
-                onChange={(e) => handleEventFilterChange(e.target.value)}
-                className="text-sm"
-              />
-            </InputGroup>
-          </div>
-
-          <div className="shrink-0">
-            <Listbox value={statusFilter} onChange={handleStatusFilterChange}>
-              <ListboxOption value="all">
-                <ListboxLabel>All Status</ListboxLabel>
-              </ListboxOption>
-              <ListboxOption value="success">
-                <ListboxLabel>Success</ListboxLabel>
-              </ListboxOption>
-              <ListboxOption value="failed">
-                <ListboxLabel>Failed (Retryable)</ListboxLabel>
-              </ListboxOption>
-              <ListboxOption value="permanently_failed">
-                <ListboxLabel>Permanently Failed</ListboxLabel>
-              </ListboxOption>
-              <ListboxOption value="pending">
-                <ListboxLabel>Pending</ListboxLabel>
-              </ListboxOption>
-              <ListboxOption value="filtered">
-                <ListboxLabel>Filtered</ListboxLabel>
-              </ListboxOption>
-            </Listbox>
-          </div>
+      <div className="flex items-center gap-2 mb-6">
+        <div className="relative flex-1">
+          <MagnifyingGlassIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by event name..."
+            value={eventFilter}
+            onChange={(e) => handleEventFilterChange(e.target.value)}
+            className="pl-9"
+          />
         </div>
+        <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="success">Success</SelectItem>
+            <SelectItem value="failed">Failed (Retryable)</SelectItem>
+            <SelectItem value="permanently_failed">Permanently Failed</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="filtered">Filtered</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Deliveries Table */}
-      <div className="bg-white dark:bg-zinc-900 shadow-sm ring-1 ring-zinc-900/5 dark:ring-zinc-100/10 rounded-lg overflow-hidden">
-        <Table>
-          <TableHead>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Event</TableHead>
+            <TableHead>Endpoint</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Response</TableHead>
+            <TableHead>Timestamp</TableHead>
+            <TableHead></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {isLoading ? (
+            <SkeletonTableRows rows={10} columns={6} withAvatar={false} />
+          ) : !deliveries || deliveries.length === 0 ? (
             <TableRow>
-              <TableHeader
-                style={{ paddingLeft: "2rem", paddingRight: "1.5rem" }}
-              >
-                Event
-              </TableHeader>
-              <TableHeader>Endpoint</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader>Response</TableHeader>
-              <TableHeader>Timestamp</TableHeader>
-              <TableHeader
-                style={{
-                  paddingLeft: "1.5rem",
-                  paddingRight: "2rem",
-                  textAlign: "right",
-                }}
-              >
-                Actions
-              </TableHeader>
+              <TableCell colSpan={6} className="text-center px-6 py-16">
+                <div className="flex flex-col items-center">
+                  <ClockIcon className="h-12 w-12 text-zinc-400 mb-4" />
+                  <h3 className="text-sm font-normal text-zinc-900 dark:text-zinc-100">
+                    No deliveries found
+                  </h3>
+                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                    {statusFilter !== "all" || eventFilter
+                      ? "Try adjusting your filters"
+                      : "Webhook deliveries will appear here once events are triggered"}
+                  </p>
+                </div>
+              </TableCell>
             </TableRow>
-          </TableHead>
-          <TableBody>
-            {isLoading ? (
-              <SkeletonTableRows rows={10} columns={6} withAvatar={false} />
-            ) : !deliveries || deliveries.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center px-6 py-16">
-                  <div className="flex flex-col items-center">
-                    <ClockIcon className="h-12 w-12 text-zinc-400 mb-4" />
-                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                      No deliveries found
-                    </h3>
-                    <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                      {statusFilter !== "all" || eventFilter
-                        ? "Try adjusting your filters"
-                        : "Webhook deliveries will appear here once events are triggered"}
-                    </p>
+          ) : (
+            deliveries.map((delivery: any) => (
+              <TableRow
+                key={delivery.delivery_id}
+                className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 cursor-pointer transition-colors"
+                onClick={() =>
+                  navigate(
+                    `/project/${deploymentId}/deployment/${deploymentId}/webhooks/deliveries/${delivery.delivery_id}${delivery.status === "pending" ? "?status=pending" : ""}`,
+                  )
+                }
+              >
+                <TableCell
+                  style={{ paddingLeft: "2rem", paddingRight: "1.5rem" }}
+                >
+                  <div>
+                    <code className="text-sm font-medium text-zinc-900 dark:text-zinc-100 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">
+                      {delivery.event_name}
+                    </code>
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                      Attempt {delivery.attempt_number} of{" "}
+                      {delivery.max_attempts || 5}
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell className="px-6 py-4">
+                  <div className="max-w-xs">
+                    <div
+                      className="text-sm text-zinc-900 dark:text-zinc-100 truncate"
+                      title={delivery.endpoint_url}
+                    >
+                      {new URL(delivery.endpoint_url).hostname}
+                    </div>
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+                      {new URL(delivery.endpoint_url).pathname}
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell className="px-6 py-4">
+                  {getStatusBadge(delivery.status)}
+                </TableCell>
+                <TableCell className="px-6 py-4">
+                  {delivery.http_status_code ? (
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        color={
+                          delivery.http_status_code >= 200 &&
+                            delivery.http_status_code < 300
+                            ? "green"
+                            : delivery.http_status_code >= 400 &&
+                              delivery.http_status_code < 500
+                              ? "amber"
+                              : "red"
+                        }
+                      >
+                        {delivery.http_status_code}
+                      </Badge>
+                      {delivery.response_time_ms && (
+                        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {delivery.response_time_ms}ms
+                        </span>
+                      )}
+                    </div>
+                  ) : delivery.error_message ? (
+                    <span
+                      className="text-xs text-red-600 dark:text-red-400"
+                      title={delivery.error_message}
+                    >
+                      {delivery.error_message.length > 30
+                        ? `${delivery.error_message.substring(0, 30)}...`
+                        : delivery.error_message}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                      —
+                    </span>
+                  )}
+                </TableCell>
+                <TableCell className="px-6 py-4">
+                  <div className="text-sm text-zinc-900 dark:text-zinc-100">
+                    {format(new Date(delivery.timestamp), "MMM d, yyyy")}
+                  </div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                    {format(new Date(delivery.timestamp), "h:mm:ss a")}
+                  </div>
+                </TableCell>
+                <TableCell
+                  style={{
+                    paddingLeft: "1.5rem",
+                    paddingRight: "2rem",
+                    textAlign: "right",
+                  }}
+                >
+                  <div className="flex items-center justify-end gap-2">
+                    {delivery.status !== "pending" && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation();
+                          retryMutation.mutate(delivery.delivery_id);
+                        }}
+                        disabled={retryMutation.isPending}
+                        title="Retry delivery"
+                      >
+                        <ArrowPathIcon className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <ChevronRightIcon className="h-4 w-4 text-zinc-400" />
                   </div>
                 </TableCell>
               </TableRow>
-            ) : (
-              deliveries.map((delivery: any) => (
-                <TableRow
-                  key={delivery.delivery_id}
-                  className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 cursor-pointer transition-colors"
-                  onClick={() =>
-                    navigate(
-                      `/project/${deploymentId}/deployment/${deploymentId}/webhooks/deliveries/${delivery.delivery_id}${delivery.status === "pending" ? "?status=pending" : ""}`,
-                    )
-                  }
-                >
-                  <TableCell
-                    style={{ paddingLeft: "2rem", paddingRight: "1.5rem" }}
-                  >
-                    <div>
-                      <code className="text-sm font-medium text-zinc-900 dark:text-zinc-100 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">
-                        {delivery.event_name}
-                      </code>
-                      <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                        Attempt {delivery.attempt_number} of{" "}
-                        {delivery.max_attempts || 5}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="px-6 py-4">
-                    <div className="max-w-xs">
-                      <div
-                        className="text-sm text-zinc-900 dark:text-zinc-100 truncate"
-                        title={delivery.endpoint_url}
-                      >
-                        {new URL(delivery.endpoint_url).hostname}
-                      </div>
-                      <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
-                        {new URL(delivery.endpoint_url).pathname}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="px-6 py-4">
-                    {getStatusBadge(delivery.status)}
-                  </TableCell>
-                  <TableCell className="px-6 py-4">
-                    {delivery.http_status_code ? (
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          color={
-                            delivery.http_status_code >= 200 &&
-                            delivery.http_status_code < 300
-                              ? "green"
-                              : delivery.http_status_code >= 400 &&
-                                  delivery.http_status_code < 500
-                                ? "amber"
-                                : "red"
-                          }
-                        >
-                          {delivery.http_status_code}
-                        </Badge>
-                        {delivery.response_time_ms && (
-                          <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                            {delivery.response_time_ms}ms
-                          </span>
-                        )}
-                      </div>
-                    ) : delivery.error_message ? (
-                      <span
-                        className="text-xs text-red-600 dark:text-red-400"
-                        title={delivery.error_message}
-                      >
-                        {delivery.error_message.length > 30
-                          ? `${delivery.error_message.substring(0, 30)}...`
-                          : delivery.error_message}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                        —
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="px-6 py-4">
-                    <div className="text-sm text-zinc-900 dark:text-zinc-100">
-                      {format(new Date(delivery.timestamp), "MMM d, yyyy")}
-                    </div>
-                    <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                      {format(new Date(delivery.timestamp), "h:mm:ss a")}
-                    </div>
-                  </TableCell>
-                  <TableCell
-                    style={{
-                      paddingLeft: "1.5rem",
-                      paddingRight: "2rem",
-                      textAlign: "right",
-                    }}
-                  >
-                    <div className="flex items-center justify-end gap-2">
-                      {delivery.status !== "pending" && (
-                        <Button
-                          plain
-                          onClick={(e: React.MouseEvent) => {
-                            e.stopPropagation();
-                            retryMutation.mutate(delivery.delivery_id);
-                          }}
-                          disabled={retryMutation.isPending}
-                          title="Retry delivery"
-                        >
-                          <ArrowPathIcon className="h-4 w-4" />
-                        </Button>
-                      )}
-                      <ChevronRightIcon className="h-4 w-4 text-zinc-400" />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            ))
+          )}
+        </TableBody>
+      </Table>
 
       {/* Pagination Controls */}
       {deliveries && deliveries.length > 0 && (
         <div className="flex items-center justify-between mt-4">
-          <div className="text-sm text-zinc-500 dark:text-zinc-400">
+          <div className="text-sm text-muted-foreground">
             Showing {currentPage * pageSize + 1} -{" "}
-            {Math.min(
-              (currentPage + 1) * pageSize,
-              currentPage * pageSize + deliveries.length,
-            )}{" "}
-            of {hasMore ? "many" : currentPage * pageSize + deliveries.length}{" "}
-            deliveries
+            {Math.min((currentPage + 1) * pageSize, currentPage * pageSize + deliveries.length)}{" "}
+            of {hasMore ? "many" : currentPage * pageSize + deliveries.length} deliveries
           </div>
           <div className="flex items-center gap-2">
             <Button
-              plain
+              variant="outline"
               disabled={currentPage === 0}
               onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
             >
               Previous
             </Button>
             <Button
-              plain
+              variant="outline"
               disabled={!hasMore}
               onClick={() => setCurrentPage((p) => p + 1)}
             >

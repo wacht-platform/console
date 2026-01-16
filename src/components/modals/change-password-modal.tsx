@@ -1,9 +1,10 @@
 import { useState } from "react";
 import {
   Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
   DialogTitle,
-  DialogBody,
-  DialogActions,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Field, Label, ErrorMessage } from "@/components/ui/fieldset";
@@ -108,62 +109,68 @@ export function ChangePasswordModal({
   };
 
   return (
-    <Dialog open={isOpen} onClose={handleClose}>
-      <DialogTitle>
-        {hasPassword ? "Change Password" : "Set Password"}
-      </DialogTitle>
-      <DialogBody>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Field>
-            <Label htmlFor="newPassword">New Password</Label>
-            <Input
-              id="newPassword"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Enter your new password"
-            />
-            {errors.newPassword && (
-              <ErrorMessage>{errors.newPassword}</ErrorMessage>
-            )}
-          </Field>
+    <Dialog open={isOpen} onOpenChange={(val) => !val && handleClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            {hasPassword ? "Change Password" : "Set Password"}
+          </DialogTitle>
+        </DialogHeader>
 
-          <Field>
-            <Label htmlFor="confirmPassword">Confirm New Password</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm your new password"
-            />
-            {errors.confirmPassword && (
-              <ErrorMessage>{errors.confirmPassword}</ErrorMessage>
-            )}
-          </Field>
+        <div className="py-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Field>
+              <Label htmlFor="newPassword">New Password</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter your new password"
+              />
+              {errors.newPassword && (
+                <ErrorMessage>{errors.newPassword}</ErrorMessage>
+              )}
+            </Field>
 
-          <Field className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="skipChecks"
-              checked={skipChecks}
-              onChange={(e) => setSkipChecks(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <Label htmlFor="skipChecks" className="text-sm font-normal mb-0">
-              Skip password validation checks
-            </Label>
-          </Field>
-        </form>
-      </DialogBody>
-      <DialogActions>
-        <Button outline onClick={handleClose} disabled={isLoading}>
-          Cancel
-        </Button>
-        <Button onClick={handleSubmit} disabled={isLoading}>
-          {isLoading ? "Changing..." : hasPassword ? "Change Password" : "Set Password"}
-        </Button>
-      </DialogActions>
+            <Field>
+              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm your new password"
+              />
+              {errors.confirmPassword && (
+                <ErrorMessage>{errors.confirmPassword}</ErrorMessage>
+              )}
+            </Field>
+
+            <Field className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="skipChecks"
+                checked={skipChecks}
+                onChange={(e) => setSkipChecks(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <Label htmlFor="skipChecks" className="text-sm font-normal mb-0">
+                Skip password validation checks
+              </Label>
+            </Field>
+          </form>
+        </div>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={handleClose} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} disabled={isLoading}>
+            {isLoading ? "Changing..." : hasPassword ? "Change Password" : "Set Password"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

@@ -135,7 +135,7 @@ export const NodePanel: FC<NodePanelProps> = ({ onNodeSelect }) => {
   return (
     <div className="node-panel w-64 h-full overflow-y-auto border-r border-gray-200 bg-white" data-testid="node-panel">
       <div className="p-4">
-        <h3 className="text-lg font-semibold mb-4">Node Library</h3>
+        <h3 className="text-lg font-normal mb-4">Node Library</h3>
         <div className="space-y-6">
           {nodeCategories.map((category) => (
             <div key={category.type} className="space-y-2">
@@ -152,7 +152,7 @@ export const NodePanel: FC<NodePanelProps> = ({ onNodeSelect }) => {
                     }}
                     className="node-item-wrapper"
                   >
-                    <div 
+                    <div
                       className="node-item flex items-center p-2 rounded-md border border-gray-200 cursor-move hover:bg-gray-50 transition-colors"
                       onClick={() => onNodeSelect && onNodeSelect(item.type, {
                         label: item.label,

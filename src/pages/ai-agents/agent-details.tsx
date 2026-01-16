@@ -4,8 +4,8 @@ import {
     ArrowLeftIcon,
     ClipboardDocumentIcon,
     LinkIcon,
-    WrenchIcon,
-    ArrowPathIcon,
+    WrenchScrewdriverIcon,
+    FireIcon,
     BookOpenIcon,
     CheckIcon,
     PencilIcon,
@@ -14,7 +14,6 @@ import {
     EllipsisVerticalIcon,
     CodeBracketIcon,
 } from "@heroicons/react/24/outline";
-import { Heading } from "../../components/ui/heading";
 import { Button } from "../../components/ui/button";
 import { Spinner } from "../../components/ui/spinner";
 import { ConfirmationDialog } from "../../components/modals/confirmation-dialog";
@@ -24,12 +23,30 @@ import { useAgentById, useDeleteAgent, type Agent } from "../../lib/api/hooks/us
 import { useDeleteIntegration } from "../../lib/api/hooks/use-integrations";
 import { useGenerateAgentTicket } from "../../lib/hooks/use-generate-ticket";
 import { useProjects } from "../../lib/api/hooks/use-projects";
+import { useTools } from "../../lib/api/hooks/use-tools";
+import { useWorkflows } from "../../lib/api/hooks/use-workflows";
+import { useKnowledgeBases } from "../../lib/api/hooks/use-knowledge-bases";
 import { BsMicrosoftTeams } from "react-icons/bs";
 import { SiWhatsapp, SiClickup } from "react-icons/si";
-import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "../../components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { Badge } from "../../components/ui/badge";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import type { AgentIntegration } from "@/types/agent-integration";
-
-type TabType = "integrations" | "tools" | "workflows" | "knowledge" | "debug";
 
 const getIntegrationIcon = (type: string) => {
     const t = type.toLowerCase();
@@ -41,7 +58,7 @@ const getIntegrationIcon = (type: string) => {
         case "clickup":
             return <SiClickup className="h-5 w-5 text-[#7B44AC]" />;
         default:
-            return <LinkIcon className="h-5 w-5 text-gray-400" />;
+            return <LinkIcon className="h-5 w-5 text-muted-foreground" />;
     }
 };
 
@@ -58,7 +75,6 @@ const getIntegrationLabel = (type: string) => {
 export default function AgentDetailsPage() {
     const navigate = useNavigate();
     const { agentId } = useParams<{ agentId: string }>();
-    const [activeTab, setActiveTab] = useState<TabType>("integrations");
     const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -76,6 +92,23 @@ export default function AgentDetailsPage() {
     const deleteIntegrationMutation = useDeleteIntegration(agentId || "");
     const generateTicketMutation = useGenerateAgentTicket();
     const { selectedDeployment } = useProjects();
+
+    // Fetch related resources to manually map them (workaround for backend details endpoint)
+    const { data: toolsData } = useTools({ limit: 100 });
+    const { data: workflowsData } = useWorkflows({ limit: 100 });
+    const { data: knowledgeBasesData } = useKnowledgeBases({ limit: 100 });
+
+    const allTools = toolsData?.tools || [];
+    const allWorkflows = workflowsData?.workflows || [];
+    const allKnowledgeBases = knowledgeBasesData?.data || [];
+
+    const attachedToolIds = (agent?.configuration?.tool_ids as string[]) || [];
+    const attachedWorkflowIds = (agent?.configuration?.workflow_ids as string[]) || [];
+    const attachedKbIds = (agent?.configuration?.knowledge_base_ids as string[]) || [];
+
+    const attachedTools = allTools.filter(t => attachedToolIds.includes(t.id));
+    const attachedWorkflows = allWorkflows.filter(w => attachedWorkflowIds.includes(w.id));
+    const attachedKnowledgeBases = allKnowledgeBases.filter(kb => attachedKbIds.includes(kb.id));
 
     const handleCopyUrl = async (url: string) => {
         await navigator.clipboard.writeText(url);
@@ -121,19 +154,11 @@ export default function AgentDetailsPage() {
         }
     };
 
-    const tabs = [
-        { id: "integrations" as const, label: "Integrations", icon: LinkIcon },
-        { id: "tools" as const, label: "Tools", icon: WrenchIcon },
-        { id: "workflows" as const, label: "Workflows", icon: ArrowPathIcon },
-        { id: "knowledge" as const, label: "Knowledge Base", icon: BookOpenIcon },
-        { id: "debug" as const, label: "Debug", icon: CodeBracketIcon },
-    ];
-
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] py-12">
                 <Spinner size="lg" />
-                <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">Loading agent...</p>
+                <p className="mt-4 text-sm text-muted-foreground">Loading agent...</p>
             </div>
         );
     }
@@ -141,11 +166,11 @@ export default function AgentDetailsPage() {
     if (error || !agent) {
         return (
             <div className="text-center py-12">
-                <p className="text-red-600 dark:text-red-400">
+                <p className="text-destructive">
                     {error?.message || "Agent not found"}
                 </p>
                 <Link to="../ai-agents">
-                    <Button className="mt-4">
+                    <Button className="mt-4" variant="outline">
                         <ArrowLeftIcon className="mr-2 h-4 w-4" />
                         Back to Agents
                     </Button>
@@ -155,154 +180,146 @@ export default function AgentDetailsPage() {
     }
 
     return (
-        <div>
+        <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-start justify-between mb-6">
-                <div>
-                    <Heading>{agent.name || "Unnamed Agent"}</Heading>
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2 max-w-2xl">
-                        {agent.description || "No description"}
-                    </p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button outline onClick={() => setIsEditDialogOpen(true)}>
-                        <PencilIcon className="mr-2 h-4 w-4" />
-                        Edit
-                    </Button>
-                    <Button
-                        outline
-                        className="text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                        onClick={() => setConfirmDeleteOpen(true)}
-                    >
-                        <TrashIcon className="mr-2 h-4 w-4" />
-                        Delete
-                    </Button>
+            <div>
+                <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                        <h1 className="text-2xl font-normal tracking-tight">{agent.name || "Unnamed Agent"}</h1>
+                        <p className="text-sm text-muted-foreground max-w-2xl">
+                            {agent.description || "No description"}
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" onClick={() => setIsEditDialogOpen(true)}>
+                            <PencilIcon className="mr-2 h-4 w-4" />
+                            Edit Agent
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={() => setConfirmDeleteOpen(true)}
+                        >
+                            <TrashIcon className="mr-2 h-4 w-4" />
+                            Delete
+                        </Button>
+                    </div>
                 </div>
             </div>
 
             {/* Tabs */}
-            <div className="border-b border-gray-200 dark:border-zinc-700 mb-6">
-                <nav className="-mb-px flex space-x-6">
-                    {tabs.map((tab) => {
-                        const Icon = tab.icon;
-                        return (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`
-                                    flex items-center gap-2 py-3 px-1 border-b-2 font-medium text-sm transition-colors
-                                    ${activeTab === tab.id
-                                        ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
-                                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200"
-                                    }
-                                `}
-                            >
-                                <Icon className="h-4 w-4" />
-                                {tab.label}
-                            </button>
-                        );
-                    })}
-                </nav>
-            </div>
+            <Tabs defaultValue="integrations" className="w-full">
+                <TabsList className="w-full justify-start p-1 bg-muted/20 rounded-lg h-auto inline-flex w-auto">
+                    <TabsTrigger value="integrations">
+                        <LinkIcon className="h-4 w-4 mr-2" />
+                        Integrations
+                    </TabsTrigger>
+                    <TabsTrigger value="tools">
+                        <WrenchScrewdriverIcon className="h-4 w-4 mr-2" />
+                        Tools
+                    </TabsTrigger>
+                    <TabsTrigger value="workflows">
+                        <FireIcon className="h-4 w-4 mr-2" />
+                        Workflows
+                    </TabsTrigger>
+                    <TabsTrigger value="knowledge">
+                        <BookOpenIcon className="h-4 w-4 mr-2" />
+                        Knowledge Base
+                    </TabsTrigger>
+                    <TabsTrigger value="debug">
+                        <CodeBracketIcon className="h-4 w-4 mr-2" />
+                        Debug
+                    </TabsTrigger>
+                </TabsList>
 
-            {/* Tab Content */}
-            {activeTab === "integrations" && (
-                <div>
-                    <div className="flex items-center justify-between mb-4">
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Connect this agent to external platforms
-                        </p>
+                {/* Integrations Content */}
+                <TabsContent value="integrations" className="pt-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 className="text-lg font-medium">Integrations</h3>
+                            <p className="text-sm text-muted-foreground">Connect this agent to external platforms</p>
+                        </div>
                         <Button onClick={handleAddIntegration}>
                             <PlusIcon className="mr-2 h-4 w-4" />
                             Add Integration
                         </Button>
                     </div>
+
                     {agent.integrations && agent.integrations.length > 0 ? (
-                        <ul className="divide-y divide-gray-100 dark:divide-zinc-800">
-                            {agent.integrations.map((integration: any) => {
-                                return (
-                                    <li key={integration.id} className="py-6 first:pt-0 last:pb-0">
-                                        {console.log('Integration:', {
-                                            name: integration.name,
-                                            type: integration.integration_type,
-                                            hasWebhook: !!integration.webhook_url
-                                        })}
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                {getIntegrationIcon(integration.integration_type)}
-                                                <div>
-                                                    <p className="font-medium text-gray-900 dark:text-white text-sm">
-                                                        {integration.name}
-                                                    </p>
-                                                    <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">
-                                                        {getIntegrationLabel(integration.integration_type)}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <Menu as="div" className="relative">
-                                                <MenuButton className="flex items-center rounded-full p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800">
-                                                    <EllipsisVerticalIcon className="h-5 w-5" />
-                                                </MenuButton>
-                                                <MenuItems className="absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white dark:bg-zinc-800 py-1 shadow-lg ring-1 ring-black/5 dark:ring-white/10 focus:outline-none">
-                                                    <MenuItem>
-                                                        {({ focus }) => (
-                                                            <button
-                                                                onClick={() => handleEditIntegration(integration)}
-                                                                className={`${focus ? 'bg-gray-50 dark:bg-zinc-700' : ''} block w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-200`}
-                                                            >
-                                                                Edit
-                                                            </button>
-                                                        )}
-                                                    </MenuItem>
-                                                    <MenuItem>
-                                                        {({ focus }) => (
-                                                            <button
-                                                                onClick={() => handleDeleteIntegration(integration)}
-                                                                className={`${focus ? 'bg-gray-50 dark:bg-zinc-700' : ''} block w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400`}
-                                                            >
-                                                                Delete
-                                                            </button>
-                                                        )}
-                                                    </MenuItem>
-                                                </MenuItems>
-                                            </Menu>
-                                        </div>
-                                        {integration.webhook_url && integration.integration_type !== "clickup" && (
-                                            <div className="mt-3">
-                                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                                    Webhook URL
-                                                </p>
+                        <div className="rounded-md border">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Type</TableHead>
+                                        <TableHead>Webhook URL</TableHead>
+                                        <TableHead className="w-[100px]"></TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {agent.integrations.map((integration: any) => (
+                                        <TableRow key={integration.id}>
+                                            <TableCell className="font-medium">{integration.name}</TableCell>
+                                            <TableCell>
                                                 <div className="flex items-center gap-2">
-                                                    <code className="flex-1 text-xs px-3 py-2 rounded bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 font-mono overflow-x-auto">
-                                                        {integration.webhook_url}
-                                                    </code>
-                                                    <Button
-                                                        outline
-                                                        className="shrink-0 h-8 w-8 !p-0 flex items-center justify-center"
-                                                        onClick={() => handleCopyUrl(integration.webhook_url)}
-                                                    >
-                                                        {copiedUrl === integration.webhook_url ? (
-                                                            <CheckIcon className="h-4 w-4 text-green-500" />
-                                                        ) : (
-                                                            <ClipboardDocumentIcon className="h-4 w-4" />
-                                                        )}
-                                                    </Button>
+                                                    {getIntegrationIcon(integration.integration_type)}
+                                                    <span>{getIntegrationLabel(integration.integration_type)}</span>
                                                 </div>
-                                            </div>
-                                        )}
-                                    </li>
-                                );
-                            })}
-                        </ul>
+                                            </TableCell>
+                                            <TableCell>
+                                                {integration.webhook_url && integration.integration_type !== "clickup" ? (
+                                                    <div className="flex items-center gap-2">
+                                                        <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
+                                                            {integration.webhook_url.length > 40 ? integration.webhook_url.substring(0, 40) + "..." : integration.webhook_url}
+                                                        </code>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-6 w-6"
+                                                            onClick={() => handleCopyUrl(integration.webhook_url)}
+                                                        >
+                                                            {copiedUrl === integration.webhook_url ? (
+                                                                <CheckIcon className="h-3 w-3 text-green-500" />
+                                                            ) : (
+                                                                <ClipboardDocumentIcon className="h-3 w-3" />
+                                                            )}
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-muted-foreground text-sm">-</span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon">
+                                                            <EllipsisVerticalIcon className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onClick={() => handleEditIntegration(integration)}>
+                                                            Edit
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            onClick={() => handleDeleteIntegration(integration)}
+                                                            className="text-destructive focus:text-destructive"
+                                                        >
+                                                            Delete
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
                     ) : (
-                        <div className="text-center py-12">
-                            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-900/20">
-                                <PlusIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                        <div className="text-center py-12 border rounded-lg border-dashed">
+                            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                                <LinkIcon className="h-6 w-6 text-primary" />
                             </div>
-                            <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
-                                No integrations yet
-                            </h3>
-                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            <h3 className="mt-2 text-sm font-semibold">No integrations</h3>
+                            <p className="mt-1 text-sm text-muted-foreground">
                                 Get started by connecting your first platform
                             </p>
                             <div className="mt-6">
@@ -313,115 +330,160 @@ export default function AgentDetailsPage() {
                             </div>
                         </div>
                     )}
-                </div>
-            )}
+                </TabsContent>
 
-            {activeTab === "tools" && (
-                <div>
-                    {agent.tools && agent.tools.length > 0 ? (
-                        <ul className="divide-y divide-gray-100 dark:divide-zinc-800">
-                            {agent.tools.map((tool: any) => (
-                                <li key={tool.id} className="flex items-center gap-3 py-3">
-                                    <WrenchIcon className="h-5 w-5 text-indigo-500" />
-                                    <div>
-                                        <p className="font-medium text-gray-900 dark:text-white text-sm">{tool.name}</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{tool.tool_type}</p>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
+                {/* Tools Content */}
+                <TabsContent value="tools" className="pt-6">
+                    {attachedTools.length > 0 ? (
+                        <div className="rounded-md border">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Description</TableHead>
+                                        <TableHead>Type</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {attachedTools.map((tool: any) => (
+                                        <TableRow key={tool.id}>
+                                            <TableCell className="font-medium">
+                                                <div className="flex items-center gap-2">
+                                                    <WrenchScrewdriverIcon className="h-4 w-4 text-muted-foreground" />
+                                                    {tool.name}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-muted-foreground max-w-sm truncate" title={tool.description}>{tool.description}</TableCell>
+                                            <TableCell>
+                                                <Badge variant="secondary" className="capitalize">{tool.tool_type.replace('_', ' ')}</Badge>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
                     ) : (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 py-8 text-center">
-                            No tools attached. Click Edit to add some.
-                        </p>
+                        <div className="text-center py-12 border rounded-lg border-dashed">
+                            <p className="text-muted-foreground">No tools attached to this agent.</p>
+                            <Button variant="link" onClick={() => setIsEditDialogOpen(true)}>Edit Agent to add Tools</Button>
+                        </div>
                     )}
-                </div>
-            )}
+                </TabsContent>
 
-            {activeTab === "workflows" && (
-                <div>
-                    {agent.workflows && agent.workflows.length > 0 ? (
-                        <ul className="divide-y divide-gray-100 dark:divide-zinc-800">
-                            {agent.workflows.map((workflow: any) => (
-                                <li key={workflow.id} className="flex items-center gap-3 py-3">
-                                    <ArrowPathIcon className="h-5 w-5 text-orange-500" />
-                                    <p className="font-medium text-gray-900 dark:text-white text-sm">{workflow.name}</p>
-                                </li>
-                            ))}
-                        </ul>
+                {/* Workflows Content */}
+                <TabsContent value="workflows" className="pt-6">
+                    {attachedWorkflows.length > 0 ? (
+                        <div className="rounded-md border">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Description</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {attachedWorkflows.map((workflow: any) => (
+                                        <TableRow key={workflow.id}>
+                                            <TableCell className="font-medium">
+                                                <div className="flex items-center gap-2">
+                                                    <FireIcon className="h-4 w-4 text-orange-500" />
+                                                    {workflow.name}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-muted-foreground max-w-sm truncate" title={workflow.description}>{workflow.description || "No description"}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
                     ) : (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 py-8 text-center">
-                            No workflows attached. Click Edit to add some.
-                        </p>
+                        <div className="text-center py-12 border rounded-lg border-dashed">
+                            <p className="text-muted-foreground">No workflows attached.</p>
+                            <Button variant="link" onClick={() => setIsEditDialogOpen(true)}>Edit Agent to add Workflows</Button>
+                        </div>
                     )}
-                </div>
-            )}
+                </TabsContent>
 
-            {activeTab === "knowledge" && (
-                <div>
-                    {agent.knowledge_bases && agent.knowledge_bases.length > 0 ? (
-                        <ul className="divide-y divide-gray-100 dark:divide-zinc-800">
-                            {agent.knowledge_bases.map((kb: any) => (
-                                <li key={kb.id} className="flex items-center gap-3 py-3">
-                                    <BookOpenIcon className="h-5 w-5 text-emerald-500" />
-                                    <p className="font-medium text-gray-900 dark:text-white text-sm">{kb.name}</p>
-                                </li>
-                            ))}
-                        </ul>
+                {/* Knowledge Base Content */}
+                <TabsContent value="knowledge" className="pt-6">
+                    {attachedKnowledgeBases.length > 0 ? (
+                        <div className="rounded-md border">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Documents</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {attachedKnowledgeBases.map((kb: any) => (
+                                        <TableRow key={kb.id}>
+                                            <TableCell className="font-medium">
+                                                <div className="flex items-center gap-2">
+                                                    <BookOpenIcon className="h-4 w-4 text-emerald-500" />
+                                                    {kb.name}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-muted-foreground">{kb.documents_count} documents</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
                     ) : (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 py-8 text-center">
-                            No knowledge bases attached. Click Edit to add some.
-                        </p>
+                        <div className="text-center py-12 border rounded-lg border-dashed">
+                            <p className="text-muted-foreground">No knowledge bases attached.</p>
+                            <Button variant="link" onClick={() => setIsEditDialogOpen(true)}>Edit Agent to add Knowledge Bases</Button>
+                        </div>
                     )}
-                </div>
-            )}
+                </TabsContent>
 
-            {activeTab === "debug" && (
-                <div className="space-y-6">
+                {/* Debug Content */}
+                <TabsContent value="debug" className="pt-6">
                     <div>
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
-                            Test Agent
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                            Enter a context group and click the button to test this agent in a new browser tab.
-                        </p>
-                        <div className="flex gap-3 items-end">
-                            <div className="flex-1">
-                                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Context Group
-                                </label>
-                                <input
-                                    type="text"
-                                    value={contextGroup}
-                                    onChange={(e) => setContextGroup(e.target.value)}
-                                    placeholder="e.g., user-123, test-session"
-                                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                />
+                        <div className="space-y-6">
+                            <div>
+                                <h3 className="text-lg font-medium mb-1">Test Agent</h3>
+                                <p className="text-sm text-muted-foreground mb-4">
+                                    Generate a temporary ticket to test this agent in a simulated environment.
+                                </p>
+                                <div className="flex gap-3 items-end">
+                                    <div className="flex-1 space-y-2">
+                                        <Label>Context Group</Label>
+                                        <Input
+                                            value={contextGroup}
+                                            onChange={(e) => setContextGroup(e.target.value)}
+                                            placeholder="e.g., test-session-1"
+                                        />
+                                        <p className="text-[10px] text-muted-foreground">Identifier for the test session</p>
+                                    </div>
+                                    <Button
+                                        className="mb-[26px]"
+                                        onClick={async () => {
+                                            if (!contextGroup || !agent || !selectedDeployment) return;
+                                            try {
+                                                const result = await generateTicketMutation.mutateAsync({
+                                                    deployment_id: String(selectedDeployment.id),
+                                                    agent_ids: [agent.id],
+                                                    context_group: contextGroup,
+                                                    expires_in: 60 * 60 * 12,
+                                                });
+                                                const testUrl = `https://${selectedDeployment.backend_host}/vanity/agents?ticket=${result.ticket}`;
+                                                window.open(testUrl, '_blank');
+                                            } catch (err) {
+                                                console.error("Failed to generate ticket:", err);
+                                            }
+                                        }}
+                                        disabled={!contextGroup || generateTicketMutation.isPending || !selectedDeployment}
+                                    >
+                                        {generateTicketMutation.isPending ? "Generating..." : "Open Test Chat"}
+                                    </Button>
+                                </div>
                             </div>
-                            <Button
-                                onClick={async () => {
-                                    if (!contextGroup || !agent || !selectedDeployment) return;
-                                    try {
-                                        const result = await generateTicketMutation.mutateAsync({
-                                            deployment_id: String(selectedDeployment.id),
-                                            agent_ids: [agent.id],
-                                            context_group: contextGroup,
-                                            expires_in: 60 * 60 * 12,
-                                        });
-                                        const testUrl = `https://${selectedDeployment.backend_host}/vanity/agents?ticket=${result.ticket}`;
-                                        window.open(testUrl, '_blank');
-                                    } catch (err) {
-                                        console.error("Failed to generate ticket:", err);
-                                    }
-                                }}
-                                disabled={!contextGroup || generateTicketMutation.isPending || !selectedDeployment}
-                            >
-                                {generateTicketMutation.isPending ? "Opening..." : "Test Agent"}
-                            </Button>
                         </div>
                     </div>
-                </div>
-            )}
+                </TabsContent>
+            </Tabs>
 
             {/* Edit Dialog */}
             <CreateAgentDialog

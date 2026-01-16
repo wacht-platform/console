@@ -2,8 +2,9 @@ import { useState } from "react";
 import {
   Dialog,
   DialogTitle,
-  DialogBody,
-  DialogActions,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Field, Label, ErrorMessage } from "@/components/ui/fieldset";
@@ -87,10 +88,13 @@ export function InviteUserModal({ isOpen, onClose }: InviteUserModalProps) {
   };
 
   return (
-    <Dialog open={isOpen} onClose={handleClose}>
-      <DialogTitle>Invite User</DialogTitle>
-      <DialogBody>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <Dialog open={isOpen} onOpenChange={(val) => !val && handleClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Invite User</DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <Field>
             <Label>First Name</Label>
             <Input
@@ -138,15 +142,16 @@ export function InviteUserModal({ isOpen, onClose }: InviteUserModalProps) {
             )}
           </Field>
         </form>
-      </DialogBody>
-      <DialogActions>
-        <Button outline onClick={handleClose}>
-          Cancel
-        </Button>
-        <Button onClick={handleSubmit} disabled={inviteUserMutation.isPending}>
-          {inviteUserMutation.isPending ? "Inviting..." : "Send Invitation"}
-        </Button>
-      </DialogActions>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} disabled={inviteUserMutation.isPending}>
+            {inviteUserMutation.isPending ? "Inviting..." : "Send Invitation"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

@@ -175,7 +175,7 @@ export function ImageUpload({
             {!disabled && (
               <Button
                 type="button"
-                outline
+                variant="outline"
                 onClick={handleUploadClick}
                 disabled={isUploading}
                 className="text-sm mb-2"

@@ -18,13 +18,13 @@ interface ConfigPanelProps {
   onClose: () => void;
 }
 
-export const NodeConfigPanel: React.FC<ConfigPanelProps> = ({ 
-  selectedNodeId, 
-  onClose 
+export const NodeConfigPanel: React.FC<ConfigPanelProps> = ({
+  selectedNodeId,
+  onClose
 }) => {
   const { nodes, updateNodeData } = useWorkflowStore();
   const [localNodeData, setLocalNodeData] = useState<WorkflowNodeData | null>(null);
-  
+
   const selectedNode = selectedNodeId ? nodes.find(node => node.id === selectedNodeId) : null;
 
   useEffect(() => {
@@ -49,9 +49,9 @@ export const NodeConfigPanel: React.FC<ConfigPanelProps> = ({
   const handleConfigChange = (field: string, value: unknown) => {
     setLocalNodeData(prev => {
       if (!prev) return prev;
-      return { 
-        ...prev, 
-        config: { ...(prev.config || {}), [field]: value } 
+      return {
+        ...prev,
+        config: { ...(prev.config || {}), [field]: value }
       };
     });
   };
@@ -123,7 +123,7 @@ export const NodeConfigPanel: React.FC<ConfigPanelProps> = ({
           <ListboxOption value="expression">Custom Expression</ListboxOption>
         </Listbox>
       </div>
-      
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Left Value
@@ -134,7 +134,7 @@ export const NodeConfigPanel: React.FC<ConfigPanelProps> = ({
           placeholder="{{data.value}}"
         />
       </div>
-      
+
       {localNodeData.config?.conditionType !== 'expression' && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -146,7 +146,7 @@ export const NodeConfigPanel: React.FC<ConfigPanelProps> = ({
           />
         </div>
       )}
-      
+
       {localNodeData.config?.conditionType === 'expression' && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -179,7 +179,7 @@ export const NodeConfigPanel: React.FC<ConfigPanelProps> = ({
           <ListboxOption value="database">Database Operation</ListboxOption>
         </Listbox>
       </div>
-      
+
       {localNodeData.config?.actionType === 'http' && (
         <>
           <div>
@@ -231,7 +231,7 @@ export const NodeConfigPanel: React.FC<ConfigPanelProps> = ({
           </div>
         </>
       )}
-      
+
       {localNodeData.config?.actionType === 'email' && (
         <>
           <div>
@@ -286,7 +286,7 @@ export const NodeConfigPanel: React.FC<ConfigPanelProps> = ({
           <ListboxOption value="code">Custom Code</ListboxOption>
         </Listbox>
       </div>
-      
+
       {localNodeData.config?.transformType === 'map' && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -300,7 +300,7 @@ export const NodeConfigPanel: React.FC<ConfigPanelProps> = ({
           />
         </div>
       )}
-      
+
       {localNodeData.config?.transformType === 'filter' && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -316,7 +316,7 @@ export const NodeConfigPanel: React.FC<ConfigPanelProps> = ({
           </p>
         </div>
       )}
-      
+
       {localNodeData.config?.transformType === 'code' && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -337,32 +337,32 @@ export const NodeConfigPanel: React.FC<ConfigPanelProps> = ({
     <div className="w-80 border-l border-gray-200 h-full overflow-y-auto bg-white">
       <div className="p-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <Badge className={`${selectedNode?.type === 'trigger' ? 'bg-orange-100 text-orange-600' : 
-            selectedNode?.type === 'condition' ? 'bg-blue-100 text-blue-600' : 
-            selectedNode?.type === 'action' ? 'bg-purple-100 text-purple-600' : 
-            'bg-green-100 text-green-600'}`}>
+          <Badge className={`${selectedNode?.type === 'trigger' ? 'bg-orange-100 text-orange-600' :
+            selectedNode?.type === 'condition' ? 'bg-blue-100 text-blue-600' :
+              selectedNode?.type === 'action' ? 'bg-purple-100 text-purple-600' :
+                'bg-green-100 text-green-600'}`}>
             {selectedNode?.type ? selectedNode.type.charAt(0).toUpperCase() + selectedNode.type.slice(1) : 'Node'}
           </Badge>
           <h3 className="font-medium">Configure Node</h3>
         </div>
-        <button 
+        <button
           onClick={onClose}
           className="text-gray-400 hover:text-gray-500"
         >
           <XMarkIcon className="h-5 w-5" />
         </button>
       </div>
-      
+
       <div className="p-4 space-y-6">
         {renderCommonFields()}
-        
+
         <hr className="my-4" />
-        
+
         {selectedNode?.type === 'trigger' && renderTriggerOptions()}
         {selectedNode?.type === 'condition' && renderConditionOptions()}
         {selectedNode?.type === 'action' && renderActionOptions()}
         {selectedNode?.type === 'transform' && renderTransformOptions()}
-        
+
         <div className="pt-4 flex justify-end">
           <Button onClick={saveChanges}>
             Save Changes

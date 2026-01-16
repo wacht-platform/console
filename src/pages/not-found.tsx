@@ -24,7 +24,7 @@ export default function NotFoundPage() {
                 </Text>
 
                 <div className="flex justify-center gap-3">
-                    <Button onClick={() => navigate(-1)} outline>
+                    <Button onClick={() => navigate(-1)} variant="outline">
                         Go Back
                     </Button>
                     <Button onClick={() => navigate("..")}>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Divider } from "@/components/ui/divider";
 import { Heading, Subheading } from "@/components/ui/heading";
-import { Select } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Strong, Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
@@ -227,7 +227,7 @@ export default function ManageWorkspacesPage() {
 
   return (
     <div className="flex flex-col gap-2 mb-2">
-      <Heading className="mb-8">Manage Workspaces</Heading>
+      <Heading className="mb-4">Manage Workspaces</Heading>
 
       <div className="flex items-start justify-between">
         <div>
@@ -240,7 +240,7 @@ export default function ManageWorkspacesPage() {
         <Switch
           name="workspace_enabled"
           checked={settingsState.workspaces_enabled}
-          onChange={(checked) =>
+          onCheckedChange={(checked) =>
             handleSettingChange("workspaces_enabled", checked)
           }
         />
@@ -265,7 +265,7 @@ export default function ManageWorkspacesPage() {
                   <Switch
                     name="custom_workspace_role_enabled"
                     checked={settingsState.custom_workspace_role_enabled}
-                    onChange={(checked) =>
+                    onCheckedChange={(checked) =>
                       handleSettingChange(
                         "custom_workspace_role_enabled",
                         checked
@@ -286,7 +286,7 @@ export default function ManageWorkspacesPage() {
                   <Switch
                     name="enforce_mfa_per_workspace_enabled"
                     checked={settingsState.enforce_mfa_per_workspace_enabled}
-                    onChange={(checked) =>
+                    onCheckedChange={(checked) =>
                       handleSettingChange(
                         "enforce_mfa_per_workspace_enabled",
                         checked
@@ -307,7 +307,7 @@ export default function ManageWorkspacesPage() {
                   <Switch
                     name="ip_allowlist_per_workspace_enabled"
                     checked={settingsState.ip_allowlist_per_workspace_enabled}
-                    onChange={(checked) =>
+                    onCheckedChange={(checked) =>
                       handleSettingChange(
                         "ip_allowlist_per_workspace_enabled",
                         checked
@@ -328,26 +328,28 @@ export default function ManageWorkspacesPage() {
                   </div>
                   <div>
                     <Select
-                      aria-label="Roles"
                       name="roles"
                       value={settingsState.default_workspace_member_role_id}
-                      onChange={(e) =>
+                      onValueChange={(value) =>
                         handleSettingChange(
                           "default_workspace_member_role_id",
-                          e
+                          value
                         )
                       }
                       disabled={isLoadingRoles || !!rolesError}
                     >
-                      {isLoadingRoles && <option>Loading roles...</option>}
-                      {rolesError && <option>Error loading roles</option>}
-                      {!isLoadingRoles &&
-                        !rolesError &&
-                        workspaceRoles?.map((role) => (
-                          <option key={role.id} value={role.id}>
-                            {role.name}
-                          </option>
-                        ))}
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={isLoadingRoles ? "Loading roles..." : "Select a role"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {!isLoadingRoles &&
+                          !rolesError &&
+                          workspaceRoles?.map((role) => (
+                            <SelectItem key={role.id} value={role.id}>
+                              {role.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
                     </Select>
                   </div>
                 </section>
@@ -364,26 +366,28 @@ export default function ManageWorkspacesPage() {
                   </div>
                   <div>
                     <Select
-                      aria-label="Creator Role"
                       name="creator_role"
                       value={settingsState.default_workspace_creator_role_id}
-                      onChange={(e) =>
+                      onValueChange={(value) =>
                         handleSettingChange(
                           "default_workspace_creator_role_id",
-                          e
+                          value
                         )
                       }
                       disabled={isLoadingRoles || !!rolesError}
                     >
-                      {isLoadingRoles && <option>Loading role...</option>}
-                      {rolesError && <option>Error loading role</option>}
-                      {!isLoadingRoles &&
-                        !rolesError &&
-                        workspaceRoles?.map((role) => (
-                          <option key={role.id} value={role.id}>
-                            {role.name}
-                          </option>
-                        ))}
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={isLoadingRoles ? "Loading role..." : "Select a role"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {!isLoadingRoles &&
+                          !rolesError &&
+                          workspaceRoles?.map((role) => (
+                            <SelectItem key={role.id} value={role.id}>
+                              {role.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
                     </Select>
                   </div>
                 </section>
@@ -425,7 +429,7 @@ export default function ManageWorkspacesPage() {
                             setNewPermission("");
                           }
                         }}
-                        outline
+                        variant="outline"
                       >
                         <PlusIcon className="h-4 w-4" />
                       </Button>
@@ -475,9 +479,9 @@ export default function ManageWorkspacesPage() {
                 </div>
                 <div className="space-y-4">
                   <RadioGroup
-                    name="membership"
+                    className="space-y-4"
                     value={settingsState.membership_limit_type}
-                    onChange={(value) =>
+                    onValueChange={(value) =>
                       handleSettingChange("membership_limit_type", value)
                     }
                   >
@@ -529,7 +533,7 @@ export default function ManageWorkspacesPage() {
                   <Checkbox
                     name="deletable"
                     checked={settingsState.allow_workspace_deletion}
-                    onChange={(checked) =>
+                    onCheckedChange={(checked: boolean) =>
                       handleSettingChange("allow_workspace_deletion", checked)
                     }
                   />
@@ -554,14 +558,15 @@ export default function ManageWorkspacesPage() {
                 </div>
                 <div className="space-y-4">
                   <RadioGroup
+                    className="space-y-4"
                     value={settingsState.creation_limit_type}
-                    onChange={(value) =>
+                    onValueChange={(value: "unlimited" | "limited") =>
                       handleSettingChange("creation_limit_type", value)
                     }
                   >
                     <RadioField>
                       <Radio value="unlimited" />
-                      <Label className="font-semibold">
+                      <Label className="font-normal">
                         Organizations can have unlimited workspaces
                       </Label>
                     </RadioField>

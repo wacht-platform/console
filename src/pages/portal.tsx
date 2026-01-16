@@ -5,7 +5,7 @@ import {
   ClipboardIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useRef, useState, useMemo } from "react";
-import { Tooltip } from "@/components/ui/tooltip";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Divider } from "@/components/ui/divider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -801,7 +801,7 @@ export default function PortalPage() {
                 )}
               </div>
               <Button
-                outline
+                variant="outline"
                 onClick={() => logoImageInputRef.current?.click()}
                 disabled={isUploadingLogo}
               >
@@ -835,7 +835,7 @@ export default function PortalPage() {
                 )}
               </div>
               <Button
-                outline
+                variant="outline"
                 onClick={() => faviconImageInputRef.current?.click()}
                 disabled={isUploadingFavicon}
               >
@@ -876,19 +876,22 @@ export default function PortalPage() {
                 readOnly
               />
               <div className="flex gap-1">
-                <Tooltip message="Copied!" trigger={copiedIndex === index}>
-                  <Button
-                    onClick={() => handleCopy(item.demoLink, index)}
-                    className="p-2"
-                    outline
-                  >
-                    <ClipboardIcon className="w-5 h-5" />
-                  </Button>
+                <Tooltip open={copiedIndex === index}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => handleCopy(item.demoLink, index)}
+                      className="p-2"
+                      variant="outline"
+                    >
+                      <ClipboardIcon className="w-5 h-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Copied!</TooltipContent>
                 </Tooltip>
                 <Button
                   onClick={() => handleOpenLink(item.demoLink)}
                   className="p-2"
-                  outline
+                  variant="outline"
                 >
                   <ArrowTopRightOnSquareIcon className="w-5 h-5" />
                 </Button>
@@ -1106,7 +1109,7 @@ export default function PortalPage() {
               }
               className={
                 validationErrors.afterCreateOrganizationUrl &&
-                showValidationErrors
+                  showValidationErrors
                   ? "border-red-500"
                   : ""
               }
@@ -1140,7 +1143,7 @@ export default function PortalPage() {
           <div className="flex justify-end items-center gap-3">
             <Switch
               checked={useInitialsForUserProfileImage}
-              onChange={(value) =>
+              onCheckedChange={(value) =>
                 updateField(setUseInitialsForUserProfileImage, value)
               }
             />
@@ -1169,7 +1172,7 @@ export default function PortalPage() {
                   )}
                 </div>
                 <Button
-                  outline
+                  variant="outline"
                   onClick={handleUserImageUploadClick}
                   disabled={isUploadingUserImage}
                 >
@@ -1194,7 +1197,7 @@ export default function PortalPage() {
           <div className="flex justify-end items-center gap-3">
             <Switch
               checked={useInitialsForOrganizationProfileImage}
-              onChange={(value) =>
+              onCheckedChange={(value) =>
                 updateField(setUseInitialsForOrganizationProfileImage, value)
               }
             />
@@ -1223,7 +1226,7 @@ export default function PortalPage() {
                   )}
                 </div>
                 <Button
-                  outline
+                  variant="outline"
                   onClick={handleOrgImageUploadClick}
                   disabled={isUploadingOrgImage}
                 >
@@ -1289,7 +1292,7 @@ export default function PortalPage() {
           <div className="flex justify-end items-center gap-3">
             <Switch
               checked={signupTermsStatementShown}
-              onChange={(value) =>
+              onCheckedChange={(value) =>
                 updateField(setSignupTermsStatementShown, value)
               }
             />
@@ -1332,11 +1335,10 @@ export default function PortalPage() {
                 <Input
                   readOnly
                   value={primaryColor}
-                  className={`font-medium ${
-                    validationErrors.primaryColor && showValidationErrors
-                      ? "border-red-500"
-                      : ""
-                  }`}
+                  className={`font-medium ${validationErrors.primaryColor && showValidationErrors
+                    ? "border-red-500"
+                    : ""
+                    }`}
                 />
                 {validationErrors.primaryColor && showValidationErrors && (
                   <span className="text-red-500 text-sm mt-1">
@@ -1376,12 +1378,11 @@ export default function PortalPage() {
                 <Input
                   readOnly
                   value={darkModePrimaryColor}
-                  className={`font-medium ${
-                    validationErrors.darkModePrimaryColor &&
+                  className={`font-medium ${validationErrors.darkModePrimaryColor &&
                     showValidationErrors
-                      ? "border-red-500"
-                      : ""
-                  }`}
+                    ? "border-red-500"
+                    : ""
+                    }`}
                 />
                 {validationErrors.darkModePrimaryColor &&
                   showValidationErrors && (
@@ -1422,11 +1423,10 @@ export default function PortalPage() {
                 <Input
                   readOnly
                   value={backgroundColor}
-                  className={`font-medium ${
-                    validationErrors.backgroundColor && showValidationErrors
-                      ? "border-red-500"
-                      : ""
-                  }`}
+                  className={`font-medium ${validationErrors.backgroundColor && showValidationErrors
+                    ? "border-red-500"
+                    : ""
+                    }`}
                 />
                 {validationErrors.backgroundColor && showValidationErrors && (
                   <span className="text-red-500 text-sm mt-1">
@@ -1466,12 +1466,11 @@ export default function PortalPage() {
                 <Input
                   readOnly
                   value={darkModeBackgroundColor}
-                  className={`font-medium ${
-                    validationErrors.darkModeBackgroundColor &&
+                  className={`font-medium ${validationErrors.darkModeBackgroundColor &&
                     showValidationErrors
-                      ? "border-red-500"
-                      : ""
-                  }`}
+                    ? "border-red-500"
+                    : ""
+                    }`}
                 />
                 {validationErrors.darkModeBackgroundColor &&
                   showValidationErrors && (

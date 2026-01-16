@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { useUpdateWorkspaceMember } from "@/lib/api/hooks/use-workspace-mutations";
 import {
 	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogFooter,
 	DialogTitle,
-	DialogBody,
-	DialogActions,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Field, Label } from "@/components/ui/fieldset";
+import { Label } from "@/components/ui/label";
 import { useDarkMode } from "@/lib/hooks/use-dark-mode";
 import Editor from "@monaco-editor/react";
 
@@ -94,145 +95,149 @@ export function EditWorkspaceMemberDialog({
 	};
 
 	return (
-		<Dialog open={isOpen} onClose={onClose}>
-			<DialogTitle>Edit Workspace Member</DialogTitle>
+		<Dialog open={isOpen} onOpenChange={(val) => !val && onClose()}>
+			<DialogContent className="sm:max-w-xl max-h-[85vh] overflow-y-auto">
+				<DialogHeader>
+					<DialogTitle>Edit Workspace Member</DialogTitle>
+				</DialogHeader>
 
-			<DialogBody>
-				<div className="space-y-6">
-					{/* Member Info */}
-					<div className="text-sm text-gray-600 dark:text-gray-400">
-						<strong>{member.first_name} {member.last_name}</strong> • {member.primary_email_address}
-					</div>
+				<div className="py-2">
+					<div className="space-y-6">
+						{/* Member Info */}
+						<div className="text-sm text-gray-600 dark:text-gray-400">
+							<strong>{member.first_name} {member.last_name}</strong> • {member.primary_email_address}
+						</div>
 
-					<form onSubmit={handleSubmit} className="space-y-6">
-						{/* Roles */}
-						<Field>
-							<Label>Roles</Label>
-							{availableRoles.length > 0 ? (
-								<div className="space-y-4">
-									{/* Selected roles */}
-									{selectedRoles.length > 0 && (
+						<form onSubmit={handleSubmit} className="space-y-6">
+							{/* Roles */}
+							<div className="space-y-2">
+								<Label>Roles</Label>
+								{availableRoles.length > 0 ? (
+									<div className="space-y-4">
+										{/* Selected roles */}
+										{selectedRoles.length > 0 && (
+											<div>
+												<div className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+													Assigned roles:
+												</div>
+												<div className="flex flex-wrap gap-2">
+													{selectedRoles.map((roleId) => {
+														const role = availableRoles.find(r => r.id === roleId);
+														return role ? (
+															<Badge
+																key={roleId}
+																color="green"
+																className="cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30"
+																onClick={() => setSelectedRoles(selectedRoles.filter(id => id !== roleId))}
+															>
+																{role.is_deployment_level ? `${role.name} (Default)` : role.name}
+																<svg className="ml-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																	<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+																</svg>
+															</Badge>
+														) : null;
+													})}
+												</div>
+											</div>
+										)}
+
+										{/* Available roles */}
 										<div>
 											<div className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-												Assigned roles:
+												Available roles:
 											</div>
 											<div className="flex flex-wrap gap-2">
-												{selectedRoles.map((roleId) => {
-													const role = availableRoles.find(r => r.id === roleId);
-													return role ? (
+												{availableRoles
+													.filter(role => !selectedRoles.includes(role.id))
+													.map((role) => (
 														<Badge
-															key={roleId}
-															color="green"
-															className="cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30"
-															onClick={() => setSelectedRoles(selectedRoles.filter(id => id !== roleId))}
+															key={role.id}
+															color="zinc"
+															className="cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800"
+															onClick={() => setSelectedRoles([...selectedRoles, role.id])}
 														>
 															{role.is_deployment_level ? `${role.name} (Default)` : role.name}
 															<svg className="ml-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-																<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+																<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
 															</svg>
 														</Badge>
-													) : null;
-												})}
+													))}
 											</div>
+											{availableRoles.filter(role => !selectedRoles.includes(role.id)).length === 0 && (
+												<div className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+													All available roles are already assigned.
+												</div>
+											)}
 										</div>
-									)}
-
-									{/* Available roles */}
-									<div>
-										<div className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-											Available roles:
-										</div>
-										<div className="flex flex-wrap gap-2">
-											{availableRoles
-												.filter(role => !selectedRoles.includes(role.id))
-												.map((role) => (
-													<Badge
-														key={role.id}
-														color="zinc"
-														className="cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700"
-														onClick={() => setSelectedRoles([...selectedRoles, role.id])}
-													>
-														{role.is_deployment_level ? `${role.name} (Default)` : role.name}
-														<svg className="ml-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-															<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-														</svg>
-													</Badge>
-												))}
-										</div>
-										{availableRoles.filter(role => !selectedRoles.includes(role.id)).length === 0 && (
-											<div className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-												All available roles are already assigned.
-											</div>
-										)}
 									</div>
-								</div>
-							) : (
-								<div className="text-sm text-gray-500 dark:text-gray-400">
-									No roles available. Create roles first to assign them to members.
-								</div>
-							)}
-						</Field>
-
-						{/* Public Metadata */}
-						<Field>
-							<div className="flex justify-between items-center mb-4">
-								<Label className="text-base text-zinc-900 dark:text-zinc-100">Public Metadata</Label>
+								) : (
+									<div className="text-sm text-gray-500 dark:text-gray-400">
+										No roles available. Create roles first to assign them to members.
+									</div>
+								)}
 							</div>
 
-							<div className="space-y-3">
-								<div className="rounded-lg overflow-hidden bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800">
-									<Editor
-										height="120px"
-										defaultLanguage="json"
-										value={publicMetadata}
-										onChange={(value) => setPublicMetadata(value || "{}")}
-										theme={isDarkMode ? "vs-dark" : "vs"}
-										options={{
-											readOnly: false,
-											minimap: { enabled: false },
-											fontSize: 13,
-											scrollBeyondLastLine: false,
-											automaticLayout: true,
-											formatOnPaste: true,
-											formatOnType: true,
-											wordWrap: "on",
-											lineNumbers: "off",
-											folding: false,
-											autoIndent: "full",
-											padding: { top: 8, bottom: 8 },
-											scrollbar: {
-												vertical: "auto",
-												horizontal: "hidden",
-											},
-										}}
-									/>
+							{/* Public Metadata */}
+							<div className="space-y-4">
+								<div className="flex justify-between items-center">
+									<Label className="text-base text-zinc-900 dark:text-zinc-100">Public Metadata</Label>
 								</div>
-								<p className="text-xs text-gray-500 dark:text-gray-400">
-									This metadata will be publicly accessible. Use valid JSON format.
-								</p>
+
+								<div className="space-y-3">
+									<div className="rounded-lg overflow-hidden bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800">
+										<Editor
+											height="120px"
+											defaultLanguage="json"
+											value={publicMetadata}
+											onChange={(value) => setPublicMetadata(value || "{}")}
+											theme={isDarkMode ? "vs-dark" : "vs"}
+											options={{
+												readOnly: false,
+												minimap: { enabled: false },
+												fontSize: 13,
+												scrollBeyondLastLine: false,
+												automaticLayout: true,
+												formatOnPaste: true,
+												formatOnType: true,
+												wordWrap: "on",
+												lineNumbers: "off",
+												folding: false,
+												autoIndent: "full",
+												padding: { top: 8, bottom: 8 },
+												scrollbar: {
+													vertical: "auto",
+													horizontal: "hidden",
+												},
+											}}
+										/>
+									</div>
+									<p className="text-xs text-gray-500 dark:text-gray-400">
+										This metadata will be publicly accessible. Use valid JSON format.
+									</p>
+								</div>
 							</div>
-						</Field>
-					</form>
+						</form>
+					</div>
 				</div>
-			</DialogBody>
 
-			<DialogActions>
-				<Button
-					type="button"
-					outline
-					onClick={onClose}
-					disabled={updateMember.isPending}
-				>
-					Cancel
-				</Button>
-				<Button
-					type="submit"
-					onClick={handleSubmit}
-					disabled={updateMember.isPending}
-				>
-					{updateMember.isPending ? "Updating..." : "Update Member"}
-				</Button>
-			</DialogActions>
+				<DialogFooter>
+					<Button
+						type="button"
+						variant="outline"
+						onClick={onClose}
+						disabled={updateMember.isPending}
+					>
+						Cancel
+					</Button>
+					<Button
+						type="submit"
+						onClick={handleSubmit}
+						disabled={updateMember.isPending}
+					>
+						{updateMember.isPending ? "Updating..." : "Update Member"}
+					</Button>
+				</DialogFooter>
+			</DialogContent>
 		</Dialog>
 	);
 }

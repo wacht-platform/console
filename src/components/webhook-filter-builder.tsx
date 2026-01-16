@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
+import {
   Listbox,
   ListboxLabel,
   ListboxOption,
@@ -175,9 +175,9 @@ export function WebhookFilterBuilder({ value, onChange, className }: FilterBuild
                     onChange={(e) => updateRule(index, { field: e.target.value })}
                     className="text-sm"
                   />
-                  
-                  <Listbox 
-                    value={rule.operator} 
+
+                  <Listbox
+                    value={rule.operator}
                     onChange={(value) => updateRule(index, { operator: value })}
                   >
                     {OPERATORS.map(op => (
@@ -194,9 +194,9 @@ export function WebhookFilterBuilder({ value, onChange, className }: FilterBuild
                     className="text-sm"
                   />
                 </div>
-                
+
                 <Button
-                  plain
+                  variant="ghost"
                   onClick={() => removeRule(index)}
                   className="text-red-600 hover:text-red-700"
                 >
@@ -209,7 +209,7 @@ export function WebhookFilterBuilder({ value, onChange, className }: FilterBuild
       )}
 
       <Button
-        plain
+        variant="ghost"
         onClick={addRule}
         className="mt-4"
       >
@@ -222,12 +222,13 @@ export function WebhookFilterBuilder({ value, onChange, className }: FilterBuild
           <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-2">Preview (JSON)</p>
           <pre className="text-xs text-zinc-700 dark:text-zinc-300 overflow-x-auto">
             {JSON.stringify(
-              filterGroup.rules.length > 0 ? 
-                { [filterGroup.operator]: filterGroup.rules
-                  .filter(r => r.field && r.value !== "")
-                  .map(r => ({ [r.field]: { [r.operator]: parseValue(r.value) } })) 
-                } : null, 
-              null, 
+              filterGroup.rules.length > 0 ?
+                {
+                  [filterGroup.operator]: filterGroup.rules
+                    .filter(r => r.field && r.value !== "")
+                    .map(r => ({ [r.field]: { [r.operator]: parseValue(r.value) } }))
+                } : null,
+              null,
               2
             )}
           </pre>

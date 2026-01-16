@@ -18,7 +18,7 @@ export default function SavePopup({ isDirty, isSaving, onSave, onCancel }: SaveP
                 </p>
                 <div className="flex gap-3">
                     <Button
-                        outline
+                        variant="secondary"
                         onClick={onCancel}
                         disabled={isSaving}
                     >

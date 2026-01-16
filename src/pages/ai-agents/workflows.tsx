@@ -2,14 +2,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import {
 	FireIcon,
-	PlusIcon,
 	MagnifyingGlassIcon,
 	PencilIcon,
 	TrashIcon,
 } from "@heroicons/react/24/outline";
-import { Heading } from "../../components/ui/heading";
 import { Button } from "../../components/ui/button";
-import { Input, InputGroup } from "../../components/ui/input";
+import { Input } from "../../components/ui/input";
 import {
 	Table,
 	TableBody,
@@ -63,109 +61,104 @@ export default function WorkflowsPage() {
 
 	return (
 		<div>
-			<div className="flex flex-col gap-2 mb-2">
-				<Heading>AI Workflows</Heading>
-				<p className="text-sm text-gray-600 dark:text-gray-400">
-					Create and manage automated workflows that combine AI agents, tools, and logic
-				</p>
+			<div className="flex items-center justify-between mb-6">
+				<div>
+					<h1 className="text-xl font-normal tracking-tight">Workflows</h1>
+					<p className="text-sm text-muted-foreground">
+						Create and manage automated workflows that combine AI agents, tools, and logic
+					</p>
+				</div>
+				{!isLoading && !error && (
+					<Button onClick={handleCreateWorkflow}>
+						Create Workflow
+					</Button>
+				)}
 			</div>
 
 			{!isLoading && !error && workflows.length > 0 && (
-				<div className="flex flex-wrap items-center justify-between gap-4">
-					<div className="sm:flex-1">
-						<div className="mt-4 flex max-w-md gap-2">
-							<InputGroup className="w-64">
-								<MagnifyingGlassIcon className="size-4" />
-								<Input
-									name="search"
-									placeholder="Search workflows..."
-									value={searchTerm}
-									onChange={(e) => setSearchTerm(e.target.value)}
-								/>
-							</InputGroup>
-						</div>
-					</div>
-					<Button onClick={handleCreateWorkflow}>
-						<PlusIcon className="mr-2 h-4 w-4" />
-						Create Workflow
-					</Button>
+				<div className="relative mb-6">
+					<MagnifyingGlassIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+					<Input
+						placeholder="Search workflows..."
+						value={searchTerm}
+						onChange={(e) => setSearchTerm(e.target.value)}
+						className="pl-9"
+					/>
 				</div>
 			)}
 
-			<div className="mt-6">
-				{isLoading ? (
-					<div className="flex flex-col items-center justify-center min-h-[400px] py-12">
-						<Spinner size="lg" />
-						<p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">Loading workflows...</p>
+			{isLoading ? (
+				<div className="flex flex-col items-center justify-center min-h-[400px] py-12">
+					<Spinner size="lg" />
+					<p className="mt-4 text-sm text-muted-foreground">Loading workflows...</p>
+				</div>
+			) : error ? (
+				<div className="text-center py-12">
+					<p className="text-destructive">Failed to load workflows</p>
+				</div>
+			) : workflows.length === 0 ? (
+				<div className="text-center py-12">
+					<FireIcon className="mx-auto h-12 w-12 text-muted-foreground" />
+					<h3 className="mt-2 text-sm font-normal">
+						No workflows
+					</h3>
+					<p className="mt-1 text-sm text-muted-foreground">
+						Get started by creating your first AI workflow.
+					</p>
+					<div className="mt-6">
+						<Button onClick={handleCreateWorkflow}>
+							Create Workflow
+						</Button>
 					</div>
-				) : error ? (
-					<div className="text-center py-12">
-						<div className="text-sm text-red-500 dark:text-red-400">Failed to load workflows</div>
-					</div>
-				) : workflows.length === 0 ? (
-					<div className="text-center py-12">
-						<FireIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" />
-						<h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
-							No workflows
-						</h3>
-						<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-							Get started by creating your first AI workflow.
-						</p>
-						<div className="mt-6">
-							<Button onClick={handleCreateWorkflow}>
-								<PlusIcon className="mr-2 h-4 w-4" />
-								Create Workflow
-							</Button>
-						</div>
-					</div>
-				) : (
-					<Table>
-						<TableHead>
-							<TableRow>
-								<TableHeader>Name</TableHeader>
-								<TableHeader>Description</TableHeader>
-								<TableHeader className="w-[200px]">Actions</TableHeader>
+				</div>
+			) : (
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>Name</TableHead>
+							<TableHead>Description</TableHead>
+							<TableHead className="w-[200px]">Actions</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{workflows.map((workflow) => (
+							<TableRow key={workflow.id}>
+								<TableCell>
+									<div className="flex items-center gap-3">
+										<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+											<FireIcon className="h-4 w-4" />
+										</div>
+										<span className="font-medium">{workflow.name}</span>
+									</div>
+								</TableCell>
+								<TableCell className="text-muted-foreground">{workflow.description || "No description"}</TableCell>
+								<TableCell>
+									<div className="flex gap-2">
+										<Button
+											variant="ghost"
+											size="icon"
+											onClick={() => handleEditWorkflow(workflow.id)}
+											title="Edit workflow"
+										>
+											<PencilIcon className="h-4 w-4" />
+										</Button>
+										<Button
+											variant="ghost"
+											size="icon"
+											onClick={() => handleDeleteWorkflow(workflow)}
+											disabled={deleteWorkflowMutation.isPending}
+											title="Delete workflow"
+										>
+											<TrashIcon className="h-4 w-4" />
+										</Button>
+									</div>
+								</TableCell>
 							</TableRow>
-						</TableHead>
-						<TableBody>
-							{workflows.map((workflow) => (
-								<TableRow key={workflow.id}>
-									<TableCell>
-										<div className="flex items-center gap-3">
-											<div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
-												<FireIcon className="h-4 w-4" />
-											</div>
-											<span className="font-medium text-gray-900 dark:text-gray-100">{workflow.name}</span>
-										</div>
-									</TableCell>
-									<TableCell className="text-gray-700 dark:text-gray-300">{workflow.description || "No description"}</TableCell>
-									<TableCell>
-										<div className="flex gap-2">
-											<Button
-												outline
-												onClick={() => handleEditWorkflow(workflow.id)}
-												title="Edit workflow"
-											>
-												<PencilIcon className="h-4 w-4" />
-											</Button>
-											<Button
-												outline
-												className="text-red-600 hover:bg-red-50"
-												onClick={() => handleDeleteWorkflow(workflow)}
-												disabled={deleteWorkflowMutation.isPending}
-												title="Delete workflow"
-											>
-												<TrashIcon className="h-4 w-4" />
-											</Button>
-										</div>
-									</TableCell>
-								</TableRow>
-							))}
-						</TableBody>
-					</Table>
-				)}
-			</div>
-			
+						))}
+					</TableBody>
+				</Table>
+			)}
+
 			<ConfirmationDialog
 				isOpen={confirmDeleteOpen}
 				onClose={() => {

@@ -14,9 +14,8 @@ import GithubIcon from "@/assets/github.svg";
 import GitlabIcon from "@/assets/gitlab.svg";
 import GoogleIcon from "@/assets/google.svg";
 import LinkedInIcon from "@/assets/linkedin.svg";
-// import MicrosoftIcon from "@/assets/microsoft.svg";
 import XIcon from "@/assets/x.svg";
-import { Dialog, DialogActions, DialogTitle, DialogBody, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "./ui/button";
 import { toast } from 'sonner';
 import clsx from "clsx";
@@ -54,7 +53,6 @@ export function CreateStagingDeploymentDialog({
 
 	const toggleAuthMethod = (method: AuthMethod) => {
 		if (selectedMethods.includes(method)) {
-			// Prevent deselecting if it's the last method
 			if (selectedMethods.length === 1) return;
 			setSelectedMethods(selectedMethods.filter((m) => m !== method));
 		} else {
@@ -64,14 +62,12 @@ export function CreateStagingDeploymentDialog({
 
 	const handleCreate = async () => {
 		try {
-			await onCreateStagingDeployment(selectedMethods);
+			onCreateStagingDeployment(selectedMethods);
 			toast.success("Staging deployment created successfully!");
 			onOpenChange(false);
 			setSelectedMethods(["email"]);
 		} catch (error: unknown) {
 			console.error("Failed to create staging deployment:", error);
-
-			// Extract error message from response
 			let errorMessage = "Failed to create staging deployment. Please try again.";
 			if (error && typeof error === 'object' && 'response' in error) {
 				const responseError = error as { response?: { data?: { message?: string } } };
@@ -88,146 +84,141 @@ export function CreateStagingDeploymentDialog({
 	};
 
 	return (
-		<Dialog size="3xl" open={open} onClose={() => onOpenChange(false)}>
-			<DialogTitle className="flex items-center gap-2">
-				<BeakerIcon className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-				Create Staging Deployment
-			</DialogTitle>
-			<DialogDescription>
-				Set up a test environment for development and QA.
-			</DialogDescription>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="max-w-3xl">
+				<DialogHeader>
+					<DialogTitle className="flex items-center gap-2">
+						<BeakerIcon className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+						Create Staging Deployment
+					</DialogTitle>
+					<DialogDescription>
+						Set up a test environment for development and QA.
+					</DialogDescription>
+				</DialogHeader>
 
-			<DialogBody className="space-y-6 mt-4">
-				{/* Info Banner */}
-				<div className="bg-orange-50/50 dark:bg-orange-900/10 rounded-xl p-4 border border-orange-100 dark:border-orange-900/20">
-					<div className="flex gap-3">
-						<div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg shrink-0 h-fit">
-							<RocketLaunchIcon className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-						</div>
-						<div>
-							<h3 className="text-sm font-semibold text-orange-900 dark:text-orange-100">
-								Development Environment
-							</h3>
-							<Text className="text-xs text-orange-700/80 dark:text-orange-300/80 mt-1 leading-relaxed">
-								Staging deployments are perfect for testing changes safely. You can create up to 3 staging environments per project. They come with a generated <code>.wacht.app</code> domain.
-							</Text>
+				<div className="space-y-6 mt-4">
+					{/* Info Banner */}
+					<div className="bg-orange-50/50 dark:bg-orange-900/10 rounded-xl p-4 border border-orange-100 dark:border-orange-900/20">
+						<div className="flex gap-3">
+							<div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg shrink-0 h-fit">
+								<RocketLaunchIcon className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+							</div>
+							<div>
+								<h3 className="text-sm font-normal text-orange-900 dark:text-orange-100">
+									Development Environment
+								</h3>
+								<Text className="text-xs text-orange-700/80 dark:text-orange-300/80 mt-1 leading-relaxed">
+									Staging deployments are perfect for testing changes safely. You can create up to 3 staging environments per project. They come with a generated <code>.wacht.app</code> domain.
+								</Text>
+							</div>
 						</div>
 					</div>
+
+					{/* Authentication Methods Section */}
+					<section className="space-y-4">
+						<div className="flex items-center justify-between">
+							<h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+								Authentication Configuration
+							</h3>
+							<span className="text-xs text-zinc-500">
+								{selectedMethods.length} selected
+							</span>
+						</div>
+
+						<div className="space-y-3">
+							<div className="text-xs font-medium text-zinc-500 uppercase tracking-wider ml-1">Identity Providers</div>
+							<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+								<AuthMethodCard
+									icon={<EnvelopeIcon className="h-5 w-5" />}
+									label="Email"
+									selected={selectedMethods.includes("email")}
+									onClick={() => toggleAuthMethod("email")}
+								/>
+								<AuthMethodCard
+									icon={<DevicePhoneMobileIcon className="h-5 w-5" />}
+									label="Phone"
+									selected={selectedMethods.includes("phone")}
+									onClick={() => toggleAuthMethod("phone")}
+								/>
+								<AuthMethodCard
+									icon={<UserCircleIcon className="h-5 w-5" />}
+									label="Username"
+									selected={selectedMethods.includes("username")}
+									onClick={() => toggleAuthMethod("username")}
+								/>
+							</div>
+						</div>
+
+						<div className="space-y-3 pt-2">
+							<div className="text-xs font-medium text-zinc-500 uppercase tracking-wider ml-1">Social Providers</div>
+							<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+								<AuthMethodCard
+									icon={<img src={GoogleIcon} alt="Google" className="h-5 w-5" />}
+									label="Google"
+									selected={selectedMethods.includes("google_oauth")}
+									onClick={() => toggleAuthMethod("google_oauth")}
+									compact
+								/>
+								<AuthMethodCard
+									icon={<img src={GithubIcon} alt="GitHub" className="h-5 w-5" />}
+									label="GitHub"
+									selected={selectedMethods.includes("github_oauth")}
+									onClick={() => toggleAuthMethod("github_oauth")}
+									compact
+								/>
+								<AuthMethodCard
+									icon={<img src={DiscordIcon} alt="Discord" className="h-5 w-5" />}
+									label="Discord"
+									selected={selectedMethods.includes("discord_oauth")}
+									onClick={() => toggleAuthMethod("discord_oauth")}
+									compact
+								/>
+								<AuthMethodCard
+									icon={<img src={LinkedInIcon} alt="LinkedIn" className="h-5 w-5" />}
+									label="LinkedIn"
+									selected={selectedMethods.includes("linkedin_oauth")}
+									onClick={() => toggleAuthMethod("linkedin_oauth")}
+									compact
+								/>
+								<AuthMethodCard
+									icon={<img src={GitlabIcon} alt="GitLab" className="h-5 w-5" />}
+									label="GitLab"
+									selected={selectedMethods.includes("gitlab_oauth")}
+									onClick={() => toggleAuthMethod("gitlab_oauth")}
+									compact
+								/>
+								<AuthMethodCard
+									icon={<img src={XIcon} alt="X" className="h-5 w-5" />}
+									label="X (Twitter)"
+									selected={selectedMethods.includes("x_oauth")}
+									onClick={() => toggleAuthMethod("x_oauth")}
+									compact
+								/>
+							</div>
+						</div>
+					</section>
 				</div>
 
-				{/* Authentication Methods Section */}
-				<section className="space-y-4">
-					<div className="flex items-center justify-between">
-						<h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-							Authentication Configuration
-						</h3>
-						<span className="text-xs text-zinc-500">
-							{selectedMethods.length} selected
-						</span>
-					</div>
-
-					<div className="space-y-3">
-						<div className="text-xs font-medium text-zinc-500 uppercase tracking-wider ml-1">Identity Providers</div>
-						<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-							<AuthMethodCard
-								icon={<EnvelopeIcon className="h-5 w-5" />}
-								label="Email"
-								selected={selectedMethods.includes("email")}
-								onClick={() => toggleAuthMethod("email")}
-							/>
-							<AuthMethodCard
-								icon={<DevicePhoneMobileIcon className="h-5 w-5" />}
-								label="Phone"
-								selected={selectedMethods.includes("phone")}
-								onClick={() => toggleAuthMethod("phone")}
-							/>
-							<AuthMethodCard
-								icon={<UserCircleIcon className="h-5 w-5" />}
-								label="Username"
-								selected={selectedMethods.includes("username")}
-								onClick={() => toggleAuthMethod("username")}
-							/>
-						</div>
-					</div>
-
-					<div className="space-y-3 pt-2">
-						<div className="text-xs font-medium text-zinc-500 uppercase tracking-wider ml-1">Social Providers</div>
-						<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-							<AuthMethodCard
-								icon={<img src={GoogleIcon} alt="Google" className="h-5 w-5" />}
-								label="Google"
-								selected={selectedMethods.includes("google_oauth")}
-								onClick={() => toggleAuthMethod("google_oauth")}
-								compact
-							/>
-							{/* Microsoft OAuth temporarily disabled - unverified credentials */}
-							{/* <AuthMethodCard
-								icon={<img src={MicrosoftIcon} alt="Microsoft" className="h-5 w-5" />}
-								label="Microsoft"
-								selected={selectedMethods.includes("microsoft_oauth")}
-								onClick={() => toggleAuthMethod("microsoft_oauth")}
-								compact
-							/> */}
-							<AuthMethodCard
-								icon={<img src={GithubIcon} alt="GitHub" className="h-5 w-5" />}
-								label="GitHub"
-								selected={selectedMethods.includes("github_oauth")}
-								onClick={() => toggleAuthMethod("github_oauth")}
-								compact
-							/>
-							<AuthMethodCard
-								icon={<img src={DiscordIcon} alt="Discord" className="h-5 w-5" />}
-								label="Discord"
-								selected={selectedMethods.includes("discord_oauth")}
-								onClick={() => toggleAuthMethod("discord_oauth")}
-								compact
-							/>
-							<AuthMethodCard
-								icon={<img src={LinkedInIcon} alt="LinkedIn" className="h-5 w-5" />}
-								label="LinkedIn"
-								selected={selectedMethods.includes("linkedin_oauth")}
-								onClick={() => toggleAuthMethod("linkedin_oauth")}
-								compact
-							/>
-							<AuthMethodCard
-								icon={<img src={GitlabIcon} alt="GitLab" className="h-5 w-5" />}
-								label="GitLab"
-								selected={selectedMethods.includes("gitlab_oauth")}
-								onClick={() => toggleAuthMethod("gitlab_oauth")}
-								compact
-							/>
-							<AuthMethodCard
-								icon={<img src={XIcon} alt="X" className="h-5 w-5" />}
-								label="X (Twitter)"
-								selected={selectedMethods.includes("x_oauth")}
-								onClick={() => toggleAuthMethod("x_oauth")}
-								compact
-							/>
-						</div>
-					</div>
-				</section>
-			</DialogBody>
-
-			<DialogActions>
-				<Button outline onClick={() => onOpenChange(false)} disabled={isLoading}>
-					Cancel
-				</Button>
-				<Button
-					onClick={handleCreate}
-					disabled={isLoading || selectedMethods.length === 0}
-					className="min-w-[140px]"
-					color="orange"
-				>
-					{isLoading ? (
-						<div className="flex items-center gap-2">
-							<Spinner size="sm" />
-							<span>Creating...</span>
-						</div>
-					) : (
-						"Create Staging"
-					)}
-				</Button>
-			</DialogActions>
+				<DialogFooter>
+					<Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+						Cancel
+					</Button>
+					<Button
+						onClick={handleCreate}
+						disabled={isLoading || selectedMethods.length === 0}
+						className="min-w-[140px] bg-orange-600 hover:bg-orange-700 text-white"
+					>
+						{isLoading ? (
+							<div className="flex items-center gap-2">
+								<Spinner size="sm" />
+								<span>Creating...</span>
+							</div>
+						) : (
+							"Create Staging"
+						)}
+					</Button>
+				</DialogFooter>
+			</DialogContent>
 		</Dialog>
 	);
 }

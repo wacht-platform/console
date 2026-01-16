@@ -8,7 +8,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
@@ -17,7 +16,7 @@ import {
   ListboxLabel,
   ListboxOption,
 } from "@/components/ui/listbox";
-import { 
+import {
   ChartBarIcon
 } from "@heroicons/react/24/outline";
 import { useQuery } from "@tanstack/react-query";
@@ -162,7 +161,7 @@ export default function WebhookAnalyticsPage() {
       {/* Performance Overview */}
       <div className="mt-8">
         <Subheading>Performance Overview</Subheading>
-        
+
         {/* Delivery Timeline Chart */}
         <div className="mt-4 rounded-lg border border-zinc-950/10 dark:border-white/10 p-6">
           <div className="flex items-center justify-between mb-4">
@@ -175,11 +174,11 @@ export default function WebhookAnalyticsPage() {
                 <AreaChart
                   data={timeseries.data.map((point: any) => ({
                     ...point,
-                    timestamp: interval === "minute" 
+                    timestamp: interval === "minute"
                       ? format(new Date(point.timestamp), "HH:mm")
                       : interval === "hour"
-                      ? format(new Date(point.timestamp), "MMM dd HH:mm")
-                      : format(new Date(point.timestamp), "MMM dd"),
+                        ? format(new Date(point.timestamp), "MMM dd HH:mm")
+                        : format(new Date(point.timestamp), "MMM dd"),
                     success_rate: point.success_rate?.toFixed(1) || 0,
                     // Ensure failed_deliveries is 0 when undefined/null
                     failed_deliveries: point.failed_deliveries || 0,
@@ -189,27 +188,27 @@ export default function WebhookAnalyticsPage() {
                 >
                   <defs>
                     <linearGradient id="colorSuccess" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.1} />
                     </linearGradient>
                     <linearGradient id="colorFailed" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1}/>
+                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-zinc-200 dark:stroke-zinc-700" />
-                  <XAxis 
-                    dataKey="timestamp" 
+                  <XAxis
+                    dataKey="timestamp"
                     className="text-xs"
                     tick={{ fill: 'currentColor' }}
                   />
-                  <YAxis 
+                  <YAxis
                     className="text-xs"
                     tick={{ fill: 'currentColor' }}
                     domain={[0, 'dataMax']}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
+                  <Tooltip
+                    contentStyle={{
                       backgroundColor: 'rgba(0, 0, 0, 0.8)',
                       border: 'none',
                       borderRadius: '8px',
@@ -282,13 +281,13 @@ export default function WebhookAnalyticsPage() {
           <Subheading>Top Events</Subheading>
           {analytics?.top_events && analytics.top_events.length > 0 ? (
             <Table className="mt-4">
-              <TableHead>
+              <TableHeader>
                 <TableRow>
                   <TableHeader>Rank</TableHeader>
                   <TableHeader>Event</TableHeader>
                   <TableHeader>Count</TableHeader>
                 </TableRow>
-              </TableHead>
+              </TableHeader>
               <TableBody>
                 {analytics.top_events.slice(0, 10).map((event, index) => (
                   <TableRow key={event.event_name}>
@@ -308,7 +307,7 @@ export default function WebhookAnalyticsPage() {
           ) : (
             <div className="mt-4 text-center py-12 border border-zinc-950/10 dark:border-white/10 rounded-lg">
               <ChartBarIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
-              <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+              <h3 className="mt-2 text-sm font-normal text-zinc-900 dark:text-zinc-100">
                 No events triggered yet
               </h3>
               <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
@@ -323,12 +322,12 @@ export default function WebhookAnalyticsPage() {
           <Subheading>Common Failure Reasons</Subheading>
           {analytics?.failure_reasons && analytics.failure_reasons.length > 0 ? (
             <Table className="mt-4">
-              <TableHead>
+              <TableHeader>
                 <TableRow>
                   <TableHeader>Reason</TableHeader>
                   <TableHeader>Occurrences</TableHeader>
                 </TableRow>
-              </TableHead>
+              </TableHeader>
               <TableBody>
                 {analytics.failure_reasons.slice(0, 10).map((reason) => (
                   <TableRow key={reason.reason}>
@@ -345,7 +344,7 @@ export default function WebhookAnalyticsPage() {
           ) : (
             <div className="mt-4 text-center py-12 border border-zinc-950/10 dark:border-white/10 rounded-lg">
               <ChartBarIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
-              <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+              <h3 className="mt-2 text-sm font-normal text-zinc-900 dark:text-zinc-100">
                 No failures recorded
               </h3>
               <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
@@ -363,14 +362,14 @@ export default function WebhookAnalyticsPage() {
           <div>
             <Subheading>Endpoint Performance</Subheading>
             <Table className="mt-4">
-              <TableHead>
+              <TableHeader>
                 <TableRow>
                   <TableHeader>Endpoint</TableHeader>
                   <TableHeader>Attempts</TableHeader>
                   <TableHeader>Success Rate</TableHeader>
                   <TableHeader>Avg Response</TableHeader>
                 </TableRow>
-              </TableHead>
+              </TableHeader>
               <TableBody>
                 {analytics.endpoint_performance.map((endpoint) => (
                   <TableRow key={endpoint.endpoint_id}>

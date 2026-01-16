@@ -2,13 +2,14 @@ import React, { useState } from "react";
 import { useCreateWorkspaceRole } from "@/lib/api/hooks/use-workspace-role-mutations";
 import {
   Dialog,
+  DialogContent,
+  DialogHeader,
   DialogTitle,
-  DialogBody,
-  DialogActions,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Field, Label } from "@/components/ui/fieldset";
+import { Label } from "@/components/ui/label";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 
@@ -66,13 +67,15 @@ export function CreateWorkspaceRoleDialog({
   };
 
   return (
-    <Dialog open={isOpen} onClose={onClose}>
-      <DialogTitle>Create Workspace Role</DialogTitle>
+    <Dialog open={isOpen} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Create Workspace Role</DialogTitle>
+        </DialogHeader>
 
-      <DialogBody>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 py-4">
           <div className="space-y-4">
-            <Field>
+            <div className="space-y-2">
               <Label htmlFor="name">Role Name</Label>
               <Input
                 id="name"
@@ -83,7 +86,7 @@ export function CreateWorkspaceRoleDialog({
                 placeholder="Enter role name"
                 required
               />
-            </Field>
+            </div>
 
             <MultiSelect
               label="Permissions"
@@ -94,19 +97,19 @@ export function CreateWorkspaceRoleDialog({
             />
           </div>
         </form>
-      </DialogBody>
 
-      <DialogActions>
-        <Button outline onClick={onClose}>
-          Cancel
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          disabled={!formData.name.trim() || createRole.isPending}
-        >
-          {createRole.isPending ? "Creating..." : "Create Role"}
-        </Button>
-      </DialogActions>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!formData.name.trim() || createRole.isPending}
+          >
+            {createRole.isPending ? "Creating..." : "Create Role"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

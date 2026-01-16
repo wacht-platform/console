@@ -6,15 +6,10 @@ import {
 } from "@/lib/api/hooks/use-segments";
 import { Segment, SegmentType } from "@/types/segment";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Combobox,
-  ComboboxOption,
-  ComboboxLabel,
-} from "@/components/ui/combobox";
-import { PlusIcon, XMarkIcon } from "@heroicons/react/20/solid";
+import type { ComboboxOption } from "@/components/ui/combobox";
+import { Combobox } from "@/components/ui/combobox";
+import { XMarkIcon } from "@heroicons/react/20/solid";
 import { Spinner } from "@/components/ui/spinner";
-import { cn } from "@/lib/utils";
 
 interface SegmentManagerProps {
   targetId: string;
@@ -27,25 +22,28 @@ export function SegmentManager({
   targetType,
   currentSegments = [],
 }: SegmentManagerProps) {
-  const [isAdding, setIsAdding] = useState(false);
+  const [selectedSegment, setSelectedSegment] = useState<Segment | undefined>(undefined);
   const { data: allSegments, isLoading } = useSegments();
   const assignSegment = useAssignSegment();
   const removeSegment = useRemoveSegment();
 
-  // Filter segments that are relevant for this target type
-  // And exclude already assigned segments
   const availableSegments =
     allSegments
       ?.filter((s) => s.type === targetType)
       .filter((s) => !currentSegments.some((cs) => cs.id === s.id)) || [];
 
-  const handleAssign = (segment: Segment | null) => {
+  const segmentOptions: ComboboxOption<Segment>[] = availableSegments.map((segment) => ({
+    value: segment,
+    label: segment.name,
+  }));
+
+  const handleAssign = (segment: Segment) => {
     if (!segment) return;
     assignSegment.mutate(
       { targetId, targetType, segmentId: segment.id },
       {
         onSuccess: () => {
-          setIsAdding(false);
+          setSelectedSegment(undefined);
         },
       },
     );
@@ -74,47 +72,18 @@ export function SegmentManager({
         </Badge>
       ))}
 
-      {isAdding ? (
-        <div
-          className={cn("min-w-48", currentSegments.length === 0 && "w-full")}
-        >
-          {isLoading ? (
-            <div className="flex items-center px-2 py-1">
-              <Spinner size="sm" />
-            </div>
-          ) : (
-            <Combobox
-              options={availableSegments}
-              displayValue={(segment) => segment?.name}
-              onChange={handleAssign}
-              placeholder="Select segment..."
-              autoFocus
-              onBlur={() => {
-                // Small delay to allow click to register if clicking an option
-                setTimeout(() => setIsAdding(false), 200);
-              }}
-              className="text-sm w-full"
-            >
-              {(segment) => (
-                <ComboboxOption key={segment.id} value={segment}>
-                  <ComboboxLabel>{segment.name}</ComboboxLabel>
-                </ComboboxOption>
-              )}
-            </Combobox>
-          )}
+      {isLoading ? (
+        <div className="flex items-center px-2 py-1">
+          <Spinner size="sm" />
         </div>
       ) : (
-        <Button
-          plain
-          className={cn(
-            "h-7 px-3 text-xs font-medium flex items-center gap-1.5 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-full hover:border-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all text-zinc-600 dark:text-zinc-400",
-            currentSegments.length === 0 && "w-full justify-center h-9 mt-2 ",
-          )}
-          onClick={() => setIsAdding(true)}
-        >
-          <PlusIcon className="h-3.5 w-3.5" />
-          Add Segment
-        </Button>
+        <Combobox
+          options={segmentOptions}
+          value={selectedSegment}
+          onChange={handleAssign}
+          placeholder="Select segment..."
+          className="text-sm w-full"
+        />
       )}
     </div>
   );

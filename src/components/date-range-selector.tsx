@@ -1,4 +1,10 @@
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CalendarIcon } from "@heroicons/react/24/outline";
 
 export type DateRangeOption = {
@@ -25,25 +31,28 @@ export function DateRangeSelector({
   onChange,
   className = "",
 }: DateRangeSelectorProps) {
-
-
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <CalendarIcon className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+      <CalendarIcon className="h-4 w-4 text-muted-foreground" />
       <Select
         value={value}
-        onChange={(newValue) => {
-          const option = DATE_RANGE_OPTIONS.find((opt) => opt.value === (newValue as any).target.value);
+        onValueChange={(newValue) => {
+          const option = DATE_RANGE_OPTIONS.find((opt) => opt.value === newValue);
           if (option) {
             onChange(option.value, option.hours);
           }
         }}
       >
-        {DATE_RANGE_OPTIONS.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Select range" />
+        </SelectTrigger>
+        <SelectContent>
+          {DATE_RANGE_OPTIONS.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
       </Select>
     </div>
   );

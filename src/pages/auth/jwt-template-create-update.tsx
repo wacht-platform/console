@@ -275,11 +275,11 @@ export default function JWTTemplateCreateUpdatePage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div>
       <div className="mb-8">
         <div className="flex justify-between items-start">
           <div>
-            <Heading className="text-2xl font-normal text-gray-900 dark:text-zinc-100">
+            <Heading className="text-xl font-normal text-gray-900 dark:text-zinc-100">
               {isEditMode ? "Edit JWT Template" : "Create JWT Template"}
             </Heading>
             <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
@@ -291,8 +291,8 @@ export default function JWTTemplateCreateUpdatePage() {
           <div className="flex items-center gap-3">
             {isEditMode && (
               <Button
-                outline
-                className="text-red-600 hover:bg-red-50 border-red-200"
+                variant="destructive"
+                size="icon"
                 onClick={handleDeleteTemplate}
                 disabled={isDeletingJWTTemplate}
               >
@@ -301,7 +301,6 @@ export default function JWTTemplateCreateUpdatePage() {
                 ) : (
                   <TrashIcon className="w-4 h-4" />
                 )}
-                <span className="ml-2">Delete</span>
               </Button>
             )}
             <Button
@@ -407,8 +406,7 @@ export default function JWTTemplateCreateUpdatePage() {
                 </Description>
                 <Switch
                   checked={isCustomSigningKey}
-                  onChange={toggleCustomSigningKey}
-                  name="custom_signing_key"
+                  onCheckedChange={toggleCustomSigningKey}
                 />
               </SwitchField>
               {isCustomSigningKey && (

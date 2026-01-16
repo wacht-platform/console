@@ -4,10 +4,11 @@ import { Spinner } from "@/components/ui/spinner";
 import { Heading, Subheading } from "@/components/ui/heading";
 import {
   Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
   DialogTitle,
   DialogDescription as DialogDescriptionBase,
-  DialogBody,
-  DialogActions,
 } from "@/components/ui/dialog";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -193,166 +194,170 @@ function ProviderSettingsDialog({
         !!redirectUriError));
 
   return (
-    <Dialog open={open} onClose={onClose} className="w-full max-w-lg">
-      <DialogTitle>{providerName} Configuration</DialogTitle>
-      <DialogDescription>
-        Configure how users sign up and sign in with {providerName}.
-      </DialogDescription>
-      <DialogBody className="mt-4">
-        <FieldGroup>
-          <Field className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label>Enable for sign-up and sign-in</Label>
-              <Switch
-                checked={signInEnabled}
-                onChange={setSignInEnabled}
-                name="enable_sign_in"
-                disabled={isSaving}
-                aria-describedby="enable-signin-description"
-              />
-            </div>
-            <Description>
-              Allow users to sign up and sign in to your application using this
-              method.
-            </Description>
-          </Field>
-          <Field className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label>Use custom credentials</Label>
-              <Switch
-                checked={useCustomCredentials}
-                onChange={setUseCustomCredentials}
-                name="use_custom_credentials"
-                disabled={isSaving}
-                aria-describedby="custom-credentials-description"
-              />
-            </div>
-            <Description>
-              Use your own credentials. If turned off, default shared
-              credentials will be used.
-            </Description>
-          </Field>
-        </FieldGroup>
-
-        {useCustomCredentials && (
-          <FieldGroup className="border-t border-zinc-200 dark:border-zinc-700 pt-4 mt-4 space-y-3">
-            <Field>
-              <Label>Client ID</Label>
-              <Input
-                placeholder="Enter client ID"
-                value={clientId}
-                onChange={(e) => {
-                  setClientId(e.target.value);
-                  setClientIdError(null);
-                }}
-                disabled={isSaving}
-                required
-                aria-invalid={!!clientIdError}
-                aria-describedby={clientIdError ? "client-id-error" : undefined}
-              />
-              {clientIdError && (
-                <ErrorMessage id="client-id-error">
-                  {clientIdError}
-                </ErrorMessage>
-              )}
-            </Field>
-            <Field>
-              <Label>Client Secret</Label>
-              <Input
-                type="password"
-                placeholder="Enter client secret"
-                value={clientSecret}
-                onChange={(e) => {
-                  setClientSecret(e.target.value);
-                  setClientSecretError(null);
-                }}
-                disabled={isSaving}
-                required
-                aria-invalid={!!clientSecretError}
-                aria-describedby={
-                  clientSecretError ? "client-secret-error" : undefined
-                }
-              />
-              {clientSecretError && (
-                <ErrorMessage id="client-secret-error">
-                  {clientSecretError}
-                </ErrorMessage>
-              )}
-            </Field>
-            <Field>
-              <Label>Authorized Redirect URI</Label>
-              <Input
-                placeholder="Enter redirect URI"
-                value={redirectUri}
-                onChange={(e) => {
-                  setRedirectUri(e.target.value);
-                  setRedirectUriError(null);
-                }}
-                disabled={isSaving}
-                required
-                aria-invalid={!!redirectUriError}
-                aria-describedby={
-                  redirectUriError ? "redirect-uri-error" : undefined
-                }
-              />
-              {redirectUriError && (
-                <ErrorMessage id="redirect-uri-error">
-                  {redirectUriError}
-                </ErrorMessage>
-              )}
-            </Field>
-            <Field>
-              <Label>Scopes</Label>
-              <p
-                id="scopes-description"
-                className="text-sm text-zinc-500 dark:text-zinc-400"
-              >
-                Enter required OAuth scopes one by one.
-              </p>
-              <div className="flex items-center gap-2 mt-1">
-                <Input
-                  className="flex-grow"
-                  placeholder="e.g., openid"
-                  value={currentScope}
-                  onChange={(e) => setCurrentScope(e.target.value)}
+    <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent className="w-full max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{providerName} Configuration</DialogTitle>
+          <DialogDescription>
+            Configure how users sign up and sign in with {providerName}.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <FieldGroup>
+            <Field className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Enable for sign-up and sign-in</Label>
+                <Switch
+                  checked={signInEnabled}
+                  onCheckedChange={setSignInEnabled}
+                  name="enable_sign_in"
                   disabled={isSaving}
-                  aria-describedby="scopes-description"
+                  aria-describedby="enable-signin-description"
                 />
-                <Button
-                  onClick={handleAddScope}
-                  disabled={isSaving || !currentScope.trim()}
-                  plain
-                >
-                  Add
-                </Button>
               </div>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {addedScopes.map((scope) => (
-                  <Badge key={scope} className="flex items-center gap-1 pr-1">
-                    {scope}
-                    <button
-                      onClick={() => handleRemoveScope(scope)}
-                      disabled={isSaving}
-                      className="rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-600 p-0.5"
-                      aria-label={`Remove ${scope} scope`}
-                    >
-                      <XMarkIcon className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))}
+              <Description>
+                Allow users to sign up and sign in to your application using this
+                method.
+              </Description>
+            </Field>
+            <Field className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Use custom credentials</Label>
+                <Switch
+                  checked={useCustomCredentials}
+                  onCheckedChange={setUseCustomCredentials}
+                  name="use_custom_credentials"
+                  disabled={isSaving}
+                  aria-describedby="custom-credentials-description"
+                />
               </div>
+              <Description>
+                Use your own credentials. If turned off, default shared
+                credentials will be used.
+              </Description>
             </Field>
           </FieldGroup>
-        )}
-      </DialogBody>
-      <DialogActions>
-        <Button onClick={handleSaveChanges} disabled={isSaveDisabled}>
-          {isSaving ? "Saving..." : "Save Changes"}
-        </Button>
-        <Button plain onClick={onClose} disabled={isSaving}>
-          Cancel
-        </Button>
-      </DialogActions>
+
+          {useCustomCredentials && (
+            <FieldGroup className="border-t border-zinc-200 dark:border-zinc-700 pt-4 mt-4 space-y-3">
+              <Field>
+                <Label>Client ID</Label>
+                <Input
+                  placeholder="Enter client ID"
+                  value={clientId}
+                  onChange={(e) => {
+                    setClientId(e.target.value);
+                    setClientIdError(null);
+                  }}
+                  disabled={isSaving}
+                  required
+                  aria-invalid={!!clientIdError}
+                  aria-describedby={clientIdError ? "client-id-error" : undefined}
+                />
+                {clientIdError && (
+                  <ErrorMessage id="client-id-error">
+                    {clientIdError}
+                  </ErrorMessage>
+                )}
+              </Field>
+              <Field>
+                <Label>Client Secret</Label>
+                <Input
+                  type="password"
+                  placeholder="Enter client secret"
+                  value={clientSecret}
+                  onChange={(e) => {
+                    setClientSecret(e.target.value);
+                    setClientSecretError(null);
+                  }}
+                  disabled={isSaving}
+                  required
+                  aria-invalid={!!clientSecretError}
+                  aria-describedby={
+                    clientSecretError ? "client-secret-error" : undefined
+                  }
+                />
+                {clientSecretError && (
+                  <ErrorMessage id="client-secret-error">
+                    {clientSecretError}
+                  </ErrorMessage>
+                )}
+              </Field>
+              <Field>
+                <Label>Authorized Redirect URI</Label>
+                <Input
+                  placeholder="Enter redirect URI"
+                  value={redirectUri}
+                  onChange={(e) => {
+                    setRedirectUri(e.target.value);
+                    setRedirectUriError(null);
+                  }}
+                  disabled={isSaving}
+                  required
+                  aria-invalid={!!redirectUriError}
+                  aria-describedby={
+                    redirectUriError ? "redirect-uri-error" : undefined
+                  }
+                />
+                {redirectUriError && (
+                  <ErrorMessage id="redirect-uri-error">
+                    {redirectUriError}
+                  </ErrorMessage>
+                )}
+              </Field>
+              <Field>
+                <Label>Scopes</Label>
+                <p
+                  id="scopes-description"
+                  className="text-sm text-zinc-500 dark:text-zinc-400"
+                >
+                  Enter required OAuth scopes one by one.
+                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <Input
+                    className="flex-grow"
+                    placeholder="e.g., openid"
+                    value={currentScope}
+                    onChange={(e) => setCurrentScope(e.target.value)}
+                    disabled={isSaving}
+                    aria-describedby="scopes-description"
+                  />
+                  <Button
+                    onClick={handleAddScope}
+                    disabled={isSaving || !currentScope.trim()}
+                    variant="ghost"
+                  >
+                    Add
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {addedScopes.map((scope) => (
+                    <Badge key={scope} className="flex items-center gap-1 pr-1">
+                      {scope}
+                      <button
+                        onClick={() => handleRemoveScope(scope)}
+                        disabled={isSaving}
+                        className="rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-600 p-0.5"
+                        aria-label={`Remove ${scope} scope`}
+                      >
+                        <XMarkIcon className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              </Field>
+            </FieldGroup>
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose} disabled={isSaving}>
+            Cancel
+          </Button>
+          <Button onClick={handleSaveChanges} disabled={isSaveDisabled}>
+            {isSaving ? "Saving..." : "Save Changes"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -508,13 +513,13 @@ export default function SSOConnectionsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button plain onClick={() => handleOpenSettings(provider)}>
+                  <Button variant="ghost" onClick={() => handleOpenSettings(provider)}>
                     <Cog6ToothIcon />
                   </Button>
                   <Switch
                     name={`${provider.name.toLowerCase()}_enabled`}
                     checked={provider.connection?.enabled ?? false}
-                    onChange={(checked: boolean) =>
+                    onCheckedChange={(checked: boolean) =>
                       handleSwitchToggle(provider, checked)
                     }
                   />

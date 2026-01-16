@@ -18,7 +18,7 @@ const TriggerNode = ({ data }: { data: TriggerNodeData }) => {
         />
       )}
 
-      <div className="font-semibold text-sm mb-1">{data.label}</div>
+      <div className="font-normal text-sm mb-1">{data.label}</div>
       <div className="text-xs opacity-75">Start workflow</div>
 
       {!data.outputNode && (

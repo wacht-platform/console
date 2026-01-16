@@ -43,7 +43,7 @@ export default function ErrorBoundaryPage() {
                 )}
 
                 <div className="flex justify-center gap-3 mt-8">
-                    <Button onClick={() => window.location.reload()} outline>
+                    <Button onClick={() => window.location.reload()} variant={"outline"}>
                         Reload Page
                     </Button>
                     <Button onClick={() => navigate("..")}>

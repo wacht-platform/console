@@ -64,11 +64,11 @@ export default function JWTTemplatesPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div>
       <div className="mb-8">
         <div className="flex justify-between items-start">
           <div>
-            <Heading className="text-2xl font-normal text-gray-900 dark:text-zinc-100">
+            <Heading className="text-xl font-normal text-gray-900 dark:text-zinc-100">
               JWT Templates
             </Heading>
             <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">

@@ -7,10 +7,11 @@ import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
 import { Field, Label } from "@/components/ui/fieldset";
 import {
   Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
   DialogTitle,
   DialogDescription,
-  DialogBody,
-  DialogActions,
 } from "@/components/ui/dialog";
 import {
   ChevronRightIcon,
@@ -243,13 +244,15 @@ function SmtpConfigDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} size="2xl">
-      <DialogTitle>Configure Custom SMTP</DialogTitle>
-      <DialogDescription>
-        Enter your SMTP server credentials to send emails through your own mail server.
-      </DialogDescription>
-      <DialogBody>
-        <div className="space-y-6">
+    <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Configure Custom SMTP</DialogTitle>
+          <DialogDescription>
+            Enter your SMTP server credentials to send emails through your own mail server.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-6 py-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <Field>
               <Label>SMTP Host</Label>
@@ -309,7 +312,7 @@ function SmtpConfigDialog({
             <CheckboxField>
               <Checkbox
                 checked={useTls}
-                onChange={(checked) => setUseTls(checked)}
+                onCheckedChange={(checked: boolean) => setUseTls(checked)}
               />
               <Label>Use STARTTLS</Label>
             </CheckboxField>
@@ -318,40 +321,42 @@ function SmtpConfigDialog({
             </p>
           </div>
         </div>
-      </DialogBody>
-      <DialogActions>
-        <div className="flex justify-between w-full">
-          <div>
-            {existingConfig && (
-              <Button
-                onClick={handleRemove}
-                disabled={isRemoving}
-                color="red"
-              >
-                {isRemoving ? "Removing..." : "Remove & Use Postmark"}
+        <DialogFooter>
+          <div className="flex justify-between w-full">
+            <div>
+              {existingConfig && (
+                <Button
+                  onClick={handleRemove}
+                  disabled={isRemoving}
+                  variant="destructive"
+                >
+                  {isRemoving ? "Removing..." : "Remove & Use Postmark"}
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
               </Button>
-            )}
+              <Button
+                type="button"
+                onClick={handleVerify}
+                disabled={!isFormValid || isVerifying}
+                variant="outline"
+              >
+                {isVerifying ? "Testing..." : "Test Connection"}
+              </Button>
+              <Button
+                type="button"
+                onClick={handleSubmit}
+                disabled={!isFormValid || isSubmitting}
+              >
+                {isSubmitting ? "Saving..." : existingConfig ? "Update" : "Save"}
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-3">
-            <Button outline onClick={onClose}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleVerify}
-              disabled={!isFormValid || isVerifying}
-              outline
-            >
-              {isVerifying ? "Testing..." : "Test Connection"}
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={!isFormValid || isSubmitting}
-            >
-              {isSubmitting ? "Saving..." : existingConfig ? "Update" : "Save"}
-            </Button>
-          </div>
-        </div>
-      </DialogActions>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -417,9 +422,9 @@ function EmailProviderCard() {
 
 export default function EmailsPage() {
   return (
-    <div className="max-w-7xl mx-auto">
+    <div>
       <div className="mb-8">
-        <Heading className="text-2xl font-normal text-gray-900 dark:text-neutral-100">
+        <Heading className="text-xl font-normal text-gray-900 dark:text-neutral-100">
           Email Templates
         </Heading>
         <p className="mt-1 text-sm text-gray-600 dark:text-neutral-400">

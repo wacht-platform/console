@@ -10,7 +10,7 @@ import { toast } from "sonner";
 export function B2bPermissionsManager() {
   const { deploymentSettings, isLoading } = useCurrentDeployemnt();
   const updateB2bSettings = useUpdateDeploymentB2bSettings();
-  
+
   const [workspacePermissions, setWorkspacePermissions] = useState<string[]>([]);
   const [organizationPermissions, setOrganizationPermissions] = useState<string[]>([]);
   const [newWorkspacePermission, setNewWorkspacePermission] = useState("");
@@ -74,7 +74,7 @@ export function B2bPermissionsManager() {
         <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
           Organization Permissions
         </h4>
-        
+
         <div className="flex gap-2">
           <Input
             type="text"
@@ -84,7 +84,7 @@ export function B2bPermissionsManager() {
             onKeyPress={(e) => e.key === 'Enter' && handleAddOrganizationPermission()}
             className="flex-1"
           />
-          <Button onClick={handleAddOrganizationPermission} outline>
+          <Button onClick={handleAddOrganizationPermission} variant="outline">
             <PlusIcon className="h-4 w-4" />
           </Button>
         </div>
@@ -96,8 +96,8 @@ export function B2bPermissionsManager() {
             </span>
           ) : (
             organizationPermissions.map((permission) => (
-              <Badge 
-                key={permission} 
+              <Badge
+                key={permission}
                 color="blue"
                 className="flex items-center gap-1"
               >
@@ -119,7 +119,7 @@ export function B2bPermissionsManager() {
         <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
           Workspace Permissions
         </h4>
-        
+
         <div className="flex gap-2">
           <Input
             type="text"
@@ -129,7 +129,7 @@ export function B2bPermissionsManager() {
             onKeyPress={(e) => e.key === 'Enter' && handleAddWorkspacePermission()}
             className="flex-1"
           />
-          <Button onClick={handleAddWorkspacePermission} outline>
+          <Button onClick={handleAddWorkspacePermission} variant="outline">
             <PlusIcon className="h-4 w-4" />
           </Button>
         </div>
@@ -141,8 +141,8 @@ export function B2bPermissionsManager() {
             </span>
           ) : (
             workspacePermissions.map((permission) => (
-              <Badge 
-                key={permission} 
+              <Badge
+                key={permission}
                 color="green"
                 className="flex items-center gap-1"
               >
@@ -161,7 +161,7 @@ export function B2bPermissionsManager() {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button 
+        <Button
           onClick={handleSave}
           disabled={updateB2bSettings.isPending}
         >

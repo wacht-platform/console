@@ -20,10 +20,10 @@ interface WebhookEventSubscriptionProps {
   onChange: (subscription: EventSubscription | null) => void;
 }
 
-export function WebhookEventSubscription({ 
-  event, 
+export function WebhookEventSubscription({
+  event,
   subscription,
-  onChange 
+  onChange
 }: WebhookEventSubscriptionProps) {
   const [expanded, setExpanded] = useState(false);
   const isSubscribed = !!subscription;
@@ -56,10 +56,10 @@ export function WebhookEventSubscription({
         <div className="flex items-start gap-3">
           <Checkbox
             checked={isSubscribed}
-            onChange={handleToggleSubscription}
+            onCheckedChange={handleToggleSubscription}
             className="mt-0.5"
           />
-          
+
           <div className="flex-1">
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -80,10 +80,10 @@ export function WebhookEventSubscription({
                   </p>
                 )}
               </div>
-              
+
               {isSubscribed && (
                 <Button
-                  plain
+                  variant="ghost"
                   onClick={() => setExpanded(!expanded)}
                   className="text-xs"
                 >
@@ -104,7 +104,7 @@ export function WebhookEventSubscription({
           </div>
         </div>
       </div>
-      
+
       {isSubscribed && expanded && (
         <div className="px-4 py-3 bg-zinc-50 dark:bg-zinc-900/50 border-t border-zinc-200 dark:border-zinc-800">
           <WebhookFilterBuilder

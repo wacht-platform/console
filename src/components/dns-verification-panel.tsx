@@ -77,7 +77,7 @@ function DnsRecordRow({ record }: { record: DnsRecord }) {
 			<TableCell className="w-[45%] min-w-[200px] max-w-0">
 				<div className="flex items-center space-x-2 min-w-0">
 					<Button
-						outline
+						variant="outline"
 						onClick={() => copyToClipboard(record.value)}
 						className="p-1 h-6 w-6 flex-shrink-0"
 						title="Copy to clipboard"
@@ -261,7 +261,7 @@ function SmtpConfigForm({
 			<CheckboxField>
 				<Checkbox
 					checked={useTls}
-					onChange={(checked) => setUseTls(checked)}
+					onCheckedChange={(checked) => setUseTls(checked === true)}
 				/>
 				<Label>Use TLS (STARTTLS)</Label>
 			</CheckboxField>
@@ -270,7 +270,7 @@ function SmtpConfigForm({
 				<Button
 					onClick={() => onVerify(getConfig())}
 					disabled={!isFormValid || isVerifying}
-					outline
+					variant="outline"
 				>
 					{isVerifying ? "Testing..." : "Test Connection"}
 				</Button>
@@ -479,11 +479,10 @@ export function DnsVerificationPanel({
 					<button
 						type="button"
 						onClick={() => setEmailConfigMode("postmark")}
-						className={`flex-1 p-5 rounded-lg border-2 transition-all ${
-							emailConfigMode === "postmark"
-								? "border-indigo-500 bg-indigo-50 dark:border-indigo-400 dark:bg-indigo-500/10"
-								: "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600 bg-white dark:bg-neutral-800/50"
-						}`}
+						className={`flex-1 p-5 rounded-lg border-2 transition-all ${emailConfigMode === "postmark"
+							? "border-indigo-500 bg-indigo-50 dark:border-indigo-400 dark:bg-indigo-500/10"
+							: "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600 bg-white dark:bg-neutral-800/50"
+							}`}
 					>
 						<div className="flex items-start justify-between">
 							<div className="flex items-start space-x-3">
@@ -509,11 +508,10 @@ export function DnsVerificationPanel({
 					<button
 						type="button"
 						onClick={() => setEmailConfigMode("smtp")}
-						className={`flex-1 p-5 rounded-lg border-2 transition-all ${
-							emailConfigMode === "smtp"
-								? "border-indigo-500 bg-indigo-50 dark:border-indigo-400 dark:bg-indigo-500/10"
-								: "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600 bg-white dark:bg-neutral-800/50"
-						}`}
+						className={`flex-1 p-5 rounded-lg border-2 transition-all ${emailConfigMode === "smtp"
+							? "border-indigo-500 bg-indigo-50 dark:border-indigo-400 dark:bg-indigo-500/10"
+							: "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600 bg-white dark:bg-neutral-800/50"
+							}`}
 					>
 						<div className="flex items-start justify-between">
 							<div className="flex items-start space-x-3">

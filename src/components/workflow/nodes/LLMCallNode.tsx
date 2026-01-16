@@ -24,7 +24,7 @@ const LLMCallNode = memo(({ data }: LLMCallNodeProps) => {
         className="w-2 h-2 !bg-purple-500 !border-2 !border-white dark:!border-zinc-800"
       />
 
-      <div className="font-semibold text-sm mb-1">{data.label}</div>
+      <div className="font-normal text-sm mb-1">{data.label}</div>
       <div className="text-xs opacity-75">AI processing</div>
 
       <Handle

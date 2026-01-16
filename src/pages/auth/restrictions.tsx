@@ -381,38 +381,52 @@ export default function RestrictionsPage() {
             <FieldGroup>
               <RadioGroup
                 value={signUpMode}
-                onChange={handleSignUpModeChange}
+                onValueChange={handleSignUpModeChange}
                 className="space-y-4"
               >
-                <Field>
-                  <RadioField>
-                    <Radio value="public" />
-                    <Label>Public</Label>
-                    <Description>
-                      Anyone can sign up to your application.
-                    </Description>
-                  </RadioField>
-                </Field>
-                <Field>
-                  <RadioField>
-                    <Radio value="restricted" />
-                    <Label>Restricted</Label>
-                    <Description>
-                      Sign ups are disabled, and users can only access your
-                      application if they are invited, created manually, or
-                      authenticated through an enterprise SSO connection.
-                    </Description>
-                  </RadioField>
-                </Field>
-                <Field>
-                  <RadioField>
-                    <Radio value="waitlist" />
-                    <Label>Waitlist</Label>
-                    <Description>
-                      Sign ups are disabled, but people can join a waitlist.
-                    </Description>
-                  </RadioField>
-                </Field>
+                <div className="flex flex-col gap-6">
+                  <Field>
+                    <RadioField>
+                      <Radio value="public" className="mt-1" />
+                      <div className="flex flex-col gap-1">
+                        <Label className="font-normal text-base text-gray-900 dark:text-zinc-100">
+                          Public
+                        </Label>
+                        <Description className="leading-relaxed">
+                          Anyone can sign up to your application.
+                        </Description>
+                      </div>
+                    </RadioField>
+                  </Field>
+                  <Field>
+                    <RadioField>
+                      <Radio value="restricted" className="mt-1" />
+                      <div className="flex flex-col gap-1">
+                        <Label className="font-normal text-base text-gray-900 dark:text-zinc-100">
+                          Restricted
+                        </Label>
+                        <Description className="leading-relaxed">
+                          Sign ups are disabled, and users can only access your
+                          application if they are invited, created manually, or
+                          authenticated through an enterprise SSO connection.
+                        </Description>
+                      </div>
+                    </RadioField>
+                  </Field>
+                  <Field>
+                    <RadioField>
+                      <Radio value="waitlist" className="mt-1" />
+                      <div className="flex flex-col gap-1">
+                        <Label className="font-normal text-base text-gray-900 dark:text-zinc-100">
+                          Waitlist
+                        </Label>
+                        <Description className="leading-relaxed">
+                          Sign ups are disabled, but people can join a waitlist.
+                        </Description>
+                      </div>
+                    </RadioField>
+                  </Field>
+                </div>
               </RadioGroup>
             </FieldGroup>
           </Fieldset>
@@ -442,7 +456,7 @@ export default function RestrictionsPage() {
                     </div>
                     <Switch
                       checked={waitlistCollectNames}
-                      onChange={setWaitlistCollectNames}
+                      onCheckedChange={setWaitlistCollectNames}
                       className="ml-auto flex-shrink-0"
                     />
                   </div>
@@ -465,7 +479,7 @@ export default function RestrictionsPage() {
               <div className="flex items-center gap-2">
                 <Switch
                   checked={isAllowlistEnabled}
-                  onChange={setIsAllowlistEnabled}
+                  onCheckedChange={setIsAllowlistEnabled}
                 />
               </div>
             </div>
@@ -488,7 +502,7 @@ export default function RestrictionsPage() {
                       onChange={handleEmailInputChange}
                       onKeyDown={handleEmailKeyDown}
                     />
-                    <Button plain onClick={() => addEmailToAllowlist(newEmail)}>
+                    <Button variant="ghost" onClick={() => addEmailToAllowlist(newEmail)}>
                       Add
                     </Button>
                   </div>
@@ -536,7 +550,7 @@ export default function RestrictionsPage() {
               <div className="flex items-center gap-2">
                 <Switch
                   checked={isBlocklistEnabled}
-                  onChange={setIsBlocklistEnabled}
+                  onCheckedChange={setIsBlocklistEnabled}
                 />
               </div>
             </div>
@@ -560,7 +574,7 @@ export default function RestrictionsPage() {
                       onKeyDown={handleBlockedEmailKeyDown}
                     />
                     <Button
-                      plain
+                      variant="ghost"
                       onClick={() => addEmailToBlocklist(newBlockedEmail)}
                     >
                       Add
@@ -610,7 +624,7 @@ export default function RestrictionsPage() {
                   </div>
                   <Switch
                     checked={blockSubaddresses}
-                    onChange={setBlockSubaddresses}
+                    onCheckedChange={setBlockSubaddresses}
                     className="ml-auto flex-shrink-0"
                   />
                 </div>
@@ -629,7 +643,7 @@ export default function RestrictionsPage() {
                   </div>
                   <Switch
                     checked={blockDisposableEmails}
-                    onChange={setBlockDisposableEmails}
+                    onCheckedChange={setBlockDisposableEmails}
                     className="ml-auto flex-shrink-0"
                   />
                 </div>
@@ -650,13 +664,13 @@ export default function RestrictionsPage() {
                 </div>
                 <Switch
                   checked={isCountryRestrictionEnabled}
-                  onChange={setIsCountryRestrictionEnabled}
+                  onCheckedChange={setIsCountryRestrictionEnabled}
                   id="country-restriction-toggle"
                 />
               </div>
             </Field>
             {isCountryRestrictionEnabled && (
-              <div className="flex justify-end -mt-4">
+              <div className="flex justify-start">
                 <CountryBanSelector
                   selectedCountries={selectedCountries}
                   onCountriesChange={setSelectedCountries}
@@ -667,14 +681,14 @@ export default function RestrictionsPage() {
 
           <Divider soft />
 
-          <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
-            <Field>
-              <Subheading>Banned Keywords</Subheading>
-              <Text>Add keywords that will block usernames and emails.</Text>
-            </Field>
-            <Field>
-              <div className="flex flex-col items-end space-y-2">
-                <div className="flex items-center w-full max-w-xs">
+          <section className="flex flex-col gap-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <Subheading>Banned Keywords</Subheading>
+                <Text>Add keywords that will block usernames and emails.</Text>
+              </div>
+              <div className="flex flex-col items-end w-full max-w-md space-y-2">
+                <div className="flex items-center w-full">
                   <Input
                     type="text"
                     placeholder="Enter keyword"
@@ -684,17 +698,16 @@ export default function RestrictionsPage() {
                     onKeyDown={handleKeyDown}
                   />
                   <Button
-                    plain
+                    variant="ghost"
                     onClick={() => addKeyword(newKeyword)}
                     className="ml-2 flex-shrink-0"
                   >
                     Add
                   </Button>
                 </div>
-
                 {bannedKeywords.length > 0 && (
-                  <div className="w-full max-w-xs">
-                    <div className="flex flex-wrap gap-2 justify-end">
+                  <div className="w-full">
+                    <div className="flex flex-wrap justify-end gap-2">
                       {bannedKeywords.map((keyword) => (
                         <span
                           key={keyword}
@@ -714,27 +727,24 @@ export default function RestrictionsPage() {
                   </div>
                 )}
               </div>
-            </Field>
+            </div>
           </section>
 
           <Divider soft />
 
-          <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
-            <Field>
+          <section className="flex items-start justify-between gap-4">
+            <div>
               <Subheading>VOIP / Virtual Number Restrictions</Subheading>
               <Text>
                 Block specific number series associated with VOIP or virtual
                 numbers.
               </Text>
-            </Field>
-            <Field>
-              <div className="flex justify-end items-center">
-                <Switch
-                  checked={enableVoipRestriction}
-                  onChange={setEnableVoipRestriction}
-                />
-              </div>
-            </Field>
+            </div>
+            <Switch
+              checked={enableVoipRestriction}
+              onCheckedChange={setEnableVoipRestriction}
+              className="ml-auto flex-shrink-0"
+            />
           </section>
         </div>
       </div>
@@ -747,7 +757,7 @@ export default function RestrictionsPage() {
             </p>
             <div className="flex gap-3">
               <Button
-                plain
+                variant="ghost"
                 onClick={handleReset}
                 disabled={isUpdatingRestrictions}
               >
@@ -1130,10 +1140,9 @@ export function CountryBanSelector({
                     handleCountryToggle(country.code);
                   }}
                   className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-zinc-700 flex items-center justify-between
-                    ${
-                      selectedCountries.includes(country.code)
-                        ? "bg-indigo-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
-                        : "text-gray-700 dark:text-zinc-200"
+                    ${selectedCountries.includes(country.code)
+                      ? "bg-indigo-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
+                      : "text-gray-700 dark:text-zinc-200"
                     }`}
                 >
                   <div className="flex items-center gap-2">

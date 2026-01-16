@@ -3,9 +3,10 @@ import { useCreateOrganizationRole } from "@/lib/api/hooks/use-organization-muta
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 import {
   Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
   DialogTitle,
-  DialogBody,
-  DialogActions,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,55 +66,59 @@ export function CreateRoleDialog({
   };
 
   return (
-    <Dialog open={isOpen} onClose={onClose}>
-      <DialogTitle>Create Organization Role</DialogTitle>
+    <Dialog open={isOpen} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Create Organization Role</DialogTitle>
+        </DialogHeader>
 
-      <DialogBody>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            <Field>
-              <Label htmlFor="name">Role Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, name: e.target.value }))
+        <div className="py-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <Field>
+                <Label htmlFor="name">Role Name</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  placeholder="Enter role name"
+                  required
+                />
+              </Field>
+
+              <MultiSelect
+                label="Permissions"
+                options={availablePermissions}
+                selectedValues={formData.permissions}
+                onChange={(permissions) =>
+                  setFormData((prev) => ({ ...prev, permissions }))
                 }
-                placeholder="Enter role name"
-                required
+                placeholder="Select permissions for this role..."
               />
-            </Field>
+            </div>
+          </form>
+        </div>
 
-            <MultiSelect
-              label="Permissions"
-              options={availablePermissions}
-              selectedValues={formData.permissions}
-              onChange={(permissions) =>
-                setFormData((prev) => ({ ...prev, permissions }))
-              }
-              placeholder="Select permissions for this role..."
-            />
-          </div>
-        </form>
-      </DialogBody>
-
-      <DialogActions>
-        <Button
-          type="button"
-          outline
-          onClick={onClose}
-          disabled={createRole.isPending}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          onClick={handleSubmit}
-          disabled={createRole.isPending || !formData.name.trim()}
-        >
-          {createRole.isPending ? "Creating..." : "Create Role"}
-        </Button>
-      </DialogActions>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onClose}
+            disabled={createRole.isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={createRole.isPending || !formData.name.trim()}
+          >
+            {createRole.isPending ? "Creating..." : "Create Role"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

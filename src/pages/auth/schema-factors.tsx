@@ -4,10 +4,11 @@ import { Spinner } from "@/components/ui/spinner";
 import { Divider } from "@/components/ui/divider";
 import {
   Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
   DialogTitle,
   DialogDescription,
-  DialogBody,
-  DialogActions,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -65,13 +66,15 @@ function MultiSessionSettingsDialog({ open, onClose }: DialogProps) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} className="rounded-xl p-6">
-      <>
-        <DialogTitle className="mb-2">Customize session token</DialogTitle>
-        <DialogDescription className="mb-6">
-          Customize the session token to include additional information.
-        </DialogDescription>
-        <DialogBody className="space-y-8">
+    <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent className="p-6">
+        <DialogHeader>
+          <DialogTitle className="mb-2">Customize session token</DialogTitle>
+          <DialogDescription className="mb-6">
+            Customize the session token to include additional information.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-8">
           <section className="grid gap-6 sm:grid-cols-2">
             <div className="space-y-2">
               <Subheading>Maximum accounts per session</Subheading>
@@ -86,7 +89,6 @@ function MultiSessionSettingsDialog({ open, onClose }: DialogProps) {
                   <Input
                     aria-label="Max accounts"
                     name="maxAccounts"
-                    inputClassName="text-right"
                     value={maxAccountsPerSession}
                     onChange={(e) => setMaxAccountsPerSession(e.target.value)}
                   />
@@ -112,7 +114,7 @@ function MultiSessionSettingsDialog({ open, onClose }: DialogProps) {
                   <Input
                     aria-label="Max user logins"
                     name="maxUserLogins"
-                    inputClassName="text-right"
+                    className="text-right"
                     value={maxSessionsPerAccount}
                     onChange={(e) => setMaxSessionsPerAccount(e.target.value)}
                   />
@@ -123,14 +125,14 @@ function MultiSessionSettingsDialog({ open, onClose }: DialogProps) {
           </section>
 
           <Divider className="my-8" soft />
-        </DialogBody>
-        <DialogActions className="flex justify-end gap-4 mt-6">
-          <Button plain onClick={onClose}>
+        </div>
+        <DialogFooter className="flex justify-end gap-4 mt-6">
+          <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
           <Button onClick={handleSubmit}>Submit</Button>
-        </DialogActions>
-      </>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -146,101 +148,105 @@ function EmailSettingsDialog({ open, onClose }: DialogProps) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Email address</DialogTitle>
-      <DialogDescription>Configure email address attribute</DialogDescription>
-      <DialogBody className="space-y-4">
-        <SwitchGroup className="space-y-0">
-          <SwitchField>
-            <Label>Enable</Label>
-            <Description>
-              Users can add email addresses to their account
-            </Description>
-            <Switch
-              name="email_enabled"
-              checked={settings.email_address?.enabled}
-              onChange={(checked) =>
-                handleEmailSettingChange("enabled", checked)
-              }
-            />
-          </SwitchField>
-
-          <SwitchField>
-            <Label>Require</Label>
-            <Description>
-              Users must provide an email address to sign up, and must maintain
-              one on their account at all times
-            </Description>
-            <Switch
-              name="email_required"
-              checked={settings.email_address?.required}
-              onChange={(checked) =>
-                handleEmailSettingChange("required", checked)
-              }
-            />
-          </SwitchField>
-
-          <SwitchField>
-            <Label>Verify at sign-up</Label>
-            <Description>
-              Require users to verify their email addresses before they can sign
-              up
-            </Description>
-            <Switch
-              name="email_verify_signup"
-              checked={settings.email_address?.verify_signup}
-              onChange={(checked) =>
-                handleEmailSettingChange("verify_signup", checked)
-              }
-            />
-          </SwitchField>
-        </SwitchGroup>
-
-        <Divider soft />
-
-        <div>
-          <h3 className="text-sm font-medium mb-2">Verification methods</h3>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">
-            Select how users can verify an email address
-          </p>
-          <SwitchGroup>
+    <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Email address</DialogTitle>
+          <DialogDescription>Configure email address attribute</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <SwitchGroup className="space-y-0">
             <SwitchField>
-              <Label>Email verification link</Label>
+              <Label>Enable</Label>
               <Description>
-                Verify by clicking a link sent to the email address
+                Users can add email addresses to their account
               </Description>
               <Switch
-                name="email_verify_link"
-                checked={
-                  settings.email_address?.magic_link_verification_allowed
-                }
-                onChange={(checked) =>
-                  handleEmailSettingChange(
-                    "magic_link_verification_allowed",
-                    checked,
-                  )
+                name="email_enabled"
+                checked={settings.email_address?.enabled}
+                onCheckedChange={(checked) =>
+                  handleEmailSettingChange("enabled", checked)
                 }
               />
             </SwitchField>
+
             <SwitchField>
-              <Label>Email verification code</Label>
+              <Label>Require</Label>
               <Description>
-                Verify by entering a one-time passcode sent to the email address
+                Users must provide an email address to sign up, and must maintain
+                one on their account at all times
               </Description>
               <Switch
-                name="email_verify_code"
-                checked={settings.email_address?.otp_verification_allowed}
-                onChange={(checked) =>
-                  handleEmailSettingChange("otp_verification_allowed", checked)
+                name="email_required"
+                checked={settings.email_address?.required}
+                onCheckedChange={(checked) =>
+                  handleEmailSettingChange("required", checked)
+                }
+              />
+            </SwitchField>
+
+            <SwitchField>
+              <Label>Verify at sign-up</Label>
+              <Description>
+                Require users to verify their email addresses before they can sign
+                up
+              </Description>
+              <Switch
+                name="email_verify_signup"
+                checked={settings.email_address?.verify_signup}
+                onCheckedChange={(checked) =>
+                  handleEmailSettingChange("verify_signup", checked)
                 }
               />
             </SwitchField>
           </SwitchGroup>
+
+          <Divider soft />
+
+          <div>
+            <h3 className="text-sm font-medium mb-2">Verification methods</h3>
+            <p className="text-sm text-muted-foreground mb-2">
+              Select how users can verify an email address
+            </p>
+            <SwitchGroup>
+              <SwitchField>
+                <Label>Email verification link</Label>
+                <Description>
+                  Verify by clicking a link sent to the email address
+                </Description>
+                <Switch
+                  name="email_verify_link"
+                  checked={
+                    settings.email_address?.magic_link_verification_allowed
+                  }
+                  onCheckedChange={(checked) =>
+                    handleEmailSettingChange(
+                      "magic_link_verification_allowed",
+                      checked,
+                    )
+                  }
+                />
+              </SwitchField>
+              <SwitchField>
+                <Label>Email verification code</Label>
+                <Description>
+                  Verify by entering a one-time passcode sent to the email address
+                </Description>
+                <Switch
+                  name="email_verify_code"
+                  checked={settings.email_address?.otp_verification_allowed}
+                  onCheckedChange={(checked) =>
+                    handleEmailSettingChange("otp_verification_allowed", checked)
+                  }
+                />
+              </SwitchField>
+            </SwitchGroup>
+          </div>
         </div>
-      </DialogBody>
-      <DialogActions>
-        <Button onClick={onClose}>Continue</Button>
-      </DialogActions>
+        <DialogFooter>
+          <Button onClick={onClose}>Continue</Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -255,102 +261,106 @@ function PhoneSettingsDialog({ open, onClose }: DialogProps) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Phone number</DialogTitle>
-      <DialogDescription>Configure phone number attribute</DialogDescription>
-      <DialogBody className="space-y-3">
-        <SwitchGroup>
-          <SwitchField>
-            <Label>Enable</Label>
-            <Description>
-              Users can add phone numbers to their account
-            </Description>
-            <Switch
-              name="phone_enabled"
-              checked={settings.phone_number?.enabled}
-              onChange={(checked) =>
-                handlePhoneSettingChange("enabled", checked)
-              }
-            />
-          </SwitchField>
-
-          <SwitchField>
-            <Label>Require</Label>
-            <Description>
-              Users must provide a phone number to sign up, and must maintain
-              one on their account at all times
-            </Description>
-            <Switch
-              name="phone_required"
-              checked={settings.phone_number?.required}
-              onChange={(checked) =>
-                handlePhoneSettingChange("required", checked)
-              }
-            />
-          </SwitchField>
-
-          <SwitchField>
-            <Label>Verify at sign-up</Label>
-            <Description>
-              Require users to verify their phone numbers before they can sign
-              up
-            </Description>
-            <Switch
-              name="phone_verify_signup"
-              checked={settings.phone_number?.verify_signup}
-              onChange={(checked) =>
-                handlePhoneSettingChange("verify_signup", checked)
-              }
-            />
-          </SwitchField>
-        </SwitchGroup>
-
-        <Divider soft />
-
-        <div>
-          <h3 className="text-sm font-medium mb-2">Verification methods</h3>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">
-            Select how users can verify a phone number
-          </p>
+    <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Phone number</DialogTitle>
+          <DialogDescription>Configure phone number attribute</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3 py-4">
           <SwitchGroup>
             <SwitchField>
-              <Label>SMS verification code</Label>
+              <Label>Enable</Label>
               <Description>
-                Verify by entering a one-time verification code sent via SMS to
-                the phone number
+                Users can add phone numbers to their account
               </Description>
               <Switch
-                name="phone_sms_verification"
-                checked={settings.phone_number?.sms_verification_allowed}
-                onChange={(checked) =>
-                  handlePhoneSettingChange("sms_verification_allowed", checked)
+                name="phone_enabled"
+                checked={settings.phone_number?.enabled}
+                onCheckedChange={(checked) =>
+                  handlePhoneSettingChange("enabled", checked)
                 }
               />
             </SwitchField>
 
             <SwitchField>
-              <Label>WhatsApp verification code</Label>
+              <Label>Require</Label>
               <Description>
-                Verify by entering a one-time verification code sent via
-                WhatsApp to the phone number
+                Users must provide a phone number to sign up, and must maintain
+                one on their account at all times
               </Description>
               <Switch
-                name="phone_whatsapp_verification"
-                checked={settings.phone_number?.whatsapp_verification_allowed}
-                onChange={(checked) =>
-                  handlePhoneSettingChange(
-                    "whatsapp_verification_allowed",
-                    checked,
-                  )
+                name="phone_required"
+                checked={settings.phone_number?.required}
+                onCheckedChange={(checked) =>
+                  handlePhoneSettingChange("required", checked)
+                }
+              />
+            </SwitchField>
+
+            <SwitchField>
+              <Label>Verify at sign-up</Label>
+              <Description>
+                Require users to verify their phone numbers before they can sign
+                up
+              </Description>
+              <Switch
+                name="phone_verify_signup"
+                checked={settings.phone_number?.verify_signup}
+                onCheckedChange={(checked) =>
+                  handlePhoneSettingChange("verify_signup", checked)
                 }
               />
             </SwitchField>
           </SwitchGroup>
+
+          <Divider soft />
+
+          <div>
+            <h3 className="text-sm font-medium mb-2">Verification methods</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Select how users can verify a phone number
+            </p>
+            <SwitchGroup>
+              <SwitchField>
+                <Label>SMS verification code</Label>
+                <Description>
+                  Verify by entering a one-time verification code sent via SMS to
+                  the phone number
+                </Description>
+                <Switch
+                  name="phone_sms_verification"
+                  checked={settings.phone_number?.sms_verification_allowed}
+                  onCheckedChange={(checked) =>
+                    handlePhoneSettingChange("sms_verification_allowed", checked)
+                  }
+                />
+              </SwitchField>
+
+              <SwitchField>
+                <Label>WhatsApp verification code</Label>
+                <Description>
+                  Verify by entering a one-time verification code sent via
+                  WhatsApp to the phone number
+                </Description>
+                <Switch
+                  name="phone_whatsapp_verification"
+                  checked={settings.phone_number?.whatsapp_verification_allowed}
+                  onCheckedChange={(checked) =>
+                    handlePhoneSettingChange(
+                      "whatsapp_verification_allowed",
+                      checked,
+                    )
+                  }
+                />
+              </SwitchField>
+            </SwitchGroup>
+          </div>
         </div>
-      </DialogBody>
-      <DialogActions>
-        <Button onClick={onClose}>Continue</Button>
-      </DialogActions>
+        <DialogFooter>
+          <Button onClick={onClose}>Continue</Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -387,71 +397,75 @@ function UsernameSettingsDialog({ open, onClose }: DialogProps) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Username</DialogTitle>
-      <DialogDescription>Configure username attribute</DialogDescription>
-      <DialogBody className="space-y-3">
-        <SwitchField>
-          <Label>Require</Label>
-          <Description>Users must provide a username to sign up</Description>
-          <Switch
-            name="username_required"
-            checked={settings.username?.required}
-            onChange={(checked) =>
-              handleUsernameSettingChange("required", checked)
-            }
-          />
-        </SwitchField>
+    <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Username</DialogTitle>
+          <DialogDescription>Configure username attribute</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3 py-4">
+          <SwitchField>
+            <Label>Require</Label>
+            <Description>Users must provide a username to sign up</Description>
+            <Switch
+              name="username_required"
+              checked={settings.username?.required}
+              onCheckedChange={(checked) =>
+                handleUsernameSettingChange("required", checked)
+              }
+            />
+          </SwitchField>
 
-        <Divider soft />
+          <Divider soft />
 
-        <div>
-          <h3 className="text-sm font-medium mb-2">Rules</h3>
-          <div className="space-y-4">
-            <div className="flex-1">
-              <p className="text-sm font-medium">
-                Enforce minimum username length
-              </p>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">
-                Usernames must contain 1 or more characters. Select a higher
-                value to increase the minimum length, up to 64 characters.
-              </p>
-              <Input
-                type="number"
-                value={settings.username?.min_length ?? ""}
-                onChange={handleUsernameMinLengthChange}
-                min={1}
-                max={64}
-                className="w-20"
-              />{" "}
-              characters
-            </div>
+          <div>
+            <h3 className="text-sm font-medium mb-2">Rules</h3>
+            <div className="space-y-4">
+              <div className="flex-1">
+                <p className="text-sm font-medium">
+                  Enforce minimum username length
+                </p>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Usernames must contain 1 or more characters. Select a higher
+                  value to increase the minimum length, up to 64 characters.
+                </p>
+                <Input
+                  type="number"
+                  value={settings.username?.min_length ?? ""}
+                  onChange={handleUsernameMinLengthChange}
+                  min={1}
+                  max={64}
+                  className="w-20"
+                />{" "}
+                characters
+              </div>
 
-            <div className="flex-1">
-              <p className="text-sm font-medium">
-                Enforce maximum username length
-              </p>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">
-                Usernames must contain up to 64 characters. Select a lower value
-                to decrease the maximum length, but it must be at least 1
-                characters.
-              </p>
-              <Input
-                type="number"
-                value={settings.username?.max_length ?? ""}
-                onChange={handleUsernameMaxLengthChange}
-                min={1}
-                max={64}
-                className="w-20"
-              />{" "}
-              characters
+              <div className="flex-1">
+                <p className="text-sm font-medium">
+                  Enforce maximum username length
+                </p>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Usernames must contain up to 64 characters. Select a lower value
+                  to decrease the maximum length, but it must be at least 1
+                  characters.
+                </p>
+                <Input
+                  type="number"
+                  value={settings.username?.max_length ?? ""}
+                  onChange={handleUsernameMaxLengthChange}
+                  min={1}
+                  max={64}
+                  className="w-20"
+                />{" "}
+                characters
+              </div>
             </div>
           </div>
         </div>
-      </DialogBody>
-      <DialogActions>
-        <Button onClick={onClose}>Continue</Button>
-      </DialogActions>
+        <DialogFooter>
+          <Button onClick={onClose}>Continue</Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -477,92 +491,96 @@ function PasswordSettingsDialog({ open, onClose }: DialogProps) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Password policies</DialogTitle>
-      <DialogDescription>
-        Configure strength and complexity requirements for user passwords
-      </DialogDescription>
-      <DialogBody className="space-y-3">
-        <SwitchField>
-          <Label>Enable</Label>
-          <Description>Users can sign in with a password</Description>
-          <Switch
-            name="password_enabled"
-            checked={settings.password?.enabled}
-            onChange={(checked) =>
-              handlePasswordSettingChange("enabled", checked)
-            }
-          />
-        </SwitchField>
+    <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Password policies</DialogTitle>
+          <DialogDescription>
+            Configure strength and complexity requirements for user passwords
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3 py-4">
+          <SwitchField>
+            <Label>Enable</Label>
+            <Description>Users can sign in with a password</Description>
+            <Switch
+              name="password_enabled"
+              checked={settings.password?.enabled}
+              onCheckedChange={(checked) =>
+                handlePasswordSettingChange("enabled", checked)
+              }
+            />
+          </SwitchField>
 
-        <Divider soft />
+          <Divider soft />
 
-        <div className="flex-1 mb-4">
-          <p className="text-sm font-medium">Minimum password length</p>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">
-            Set the minimum required length for passwords
-          </p>
-          <Input
-            type="number"
-            value={settings.password?.min_length ?? ""}
-            onChange={handlePasswordMinLengthChange}
-            min={6}
-            max={128}
-          />
+          <div className="flex-1 mb-4">
+            <p className="text-sm font-medium">Minimum password length</p>
+            <p className="text-sm text-muted-foreground mb-2">
+              Set the minimum required length for passwords
+            </p>
+            <Input
+              type="number"
+              value={settings.password?.min_length ?? ""}
+              onChange={handlePasswordMinLengthChange}
+              min={6}
+              max={128}
+            />
+          </div>
+
+          <div>
+            <h3 className="text-sm font-medium mb-2">Rules</h3>
+            <SwitchGroup>
+              <SwitchField>
+                <Label>Require at least 1 lowercase character</Label>
+                <Switch
+                  name="password_lowercase"
+                  checked={settings.password?.require_lowercase || false}
+                  onCheckedChange={(checked) =>
+                    handlePasswordSettingChange("require_lowercase", checked)
+                  }
+                />
+              </SwitchField>
+
+              <SwitchField>
+                <Label>Require at least 1 uppercase character</Label>
+                <Switch
+                  name="password_uppercase"
+                  checked={settings.password?.require_uppercase || false}
+                  onCheckedChange={(checked) =>
+                    handlePasswordSettingChange("require_uppercase", checked)
+                  }
+                />
+              </SwitchField>
+
+              <SwitchField>
+                <Label>Require at least 1 number</Label>
+                <Switch
+                  name="password_number"
+                  checked={settings.password?.require_number || false}
+                  onCheckedChange={(checked) =>
+                    handlePasswordSettingChange("require_number", checked)
+                  }
+                />
+              </SwitchField>
+
+              <SwitchField>
+                <Label>Require at least 1 special character</Label>
+                <Switch
+                  name="password_special"
+                  checked={settings.password?.require_special || false}
+                  onCheckedChange={(checked) =>
+                    handlePasswordSettingChange("require_special", checked)
+                  }
+                />
+              </SwitchField>
+            </SwitchGroup>
+          </div>
         </div>
-
-        <div>
-          <h3 className="text-sm font-medium mb-2">Rules</h3>
-          <SwitchGroup>
-            <SwitchField>
-              <Label>Require at least 1 lowercase character</Label>
-              <Switch
-                name="password_lowercase"
-                checked={settings.password?.require_lowercase || false}
-                onChange={(checked) =>
-                  handlePasswordSettingChange("require_lowercase", checked)
-                }
-              />
-            </SwitchField>
-
-            <SwitchField>
-              <Label>Require at least 1 uppercase character</Label>
-              <Switch
-                name="password_uppercase"
-                checked={settings.password?.require_uppercase || false}
-                onChange={(checked) =>
-                  handlePasswordSettingChange("require_uppercase", checked)
-                }
-              />
-            </SwitchField>
-
-            <SwitchField>
-              <Label>Require at least 1 number</Label>
-              <Switch
-                name="password_number"
-                checked={settings.password?.require_number || false}
-                onChange={(checked) =>
-                  handlePasswordSettingChange("require_number", checked)
-                }
-              />
-            </SwitchField>
-
-            <SwitchField>
-              <Label>Require at least 1 special character</Label>
-              <Switch
-                name="password_special"
-                checked={settings.password?.require_special || false}
-                onChange={(checked) =>
-                  handlePasswordSettingChange("require_special", checked)
-                }
-              />
-            </SwitchField>
-          </SwitchGroup>
-        </div>
-      </DialogBody>
-      <DialogActions>
-        <Button onClick={onClose}>Continue</Button>
-      </DialogActions>
+        <DialogFooter>
+          <Button onClick={onClose}>Continue</Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -580,43 +598,47 @@ function FirstNameSettings({ open, onClose }: DialogProps) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>First name</DialogTitle>
-      <DialogDescription>Configure first name attribute</DialogDescription>
-      <DialogBody className="space-y-3">
-        <SwitchGroup>
-          <SwitchField>
-            <Label>Enable</Label>
-            <Description>
-              Users can add first names to their account
-            </Description>
-            <Switch
-              name="first_name_enabled"
-              checked={settings.first_name?.enabled}
-              onChange={(checked) =>
-                handleFirstNameSettingChange("enabled", checked)
-              }
-            />
-          </SwitchField>
+    <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>First name</DialogTitle>
+          <DialogDescription>Configure first name attribute</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <SwitchGroup>
+            <SwitchField>
+              <Label>Enable</Label>
+              <Description>
+                Users can add first names to their account
+              </Description>
+              <Switch
+                name="first_name_enabled"
+                checked={settings.first_name?.enabled}
+                onCheckedChange={(checked) =>
+                  handleFirstNameSettingChange("enabled", checked)
+                }
+              />
+            </SwitchField>
 
-          <SwitchField>
-            <Label>Require</Label>
-            <Description>
-              Users must provide a first name to sign up
-            </Description>
-            <Switch
-              name="first_name_required"
-              checked={settings.first_name?.required}
-              onChange={(checked) =>
-                handleFirstNameSettingChange("required", checked)
-              }
-            />
-          </SwitchField>
-        </SwitchGroup>
-      </DialogBody>
-      <DialogActions>
-        <Button onClick={onClose}>Continue</Button>
-      </DialogActions>
+            <SwitchField>
+              <Label>Require</Label>
+              <Description>
+                Users must provide a first name to sign up
+              </Description>
+              <Switch
+                name="first_name_required"
+                checked={settings.first_name?.required}
+                onCheckedChange={(checked) =>
+                  handleFirstNameSettingChange("required", checked)
+                }
+              />
+            </SwitchField>
+          </SwitchGroup>
+        </div>
+        <DialogFooter>
+          <Button onClick={onClose}>Continue</Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -631,39 +653,43 @@ function LastNameSettings({ open, onClose }: DialogProps) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Last name</DialogTitle>
-      <DialogDescription>Configure last name attribute</DialogDescription>
-      <DialogBody className="space-y-3">
-        <SwitchGroup>
-          <SwitchField>
-            <Label>Enable</Label>
-            <Description>Users can add last names to their account</Description>
-            <Switch
-              name="last_name_enabled"
-              checked={settings.last_name?.enabled}
-              onChange={(checked) =>
-                handleLastNameSettingChange("enabled", checked)
-              }
-            />
-          </SwitchField>
+    <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Last name</DialogTitle>
+          <DialogDescription>Configure last name attribute</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3 py-4">
+          <SwitchGroup>
+            <SwitchField>
+              <Label>Enable</Label>
+              <Description>Users can add last names to their account</Description>
+              <Switch
+                name="last_name_enabled"
+                checked={settings.last_name?.enabled}
+                onCheckedChange={(checked) =>
+                  handleLastNameSettingChange("enabled", checked)
+                }
+              />
+            </SwitchField>
 
-          <SwitchField>
-            <Label>Require</Label>
-            <Description>Users must provide a last name to sign up</Description>
-            <Switch
-              name="last_name_required"
-              checked={settings.last_name?.required}
-              onChange={(checked) =>
-                handleLastNameSettingChange("required", checked)
-              }
-            />
-          </SwitchField>
-        </SwitchGroup>
-      </DialogBody>
-      <DialogActions>
-        <Button onClick={onClose}>Continue</Button>
-      </DialogActions>
+            <SwitchField>
+              <Label>Require</Label>
+              <Description>Users must provide a last name to sign up</Description>
+              <Switch
+                name="last_name_required"
+                checked={settings.last_name?.required}
+                onCheckedChange={(checked) =>
+                  handleLastNameSettingChange("required", checked)
+                }
+              />
+            </SwitchField>
+          </SwitchGroup>
+        </div>
+        <DialogFooter>
+          <Button onClick={onClose}>Continue</Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -682,46 +708,50 @@ function EmailLinkSettingsDialog({ open, onClose }: DialogProps) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Email Link Configuration</DialogTitle>
-      <DialogDescription>
-        Configure email link security settings.
-      </DialogDescription>
-      <DialogBody className="space-y-3">
-        <SwitchGroup>
-          <SwitchField>
-            <Label>Enable</Label>
-            <Description>
-              Users can sign in with an email verification link
-            </Description>
-            <Switch
-              name="email_link_enabled"
-              checked={settings.magic_link?.enabled}
-              onChange={(checked) =>
-                handleMagicLinkSettingChange("enabled", checked)
-              }
-            />
-          </SwitchField>
+    <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Email Link Configuration</DialogTitle>
+          <DialogDescription>
+            Configure email link security settings.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 pb-4">
+          <SwitchGroup>
+            <SwitchField>
+              <Label>Enable</Label>
+              <Description>
+                Users can sign in with an email verification link
+              </Description>
+              <Switch
+                name="email_link_enabled"
+                checked={settings.magic_link?.enabled}
+                onCheckedChange={(checked) =>
+                  handleMagicLinkSettingChange("enabled", checked)
+                }
+              />
+            </SwitchField>
 
-          <SwitchField>
-            <Label>Require same device and browser</Label>
-            <Description>
-              Enable to ensure email link verification happens from the same
-              device and browser on which the sign-in or sign-up was initiated.
-            </Description>
-            <Switch
-              name="email_link_same_device"
-              checked={settings.magic_link?.require_same_device}
-              onChange={(checked) =>
-                handleMagicLinkSettingChange("require_same_device", checked)
-              }
-            />
-          </SwitchField>
-        </SwitchGroup>
-      </DialogBody>
-      <DialogActions>
-        <Button onClick={onClose}>Continue</Button>
-      </DialogActions>
+            <SwitchField>
+              <Label>Require same device and browser</Label>
+              <Description>
+                Enable to ensure email link verification happens from the same
+                device and browser on which the sign-in or sign-up was initiated.
+              </Description>
+              <Switch
+                name="email_link_same_device"
+                checked={settings.magic_link?.require_same_device}
+                onCheckedChange={(checked) =>
+                  handleMagicLinkSettingChange("require_same_device", checked)
+                }
+              />
+            </SwitchField>
+          </SwitchGroup>
+        </div>
+        <DialogFooter>
+          <Button onClick={onClose}>Continue</Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -743,52 +773,56 @@ function PasskeySettingsDialog({ open, onClose }: DialogProps) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Passkey Configuration</DialogTitle>
-      <DialogDescription>
-        Configure passkey authentication settings.
-      </DialogDescription>
-      <DialogBody className="space-y-3">
-        <SwitchGroup>
-          <SwitchField>
-            <Label>Enable</Label>
-            <Description>Enable passkey authentication</Description>
-            <Switch
-              name="passkey_enabled"
-              checked={settings.passkey?.enabled}
-              onChange={handlePasskeyEnabledChange}
-            />
-          </SwitchField>
+    <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Passkey Configuration</DialogTitle>
+          <DialogDescription>
+            Configure passkey authentication settings.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3 py-4">
+          <SwitchGroup>
+            <SwitchField>
+              <Label>Enable</Label>
+              <Description>Enable passkey authentication</Description>
+              <Switch
+                name="passkey_enabled"
+                checked={settings.passkey?.enabled}
+                onCheckedChange={handlePasskeyEnabledChange}
+              />
+            </SwitchField>
 
-          <SwitchField>
-            <Label>Prompt registration after login</Label>
-            <Description>
-              Prompt users to register a passkey after they sign in with another method.
-            </Description>
-            <Switch
-              name="passkey_prompt_registration"
-              checked={settings.passkey?.prompt_registration_on_auth}
-              onChange={handlePasskeyPromptRegistrationChange}
-            />
-          </SwitchField>
+            <SwitchField>
+              <Label>Prompt registration after login</Label>
+              <Description>
+                Prompt users to register a passkey after they sign in with another method.
+              </Description>
+              <Switch
+                name="passkey_prompt_registration"
+                checked={settings.passkey?.prompt_registration_on_auth}
+                onCheckedChange={handlePasskeyPromptRegistrationChange}
+              />
+            </SwitchField>
 
-          <SwitchField>
-            <Label>Allow autofill</Label>
-            <Description>
-              Enable to allow users to autofill passkey credentials in the
-              browser.
-            </Description>
-            <Switch
-              name="passkey_autofill"
-              checked={settings.passkey?.allow_autofill}
-              onChange={handlePasskeyAutofillChange}
-            />
-          </SwitchField>
-        </SwitchGroup>
-      </DialogBody>
-      <DialogActions>
-        <Button onClick={onClose}>Continue</Button>
-      </DialogActions>
+            <SwitchField>
+              <Label>Allow autofill</Label>
+              <Description>
+                Enable to allow users to autofill passkey credentials in the
+                browser.
+              </Description>
+              <Switch
+                name="passkey_autofill"
+                checked={settings.passkey?.allow_autofill}
+                onCheckedChange={handlePasskeyAutofillChange}
+              />
+            </SwitchField>
+          </SwitchGroup>
+        </div>
+        <DialogFooter>
+          <Button onClick={onClose}>Continue</Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -852,66 +886,70 @@ function FirstFactorDialog({ open, onClose }: DialogProps) {
   }
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Default Sign-in Method</DialogTitle>
-      <DialogDescription>
-        Select which authentication method users will see by default. Only
-        enabled methods are shown.
-      </DialogDescription>
-      <DialogBody className="space-y-4">
-        {availableOptions.length === 0 ? (
-          <div className="py-6 text-center">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              No authentication methods are currently enabled. Please enable at
-              least one method first.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {availableOptions.map((option) => (
-              <div key={option.value} className="relative">
-                <div
-                  className="flex items-start space-x-3 p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer"
-                  onClick={() =>
-                    handleFirstFactorChange(
-                      option.value as DeploymentAuthSettings["first_factor"],
-                    )
-                  }
-                >
-                  <input
-                    type="radio"
-                    id={option.value}
-                    name="first_factor"
-                    checked={settings.first_factor === option.value}
-                    onChange={() =>
+    <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Default Sign-in Method</DialogTitle>
+          <DialogDescription>
+            Select which authentication method users will see by default. Only
+            enabled methods are shown.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          {availableOptions.length === 0 ? (
+            <div className="py-6 text-center">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                No authentication methods are currently enabled. Please enable at
+                least one method first.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {availableOptions.map((option) => (
+                <div key={option.value} className="relative">
+                  <div
+                    className="flex items-start space-x-3 p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer"
+                    onClick={() =>
                       handleFirstFactorChange(
                         option.value as DeploymentAuthSettings["first_factor"],
                       )
                     }
-                    className="mt-1"
-                  />
-                  <div className="flex-1">
-                    <label
-                      htmlFor={option.value}
-                      className="text-sm font-medium text-zinc-900 dark:text-zinc-100 cursor-pointer"
-                    >
-                      {option.label}
-                    </label>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                      {option.description}
-                    </p>
+                  >
+                    <input
+                      type="radio"
+                      id={option.value}
+                      name="first_factor"
+                      checked={settings.first_factor === option.value}
+                      onChange={() =>
+                        handleFirstFactorChange(
+                          option.value as DeploymentAuthSettings["first_factor"],
+                        )
+                      }
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <label
+                        htmlFor={option.value}
+                        className="text-sm font-medium text-zinc-900 dark:text-zinc-100 cursor-pointer"
+                      >
+                        {option.label}
+                      </label>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                        {option.description}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </DialogBody>
-      <DialogActions>
-        <Button onClick={onClose} disabled={availableOptions.length === 0}>
-          Continue
-        </Button>
-      </DialogActions>
+              ))}
+            </div>
+          )}
+        </div>
+        <DialogFooter>
+          <Button onClick={onClose} disabled={availableOptions.length === 0}>
+            Continue
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -927,79 +965,83 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Enforce Second Factor on Account</DialogTitle>
-      <DialogDescription>
-        Configure whether second factors are optional or enforced
-      </DialogDescription>
-      <DialogBody className="space-y-3">
-        <div className="mb-4">
-          <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-2">
-            Policy
-          </h3>
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="none"
-                name="second_factor_policy"
-                checked={settings.second_factor_policy === "none"}
-                onChange={() => handlePolicyChange("none")}
-              />
-              <label
-                htmlFor="none"
-                className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
-              >
-                None
-              </label>
-            </div>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 pl-6 mb-2">
-              Don't allow second factors
-            </p>
+    <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Enforce Second Factor on Account</DialogTitle>
+          <DialogDescription>
+            Configure whether second factors are optional or enforced
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3 py-4">
+          <div className="mb-4">
+            <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-2">
+              Policy
+            </h3>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="none"
+                  name="second_factor_policy"
+                  checked={settings.second_factor_policy === "none"}
+                  onChange={() => handlePolicyChange("none")}
+                />
+                <label
+                  htmlFor="none"
+                  className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
+                >
+                  None
+                </label>
+              </div>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 pl-6 mb-2">
+                Don't allow second factors
+              </p>
 
-            <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="optional"
-                name="second_factor_policy"
-                checked={settings.second_factor_policy === "optional"}
-                onChange={() => handlePolicyChange("optional")}
-              />
-              <label
-                htmlFor="optional"
-                className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
-              >
-                Optional
-              </label>
-            </div>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 pl-6 mb-2">
-              Allow users to optionally set up second factors
-            </p>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="optional"
+                  name="second_factor_policy"
+                  checked={settings.second_factor_policy === "optional"}
+                  onChange={() => handlePolicyChange("optional")}
+                />
+                <label
+                  htmlFor="optional"
+                  className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
+                >
+                  Optional
+                </label>
+              </div>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 pl-6 mb-2">
+                Allow users to optionally set up second factors
+              </p>
 
-            <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="enforced"
-                name="second_factor_policy"
-                checked={settings.second_factor_policy === "enforced"}
-                onChange={() => handlePolicyChange("enforced")}
-              />
-              <label
-                htmlFor="enforced"
-                className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
-              >
-                Enforced
-              </label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="enforced"
+                  name="second_factor_policy"
+                  checked={settings.second_factor_policy === "enforced"}
+                  onChange={() => handlePolicyChange("enforced")}
+                />
+                <label
+                  htmlFor="enforced"
+                  className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
+                >
+                  Enforced
+                </label>
+              </div>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 pl-6">
+                Require users to set up second factors
+              </p>
             </div>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 pl-6">
-              Require users to set up second factors
-            </p>
           </div>
         </div>
-      </DialogBody>
-      <DialogActions>
-        <Button onClick={onClose}>Continue</Button>
-      </DialogActions>
+        <DialogFooter>
+          <Button onClick={onClose}>Continue</Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -1179,7 +1221,7 @@ export default function SchemaFactorsPage() {
       />
 
       <div>
-        <div className="mb-8">
+        <div className="mb-6">
           <Heading>Authentication Configuration</Heading>
         </div>
 
@@ -1204,13 +1246,13 @@ export default function SchemaFactorsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button plain onClick={() => setEmailSettingsOpen(true)}>
+                  <Button variant="ghost" onClick={() => setEmailSettingsOpen(true)}>
                     <Cog6ToothIcon />
                   </Button>
                   <Switch
                     name="email_enabled"
                     checked={settings.email_address?.enabled}
-                    onChange={(checked) =>
+                    onCheckedChange={(checked) =>
                       handleToggle("email_enabled", checked)
                     }
                   />
@@ -1225,13 +1267,13 @@ export default function SchemaFactorsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button plain onClick={() => setPasswordSettingsOpen(true)}>
+                  <Button variant="ghost" onClick={() => setPasswordSettingsOpen(true)}>
                     <Cog6ToothIcon />
                   </Button>
                   <Switch
                     name="password_enabled"
                     checked={settings.password?.enabled}
-                    onChange={(checked) =>
+                    onCheckedChange={(checked) =>
                       handleToggle("password_enabled", checked)
                     }
                   />
@@ -1246,13 +1288,13 @@ export default function SchemaFactorsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button plain onClick={() => setPhoneSettingsOpen(true)}>
+                  <Button variant="ghost" onClick={() => setPhoneSettingsOpen(true)}>
                     <Cog6ToothIcon />
                   </Button>
                   <Switch
                     name="phone_enabled"
                     checked={settings.phone_number?.enabled}
-                    onChange={(checked) =>
+                    onCheckedChange={(checked) =>
                       handleToggle("phone_enabled", checked)
                     }
                   />
@@ -1267,13 +1309,13 @@ export default function SchemaFactorsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button plain onClick={() => setUsernameSettingsOpen(true)}>
+                  <Button variant="ghost" onClick={() => setUsernameSettingsOpen(true)}>
                     <Cog6ToothIcon />
                   </Button>
                   <Switch
                     name="username_enabled"
                     checked={settings.username?.enabled}
-                    onChange={(checked) =>
+                    onCheckedChange={(checked) =>
                       handleToggle("username_enabled", checked)
                     }
                   />
@@ -1288,13 +1330,13 @@ export default function SchemaFactorsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button plain onClick={() => setFirstNameSettingsOpen(true)}>
+                  <Button variant="ghost" onClick={() => setFirstNameSettingsOpen(true)}>
                     <Cog6ToothIcon />
                   </Button>
                   <Switch
                     name="first_name_enabled"
                     checked={settings.first_name?.enabled}
-                    onChange={(checked) =>
+                    onCheckedChange={(checked) =>
                       handleToggle("first_name_enabled", checked)
                     }
                   />
@@ -1309,13 +1351,13 @@ export default function SchemaFactorsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button plain onClick={() => setLastNameSettingsOpen(true)}>
+                  <Button variant="ghost" onClick={() => setLastNameSettingsOpen(true)}>
                     <Cog6ToothIcon />
                   </Button>
                   <Switch
                     name="last_name_enabled"
                     checked={settings.last_name?.enabled}
-                    onChange={(checked) =>
+                    onCheckedChange={(checked) =>
                       handleToggle("last_name_enabled", checked)
                     }
                   />
@@ -1354,7 +1396,7 @@ export default function SchemaFactorsPage() {
                       .replace(/\b\w/g, (l) => l.toUpperCase()) ||
                       "Email Password"}
                   </span>
-                  <Button plain onClick={() => setFirstFactorOpen(true)}>
+                  <Button variant="ghost" onClick={() => setFirstFactorOpen(true)}>
                     <Cog6ToothIcon />
                   </Button>
                 </div>
@@ -1368,7 +1410,7 @@ export default function SchemaFactorsPage() {
                 <Switch
                   name="email_password_enabled"
                   checked={settings.auth_factors_enabled?.email_password}
-                  onChange={(checked) =>
+                  onCheckedChange={(checked) =>
                     handleToggle("email_password_enabled", checked)
                   }
                 />
@@ -1382,7 +1424,7 @@ export default function SchemaFactorsPage() {
                 <Switch
                   name="username_password_enabled"
                   checked={settings.auth_factors_enabled?.username_password}
-                  onChange={(checked) =>
+                  onCheckedChange={(checked) =>
                     handleToggle("username_password_enabled", checked)
                   }
                 />
@@ -1394,7 +1436,7 @@ export default function SchemaFactorsPage() {
                 <Switch
                   name="sso_enabled"
                   checked={settings.auth_factors_enabled?.sso}
-                  onChange={(checked) => handleToggle("sso_enabled", checked)}
+                  onCheckedChange={(checked) => handleToggle("sso_enabled", checked)}
                 />
               </SwitchField>
 
@@ -1404,7 +1446,7 @@ export default function SchemaFactorsPage() {
                 <Switch
                   name="web3_wallet_enabled"
                   checked={settings.auth_factors_enabled?.web3_wallet}
-                  onChange={(checked) =>
+                  onCheckedChange={(checked) =>
                     handleToggle("web3_wallet_enabled", checked)
                   }
                 />
@@ -1418,13 +1460,13 @@ export default function SchemaFactorsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button plain onClick={() => setEmailLinkSettingsOpen(true)}>
+                  <Button variant="ghost" onClick={() => setEmailLinkSettingsOpen(true)}>
                     <Cog6ToothIcon />
                   </Button>
                   <Switch
                     name="email_link_enabled"
                     checked={settings.auth_factors_enabled?.email_magic_link}
-                    onChange={(checked) =>
+                    onCheckedChange={(checked) =>
                       handleToggle("email_link_enabled", checked)
                     }
                   />
@@ -1439,7 +1481,7 @@ export default function SchemaFactorsPage() {
                 <Switch
                   name="email_otp_enabled"
                   checked={settings.auth_factors_enabled?.email_otp}
-                  onChange={(checked) =>
+                  onCheckedChange={(checked) =>
                     handleToggle("email_otp_enabled", checked)
                   }
                 />
@@ -1453,7 +1495,7 @@ export default function SchemaFactorsPage() {
                 <Switch
                   name="phone_otp_enabled"
                   checked={settings.auth_factors_enabled?.phone_otp}
-                  onChange={(checked) =>
+                  onCheckedChange={(checked) =>
                     handleToggle("phone_otp_enabled", checked)
                   }
                 />
@@ -1465,13 +1507,13 @@ export default function SchemaFactorsPage() {
                   Users can sign in with a passkey
                 </Description>
                 <div className="flex items-center gap-2">
-                  <Button plain onClick={() => setPasskeySettingsOpen(true)}>
+                  <Button variant="ghost" onClick={() => setPasskeySettingsOpen(true)}>
                     <Cog6ToothIcon />
                   </Button>
                   <Switch
                     name="passkey_enabled"
                     checked={settings.passkey?.enabled}
-                    onChange={(checked) =>
+                    onCheckedChange={(checked) =>
                       handleToggle("passkey_enabled", checked)
                     }
                   />
@@ -1490,7 +1532,7 @@ export default function SchemaFactorsPage() {
                   Allow users to select a second factor authentication method
                 </p>
               </div>
-              <Button plain onClick={() => setSecondFactorPolicyOpen(true)}>
+              <Button variant="ghost" onClick={() => setSecondFactorPolicyOpen(true)}>
                 <Cog6ToothIcon />
               </Button>
             </div>
@@ -1508,7 +1550,7 @@ export default function SchemaFactorsPage() {
                   checked={
                     settings.auth_factors_enabled?.authenticator || false
                   }
-                  onChange={(checked) =>
+                  onCheckedChange={(checked) =>
                     handleToggle("second_factor_authenticator_enabled", checked)
                   }
                 />
@@ -1520,7 +1562,7 @@ export default function SchemaFactorsPage() {
                 <Switch
                   name="2fa_backup_code_enabled"
                   checked={settings.auth_factors_enabled?.backup_code || false}
-                  onChange={(checked) =>
+                  onCheckedChange={(checked) =>
                     handleToggle("second_factor_backup_code_enabled", checked)
                   }
                 />
@@ -1537,7 +1579,7 @@ export default function SchemaFactorsPage() {
               You have unsaved changes.
             </p>
             <div className="flex gap-3">
-              <Button outline onClick={handleResetSettings} disabled={isSaving}>
+              <Button variant="outline" onClick={handleResetSettings} disabled={isSaving}>
                 Discard
               </Button>
               <Button onClick={handleSaveSettings} disabled={isSaving}>

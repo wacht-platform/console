@@ -1,17 +1,17 @@
 import { useState, useRef } from "react";
 import { Button } from "../ui/button";
-import { Field, FieldGroup, Fieldset, Label } from "../ui/fieldset";
 import {
 	Dialog,
-	DialogActions,
-	DialogBody,
+	DialogContent,
+	DialogHeader,
+	DialogFooter,
 	DialogDescription,
 	DialogTitle,
 } from "../ui/dialog";
 import {
 	CloudArrowUpIcon,
-	DocumentTextIcon,
 	XMarkIcon,
+	DocumentIcon,
 } from "@heroicons/react/24/outline";
 import { useUploadDocument } from "../../lib/api/hooks/use-knowledge-bases";
 import { toast } from 'sonner';
@@ -50,10 +50,8 @@ export function EnhancedUploadDialog({
 		}
 
 		const uploadPromise = async () => {
-			// Upload multiple files
 			for (const file of files) {
 				const uploadFormData = new FormData();
-				// Extract title from filename (remove extension)
 				const title = file.name.replace(/\.[^/.]+$/, "");
 				uploadFormData.append("title", title);
 				uploadFormData.append("file", file);
@@ -76,8 +74,6 @@ export function EnhancedUploadDialog({
 
 	const handleFileSelect = (fileList: FileList) => {
 		const newFiles = Array.from(fileList);
-		console.log('Files selected:', newFiles.map(f => f.name));
-
 		setFiles(prev => [...prev, ...newFiles]);
 	};
 
@@ -124,130 +120,123 @@ export function EnhancedUploadDialog({
 	const isUploading = uploadDocumentMutation.isPending;
 
 	return (
-		<Dialog open={open} onClose={handleClose} size="2xl">
-			<form onSubmit={handleSubmit}>
-				<DialogBody>
-					<DialogTitle>Upload Documents to Knowledge Base</DialogTitle>
+		<Dialog open={open} onOpenChange={(val) => !val && handleClose()}>
+			<DialogContent className="sm:max-w-xl">
+				<DialogHeader>
+					<DialogTitle>Upload Files</DialogTitle>
 					<DialogDescription>
-						Upload documents to enhance your AI agent's knowledge. Supported formats include PDF, Markdown, Text, and JSON files
+						Drag and drop files here or click to browse.
+						<br />
+						<span className="text-xs">Supported formats: PDF, Markdown, Text, JSON</span>
 					</DialogDescription>
+				</DialogHeader>
 
-					<Fieldset className="mt-4">
-						<FieldGroup className="space-y-6">
-							{/* File Upload */}
-							<Field>
-								<Label>Files</Label>
-								<div
-									className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors mt-2 ${
-										dragActive
-											? "border-blue-400 bg-blue-50"
-											: "border-gray-300 hover:border-gray-400"
-									}`}
-									onDragEnter={handleDrag}
-									onDragLeave={handleDrag}
-									onDragOver={handleDrag}
-									onDrop={handleDrop}
-								>
-									{files.length > 0 ? (
-										<div className="space-y-4">
-											<div className="flex items-center justify-center">
-												<DocumentTextIcon className="h-10 w-10 text-green-500" />
-											</div>
-											<div className="text-sm font-medium text-gray-900 text-center">
-												{files.length === 1 ? "1 document selected" : `${files.length} documents selected`}
-											</div>
-											<div className="space-y-2 max-h-32 overflow-y-auto border border-gray-200 rounded-md p-3 bg-gray-50">
-												{files.map((file, index) => (
-													<div key={index} className="flex items-center justify-between bg-white p-2 rounded border">
-														<div className="flex items-center gap-2 overflow-hidden">
-															<DocumentTextIcon className="h-4 w-4 flex-shrink-0 text-blue-500" />
-															<span className="text-sm truncate font-medium">{file.name}</span>
-															<span className="text-xs text-gray-500 flex-shrink-0">({formatFileSize(file.size)})</span>
-														</div>
-														<Button
-															type="button"
-															outline
-															onClick={() => removeFile(index)}
-															className="p-1 h-6 w-6 flex-shrink-0 ml-2 hover:bg-red-50 hover:border-red-200"
-														>
-															<XMarkIcon className="h-3 w-3 text-red-500" />
-														</Button>
-													</div>
-												))}
-											</div>
-											<div className="flex justify-between">
-												<Button
-													type="button"
-													outline
-													onClick={() => fileInputRef.current?.click()}
-												>
-													Add More Documents
-												</Button>
-												<Button
-													type="button"
-													outline
-													onClick={() => setFiles([])}
-													className="text-red-600 border-red-200 hover:bg-red-50"
-												>
-													Clear All
-												</Button>
-											</div>
-										</div>
-									) : (
-										<div className="space-y-3">
-											<div className="flex items-center justify-center">
-												<CloudArrowUpIcon className="h-10 w-10 text-gray-400" />
-											</div>
-											<div>
-												<p className="text-sm font-medium text-gray-900">
-													Drop files here or click to browse
-												</p>
-												<p className="text-xs text-gray-500">
-													Supports PDF, Markdown, Text, and JSON files
-												</p>
+				<form onSubmit={handleSubmit}>
+					<div className="space-y-4 py-2">
+						<div
+							className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${dragActive
+								? "border-primary bg-primary/5"
+								: "border-muted hover:border-foreground/25 hover:bg-muted/50"
+								}`}
+							onDragEnter={handleDrag}
+							onDragLeave={handleDrag}
+							onDragOver={handleDrag}
+							onDrop={handleDrop}
+							onClick={() => fileInputRef.current?.click()}
+						>
+							<div className="flex flex-col items-center gap-3">
+								<div className="bg-primary/10 p-4 rounded-full">
+									<CloudArrowUpIcon className="h-8 w-8 text-primary" />
+								</div>
+								<div>
+									<p className="text-sm font-medium">
+										Click to upload or drag and drop
+									</p>
+									<p className="text-xs text-muted-foreground mt-1">
+										Maximum file size 10MB
+									</p>
+								</div>
+							</div>
+							<input
+								ref={fileInputRef}
+								type="file"
+								className="hidden"
+								multiple
+								accept=".pdf,.md,.markdown,.txt,.json"
+								onChange={handleFileInputChange}
+							/>
+						</div>
+
+						{files.length > 0 && (
+							<div className="space-y-3 pt-2">
+								<div className="flex items-center justify-between">
+									<span className="text-sm font-medium text-muted-foreground">
+										{files.length} {files.length === 1 ? 'file' : 'files'} selected
+									</span>
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										onClick={() => setFiles([])}
+										className="h-auto p-0 text-xs text-destructive hover:text-destructive hover:bg-transparent"
+									>
+										Clear all
+									</Button>
+								</div>
+
+								<div className="max-h-[240px] overflow-y-auto space-y-2 pr-1">
+									{files.map((file, index) => (
+										<div
+											key={index}
+											className="flex items-center justify-between p-3 rounded-lg border bg-background group"
+										>
+											<div className="flex items-center gap-3 overflow-hidden">
+												<div className="bg-muted p-2 rounded">
+													<DocumentIcon className="h-4 w-4 text-muted-foreground" />
+												</div>
+												<div className="flex flex-col min-w-0">
+													<span className="text-sm font-medium truncate">
+														{file.name}
+													</span>
+													<span className="text-xs text-muted-foreground">
+														{formatFileSize(file.size)}
+													</span>
+												</div>
 											</div>
 											<Button
 												type="button"
-												outline
-												onClick={() => fileInputRef.current?.click()}
+												variant="ghost"
+												size="icon"
+												onClick={() => removeFile(index)}
+												className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
 											>
-												Select Documents
+												<XMarkIcon className="h-4 w-4" />
 											</Button>
 										</div>
-									)}
-
-									<input
-										ref={fileInputRef}
-										type="file"
-										className="hidden"
-										multiple
-										accept=".pdf,.md,.markdown,.txt,.json"
-										onChange={handleFileInputChange}
-									/>
+									))}
 								</div>
-							</Field>
+							</div>
+						)}
+					</div>
 
-						</FieldGroup>
-					</Fieldset>
-				</DialogBody>
-
-				<DialogActions>
-					<Button outline onClick={handleClose}>
-						Cancel
-					</Button>
-					<Button
-						type="submit"
-						disabled={isUploading || files.length === 0}
-					>
-						{isUploading
-							? "Uploading Documents..."
-							: files.length === 1
-								? "Upload Document"
-								: `Upload ${files.length} Documents`
-						}
-					</Button>
-				</DialogActions>
-			</form>
+					<DialogFooter>
+						<Button type="button" variant="ghost" onClick={handleClose}>
+							Cancel
+						</Button>
+						<Button
+							type="submit"
+							disabled={isUploading || files.length === 0}
+							className="min-w-[100px]"
+						>
+							{isUploading ? (
+								"Uploading..."
+							) : (
+								"Upload"
+							)}
+						</Button>
+					</DialogFooter>
+				</form>
+			</DialogContent>
 		</Dialog>
 	);
 }

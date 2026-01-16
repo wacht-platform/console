@@ -23,9 +23,37 @@ import {
 } from "@/lib/api/hooks/use-deployment-user-mutations";
 import { useUpdateUser } from "@/lib/api/hooks/use-update-user";
 import { Button } from "@/components/ui/button";
-import { getCountryFlag } from "@/lib/constants/countries";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Switch } from "@/components/ui/switch";
+import Editor from "@monaco-editor/react";
+import { SegmentManager } from "@/components/segments/SegmentManager";
+import { EmptyState } from "@/components/ui/empty-state";
+import {
+  PencilIcon,
+  TrashIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  EnvelopeIcon,
+  PhoneIcon,
+  PlayCircleIcon
+} from "@heroicons/react/24/outline";
 
-import { SimpleTabs, Tab } from "@/components/ui/simple-tabs";
+// Modals
 import { AddEmailModal } from "@/components/modals/add-email-modal";
 import { AddPhoneModal } from "@/components/modals/add-phone-modal";
 import { EditEmailModal } from "@/components/modals/edit-email-modal";
@@ -33,55 +61,31 @@ import { EditPhoneModal } from "@/components/modals/edit-phone-modal";
 import { EditProfileModal } from "@/components/modals/edit-profile-modal";
 import { ChangePasswordModal } from "@/components/modals/change-password-modal";
 import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
-import { EmptyState } from "@/components/ui/empty-state";
-import Editor from "@monaco-editor/react";
-
-import { SegmentManager } from "@/components/segments/SegmentManager";
-import { Switch } from "@/components/ui/switch";
-import {
-  PencilIcon,
-  TrashIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  UserIcon,
-  UserCircleIcon,
-} from "@heroicons/react/24/outline";
 
 export default function UserDetailsPage() {
   const { id, projectId, deploymentId } = useParams();
-  const userId = id;
+  const userId = id || "";
   const navigate = useNavigate();
   const isDarkMode = useDarkMode();
   const { data: user, isLoading, error } = useUserDetails(userId);
-  const { mutateAsync: updateUser } = useUpdateUser(userId || "");
 
-  // Email mutations
-  const { mutateAsync: addEmail } = useAddUserEmail(userId || "");
-  const { mutateAsync: updateEmail } = useUpdateUserEmail(userId || "");
-  const { mutateAsync: deleteEmail } = useDeleteUserEmail(userId || "");
-
-  // Phone mutations
-  const { mutateAsync: addPhone } = useAddUserPhone(userId || "");
-  const { mutateAsync: updatePhone } = useUpdateUserPhone(userId || "");
-  const { mutateAsync: deletePhone } = useDeleteUserPhone(userId || "");
-
-  // Social connection mutations
-  const { mutateAsync: deleteSocialConnection } = useDeleteUserSocialConnection(
-    userId || "",
-  );
-
-  // User deletion mutation
+  // Mutations
+  const { mutateAsync: updateUser } = useUpdateUser(userId);
   const { mutateAsync: deleteUser } = useDeleteUser();
+  const { mutateAsync: impersonateUser, isPending: isImpersonating } = useImpersonateUser();
 
-  // Impersonation mutation
-  const { mutateAsync: impersonateUser, isPending: isImpersonating } =
-    useImpersonateUser();
+  const { mutateAsync: addEmail } = useAddUserEmail(userId);
+  const { mutateAsync: updateEmail } = useUpdateUserEmail(userId);
+  const { mutateAsync: deleteEmail } = useDeleteUserEmail(userId);
 
-  // User update mutation for disabling
-  const { mutateAsync: updateUserMutation, isPending: isUpdatingUser } =
-    useUpdateUser(userId || "");
+  const { mutateAsync: addPhone } = useAddUserPhone(userId);
+  const { mutateAsync: updatePhone } = useUpdateUserPhone(userId);
+  const { mutateAsync: deletePhone } = useDeleteUserPhone(userId);
+
+  const { mutateAsync: deleteSocialConnection } = useDeleteUserSocialConnection(userId);
 
   // Modal states
+  const [activeTab, setActiveTab] = useState("emails"); // Default to emails as Overview is removed
   const [addEmailModalOpen, setAddEmailModalOpen] = useState(false);
   const [addPhoneModalOpen, setAddPhoneModalOpen] = useState(false);
   const [editEmailModalOpen, setEditEmailModalOpen] = useState(false);
@@ -89,1115 +93,448 @@ export default function UserDetailsPage() {
   const [editProfileModalOpen, setEditProfileModalOpen] = useState(false);
   const [changePasswordModalOpen, setChangePasswordModalOpen] = useState(false);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
+  const [selectedEmail, setSelectedEmail] = useState<UserEmailAddress | null>(null);
+  const [selectedPhone, setSelectedPhone] = useState<UserPhoneNumber | null>(null);
+  const [deleteItem, setDeleteItem] = useState<{ id: string; type: string; name: string } | null>(null);
 
-  // Data for edit modals
-  const [selectedEmail, setSelectedEmail] = useState<UserEmailAddress | null>(
-    null,
-  );
-  const [selectedPhone, setSelectedPhone] = useState<UserPhoneNumber | null>(
-    null,
-  );
-  const [deleteItem, setDeleteItem] = useState<{
-    id: string;
-    type: string;
-    name: string;
-  } | null>(null);
-
-  // Metadata editor states
+  // Metadata states
   const [publicMetadata, setPublicMetadata] = useState<string>("");
   const [privateMetadata, setPrivateMetadata] = useState<string>("");
   const [isEditingPublicMetadata, setIsEditingPublicMetadata] = useState(false);
-  const [isEditingPrivateMetadata, setIsEditingPrivateMetadata] =
-    useState(false);
+  const [isEditingPrivateMetadata, setIsEditingPrivateMetadata] = useState(false);
 
-  // Initialize metadata when user data loads
   useEffect(() => {
     if (user) {
-      setPublicMetadata(
-        user.public_metadata
-          ? JSON.stringify(user.public_metadata, null, 2)
-          : "{}",
-      );
-      setPrivateMetadata(
-        user.private_metadata
-          ? JSON.stringify(user.private_metadata, null, 2)
-          : "{}",
-      );
+      setPublicMetadata(user.public_metadata ? JSON.stringify(user.public_metadata, null, 2) : "{}");
+      setPrivateMetadata(user.private_metadata ? JSON.stringify(user.private_metadata, null, 2) : "{}");
     }
   }, [user]);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px] w-full">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner size="lg" />
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Loading user details...
-          </span>
-        </div>
+        <Spinner size="lg" />
       </div>
     );
   }
 
-  if (error) {
+  if (error || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-red-500">
-            {error.message || "Failed to load user details"}
-          </p>
-        </div>
+        <p className="text-red-500">{error?.message || "User not found"}</p>
       </div>
     );
   }
-
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p>User not found</p>
-        </div>
-      </div>
-    );
-  }
-
-  const handleEditEmail = (emailId: string) => {
-    const email = user?.email_addresses?.find((e) => e.id === emailId);
-    if (email) {
-      setSelectedEmail(email);
-      setEditEmailModalOpen(true);
-    }
-  };
-
-  const handleEditPhone = (phoneId: string) => {
-    const phone = user?.phone_numbers?.find((p) => p.id === phoneId);
-    if (phone) {
-      setSelectedPhone(phone);
-      setEditPhoneModalOpen(true);
-    }
-  };
 
   const handleDeleteItem = (itemId: string, type: string, name: string) => {
     setDeleteItem({ id: itemId, type, name });
     setConfirmationDialogOpen(true);
   };
 
-  const handleAddEmail = async (
-    email: string,
-    verified: boolean,
-    isPrimary: boolean,
-  ) => {
-    try {
-      await addEmail({
-        email,
-        verified,
-        is_primary: isPrimary,
-      });
-      console.log("Email added successfully");
-    } catch (error) {
-      console.error("Failed to add email:", error);
-    }
-  };
-
-  const handleAddPhone = async (
-    phoneNumber: string,
-    countryCode: string,
-    verified: boolean,
-    isPrimary: boolean,
-  ) => {
-    try {
-      await addPhone({
-        phone_number: phoneNumber,
-        country_code: countryCode,
-        verified,
-        is_primary: isPrimary,
-      });
-      console.log("Phone added successfully");
-    } catch (error) {
-      console.error("Failed to add phone:", error);
-    }
-  };
-
-  const handleUpdateEmail = async (
-    id: string,
-    email: string,
-    verified: boolean,
-    isPrimary: boolean,
-  ) => {
-    try {
-      await updateEmail({
-        emailId: id,
-        data: {
-          email,
-          verified,
-          is_primary: isPrimary,
-        },
-      });
-      console.log("Email updated successfully");
-    } catch (error) {
-      console.error("Failed to update email:", error);
-    }
-  };
-
-  const handleUpdatePhone = async (
-    id: string,
-    phoneNumber: string,
-    verified: boolean,
-    isPrimary: boolean,
-  ) => {
-    try {
-      await updatePhone({
-        phoneId: id,
-        data: {
-          phone_number: phoneNumber,
-          verified,
-          is_primary: isPrimary,
-        },
-      });
-      console.log("Phone updated successfully");
-    } catch (error) {
-      console.error("Failed to update phone:", error);
-    }
-  };
-
-  // Profile update is now handled directly in the modal
-
   const handleConfirmDelete = async () => {
-    if (deleteItem) {
-      try {
-        switch (deleteItem.type) {
-          case "email":
-            await deleteEmail(deleteItem.id);
-            console.log("Email deleted successfully");
-            break;
-          case "phone":
-            await deletePhone(deleteItem.id);
-            console.log("Phone deleted successfully");
-            break;
-          case "social":
-            await deleteSocialConnection(deleteItem.id);
-            console.log("Social connection deleted successfully");
-            break;
-          case "user":
-            await deleteUser(deleteItem.id);
-            console.log("User deleted successfully");
-            // Navigate back to users list after successful deletion
-            navigate(`/project/${projectId}/deployment/${deploymentId}/users`);
-            break;
-          default:
-            console.error("Unknown delete type:", deleteItem.type);
-        }
-      } catch (error) {
-        console.error("Failed to delete item:", error);
+    if (!deleteItem) return;
+    try {
+      if (deleteItem.type === "email") await deleteEmail(deleteItem.id);
+      if (deleteItem.type === "phone") await deletePhone(deleteItem.id);
+      if (deleteItem.type === "social") await deleteSocialConnection(deleteItem.id);
+      if (deleteItem.type === "user") {
+        await deleteUser(deleteItem.id);
+        navigate(`/project/${projectId}/deployment/${deploymentId}/users`);
       }
-      setDeleteItem(null);
-      setConfirmationDialogOpen(false);
-    }
-  };
-
-  const handleSavePublicMetadata = async () => {
-    try {
-      const parsedMetadata = JSON.parse(publicMetadata);
-      await updateUser({
-        public_metadata: parsedMetadata,
-      });
-      setIsEditingPublicMetadata(false);
-      toast.success("Public metadata updated successfully");
+      toast.success(`${deleteItem.type} deleted successfully`);
     } catch (error) {
-      console.error("Failed to save public metadata:", error);
-      toast.error(
-        "Failed to update public metadata. Please check the JSON format.",
-      );
+      console.error(error);
+      toast.error("Failed to delete item");
     }
-  };
-
-  const handleSavePrivateMetadata = async () => {
-    try {
-      const parsedMetadata = JSON.parse(privateMetadata);
-      await updateUser({
-        private_metadata: parsedMetadata,
-      });
-      setIsEditingPrivateMetadata(false);
-      toast.success("Private metadata updated successfully");
-    } catch (error) {
-      console.error("Failed to save private metadata:", error);
-      toast.error(
-        "Failed to update private metadata. Please check the JSON format.",
-      );
-    }
-  };
-
-  const handleCancelPublicMetadata = () => {
-    setPublicMetadata(
-      user?.public_metadata
-        ? JSON.stringify(user.public_metadata, null, 2)
-        : "{}",
-    );
-    setIsEditingPublicMetadata(false);
-  };
-
-  const handleCancelPrivateMetadata = () => {
-    setPrivateMetadata(
-      user?.private_metadata
-        ? JSON.stringify(user.private_metadata, null, 2)
-        : "{}",
-    );
-    setIsEditingPrivateMetadata(false);
+    setDeleteItem(null);
+    setConfirmationDialogOpen(false);
   };
 
   const handleImpersonate = async () => {
     try {
-      const response = await impersonateUser(userId || "");
-      if (response && response.redirect_url) {
-        window.open(response.redirect_url, "_blank");
-        toast.success("Impersonation started successfully");
-      } else {
-        toast.error("Failed to get impersonation URL");
-      }
+      const response = await impersonateUser(userId);
+      if (response?.redirect_url) window.open(response.redirect_url, "_blank");
+      else toast.error("Failed to get impersonation URL");
     } catch (error) {
-      console.error("Failed to impersonate user:", error);
       toast.error("Failed to impersonate user");
     }
   };
 
-  const handleDisableUser = async () => {
+  const handleToggleStatus = async () => {
     try {
-      await updateUserMutation({
-        disabled: !user.disabled, // Toggle disabled state
-      });
-      toast.success(
-        user.disabled
-          ? "User enabled successfully"
-          : "User disabled successfully",
-      );
+      await updateUser({ disabled: !user.disabled });
+      toast.success(user.disabled ? "User enabled" : "User disabled");
     } catch (error) {
-      console.error("Failed to update user status:", error);
-      toast.error("Failed to update user status");
+      toast.error("Failed to update status");
     }
   };
 
-  const getSocialProviderName = (provider: string): string => {
-    switch (provider) {
-      case "oauth_google":
-        return "Google";
-      case "oauth_github":
-        return "GitHub";
-      case "oauth_microsoft":
-        return "Microsoft";
-      case "oauth_facebook":
-        return "Facebook";
-      case "oauth_linkedin":
-        return "LinkedIn";
-      case "oauth_discord":
-        return "Discord";
-      case "oauth_apple":
-        return "Apple";
-      default:
-        return provider;
+  const handleSaveMetadata = async (type: "public" | "private") => {
+    try {
+      const value = type === "public" ? publicMetadata : privateMetadata;
+      const parsed = JSON.parse(value);
+      await updateUser({ [type === "public" ? "public_metadata" : "private_metadata"]: parsed });
+      if (type === "public") setIsEditingPublicMetadata(false);
+      else setIsEditingPrivateMetadata(false);
+      toast.success("Metadata updated");
+    } catch (e) {
+      toast.error("Invalid JSON");
     }
   };
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-4">
-          <UserIcon className="h-6 w-6 text-gray-600 dark:text-gray-400" />
-          <div>
-            <h1 className="text-lg text-gray-900 dark:text-gray-100">
+    <>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left Sidebar */}
+        <div className="col-span-1 lg:col-span-4 border-r border-zinc-200 dark:border-zinc-800 pr-8">
+          <div className="flex flex-col items-center mb-6">
+            <Avatar className="h-24 w-24 mb-4 border border-zinc-100 dark:border-zinc-800 shadow-sm">
+              <AvatarImage src={user.profile_picture_url} />
+              <AvatarFallback className="text-2xl bg-zinc-50 dark:bg-zinc-900 font-normal text-zinc-400">
+                {user.first_name?.[0]}{user.last_name?.[0]}
+              </AvatarFallback>
+            </Avatar>
+            <h2 className="text-lg font-normal text-zinc-900 dark:text-zinc-50 tracking-tight">
               {user.first_name} {user.last_name}
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              User ID: {user.id}
+            </h2>
+            <p className="text-xs text-zinc-500 mt-1 font-normal">
+              Joined {format(new Date(user.created_at), "MMM d, yyyy")}
             </p>
           </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button onClick={handleImpersonate} disabled={isImpersonating}>
-            <UserCircleIcon className="h-4 w-4" />
-            {isImpersonating ? "Impersonating..." : "Impersonate"}
-          </Button>
-          <Button
-            outline
-            className="p-2"
-            onClick={() => setEditProfileModalOpen(true)}
-          >
-            <PencilIcon className="h-4 w-4" />
-            <span className="sr-only">Edit Profile</span>
-          </Button>
-          <Button
-            color="red"
-            className="p-2"
-            onClick={() => {
-              setDeleteItem({
-                type: "user",
-                id: user.id,
-                name: user.first_name + " " + user.last_name,
-              });
-              setConfirmationDialogOpen(true);
-            }}
-          >
-            <TrashIcon className="h-4 w-4" />
-            <span className="sr-only">Delete User</span>
-          </Button>
-        </div>
-      </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Profile Sidebar */}
-        <div className="lg:col-span-1 lg:border-r lg:border-gray-200 dark:lg:border-zinc-800 lg:pr-8">
-          <div className="py-6">
-            {/* Avatar */}
-            <div className="flex flex-col items-center mb-6">
-              <div className="h-24 w-24 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4 overflow-hidden">
-                {user.profile_picture_url ? (
-                  <img
-                    src={user.profile_picture_url}
-                    alt={`${user.first_name} ${user.last_name}`}
-                    className="w-full h-full object-cover"
-                  />
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <div className="flex justify-between items-center py-2 border-b border-zinc-100 dark:border-zinc-800/50">
+                <span className="text-xs font-normal text-zinc-500 uppercase tracking-wider">Email Addresses</span>
+                <span className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{user.email_addresses?.length || 0}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-zinc-100 dark:border-zinc-800/50">
+                <span className="text-xs font-normal text-zinc-500 uppercase tracking-wider">Phone Numbers</span>
+                <span className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{user.phone_numbers?.length || 0}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-zinc-100 dark:border-zinc-800/50">
+                <span className="text-xs font-normal text-zinc-500 uppercase tracking-wider">Social Connections</span>
+                <span className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{user.social_connections?.length || 0}</span>
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-1">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-zinc-500 font-normal">User Status</span>
+                <Switch checked={!user.disabled} onCheckedChange={handleToggleStatus} />
+              </div>
+
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-zinc-500 font-normal">Password</span>
+                <Button variant="outline" size="sm" className="h-7 text-xs px-2 font-normal" onClick={() => setChangePasswordModalOpen(true)}>
+                  {user.has_password ? "Change" : "Set"}
+                </Button>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-zinc-500 font-normal">2FA Protection</span>
+                {user.has_otp ? (
+                  <CheckCircleIcon className="h-4 w-4 text-green-500" />
                 ) : (
-                  <span className="text-lg text-gray-600 dark:text-gray-400">
-                    {user.first_name?.[0]}
-                    {user.last_name?.[0]}
-                  </span>
+                  <XCircleIcon className="h-4 w-4 text-zinc-200 dark:text-zinc-800" />
                 )}
               </div>
-              <h2 className="text-base text-gray-900 dark:text-gray-100 text-center mb-2">
-                {user.first_name} {user.last_name}
-              </h2>
-              {user.username && (
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">
-                  @{user.username}
-                </p>
-              )}
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
-                Joined {format(new Date(user.created_at), "MMM d, yyyy")}
-              </p>
+            </div>
 
-              {/* Quick Stats */}
-              <div className="w-full space-y-3 mb-6">
-                <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-zinc-800">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Email Addresses
-                  </span>
-                  <span className="text-sm text-gray-900 dark:text-gray-100">
-                    {user.email_addresses?.length || 0}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-zinc-800">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Phone Numbers
-                  </span>
-                  <span className="text-sm text-gray-900 dark:text-gray-100">
-                    {user.phone_numbers?.length || 0}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Social Connections
-                  </span>
-                  <span className="text-sm text-gray-900 dark:text-gray-100">
-                    {user.social_connections?.length || 0}
-                  </span>
-                </div>
-              </div>
-
-              {/* Security Status */}
-              <div className="w-full mb-3 flex flex-col gap-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      User Status
-                    </span>
-                  </div>
-                  <Switch
-                    checked={!user.disabled}
-                    onChange={() => handleDisableUser()}
-                    disabled={isUpdatingUser}
-                    color={user.disabled ? "zinc" : "green"}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Password
-                  </span>
-                  <div className="flex items-center gap-2">
-                    {user.has_password ? (
-                      <CheckCircleIcon className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <XCircleIcon className="h-4 w-4 text-red-500" />
-                    )}
-                    <Button
-                      outline
-                      className="text-xs py-1 px-2"
-                      onClick={() => setChangePasswordModalOpen(true)}
-                    >
-                      {user.has_password ? "Change" : "Set"}
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    2FA
-                  </span>
-                  {user.has_otp ? (
-                    <CheckCircleIcon className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <XCircleIcon className="h-4 w-4 text-red-500" />
-                  )}
-                </div>
-              </div>
-
-              {/* Segments */}
-              <div className="w-full py-2 mt-2">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Segments
-                  </span>
-                </div>
-
-                <SegmentManager
-                  targetId={user.id}
-                  targetType="user"
-                  currentSegments={user.segments}
-                />
-              </div>
+            <div className="pt-2">
+              <h3 className="text-xs font-normal text-zinc-500 uppercase tracking-wider mb-2">Segments</h3>
+              <SegmentManager targetId={user.id} targetType="user" currentSegments={user.segments} />
             </div>
           </div>
         </div>
 
-        {/* Main Content Area */}
-        <div className="lg:col-span-2">
-          {/* Account Details */}
-          <div className="mb-8">
-            <h2 className="text-base text-zinc-900 dark:text-zinc-100 mb-4">
-              Account Details
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="space-y-1">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Primary Email
-                </p>
-                <p className="text-sm text-gray-900 dark:text-gray-100">
-                  {user.primary_email_address || "Not provided"}
-                </p>
+        {/* Main Content */}
+        <div className="col-span-1 lg:col-span-8">
+          <div className="flex justify-end gap-2 mb-6">
+            <Button variant="outline" size="sm" onClick={handleImpersonate} disabled={isImpersonating} className="h-8 gap-1.5 font-normal">
+              <PlayCircleIcon className="h-4 w-4" /> Impersonate
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setEditProfileModalOpen(true)} className="h-8 gap-1.5 font-normal">
+              <PencilIcon className="h-4 w-4" /> Edit Profile
+            </Button>
+            <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => handleDeleteItem(user.id, "user", `${user.first_name} ${user.last_name}`)}>
+              <TrashIcon className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="mb-6">
+            <h1 className="text-xl font-normal text-zinc-900 dark:text-zinc-50">{user.first_name} {user.last_name}</h1>
+            <p className="text-sm font-mono text-zinc-500 mt-1">User ID: {user.id}</p>
+          </div>
+
+          <div className="mb-0 pt-3 border-t border-zinc-100 dark:border-zinc-800/50">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4 gap-x-8">
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-zinc-500 font-normal uppercase tracking-wider">Primary Email</p>
+                <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{user.primary_email_address || "-"}</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Primary Phone
-                </p>
-                <p className="text-sm text-gray-900 dark:text-gray-100">
-                  {user.primary_phone_number || "Not provided"}
-                </p>
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-zinc-500 font-normal uppercase tracking-wider">Primary Phone</p>
+                <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{user.primary_phone_number || "Not provided"}</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Username
-                </p>
-                <p className="text-sm text-gray-900 dark:text-gray-100">
-                  {user.username || "Not provided"}
-                </p>
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-zinc-500 font-normal uppercase tracking-wider">Username</p>
+                <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{user.username || "Not provided"}</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Created
-                </p>
-                <p className="text-sm text-gray-900 dark:text-gray-100">
-                  {format(new Date(user.created_at), "MMM d, yyyy")}
-                </p>
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-zinc-500 font-normal uppercase tracking-wider">Created</p>
+                <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{format(new Date(user.created_at), "MMM d, yyyy")}</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Last Updated
-                </p>
-                <p className="text-sm text-gray-900 dark:text-gray-100">
-                  {format(new Date(user.updated_at), "MMM d, yyyy")}
-                </p>
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-zinc-500 font-normal uppercase tracking-wider">Last Session</p>
+                <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{format(new Date(user.updated_at), "MMM d, yyyy")}</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  2FA Policy
-                </p>
-                <p className="text-sm text-zinc-900 dark:text-zinc-100 capitalize">
-                  {user.second_factor_policy || "None"}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Schema Version
-                </p>
-                <p className="text-sm text-gray-900 dark:text-gray-100">
-                  {user.schema_version}
-                </p>
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-zinc-500 font-normal uppercase tracking-wider">2FA Policy</p>
+                <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal capitalize">{user.second_factor_policy || "None"}</p>
               </div>
             </div>
           </div>
 
-          {/* Tabs */}
-          <div>
-            <SimpleTabs defaultTab={0}>
-              <Tab label="Overview">
-                <div className="py-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Primary Email
-                      </h3>
-                      <p className="text-sm text-gray-900 dark:text-gray-100">
-                        {user.primary_email_address || "Not provided"}
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Primary Phone
-                      </h3>
-                      <p className="text-sm text-gray-900 dark:text-gray-100">
-                        {user.primary_phone_number || "Not provided"}
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Username
-                      </h3>
-                      <p className="text-sm text-gray-900 dark:text-gray-100">
-                        {user.username || "Not provided"}
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Total Email Addresses
-                      </h3>
-                      <p className="text-base text-gray-900 dark:text-gray-100">
-                        {user.email_addresses ? user.email_addresses.length : 0}
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Total Phone Numbers
-                      </h3>
-                      <p className="text-base text-gray-900 dark:text-gray-100">
-                        {user.phone_numbers ? user.phone_numbers.length : 0}
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Social Connections
-                      </h3>
-                      <p className="text-base text-gray-900 dark:text-gray-100">
-                        {user.social_connections
-                          ? user.social_connections.length
-                          : 0}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </Tab>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-8">
+            <TabsList>
+              <TabsTrigger value="emails">Emails</TabsTrigger>
+              <TabsTrigger value="phones">Phones</TabsTrigger>
+              <TabsTrigger value="metadata">Metadata</TabsTrigger>
+            </TabsList>
 
-              <Tab label="Email Addresses">
-                <div className="py-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-base text-gray-900 dark:text-gray-100">
-                      Email Addresses
-                    </h3>
-                    {user.email_addresses &&
-                      user.email_addresses.length > 0 && (
-                        <Button onClick={() => setAddEmailModalOpen(true)}>
-                          Add Email Address
-                        </Button>
-                      )}
-                  </div>
-
-                  {!user.email_addresses ||
-                  user.email_addresses.length === 0 ? (
-                    <EmptyState
-                      title="No email addresses"
-                      description="Get started by adding an email address for this user."
-                      actionLabel="Add Email Address"
-                      onAction={() => setAddEmailModalOpen(true)}
-                      icon={
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
-                          />
-                        </svg>
-                      }
-                    />
-                  ) : (
-                    <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                      {user.email_addresses.map((email) => (
-                        <div
-                          key={email.id}
-                          className="py-4 first:pt-0 last:pb-0"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <span className="text-sm text-gray-900 dark:text-gray-100">
-                                  {email.email}
-                                </span>
-                                {user.primary_email_address_id === email.id && (
-                                  <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 rounded-full">
-                                    Primary
-                                  </span>
-                                )}
-                                {email.verified ? (
-                                  <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                                    Verified
-                                  </span>
-                                ) : (
-                                  <span className="px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                                    Unverified
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                                Added{" "}
-                                {format(
-                                  new Date(email.created_at),
-                                  "MMM d, yyyy",
-                                )}
-                                {email.verified &&
-                                  ` • Verified ${format(
-                                    new Date(email.verified_at),
-                                    "MMM d, yyyy",
-                                  )}`}
-                              </div>
-                            </div>
+            <TabsContent value="emails" className="mt-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-sm font-normal text-zinc-500 uppercase tracking-wider">Email addresses</h3>
+                <Button size="sm" variant="outline" onClick={() => setAddEmailModalOpen(true)} className="h-8 font-normal">Add Email</Button>
+              </div>
+              {!user.email_addresses?.length ? (
+                <EmptyState
+                  title="No emails"
+                  description="Add an email address."
+                  onAction={() => setAddEmailModalOpen(true)}
+                  icon={<EnvelopeIcon className="h-10 w-10 text-zinc-200" />}
+                />
+              ) : (
+                <div className="border rounded-lg overflow-hidden border-zinc-100 dark:border-zinc-800/50">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-zinc-50/30 dark:bg-zinc-900/10">
+                        <TableHead className="font-normal text-xs uppercase tracking-wider">Email</TableHead>
+                        <TableHead className="font-normal text-xs uppercase tracking-wider">Status</TableHead>
+                        <TableHead className="font-normal text-xs uppercase tracking-wider">Added</TableHead>
+                        <TableHead className="text-right font-normal text-xs uppercase tracking-wider">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {user.email_addresses.map(email => (
+                        <TableRow key={email.id} className="hover:bg-zinc-50/30 dark:hover:bg-zinc-900/10 transition-colors">
+                          <TableCell>
                             <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                                onClick={() => handleEditEmail(email.id)}
-                              >
-                                <PencilIcon className="h-4 w-4" />
-                                <span className="sr-only">Edit</span>
-                              </button>
-                              <button
-                                type="button"
-                                className="p-2 rounded-md hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
-                                onClick={() =>
-                                  handleDeleteItem(
-                                    email.id,
-                                    "email",
-                                    email.email,
-                                  )
-                                }
-                              >
-                                <TrashIcon className="h-4 w-4" />
-                                <span className="sr-only">Delete</span>
-                              </button>
+                              <span className="text-sm font-normal">{email.email}</span>
+                              {email.id === user.primary_email_address_id && (
+                                <Badge variant="secondary" className="font-normal text-[10px] h-4 bg-zinc-100/80 dark:bg-zinc-800/80 border-none text-zinc-500">Primary</Badge>
+                              )}
                             </div>
-                          </div>
-                        </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={email.verified ? "text-green-600 dark:text-green-500 border-green-500/20 bg-green-500/5 font-normal py-0" : "text-zinc-500 border-zinc-500/20 bg-zinc-500/5 font-normal py-0"}>
+                              {email.verified ? "Verified" : "Unverified"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-zinc-500 text-xs font-normal">{format(new Date(email.created_at), "MMM d, yyyy")}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-1">
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setSelectedEmail(email); setEditEmailModalOpen(true); }}>
+                                <PencilIcon className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => handleDeleteItem(email.id, "email", email.email)}>
+                                <TrashIcon className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </div>
-                  )}
+                    </TableBody>
+                  </Table>
                 </div>
-              </Tab>
+              )}
+            </TabsContent>
 
-              <Tab label="Phone Numbers">
-                <div className="py-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-base text-gray-900 dark:text-gray-100">
-                      Phone Numbers
-                    </h3>
-                    {user.phone_numbers && user.phone_numbers.length > 0 && (
-                      <Button onClick={() => setAddPhoneModalOpen(true)}>
-                        Add Phone Number
-                      </Button>
+            <TabsContent value="phones" className="mt-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-sm font-normal text-zinc-500 uppercase tracking-wider">Phone numbers</h3>
+                <Button size="sm" variant="outline" onClick={() => setAddPhoneModalOpen(true)} className="h-8 font-normal">Add Phone</Button>
+              </div>
+              {!user.phone_numbers?.length ? (
+                <EmptyState
+                  title="No phone numbers"
+                  description="Add a phone number."
+                  onAction={() => setAddPhoneModalOpen(true)}
+                  icon={<PhoneIcon className="h-10 w-10 text-zinc-200" />}
+                />
+              ) : (
+                <div className="border rounded-lg overflow-hidden border-zinc-100 dark:border-zinc-800/50">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-zinc-50/30 dark:bg-zinc-900/10">
+                        <TableHead className="font-normal text-xs uppercase tracking-wider">Number</TableHead>
+                        <TableHead className="font-normal text-xs uppercase tracking-wider">Status</TableHead>
+                        <TableHead className="font-normal text-xs uppercase tracking-wider">Added</TableHead>
+                        <TableHead className="text-right font-normal text-xs uppercase tracking-wider">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {user.phone_numbers.map(phone => (
+                        <TableRow key={phone.id} className="hover:bg-zinc-50/30 dark:hover:bg-zinc-900/10 transition-colors">
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-normal">{phone.phone_number}</span>
+                              {phone.id === user.primary_phone_number_id && (
+                                <Badge variant="secondary" className="font-normal text-[10px] h-4 bg-zinc-100/80 dark:bg-zinc-800/80 border-none text-zinc-500">Primary</Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={phone.verified ? "text-green-600 dark:text-green-500 border-green-500/20 bg-green-500/5 font-normal py-0" : "text-zinc-500 border-zinc-500/20 bg-zinc-500/5 font-normal py-0"}>
+                              {phone.verified ? "Verified" : "Unverified"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-zinc-500 text-xs font-normal">{format(new Date(phone.created_at), "MMM d, yyyy")}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-1">
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setSelectedPhone(phone); setEditPhoneModalOpen(true); }}>
+                                <PencilIcon className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => handleDeleteItem(phone.id, "phone", phone.phone_number)}>
+                                <TrashIcon className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="metadata" className="mt-4">
+              <div className="space-y-6 pt-2">
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xs font-normal text-zinc-500 uppercase tracking-widest">Public Metadata</h3>
+                    {!isEditingPublicMetadata ? (
+                      <Button variant="outline" size="sm" onClick={() => setIsEditingPublicMetadata(true)} className="h-7 text-xs font-normal">Edit JSON</Button>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => setIsEditingPublicMetadata(false)} className="h-7 text-xs font-normal">Cancel</Button>
+                        <Button size="sm" onClick={() => handleSaveMetadata("public")} className="h-7 text-xs font-normal">Save</Button>
+                      </div>
                     )}
                   </div>
-
-                  {!user.phone_numbers || user.phone_numbers.length === 0 ? (
-                    <EmptyState
-                      title="No phone numbers"
-                      description="Get started by adding a phone number for this user."
-                      actionLabel="Add Phone Number"
-                      onAction={() => setAddPhoneModalOpen(true)}
-                      icon={
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"
-                          />
-                        </svg>
-                      }
+                  <div className="rounded-lg overflow-hidden border border-zinc-100 dark:border-zinc-800 shadow-sm">
+                    <Editor
+                      height="180px"
+                      defaultLanguage="json"
+                      value={publicMetadata}
+                      onChange={(value) => setPublicMetadata(value || "{}")}
+                      theme={isDarkMode ? "vs-dark" : "vs"}
+                      options={{ readOnly: !isEditingPublicMetadata, minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false, automaticLayout: true, formatOnPaste: true, formatOnType: true, wordWrap: "on", lineNumbers: "off", folding: false, autoIndent: "full", padding: { top: 12, bottom: 12 } }}
                     />
-                  ) : (
-                    <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                      {user.phone_numbers.map((phone) => (
-                        <div
-                          key={phone.id}
-                          className="py-4 first:pt-0 last:pb-0"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <span className="text-lg">
-                                  {getCountryFlag(phone.country_code)}
-                                </span>
-                                <span className="text-sm text-gray-900 dark:text-gray-100">
-                                  {phone.country_code} {phone.phone_number}
-                                </span>
-                                {user.primary_phone_number_id === phone.id && (
-                                  <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 rounded-full">
-                                    Primary
-                                  </span>
-                                )}
-                                {phone.verified ? (
-                                  <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                                    Verified
-                                  </span>
-                                ) : (
-                                  <span className="px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                                    Unverified
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                                Added{" "}
-                                {format(
-                                  new Date(phone.created_at),
-                                  "MMM d, yyyy",
-                                )}
-                                {phone.verified &&
-                                  ` • Verified ${format(
-                                    new Date(phone.verified_at),
-                                    "MMM d, yyyy",
-                                  )}`}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                                onClick={() => handleEditPhone(phone.id)}
-                              >
-                                <PencilIcon className="h-4 w-4" />
-                                <span className="sr-only">Edit</span>
-                              </button>
-                              <button
-                                type="button"
-                                className="p-2 rounded-md hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
-                                onClick={() =>
-                                  handleDeleteItem(
-                                    phone.id,
-                                    "phone",
-                                    phone.phone_number,
-                                  )
-                                }
-                              >
-                                <TrashIcon className="h-4 w-4" />
-                                <span className="sr-only">Delete</span>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </Tab>
-
-              <Tab label="Social Connections">
-                <div className="py-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-base text-gray-900 dark:text-gray-100">
-                      Social Connections
-                    </h3>
                   </div>
-
-                  {!user.social_connections ||
-                  user.social_connections.length === 0 ? (
-                    <EmptyState
-                      title="No social connections"
-                      description="This user hasn't connected any social accounts yet."
-                      icon={
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z"
-                          />
-                        </svg>
-                      }
+                </div>
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xs font-normal text-zinc-500 uppercase tracking-widest">Private Metadata</h3>
+                    {!isEditingPrivateMetadata ? (
+                      <Button variant="outline" size="sm" onClick={() => setIsEditingPrivateMetadata(true)} className="h-7 text-xs font-normal">Edit JSON</Button>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => setIsEditingPrivateMetadata(false)} className="h-7 text-xs font-normal">Cancel</Button>
+                        <Button size="sm" onClick={() => handleSaveMetadata("private")} className="h-7 text-xs font-normal">Save</Button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="rounded-lg overflow-hidden border border-zinc-100 dark:border-zinc-800 shadow-sm">
+                    <Editor
+                      height="180px"
+                      defaultLanguage="json"
+                      value={privateMetadata}
+                      onChange={(value) => setPrivateMetadata(value || "{}")}
+                      theme={isDarkMode ? "vs-dark" : "vs"}
+                      options={{ readOnly: !isEditingPrivateMetadata, minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false, automaticLayout: true, formatOnPaste: true, formatOnType: true, wordWrap: "on", lineNumbers: "off", folding: false, autoIndent: "full", padding: { top: 12, bottom: 12 } }}
                     />
-                  ) : (
-                    <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                      {user.social_connections.map((connection) => (
-                        <div
-                          key={connection.id}
-                          className="py-4 first:pt-0 last:pb-0"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <span className="text-sm text-gray-900 dark:text-gray-100">
-                                  {getSocialProviderName(connection.provider)}
-                                </span>
-                                <span className="text-sm text-gray-500 dark:text-gray-400">
-                                  {connection.email_address}
-                                </span>
-                              </div>
-                              <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                                Connected{" "}
-                                {format(
-                                  new Date(connection.created_at),
-                                  "MMM d, yyyy",
-                                )}
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              className="p-2 rounded-md hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
-                              onClick={() =>
-                                handleDeleteItem(
-                                  connection.id,
-                                  "social",
-                                  getSocialProviderName(connection.provider),
-                                )
-                              }
-                            >
-                              <TrashIcon className="h-4 w-4" />
-                              <span className="sr-only">Delete</span>
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </Tab>
-
-              <Tab label="Metadata">
-                <div className="py-6 space-y-8">
-                  {/* Public Metadata */}
-                  <div>
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-base text-gray-900 dark:text-gray-100">
-                        Public Metadata
-                      </h3>
-                      {!isEditingPublicMetadata ? (
-                        <Button
-                          outline
-                          className="flex items-center gap-1 text-sm py-2"
-                          onClick={() => setIsEditingPublicMetadata(true)}
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                          Edit
-                        </Button>
-                      ) : (
-                        <div className="flex gap-2">
-                          <Button
-                            outline
-                            className="text-sm py-2"
-                            onClick={handleCancelPublicMetadata}
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            className="text-sm py-2"
-                            onClick={handleSavePublicMetadata}
-                          >
-                            Save
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="rounded border border-gray-200 dark:border-zinc-800">
-                      <Editor
-                        height="120px"
-                        defaultLanguage="json"
-                        value={publicMetadata}
-                        onChange={(value) => setPublicMetadata(value || "{}")}
-                        theme={isDarkMode ? "vs-dark" : "vs"}
-                        options={{
-                          readOnly: !isEditingPublicMetadata,
-                          minimap: { enabled: false },
-                          fontSize: 13,
-                          scrollBeyondLastLine: false,
-                          automaticLayout: true,
-                          formatOnPaste: true,
-                          formatOnType: true,
-                          wordWrap: "on",
-                          lineNumbers: "off",
-                          folding: false,
-                          autoIndent: "full",
-                          padding: { top: 8, bottom: 8 },
-                          scrollbar: {
-                            vertical: "auto",
-                            horizontal: "hidden",
-                          },
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Private Metadata */}
-                  <div>
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-base text-gray-900 dark:text-gray-100">
-                        Private Metadata
-                      </h3>
-                      {!isEditingPrivateMetadata ? (
-                        <Button
-                          outline
-                          className="flex items-center gap-1 text-sm py-2"
-                          onClick={() => setIsEditingPrivateMetadata(true)}
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                          Edit
-                        </Button>
-                      ) : (
-                        <div className="flex gap-2">
-                          <Button
-                            outline
-                            className="text-sm py-2"
-                            onClick={handleCancelPrivateMetadata}
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            className="text-sm py-2"
-                            onClick={handleSavePrivateMetadata}
-                          >
-                            Save
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="rounded border border-gray-200 dark:border-zinc-800">
-                      <Editor
-                        height="120px"
-                        defaultLanguage="json"
-                        value={privateMetadata}
-                        onChange={(value) => setPrivateMetadata(value || "{}")}
-                        theme={isDarkMode ? "vs-dark" : "vs"}
-                        options={{
-                          readOnly: !isEditingPrivateMetadata,
-                          minimap: { enabled: false },
-                          fontSize: 13,
-                          scrollBeyondLastLine: false,
-                          automaticLayout: true,
-                          formatOnPaste: true,
-                          formatOnType: true,
-                          wordWrap: "on",
-                          lineNumbers: "off",
-                          folding: false,
-                          autoIndent: "full",
-                          padding: { top: 8, bottom: 8 },
-                          scrollbar: {
-                            vertical: "auto",
-                            horizontal: "hidden",
-                          },
-                        }}
-                      />
-                    </div>
                   </div>
                 </div>
-              </Tab>
-            </SimpleTabs>
-          </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
-      {/* Modals */}
+      {/* Modals - FIXED PROP NAMES */}
       <AddEmailModal
         isOpen={addEmailModalOpen}
         onClose={() => setAddEmailModalOpen(false)}
-        onSubmit={handleAddEmail}
+        onSubmit={async (email, verified, isPrimary) => {
+          await addEmail({ email, verified, is_primary: isPrimary });
+          setAddEmailModalOpen(false);
+        }}
       />
-
       <AddPhoneModal
         isOpen={addPhoneModalOpen}
         onClose={() => setAddPhoneModalOpen(false)}
-        onSubmit={handleAddPhone}
+        onSubmit={async (phoneNumber, countryCode, verified, isPrimary) => {
+          await addPhone({ phone_number: phoneNumber, country_code: countryCode, verified, is_primary: isPrimary });
+          setAddPhoneModalOpen(false);
+        }}
       />
-
-      <EditEmailModal
-        isOpen={editEmailModalOpen}
-        onClose={() => setEditEmailModalOpen(false)}
-        onSubmit={handleUpdateEmail}
-        emailData={selectedEmail}
-        userData={
-          user
-            ? { primary_email_address_id: user.primary_email_address_id }
-            : null
-        }
-      />
-
-      <EditPhoneModal
-        isOpen={editPhoneModalOpen}
-        onClose={() => setEditPhoneModalOpen(false)}
-        onSubmit={handleUpdatePhone}
-        phoneData={selectedPhone}
-        userData={
-          user
-            ? { primary_phone_number_id: user.primary_phone_number_id }
-            : null
-        }
-      />
-
+      {selectedEmail && (
+        <EditEmailModal
+          isOpen={editEmailModalOpen}
+          onClose={() => setEditEmailModalOpen(false)}
+          emailData={selectedEmail}
+          userData={user}
+          onSubmit={async (id, email, verified, isPrimary) => {
+            await updateEmail({ emailId: id, data: { email, verified, is_primary: isPrimary } });
+            setEditEmailModalOpen(false);
+          }}
+        />
+      )}
+      {selectedPhone && (
+        <EditPhoneModal
+          isOpen={editPhoneModalOpen}
+          onClose={() => setEditPhoneModalOpen(false)}
+          phoneData={selectedPhone}
+          userData={user}
+          onSubmit={async (id, phoneNumber, verified, isPrimary) => {
+            await updatePhone({ phoneId: id, data: { phone_number: phoneNumber, verified, is_primary: isPrimary } });
+            setEditPhoneModalOpen(false);
+          }}
+        />
+      )}
       <EditProfileModal
         isOpen={editProfileModalOpen}
         onClose={() => setEditProfileModalOpen(false)}
-        userId={userId || ""}
-        profileData={
-          user
-            ? {
-                first_name: user.first_name,
-                last_name: user.last_name,
-                username: user.username || undefined,
-                image_url: user.profile_picture_url || undefined,
-              }
-            : null
-        }
+        profileData={user as any}
+        userId={userId}
       />
-
       <ChangePasswordModal
         isOpen={changePasswordModalOpen}
         onClose={() => setChangePasswordModalOpen(false)}
-        userId={userId || ""}
-        hasPassword={user?.has_password || false}
+        userId={userId}
+        hasPassword={user.has_password}
       />
-
       <ConfirmationDialog
         isOpen={confirmationDialogOpen}
-        onClose={() => {
-          setConfirmationDialogOpen(false);
-          setDeleteItem(null);
-        }}
+        onClose={() => setConfirmationDialogOpen(false)}
         onConfirm={handleConfirmDelete}
-        title={`Delete ${deleteItem?.type || "item"}`}
-        message={`Are you sure you want to delete this ${deleteItem?.type}? This action cannot be undone.`}
+        title={`Delete User ${user.first_name}`}
+        message={`Are you sure you want to delete this user? This action cannot be undone.`}
         confirmText="Delete"
-        isDestructive={true}
+        cancelText="Cancel"
       />
-    </div>
+    </>
   );
 }
