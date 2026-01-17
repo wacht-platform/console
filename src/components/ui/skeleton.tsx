@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils"
+import { Card, CardHeader, CardContent, CardFooter } from "./card"
 
 function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -83,4 +84,27 @@ export function SkeletonCard() {
   );
 }
 
+export function SkeletonProjectCard() {
+  return (
+    <Card className="flex flex-col h-full bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 overflow-hidden">
+      <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-4">
+        <Skeleton className="h-10 w-10 rounded-lg" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-3 w-1/2" />
+        </div>
+      </CardHeader>
+      <CardContent className="flex-1 p-6 pt-0">
+        <div className="flex flex-wrap gap-2 mt-2">
+          <Skeleton className="h-5 w-20 rounded-full" />
+          <Skeleton className="h-5 w-20 rounded-full" />
+        </div>
+      </CardContent>
+      <CardFooter className="px-6 py-4 bg-zinc-50/50 dark:bg-zinc-800/30 border-t border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-4 w-4 rounded-full" />
+      </CardFooter>
+    </Card>
+  );
+}
 

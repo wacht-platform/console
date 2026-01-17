@@ -5,7 +5,7 @@ import { PlusIcon, KeyIcon, ClockIcon } from "@heroicons/react/24/outline";
 import { formatDistanceToNow } from "date-fns";
 import { useDeploymentJWTTemplates } from "@/lib/api/hooks/use-deployment-jwt-templates";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
+import { InlineLoader } from "@/components/ui/loading-screen";
 
 const JWTTemplateCard = ({
   template,
@@ -83,12 +83,7 @@ export default function JWTTemplatesPage() {
       </div>
 
       {isLoadingJWTTemplates ? (
-        <div className="flex items-center justify-center min-h-[400px] w-full">
-          <div className="flex flex-col items-center gap-4">
-            <Spinner size="lg" />
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading templates...</span>
-          </div>
-        </div>
+        <InlineLoader />
       ) : !jwtTemplates || jwtTemplates.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-zinc-900 rounded-lg border-2 border-dashed border-gray-300 dark:border-zinc-700">
           <KeyIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-zinc-500" />

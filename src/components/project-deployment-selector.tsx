@@ -84,7 +84,7 @@ export function ProjectDeploymentSelector({
             )}
 
             <div className="flex items-center text-sm">
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+              <span className="text-zinc-900 dark:text-zinc-100">
                 {selectedProject ? selectedProject.name : "Select Project"}
               </span>
               <span className="mx-1.5 text-zinc-400 dark:text-zinc-600">/</span>

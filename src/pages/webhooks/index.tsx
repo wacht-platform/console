@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { webhookApi } from "@/lib/api/webhooks";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { InlineLoader } from "@/components/ui/loading-screen";
 import { DateRangeSelector } from "@/components/date-range-selector";
 
 export default function WebhooksPage() {
@@ -66,16 +67,7 @@ export default function WebhooksPage() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px] w-full">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner size="lg" />
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Loading webhooks...
-          </span>
-        </div>
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   if (!status?.is_activated) {
@@ -152,7 +144,7 @@ export default function WebhooksPage() {
             <CardContent>
               <div className="text-2xl font-bold">
                 {isAnalyticsLoading
-                  ? "Loading..."
+                  ? "—"
                   : analytics?.total_deliveries !== undefined
                     ? analytics.total_deliveries.toLocaleString()
                     : stats?.total_deliveries !== undefined
@@ -173,7 +165,7 @@ export default function WebhooksPage() {
             <CardContent>
               <div className="text-2xl font-bold">
                 {isAnalyticsLoading
-                  ? "Loading..."
+                  ? "—"
                   : analytics?.success_rate !== undefined
                     ? `${analytics.success_rate.toFixed(1)}%`
                     : stats?.success_rate !== undefined

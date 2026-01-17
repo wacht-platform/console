@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 
-import { Spinner } from "@/components/ui/spinner";
+import { InlineLoader } from "@/components/ui/loading-screen";
 import {
   useUpdateDeploymentDisplaySettings,
   DeploymentDisplaySettingsUpdates,
@@ -276,11 +276,7 @@ export default function DeploymentSettingsPage() {
   }, [hasValidationErrors, appName]);
 
   if (!deploymentSettings) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner />
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   const handleSaveSettings = async () => {

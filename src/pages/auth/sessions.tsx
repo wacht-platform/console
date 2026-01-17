@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { useAuthSettingsStore, useInitializeAuthSettings } from "@/lib/store/auth-settings-store";
 import { useSaveAuthSettings } from "@/lib/api/hooks/use-save-auth-settings";
-import { Spinner } from "@/components/ui/spinner";
+import { InlineLoader } from "@/components/ui/loading-screen";
 
 
 export default function SessionsPage() {
@@ -178,14 +178,7 @@ export default function SessionsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px] w-full">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner size="lg" />
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading session settings...</span>
-        </div>
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   return (

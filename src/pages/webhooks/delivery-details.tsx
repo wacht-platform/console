@@ -13,6 +13,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { webhookApi } from "@/lib/api/webhooks";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { InlineLoader } from "@/components/ui/loading-screen";
 
 export default function WebhookDeliveryDetailsPage() {
   const { deploymentId, deliveryId } = useParams();
@@ -50,16 +51,7 @@ export default function WebhookDeliveryDetailsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px] w-full">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner size="lg" />
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Loading delivery details...
-          </span>
-        </div>
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   if (!delivery) {
@@ -133,10 +125,10 @@ export default function WebhookDeliveryDetailsPage() {
                     delivery.status === "success"
                       ? "green"
                       : delivery.status === "failed"
-                      ? "red"
-                      : delivery.status === "retrying"
-                      ? "yellow"
-                      : "zinc"
+                        ? "red"
+                        : delivery.status === "retrying"
+                          ? "yellow"
+                          : "zinc"
                   }
                 >
                   {delivery.status}

@@ -10,7 +10,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Badge } from "../../components/ui/badge";
 import { CreateAgentDialog } from "../../components/ai-agents/create-agent-dialog";
-import { Spinner } from "../../components/ui/spinner";
+import { InlineLoader } from "../../components/ui/loading-screen";
 import { useAgents, type Agent } from "../../lib/api/hooks/use-agents";
 import {
 	Table,
@@ -74,10 +74,7 @@ export default function CreateAgentsPage() {
 
 			{/* Content */}
 			{isLoading ? (
-				<div className="flex flex-col items-center justify-center min-h-[400px] py-12">
-					<Spinner size="lg" />
-					<p className="mt-4 text-sm text-muted-foreground">Loading agents...</p>
-				</div>
+				<InlineLoader />
 			) : error ? (
 				<div className="text-center py-12">
 					<p className="text-destructive">Error loading agents: {error.message}</p>

@@ -11,7 +11,7 @@ import {
   NavigateToSignIn,
   useSession,
 } from "@wacht/react-router";
-import { Spinner } from "./components/ui/spinner";
+import { AppLoading } from "./components/ui/loading-screen";
 import { apiClient } from "./lib/api/client";
 import { Toaster } from "sonner";
 import { useTheme } from "./lib/providers/theme";
@@ -64,11 +64,7 @@ function SignedInRoutes() {
   }, [activeSignInId, activeOrgMembershipId, loading, session]);
 
   if (!interceptorReady || loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Spinner className="h-8 w-8" />
-      </div>
-    );
+    return <AppLoading />;
   }
 
   return (
@@ -92,14 +88,7 @@ function AppContent() {
         </SignedOut>
       </DeploymentInitialized>
       <DeploymentInitializing>
-        <div className="flex items-center justify-center min-h-screen w-full">
-          <div className="flex flex-col items-center gap-4">
-            <Spinner size="lg" />
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">
-              Initializing deployment
-            </span>
-          </div>
-        </div>
+        <AppLoading />
       </DeploymentInitializing>
       <Toaster
         theme={actualTheme}

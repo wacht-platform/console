@@ -30,7 +30,7 @@ import { EditMemberDialog } from "@/components/organizations/EditMemberDialog";
 import { CreateRoleDialog } from "@/components/organizations/CreateRoleDialog";
 import { EditRoleDialog } from "@/components/organizations/EditRoleDialog";
 import { DeleteConfirmationDialog } from "@/components/organizations/DeleteConfirmationDialog";
-import { Spinner } from "@/components/ui/spinner";
+import { InlineLoader } from "@/components/ui/loading-screen";
 import { EmptyState } from "@/components/ui/empty-state";
 import type {
   OrganizationMemberDetails,
@@ -154,16 +154,7 @@ export default function OrganizationDetailsPage() {
   }, [organization]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px] w-full">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner size="lg" />
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Loading organization details...
-          </span>
-        </div>
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   if (error) {
@@ -497,9 +488,7 @@ export default function OrganizationDetailsPage() {
 
 
             {membersLoading ? (
-              <div className="flex justify-center py-8">
-                <Spinner className="h-6 w-6" />
-              </div>
+              <InlineLoader />
             ) : !membersData?.data || membersData.data.length === 0 ? (
               <EmptyState
                 title={

@@ -1,19 +1,10 @@
 import { createBrowserRouter } from "react-router";
 import { ApplicationLayout } from "@/components/application-layout";
 import { Suspense } from "react";
-import { Spinner } from "@/components/ui/spinner";
+import { InlineLoader } from "@/components/ui/loading-screen";
 import { lazyImport } from "@/lib/lazy-import";
 
-const SimpleFallback = () => (
-  <div className="flex items-center justify-center min-h-[400px] w-full">
-    <div className="flex flex-col items-center gap-4">
-      <Spinner size="lg" />
-      <span className="text-sm text-zinc-600 dark:text-zinc-400">
-        Loading...
-      </span>
-    </div>
-  </div>
-);
+const SimpleFallback = () => <InlineLoader />;
 
 const OverviewPage = lazyImport(() => import("./pages/overview"));
 

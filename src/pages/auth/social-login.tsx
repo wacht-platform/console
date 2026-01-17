@@ -1,6 +1,6 @@
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
+import { InlineLoader } from "@/components/ui/loading-screen";
 import { Heading, Subheading } from "@/components/ui/heading";
 import {
   Dialog,
@@ -461,14 +461,7 @@ export default function SSOConnectionsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px] w-full">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner size="lg" />
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading social connections...</span>
-        </div>
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   return (

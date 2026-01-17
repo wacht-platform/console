@@ -21,7 +21,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useQuery } from "@tanstack/react-query";
 import { webhookApi } from "@/lib/api/webhooks";
-import { Spinner } from "@/components/ui/spinner";
+import { InlineLoader } from "@/components/ui/loading-screen";
 import { subDays, startOfDay, endOfDay, format } from "date-fns";
 import {
   XAxis,
@@ -89,14 +89,7 @@ export default function WebhookAnalyticsPage() {
   const formatPercentage = (value: number) => `${value.toFixed(1)}%`;
 
   if (analyticsLoading || timeseriesLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px] w-full">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner size="lg" />
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading analytics...</span>
-        </div>
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   return (

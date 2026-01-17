@@ -7,6 +7,7 @@ interface ProjectState {
   isLoading: boolean;
   selectedProject: ProjectWithDeployments | null;
   selectedDeployment: Deployment | null;
+  notFound: boolean;
   setSelectedProject: (
     project: ProjectWithDeployments | null,
     navigate?: boolean,
@@ -17,6 +18,7 @@ interface ProjectState {
   ) => void;
   setProjects: (projects: ProjectWithDeployments[]) => void;
   initializeFromUrl: (projectId: string, deploymentId: string) => void;
+  setNotFound: (notFound: boolean) => void;
   navigateToSelection: () => void;
 }
 
@@ -32,9 +34,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   isLoading: false,
   selectedProject: null,
   selectedDeployment: null,
+  notFound: false,
 
   setSelectedProject: (project, navigate = true) => {
-    set({ selectedProject: project });
+    set({ selectedProject: project, notFound: false });
 
     if (navigate && project && navigationFunction) {
       // If we have a project but no deployment, select the first one
@@ -43,31 +46,26 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
       if (targetDeployment) {
         set({ selectedDeployment: targetDeployment });
-        // Navigate to root when switching projects
-        navigationFunction("/");
+        // Navigate to project overview when switching projects
+        navigationFunction(`/project/${project.id}/deployment/${targetDeployment.id}`);
       }
     }
   },
 
   setSelectedDeployment: (deployment, navigate = true) => {
-    set({ selectedDeployment: deployment });
+    set({ selectedDeployment: deployment, notFound: false });
 
     if (navigate && deployment && navigationFunction) {
-      // Navigate to root when switching deployments
-      navigationFunction("/");
+      const { selectedProject } = get();
+      if (selectedProject) {
+        // Navigate to deployment overview when switching deployments
+        navigationFunction(`/project/${selectedProject.id}/deployment/${deployment.id}`);
+      }
     }
   },
 
   setProjects: (projects) => {
     set({ projects });
-
-    const { selectedProject } = get();
-    if (!selectedProject && projects.length > 0) {
-      set({
-        selectedProject: projects[0],
-        selectedDeployment: projects[0].deployments[0] || null,
-      });
-    }
   },
 
   initializeFromUrl: (projectId: string, deploymentId: string) => {
@@ -75,16 +73,27 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     if (!projects) return;
 
     const project = projects.find((p) => p.id === projectId);
-    if (project) {
-      const deployment = project.deployments.find((d) => d.id === deploymentId);
-      if (deployment) {
-        // Set without navigation to avoid infinite loops
-        set({
-          selectedProject: project,
-          selectedDeployment: deployment,
-        });
-      }
+    if (!project) {
+      set({ notFound: true });
+      return;
     }
+
+    const deployment = project.deployments.find((d) => d.id === deploymentId);
+    if (!deployment) {
+      set({ notFound: true });
+      return;
+    }
+
+    // Set without navigation to avoid infinite loops
+    set({
+      selectedProject: project,
+      selectedDeployment: deployment,
+      notFound: false,
+    });
+  },
+
+  setNotFound: (notFound: boolean) => {
+    set({ notFound });
   },
 
   navigateToSelection: () => {

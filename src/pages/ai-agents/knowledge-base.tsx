@@ -19,7 +19,7 @@ import {
 	TableRow,
 } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
-import { Spinner } from "../../components/ui/spinner";
+import { InlineLoader } from "../../components/ui/loading-screen";
 import { EnhancedUploadDialog } from "../../components/ai-agents/enhanced-upload-dialog";
 import { CreateKnowledgeBaseFormDialog } from "../../components/ai-agents/create-knowledge-base-form-dialog";
 import { ConfirmationDialog } from "../../components/modals/confirmation-dialog";
@@ -201,12 +201,7 @@ export default function KnowledgeBasePage() {
 
 	// Loading state
 	if (isLoadingKnowledgeBases) {
-		return (
-			<div className="flex flex-col items-center justify-center min-h-[400px] py-12">
-				<Spinner size="lg" />
-				<p className="mt-4 text-sm text-muted-foreground">Loading knowledge bases...</p>
-			</div>
-		);
+		return <InlineLoader />;
 	}
 
 	// Error state
@@ -260,8 +255,8 @@ export default function KnowledgeBasePage() {
 									key={kb.id}
 									onClick={() => handleKnowledgeBaseChange(kb)}
 									className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors text-left group relative ${selectedKnowledgeBase?.id === kb.id
-											? "bg-primary/10 text-primary font-medium"
-											: "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+										? "bg-primary/10 text-primary font-medium"
+										: "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
 										}`}
 								>
 									<FolderIcon className={`h-4 w-4 shrink-0 ${selectedKnowledgeBase?.id === kb.id ? "text-primary fill-primary/20" : "text-muted-foreground"
@@ -323,9 +318,7 @@ export default function KnowledgeBasePage() {
 							{/* File Grid/List */}
 							<div className="flex-1 overflow-y-auto">
 								{isLoadingDocuments ? (
-									<div className="flex flex-col items-center justify-center h-full">
-										<Spinner />
-									</div>
+									<InlineLoader />
 								) : documentsError ? (
 									<div className="flex flex-col items-center justify-center h-full text-destructive text-sm">
 										Failed to load documents

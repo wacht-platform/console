@@ -12,14 +12,15 @@ import { BillingSetupDialog } from "@/components/billing-setup-dialog";
 import { useState } from "react";
 import { UserButton, OrganizationSwitcher } from "@wacht/react-router";
 import { useBillingAccount } from "@/lib/api/hooks/use-billing";
-import { Tab, SimpleTabs } from "@/components/ui/simple-tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Spinner } from "@/components/ui/spinner";
+import { ProjectLoadingGrid } from "@/components/ui/loading-screen";
 import {
   PlusIcon,
   GlobeAltIcon,
   ClockIcon,
   ExclamationTriangleIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 import {
   Dialog,
@@ -30,6 +31,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Text } from "@/components/ui/text";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { motion, AnimatePresence } from "framer-motion";
 
 
 export default function ProjectsPage() {
@@ -50,25 +53,6 @@ export default function ProjectsPage() {
     }
   };
 
-  const handleBillingSetupSuccess = () => {
-    setBillingSetupDialogOpen(false);
-    // After billing is set up, you might want to automatically open project creation
-    // or just close and let user click create project again
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px] w-full">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner size="lg" />
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Loading your projects...
-          </span>
-        </div>
-      </div>
-    );
-  }
-
   const productionDeployments =
     projects?.filter((project) =>
       project.deployments.some(
@@ -82,10 +66,10 @@ export default function ProjectsPage() {
     ) || [];
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
+    <div className="min-h-screen bg-neutral-50/50 dark:bg-neutral-950">
       {/* Navbar */}
-      <Navbar className="fixed z-50 top-0 left-0 right-0 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 h-14">
-        <div className="max-w-7xl mx-auto w-full flex items-center px-8 h-full">
+      <Navbar className="fixed z-50 top-0 left-0 right-0 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800 h-14">
+        <div className="max-w-7xl mx-auto w-full flex items-center px-6 lg:px-8 h-full">
           <OrganizationSwitcher />
           <NavbarSpacer />
           <UserButton showName={false} />
@@ -93,98 +77,136 @@ export default function ProjectsPage() {
       </Navbar>
 
       {/* Main Content */}
-      <div className="pt-14 max-w-7xl mx-auto px-8">
+      <div className="pt-14 max-w-7xl mx-auto px-6 lg:px-8">
         {/* Header */}
-        <div className="py-8">
-          <div className="flex items-center justify-between">
+        <div className="py-10">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          >
             <div>
-              <h1 className="text-lg text-neutral-900 dark:text-neutral-100">
+              <h1 className="text-2xl font-normal text-neutral-900 dark:text-neutral-100 tracking-tight">
                 Projects
               </h1>
               <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                Manage your applications and deployments
+                Oversee your applications and deployment environments.
               </p>
             </div>
             <Button
               onClick={handleCreateProject}
-              className="flex items-center gap-2"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 shadow-sm rounded-lg"
+              size="lg"
             >
-              <PlusIcon className="w-4 h-4" />
+              <PlusIcon className="w-5 h-5" />
               <span>New project</span>
             </Button>
-          </div>
+          </motion.div>
         </div>
 
         {/* Tabs */}
-        <div>
-          <SimpleTabs>
-            <Tab label="All projects">
-              <div className="mt-6">
-                {projects && projects.length > 0 ? (
-                  <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+        <div className="pb-20">
+          <Tabs defaultValue="all" className="w-full">
+            <div className="flex items-center justify-between mb-8">
+              <TabsList className="bg-neutral-100 dark:bg-neutral-800/50 p-1 rounded-xl h-10">
+                <TabsTrigger
+                  value="all"
+                  className="px-6 h-8 text-xs font-medium rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white shadow-none data-[state=active]:shadow-sm transition-all"
+                >
+                  All projects
+                </TabsTrigger>
+                <TabsTrigger
+                  value="production"
+                  className="px-6 h-8 text-xs font-medium rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white shadow-none data-[state=active]:shadow-sm transition-all"
+                >
+                  Production
+                </TabsTrigger>
+                <TabsTrigger
+                  value="staging"
+                  className="px-6 h-8 text-xs font-medium rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white shadow-none data-[state=active]:shadow-sm transition-all"
+                >
+                  Staging
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="all" className="mt-0 outline-none">
+              {isLoading ? (
+                <ProjectLoadingGrid items={6} />
+              ) : projects && projects.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <AnimatePresence mode="popLayout">
                     {projects.map((project, index) => (
-                      <ProjectItem
+                      <ProjectCard
                         key={project.id}
-                        {...project}
-                        isLast={index === projects.length - 1}
+                        project={project}
+                        index={index}
                       />
                     ))}
-                  </div>
-                ) : (
-                  <EmptyState
-                    title="No projects yet"
-                    description="Create your first project to get started"
-                    actionLabel="New project"
-                    onAction={handleCreateProject}
-                  />
-                )}
-              </div>
-            </Tab>
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <EmptyState
+                  title="No projects yet"
+                  description="Create your first project to get started"
+                  actionLabel="Create Project"
+                  onAction={handleCreateProject}
+                />
+              )}
+            </TabsContent>
 
-            <Tab label="Production">
-              <div className="mt-6">
-                {productionDeployments.length > 0 ? (
-                  <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+            <TabsContent value="production" className="mt-0 outline-none">
+              {isLoading ? (
+                <ProjectLoadingGrid items={3} />
+              ) : productionDeployments.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <AnimatePresence mode="popLayout">
                     {productionDeployments.map((project, index) => (
-                      <ProjectItem
+                      <ProjectCard
                         key={project.id}
-                        {...project}
+                        project={project}
+                        index={index}
                         highlightMode="production"
-                        isLast={index === productionDeployments.length - 1}
                       />
                     ))}
-                  </div>
-                ) : (
-                  <EmptyState
-                    title="No production deployments"
-                    description="Deploy your first production environment"
-                  />
-                )}
-              </div>
-            </Tab>
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <EmptyState
+                  title="No production deployments"
+                  description="Deploy your first production environment"
+                  actionLabel="Create Project"
+                  onAction={handleCreateProject}
+                />
+              )}
+            </TabsContent>
 
-            <Tab label="Staging">
-              <div className="mt-6">
-                {stagingDeployments.length > 0 ? (
-                  <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+            <TabsContent value="staging" className="mt-0 outline-none">
+              {isLoading ? (
+                <ProjectLoadingGrid items={3} />
+              ) : stagingDeployments.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <AnimatePresence mode="popLayout">
                     {stagingDeployments.map((project, index) => (
-                      <ProjectItem
+                      <ProjectCard
                         key={project.id}
-                        {...project}
+                        project={project}
+                        index={index}
                         highlightMode="staging"
-                        isLast={index === stagingDeployments.length - 1}
                       />
                     ))}
-                  </div>
-                ) : (
-                  <EmptyState
-                    title="No staging deployments"
-                    description="Create a staging environment for testing"
-                  />
-                )}
-              </div>
-            </Tab>
-          </SimpleTabs>
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <EmptyState
+                  title="No staging deployments"
+                  description="Create a staging environment for testing"
+                  actionLabel="Create Project"
+                  onAction={handleCreateProject}
+                />
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
@@ -196,7 +218,7 @@ export default function ProjectsPage() {
       <BillingSetupDialog
         open={billingSetupDialogOpen}
         onClose={() => setBillingSetupDialogOpen(false)}
-        onSuccess={handleBillingSetupSuccess}
+        onSuccess={() => setBillingSetupDialogOpen(false)}
       />
 
       <Dialog
@@ -214,17 +236,13 @@ export default function ProjectsPage() {
             <DialogDescription>
               <Text>
                 Your billing account has been created but the subscription payment
-                has not been completed yet. This could mean:
+                has not been completed yet.
               </Text>
               <ul className="list-disc list-inside mt-3 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
                 <li>You closed the payment page before completing checkout</li>
-                <li>The payment is still processing (please wait a few minutes)</li>
+                <li>The payment is still processing</li>
                 <li>There was an issue with your payment method</li>
               </ul>
-              <Text className="mt-4">
-                You can try completing the checkout again, or wait a few minutes if
-                you've already completed payment.
-              </Text>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -246,98 +264,89 @@ export default function ProjectsPage() {
   );
 }
 
-interface ProjectItemProps extends ProjectWithDeployments {
+interface ProjectCardProps {
+  project: ProjectWithDeployments;
+  index: number;
   highlightMode?: "production" | "staging";
-  isLast?: boolean;
 }
 
-function ProjectItem({
-  name,
-  image_url,
-  deployments,
-  created_at,
-  id,
-  highlightMode,
-  isLast,
-}: ProjectItemProps) {
+function ProjectCard({ project, index, highlightMode }: ProjectCardProps) {
   const navigate = useNavigate();
-  const { setSelectedProject, setSelectedDeployment, projects } =
-    useProjectStore();
+  const { setSelectedProject, setSelectedDeployment } = useProjectStore();
+  const { name, image_url, deployments, created_at, id } = project;
 
   const navigateToProject = () => {
     let targetDeployment = highlightMode
-      ? deployments.find((deployment) => deployment.mode === highlightMode)
-      : deployments.find((deployment) => deployment.mode === "production") ||
-      deployments[0];
+      ? deployments.find((d) => d.mode === highlightMode)
+      : deployments.find((d) => d.mode === "production") || deployments[0];
 
-    if (!targetDeployment) {
-      targetDeployment = deployments[0];
-    }
+    if (!targetDeployment) targetDeployment = deployments[0];
 
-    const project = projects?.find((project) => project.id === id);
-    if (project && targetDeployment) {
-      setSelectedProject(project);
-      setSelectedDeployment(targetDeployment);
-      navigate(`/project/${id}/deployment/${targetDeployment.id}`);
-    }
+    setSelectedProject(project);
+    setSelectedDeployment(targetDeployment);
+    navigate(`/project/${id}/deployment/${targetDeployment.id}`);
   };
 
-  const productionDeployment = deployments.find((d) => d.mode === "production");
-  const stagingDeployment = deployments.find((d) => d.mode === "staging");
-
-  // Get the primary deployment URL
-  const primaryDeployment =
-    productionDeployment || stagingDeployment || deployments[0];
+  const production = deployments.find((d) => d.mode === "production");
+  const staging = deployments.find((d) => d.mode === "staging");
+  const primary = production || staging || deployments[0];
 
   return (
-    <div
-      onClick={navigateToProject}
-      className={`px-6 py-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 cursor-pointer transition-colors ${!isLast ? "border-b border-neutral-200 dark:border-neutral-800" : ""}`}
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2, delay: index * 0.05 }}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Avatar
-            className="w-10 h-10"
-          >
-            <AvatarImage
-              src={image_url}
-            />
-            <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+      <Card
+        onClick={navigateToProject}
+        className="group relative flex flex-col h-full bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700 hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden p-0"
+      >
+        <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-6 pb-4">
+          <Avatar className="w-12 h-12 rounded-xl transition-transform duration-300 group-hover:scale-110">
+            <AvatarImage src={image_url} />
+            <AvatarFallback className="bg-neutral-100 dark:bg-neutral-800 text-lg font-normal">
+              {name.charAt(0)}
+            </AvatarFallback>
           </Avatar>
-          <div className="space-y-1">
-            <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-base font-medium text-neutral-900 dark:text-neutral-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               {name}
             </h3>
-            <div className="flex items-center gap-4 text-xs text-neutral-500 dark:text-neutral-400">
-              <div className="flex items-center gap-1">
-                <ClockIcon className="w-3 h-3" />
-                <span>{format(new Date(created_at), "MMM d, yyyy")}</span>
+            {primary && (
+              <div className="flex items-center gap-1.5 mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
+                <GlobeAltIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">{primary.frontend_host}</span>
               </div>
-              {primaryDeployment && (
-                <div className="flex items-center gap-1">
-                  <GlobeAltIcon className="w-3 h-3" />
-                  <span className="truncate max-w-xs">
-                    {primaryDeployment.frontend_host}
-                  </span>
-                </div>
-              )}
-            </div>
+            )}
           </div>
-        </div>
+        </CardHeader>
 
-        <div className="flex items-center gap-3">
-          {productionDeployment && (
-            <Badge className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 text-xs">
-              Production
-            </Badge>
-          )}
-          {stagingDeployment && (
-            <Badge className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 text-xs">
-              Staging
-            </Badge>
-          )}
-        </div>
-      </div>
-    </div>
+        <CardContent className="flex-1 px-6 pb-6 pt-0">
+          <div className="flex flex-wrap gap-2 mt-2">
+            {production && (
+              <Badge variant="outline" className="bg-green-50/50 dark:bg-green-500/5 text-green-600 dark:text-green-400 border-green-200/50 dark:border-green-500/20 text-[10px] font-medium px-2 py-0.5">
+                Production
+              </Badge>
+            )}
+            {staging && (
+              <Badge variant="outline" className="bg-blue-50/50 dark:bg-blue-500/5 text-blue-600 dark:text-blue-400 border-blue-200/50 dark:border-blue-500/20 text-[10px] font-medium px-2 py-0.5">
+                Staging
+              </Badge>
+            )}
+          </div>
+        </CardContent>
+
+        <CardFooter className="px-6 py-4 bg-neutral-50/50 dark:bg-neutral-800/30 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between mt-auto">
+          <div className="flex items-center gap-2 text-[10px] text-neutral-500 dark:text-neutral-400">
+            <ClockIcon className="w-3.5 h-3.5" />
+            <span>Created {format(new Date(created_at), "MMM d, yyyy")}</span>
+          </div>
+          <ChevronRightIcon className="w-4 h-4 text-neutral-300 dark:text-neutral-600 group-hover:text-neutral-600 dark:group-hover:text-neutral-300 transition-colors" />
+        </CardFooter>
+      </Card>
+    </motion.div>
   );
 }
+

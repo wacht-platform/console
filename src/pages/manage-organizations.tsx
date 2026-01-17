@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 import { useUpdateDeploymentB2bSettings } from "@/lib/api/hooks/use-update-deployment-b2b-settings";
 import { useDeploymentOrgRoles } from "@/lib/api/hooks/use-deployment-org-roles";
+import { InlineLoader } from "@/components/ui/loading-screen";
 import SavePopup from "@/components/save-popup";
 import { DeploymentB2bSettings } from "@/types/deployment";
 import { Badge } from "@/components/ui/badge";
@@ -210,7 +211,7 @@ export default function ManageOrganizationsPage() {
   };
 
   if (isLoadingSettings) {
-    return <div>Loading settings...</div>;
+    return <InlineLoader />;
   }
 
   return (

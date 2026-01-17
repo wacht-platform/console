@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { useUserDetails } from "@/lib/api/hooks/use-user-details";
 import { useDarkMode } from "@/lib/hooks/use-dark-mode";
-import { Spinner } from "@/components/ui/spinner";
+import { InlineLoader } from "@/components/ui/loading-screen";
 import type { UserEmailAddress, UserPhoneNumber } from "@/types/user";
 import {
   useAddUserEmail,
@@ -111,11 +111,7 @@ export default function UserDetailsPage() {
   }, [user]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px] w-full">
-        <Spinner size="lg" />
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   if (error || !user) {

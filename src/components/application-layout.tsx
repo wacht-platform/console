@@ -1,6 +1,7 @@
 import { Outlet, useNavigate, useLocation, useParams } from "react-router";
 import { useState, useEffect } from "react";
 import { useProjects } from "@/lib/api/hooks/use-projects";
+import { AppLoading } from "./ui/loading-screen";
 import { CreateProjectDialog } from "./create-project-dialog";
 import { BillingSetupDialog } from "./billing-setup-dialog";
 import { CreateProductionDeploymentDialog } from "./create-production-deployment-dialog";
@@ -9,6 +10,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 
 export function ApplicationLayout() {
   const navigate = useNavigate();
@@ -18,18 +20,53 @@ export function ApplicationLayout() {
   const [isBillingSetupDialogOpen, setIsBillingSetupDialogOpen] = useState(false);
   const [isCreateProductionDialogOpen, setIsCreateProductionDialogOpen] = useState(false);
 
-  const {
-    selectedProject,
-  } = useProjects();
-
   const handleBillingSetupSuccess = () => {
     setIsBillingSetupDialogOpen(false);
   };
+
+  const {
+    selectedProject,
+    selectedDeployment,
+    projects,
+    isLoading: isStoreLoading,
+    notFound,
+    initializeFromUrl,
+  } = useProjects();
+
+  // Initialize store from URL parameters
+  useEffect(() => {
+    if (params.projectId && params.deploymentId && projects) {
+      initializeFromUrl(params.projectId, params.deploymentId);
+    }
+  }, [params.projectId, params.deploymentId, projects, initializeFromUrl]);
+
+  // Determine if context is ready (URL params match store)
+  const isContextReady =
+    !params.projectId ||
+    (selectedProject?.id === params.projectId && selectedDeployment?.id === params.deploymentId);
 
   // Initialize navigation function for the store
   useEffect(() => {
     setNavigationFunction(navigate);
   }, [navigate]);
+
+  if (notFound) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-zinc-50 dark:bg-zinc-900">
+        <h1 className="text-2xl font-normal text-zinc-900 dark:text-zinc-50 mb-2 tracking-tight">Project Not Found</h1>
+        <p className="text-zinc-500 dark:text-zinc-400 mb-6 max-w-md font-normal">
+          The requested project or deployment doesn't exist or you don't have access to it.
+        </p>
+        <Button onClick={() => navigate('/')}>
+          Go to Dashboard
+        </Button>
+      </div>
+    );
+  }
+
+  if (isStoreLoading || !isContextReady) {
+    return <AppLoading />;
+  }
 
   // Determine current section and tab
   const isUsersRoute = location.pathname.includes('/users');

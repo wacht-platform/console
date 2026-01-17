@@ -33,6 +33,7 @@ import {
 import { EmptyState } from "@/components/ui/empty-state";
 import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
+import { InlineLoader } from "@/components/ui/loading-screen";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
@@ -248,7 +249,7 @@ function SCIMSection({ organizationId, connectionId }: { organizationId: string;
         {expanded && (
           <div className="mt-3 space-y-3">
             {isLoading ? (
-              <Spinner className="h-4 w-4" />
+              <InlineLoader />
             ) : (
               <>
                 {/* SCIM Base URL */}
@@ -256,7 +257,7 @@ function SCIMSection({ organizationId, connectionId }: { organizationId: string;
                   <label className="text-xs font-medium text-zinc-500">SCIM Base URL</label>
                   <div className="flex items-center gap-2">
                     <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded flex-1 truncate">
-                      {scimToken?.scim_base_url || "Loading..."}
+                      {scimToken?.scim_base_url || "—"}
                     </code>
                     <Button
                       variant="ghost"
@@ -486,11 +487,7 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
   };
 
   if (connectionsLoading) {
-    return (
-      <div className="flex justify-center p-8">
-        <Spinner />
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   return (

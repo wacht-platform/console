@@ -9,7 +9,7 @@ import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 import { Button } from "@/components/ui/button";
 import { Input, InputGroup } from "@/components/ui/input";
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
-import { Spinner } from "@/components/ui/spinner";
+import { InlineLoader } from "@/components/ui/loading-screen";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -121,14 +121,7 @@ export default function WorkspaceDetailsPage() {
 
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px] w-full">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner size="lg" />
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading workspace details...</span>
-        </div>
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   if (error) {
@@ -273,7 +266,7 @@ export default function WorkspaceDetailsPage() {
               </AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+              <h1 className="text-2xl font-normal text-zinc-900 dark:text-zinc-50">
                 {workspace.name}
               </h1>
               <div className="mt-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
@@ -417,9 +410,7 @@ export default function WorkspaceDetailsPage() {
             </div>
 
             {membersLoading ? (
-              <div className="flex justify-center py-8">
-                <Spinner className="h-6 w-6" />
-              </div>
+              <InlineLoader />
             ) : !membersData?.data || membersData.data.length === 0 ? (
               <EmptyState
                 title={search ? "No members found" : "No members added yet"}

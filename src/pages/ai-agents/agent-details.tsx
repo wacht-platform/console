@@ -15,7 +15,7 @@ import {
     CodeBracketIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "../../components/ui/button";
-import { Spinner } from "../../components/ui/spinner";
+import { InlineLoader } from "../../components/ui/loading-screen";
 import { ConfirmationDialog } from "../../components/modals/confirmation-dialog";
 import { CreateAgentDialog } from "../../components/ai-agents/create-agent-dialog";
 import { CreateIntegrationDialog } from "../../components/ai-agents/create-integration-dialog";
@@ -155,12 +155,7 @@ export default function AgentDetailsPage() {
     };
 
     if (isLoading) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[400px] py-12">
-                <Spinner size="lg" />
-                <p className="mt-4 text-sm text-muted-foreground">Loading agent...</p>
-            </div>
-        );
+        return <InlineLoader />;
     }
 
     if (error || !agent) {
@@ -318,7 +313,7 @@ export default function AgentDetailsPage() {
                             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                                 <LinkIcon className="h-6 w-6 text-primary" />
                             </div>
-                            <h3 className="mt-2 text-sm font-semibold">No integrations</h3>
+                            <h3 className="mt-2 text-sm font-normal">No integrations</h3>
                             <p className="mt-1 text-sm text-muted-foreground">
                                 Get started by connecting your first platform
                             </p>

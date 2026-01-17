@@ -19,6 +19,7 @@ import { apiKeysApi } from "@/lib/api/api-keys";
 import type { ApiKey, ApiKeyWithSecret } from "@/types/api-key";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { InlineLoader } from "@/components/ui/loading-screen";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Field, Label } from "@/components/ui/fieldset";
@@ -131,16 +132,7 @@ export default function ApiKeysPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px] w-full">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner size="lg" />
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Loading API keys...
-          </span>
-        </div>
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   if (!status?.is_activated) {
@@ -519,7 +511,7 @@ function ShowKeySecretModal({
         </DialogHeader>
         <div className="space-y-4 py-2">
           <Field>
-            <Label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1.5 block">
+            <Label className="text-xs font-normal uppercase tracking-wider text-zinc-500 mb-1.5 block">
               API Key
             </Label>
             <div className="relative">

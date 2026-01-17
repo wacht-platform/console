@@ -8,15 +8,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "../../components/ui/table";
-import { Spinner } from "../../components/ui/spinner";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
+import { InlineLoader } from "../../components/ui/loading-screen";
 import { ConfirmationDialog } from "../../components/modals/confirmation-dialog";
 import { useWorkflows, useDeleteWorkflow } from "../../lib/api/hooks/use-workflows";
 
@@ -88,10 +81,7 @@ export default function WorkflowsPage() {
 			)}
 
 			{isLoading ? (
-				<div className="flex flex-col items-center justify-center min-h-[400px] py-12">
-					<Spinner size="lg" />
-					<p className="mt-4 text-sm text-muted-foreground">Loading workflows...</p>
-				</div>
+				<InlineLoader />
 			) : error ? (
 				<div className="text-center py-12">
 					<p className="text-destructive">Failed to load workflows</p>

@@ -18,7 +18,7 @@ import {
 import { Badge } from "../../components/ui/badge";
 import { ConfirmationDialog } from "../../components/modals/confirmation-dialog";
 import { CreateToolDialog } from "../../components/ai-agents/create-tool-dialog";
-import { Spinner } from "../../components/ui/spinner";
+import { InlineLoader } from "../../components/ui/loading-screen";
 import { useTools, useDeleteTool } from "../../lib/api/hooks/use-tools";
 import type { AiTool } from "@/types/ai-tool";
 
@@ -107,10 +107,7 @@ export default function ToolsPage() {
 			)}
 
 			{isLoading ? (
-				<div className="flex flex-col items-center justify-center min-h-[400px] py-12">
-					<Spinner size="lg" />
-					<p className="mt-4 text-sm text-muted-foreground">Loading tools...</p>
-				</div>
+				<InlineLoader />
 			) : error ? (
 				<div className="text-center py-12">
 					<p className="text-destructive">Error loading tools: {error.message}</p>

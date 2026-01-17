@@ -23,6 +23,7 @@ export function useProjects() {
     setSelectedDeployment,
     setProjects,
     initializeFromUrl,
+    notFound,
   } = useProjectStore();
 
   const { data: queryProjects, isLoading: queryIsLoading } = useQuery({
@@ -94,6 +95,7 @@ export function useProjects() {
     deleteProject,
     deleteDeployment,
     initializeFromUrl,
+    notFound,
   };
 }
 

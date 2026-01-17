@@ -10,6 +10,7 @@ import { useEmailTemplate } from "@/lib/api/hooks/use-email-templates";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { Spinner } from "@/components/ui/spinner";
+import { InlineLoader } from "@/components/ui/loading-screen";
 import { toast } from "sonner";
 import { useDarkMode } from "@/lib/hooks/use-dark-mode";
 import { getTemplateVariables } from "@/lib/email-template-variables";
@@ -170,14 +171,7 @@ export default function EmailTemplateEditor() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <Spinner className="w-8 h-8 mx-auto mb-4" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading template...</p>
-        </div>
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   if (error) {

@@ -53,7 +53,7 @@ export function ProjectSwitcher({
                                 <AvatarImage src={selectedProject.image_url} />
                                 <AvatarFallback className="text-[9px]">{selectedProject.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                             </Avatar>
-                            <span className="font-semibold text-zinc-900 dark:text-zinc-100 max-w-[150px] truncate">
+                            <span className="font-normal text-zinc-900 dark:text-zinc-100 max-w-[150px] truncate">
                                 {selectedProject.name}
                             </span>
                         </>
@@ -62,7 +62,7 @@ export function ProjectSwitcher({
                             <div className="flex h-5 w-5 items-center justify-center rounded-md border border-dashed border-zinc-300 dark:border-zinc-700">
                                 <PlusIcon className="h-3 w-3 text-zinc-500" />
                             </div>
-                            <span className="font-semibold text-zinc-900 dark:text-zinc-100 max-w-[150px] truncate">
+                            <span className="font-normal text-zinc-900 dark:text-zinc-100 max-w-[150px] truncate">
                                 Select Project
                             </span>
                         </>

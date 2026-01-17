@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
+import { InlineLoader } from "@/components/ui/loading-screen";
 import { Divider } from "@/components/ui/divider";
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Switch } from "@/components/ui/switch";
@@ -352,14 +352,7 @@ export default function RestrictionsPage() {
   };
 
   if (isLoadingSettings) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px] w-full">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner size="lg" />
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">Loading restrictions...</span>
-        </div>
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   const handleSignUpModeChange = (value: string) => {
