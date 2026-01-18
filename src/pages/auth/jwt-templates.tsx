@@ -15,7 +15,7 @@ const JWTTemplateCard = ({
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`./edit/${template.id}`);
+    navigate(`./${template.id}`);
   };
 
   return (

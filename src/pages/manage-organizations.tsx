@@ -487,7 +487,7 @@ export default function ManageOrganizationsPage() {
                 </div>
                 <div className="space-y-4">
                   <RadioGroup
-                    className="space-y-4"
+                    className="space-y-2"
                     value={settingsState.membership_limit_type}
                     onValueChange={(value) =>
                       handleSettingChange("membership_limit_type", value)
@@ -547,9 +547,9 @@ export default function ManageOrganizationsPage() {
                       handleSettingChange("allow_org_deletion", checked)
                     }
                   />
-                  <Label>
+                  <Label className="text-sm/7">
                     Upon creation, organizations are deletable by any member
-                    with the <Strong>"Delete organization"</Strong> permission
+                    with the Delete organization permission
                   </Label>
                 </CheckboxField>
               </section>

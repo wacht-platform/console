@@ -134,7 +134,7 @@ export default function ActiveUsersPage() {
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() =>
                   navigate(
-                    `/project/${projectId}/deployment/${deploymentId}/user/${user.id}`
+                    `/project/${projectId}/deployment/${deploymentId}/users/${user.id}`
                   )
                 }
               >

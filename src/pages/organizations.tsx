@@ -62,7 +62,7 @@ export default function OrganizationsPage() {
   };
 
   const handleViewOrganization = (orgId: string) => {
-    navigate(`/project/${params.projectId}/deployment/${params.deploymentId}/organization/${orgId}`);
+    navigate(`/project/${params.projectId}/deployment/${params.deploymentId}/organizations/${orgId}`);
   };
 
   return (

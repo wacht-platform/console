@@ -1,108 +1,30 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Heading } from "@/components/ui/heading";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import JoditEditor from "jodit-react";
 import { EmailTemplate } from "@/types/deployment";
-import type { IJodit } from "jodit/esm/types/jodit";
 import { useEmailTemplate } from "@/lib/api/hooks/use-email-templates";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { Spinner } from "@/components/ui/spinner";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { toast } from "sonner";
 import { useDarkMode } from "@/lib/hooks/use-dark-mode";
 import { getTemplateVariables } from "@/lib/email-template-variables";
+import Editor from "@monaco-editor/react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { CodeBracketIcon, EyeIcon } from "@heroicons/react/24/outline";
+import AdvancedEditor from "@/components/editor/advanced-editor";
 
-interface RichTextEditorProps {
-  value: string;
-  onChange: (value: string) => void;
-  onEditorInit?: (editor: IJodit) => void;
-}
-
-const RichTextEditor = ({
-  value,
-  onChange,
-  onEditorInit,
-}: RichTextEditorProps) => {
-  const editor = useRef<IJodit | null>(null);
-  const isDarkMode = useDarkMode();
-
-  const config = useMemo(
-    () => ({
-      readonly: false,
-      toolbarAdaptive: false,
-      placeholder: "",
-      theme: isDarkMode ? "dark" : "default",
-      buttons: [
-        "bold",
-        "italic",
-        "underline",
-        "|",
-        "ul",
-        "ol",
-        "|",
-        "outdent",
-        "indent",
-        "|",
-        "fontsize",
-        "|",
-        "link",
-        "image",
-        "|",
-        "align",
-        "|",
-        "hr",
-        "|",
-        "source",
-      ],
-      showCharsCounter: false,
-      showWordsCounter: false,
-      showXPathInStatusbar: false,
-      height: 500,
-      toolbarButtonSize: "middle" as const,
-      style: {
-        '.jodit-wysiwyg': {
-          padding: '16px',
-          fontSize: '14px',
-          lineHeight: '1.6',
-          color: isDarkMode ? '#e5e7eb' : '#374151',
-          backgroundColor: isDarkMode ? '#18181b' : '#ffffff',
-        },
-        '.jodit-container': {
-          backgroundColor: isDarkMode ? '#18181b' : '#ffffff',
-        },
-        '.jodit-toolbar': {
-          backgroundColor: isDarkMode ? '#27272a' : '#f3f4f6',
-          borderColor: isDarkMode ? '#3f3f46' : '#e5e7eb',
-        },
-      },
-    }),
-    [isDarkMode]
-  );
-
-  useEffect(() => {
-    if (editor.current) {
-      onEditorInit?.(editor.current);
-    }
-  }, [onEditorInit]);
-
-  return (
-    <JoditEditor
-      ref={editor}
-      value={value}
-      config={config}
-      onChange={onChange}
-    />
-  );
-};
 
 export default function EmailTemplateEditor() {
   const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
-  const editorRef = useRef<IJodit | null>(null);
+  const joditRef = useRef<any>(null);
+  const monacoRef = useRef<any>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState("visual");
+  const isDarkMode = useDarkMode();
 
   const { emailTemplate, isLoading, error, updateTemplate } = useEmailTemplate(
     templateId!
@@ -143,8 +65,8 @@ export default function EmailTemplateEditor() {
     }));
   };
 
-  const handleEditorInit = (editor: IJodit) => {
-    editorRef.current = editor;
+  const handleEditorInit = (jodit: any) => {
+    joditRef.current = jodit;
   };
 
   const onSave = async () => {
@@ -164,9 +86,29 @@ export default function EmailTemplateEditor() {
   };
 
   const insertVariable = (variable: string) => {
-    if (editorRef.current) {
-      const editor = editorRef.current;
-      editor.selection.insertHTML(`{{${variable}}}`);
+    const text = `{{${variable}}}`;
+
+    // Insert into Jodit Visual Editor
+    if (activeTab === "visual" && joditRef.current) {
+      const jodit = joditRef.current;
+      jodit.s.insertHTML(text);
+    }
+    // Insert into Monaco Code Editor
+    else if (activeTab === "code" && monacoRef.current) {
+      const editor = monacoRef.current;
+      const position = editor.getPosition();
+      const range = {
+        startLineNumber: position.lineNumber,
+        startColumn: position.column,
+        endLineNumber: position.lineNumber,
+        endColumn: position.column
+      };
+      editor.executeEdits("insert-variable", [{
+        range: range,
+        text: text,
+        forceMoveMarkers: true
+      }]);
+      editor.focus();
     }
   };
 
@@ -186,21 +128,16 @@ export default function EmailTemplateEditor() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div>
       <div className="mb-6">
-        <button
-          onClick={handleBack}
-          className="inline-flex items-center text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 mb-4"
-        >
-          <ArrowLeftIcon className="w-4 h-4 mr-1" />
-          Back to templates
-        </button>
-        <div className="flex items-center justify-between">
+        <div className="flex justify-between items-start">
           <div>
-            <Heading className="text-xl font-normal text-gray-900 dark:text-gray-100">
+            <Heading className="text-xl font-normal text-gray-900 dark:text-zinc-100">
               {formData.template_name || "Email Template"}
             </Heading>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Customize your email template content and settings</p>
+            <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
+              Customize your email template content and settings
+            </p>
           </div>
           <Button onClick={onSave} disabled={isSaving}>
             {isSaving ? (
@@ -215,152 +152,184 @@ export default function EmailTemplateEditor() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-8">
+      <div className="space-y-8">
+        {/* Basic Information */}
+        <div>
+          <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100 mb-4">Basic Information</h3>
           <div>
-            <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-gray-100 mb-4">Template Settings</h3>
-            <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-normal text-gray-700 dark:text-gray-300"
-                >
-                  Template Name
-                </label>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">This name is for internal reference only</p>
-                <Input
-                  id="name"
-                  value={formData.template_name}
-                  onChange={(e) =>
-                    handleInputChange("template_name", e.target.value)
-                  }
-                  placeholder="e.g., Welcome Email, Password Reset"
-                  className="mt-2 w-full"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-visible">
-                <div className="overflow-visible pr-2">
-                  <label
-                    htmlFor="from"
-                    className="block text-sm font-normal text-gray-700 dark:text-gray-300"
-                  >
-                    From Address
-                  </label>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">The sender name for this email</p>
-                  <div className="mt-2 inline-flex rounded-md border border-gray-300 dark:border-zinc-600 focus-within:border-indigo-500">
-                    <input
-                      id="from"
-                      type="text"
-                      value={formData.template_from}
-                      onChange={(e) =>
-                        handleInputChange("template_from", e.target.value)
-                      }
-                      className="w-32 rounded-l-md border-0 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
-                      placeholder="noreply"
-                    />
-                    <span className="inline-flex items-center px-1.5 py-2 rounded-r-md border-0 bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 text-xs whitespace-nowrap">
-                      @{deploymentSettings?.mail_from_host}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="overflow-visible pr-2">
-                  <label
-                    htmlFor="reply-to"
-                    className="block text-sm font-normal text-gray-700 dark:text-gray-300"
-                  >
-                    Reply-To Address
-                  </label>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Where replies should be sent</p>
-                  <div className="mt-2 inline-flex rounded-md border border-gray-300 dark:border-zinc-600 focus-within:border-indigo-500">
-                    <input
-                      id="reply-to"
-                      type="text"
-                      value={formData.template_reply_to}
-                      onChange={(e) =>
-                        handleInputChange("template_reply_to", e.target.value)
-                      }
-                      className="w-32 rounded-l-md border-0 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
-                      placeholder="support"
-                    />
-                    <span className="inline-flex items-center px-1.5 py-2 rounded-r-md border-0 bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 text-xs whitespace-nowrap">
-                      @{deploymentSettings?.mail_from_host}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="subject"
-                  className="block text-sm font-normal text-gray-700 dark:text-gray-300"
-                >
-                  Email Subject
-                </label>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">You can use template variables in the subject line</p>
-                <Input
-                  id="subject"
-                  value={formData.template_subject}
-                  onChange={(e) =>
-                    handleInputChange("template_subject", e.target.value)
-                  }
-                  className="mt-2 w-full"
-                  placeholder="e.g., Welcome to {{app_name}}!"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-gray-100 mb-4">Email Content</h3>
-            <div className="border border-gray-200 dark:border-zinc-700 rounded-lg overflow-hidden bg-white dark:bg-zinc-900">
-              <RichTextEditor
-                value={formData.template_data}
-                onChange={handleEditorChange}
-                onEditorInit={handleEditorInit}
-              />
-            </div>
+            <label className="block text-sm font-normal text-gray-700 dark:text-gray-300">
+              Template Name
+            </label>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">This name is for internal reference only</p>
+            <Input
+              value={formData.template_name}
+              onChange={(e) => handleInputChange("template_name", e.target.value)}
+              placeholder="e.g., Welcome Email, Password Reset"
+              className="mt-2"
+            />
           </div>
         </div>
 
-        <div className="lg:col-span-1">
-          <div className="bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg sticky top-6">
-            <div className="px-5 py-5">
-              <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-gray-100 mb-4">Template Variables</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Click on a variable to insert it at the cursor position in the editor.
-              </p>
-
-              <div className="space-y-6">
-                {templateId && getTemplateVariables(templateId).map((category) => (
-                  <div key={category.category}>
-                    <h4 className="text-xs font-normal text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
-                      {category.category}
-                    </h4>
-                    <div className="space-y-1">
-                      {category.variables.map((variable) => (
-                        <button
-                          key={variable.key}
-                          type="button"
-                          onClick={() => insertVariable(variable.key)}
-                          className="w-full text-left px-3 py-2 text-sm bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 rounded-md transition-colors border border-gray-200 dark:border-zinc-700 group"
-                          title={variable.description}
-                        >
-                          <div className="flex flex-col">
-                            <span className="font-medium text-gray-700 dark:text-gray-300 text-xs mb-0.5">
-                              {variable.label}
-                            </span>
-                            <span className="font-mono text-[10px] text-gray-500 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
-                              {`{{${variable.key}}}`}
-                            </span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+        {/* Email Configuration */}
+        <div>
+          <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100 mb-4">Email Configuration</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-normal text-gray-700 dark:text-gray-300">
+                From Address
+              </label>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">The sender name for this email</p>
+              <div className="mt-2 inline-flex rounded-md border border-gray-300 dark:border-zinc-600 focus-within:border-indigo-500">
+                <input
+                  type="text"
+                  value={formData.template_from}
+                  onChange={(e) => handleInputChange("template_from", e.target.value)}
+                  className="w-48 rounded-l-md border-0 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
+                  placeholder="noreply"
+                />
+                <span className="inline-flex items-center px-1.5 py-2 rounded-r-md border-0 bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 text-xs whitespace-nowrap">
+                  @{deploymentSettings?.mail_from_host}
+                </span>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-normal text-gray-700 dark:text-gray-300">
+                Reply-To Address
+              </label>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Where replies should be sent</p>
+              <div className="mt-2 inline-flex rounded-md border border-gray-300 dark:border-zinc-600 focus-within:border-indigo-500">
+                <input
+                  type="text"
+                  value={formData.template_reply_to}
+                  onChange={(e) => handleInputChange("template_reply_to", e.target.value)}
+                  className="w-48 rounded-l-md border-0 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
+                  placeholder="support"
+                />
+                <span className="inline-flex items-center px-1.5 py-2 rounded-r-md border-0 bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 text-xs whitespace-nowrap">
+                  @{deploymentSettings?.mail_from_host}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <label className="block text-sm font-normal text-gray-700 dark:text-gray-300">
+              Email Subject
+            </label>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">You can use template variables in the subject line</p>
+            <Input
+              value={formData.template_subject}
+              onChange={(e) => handleInputChange("template_subject", e.target.value)}
+              className="mt-2"
+              placeholder="e.g., Welcome to {{app.name}}!"
+            />
+          </div>
+        </div>
+
+        {/* Email Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-9 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100">Email Content</h3>
+                <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">Design your email template</p>
+              </div>
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
+                <TabsList className="bg-gray-100 dark:bg-zinc-800 p-1 h-auto">
+                  <TabsTrigger value="visual" className="text-xs px-3 py-1.5 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-700">
+                    <EyeIcon className="w-3.5 h-3.5 mr-1.5" />
+                    Visual
+                  </TabsTrigger>
+                  <TabsTrigger value="code" className="text-xs px-3 py-1.5 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-700">
+                    <CodeBracketIcon className="w-3.5 h-3.5 mr-1.5" />
+                    Code
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-0">
+              <TabsContent value="visual" className="mt-0">
+                <div className="border border-gray-200 dark:border-zinc-700 rounded-lg overflow-hidden">
+                  <AdvancedEditor
+                    value={formData.template_data}
+                    onChange={handleEditorChange}
+                    onEditorInit={handleEditorInit}
+                  />
+                </div>
+              </TabsContent>
+              <TabsContent value="code" className="mt-0">
+                <div className="border border-gray-200 dark:border-zinc-700 rounded-lg overflow-hidden">
+                  <Editor
+                    height="500px"
+                    defaultLanguage="html"
+                    value={formData.template_data}
+                    onChange={(value) => handleEditorChange(value || "")}
+                    onMount={(editor) => {
+                      monacoRef.current = editor;
+                    }}
+                    theme={isDarkMode ? "vs-dark" : "vs"}
+                    options={{
+                      minimap: { enabled: false },
+                      fontSize: 14,
+                      scrollBeyondLastLine: false,
+                      automaticLayout: true,
+                      formatOnPaste: true,
+                      formatOnType: true,
+                      lineNumbers: "on",
+                      renderLineHighlight: "all",
+                      padding: { top: 16, bottom: 16 },
+                      wordWrap: "on"
+                    }}
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          <div className="lg:col-span-3 space-y-4">
+            <div>
+              <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100">Variables</h3>
+              <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">Click to insert</p>
+            </div>
+
+            <div className="space-y-3 max-h-[600px] overflow-y-auto">
+              {templateId && getTemplateVariables(templateId).map((category) => (
+                <details key={category.category} className="group" open>
+                  <summary className="cursor-pointer list-none">
+                    <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                      <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">{category.category}</span>
+                      <svg className="w-4 h-4 text-gray-500 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </summary>
+                  <div className="mt-2 space-y-1 px-1">
+                    {category.variables.map((variable) => (
+                      <button
+                        key={variable.key}
+                        type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          insertVariable(variable.key);
+                        }}
+                        className="w-full text-left px-2.5 py-1.5 text-xs font-normal rounded border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600 transition-colors"
+                        title={variable.description}
+                      >
+                        <div className="flex flex-col">
+                          <span className="font-medium text-gray-700 dark:text-gray-300 text-xs mb-0.5">
+                            {variable.label}
+                          </span>
+                          <span className="font-mono text-[10px] text-gray-500 dark:text-gray-500">
+                            {`{{${variable.key}}}`}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </details>
+              ))}
             </div>
           </div>
         </div>

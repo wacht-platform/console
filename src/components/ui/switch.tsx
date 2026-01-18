@@ -42,8 +42,14 @@ export function SwitchField({
 	const control = childrenArray.slice(-1)
 
 	return (
-		<Field className={cn("flex flex-row items-center justify-between first:pt-0 last:pb-0", className)} {...props}>
-			<div className="flex flex-col space-y-2.5">
+		<Field
+			className={cn(
+				"flex flex-row items-center justify-between py-2.5",
+				className,
+			)}
+			{...props}
+		>
+			<div className="flex flex-col space-y-1">
 				{content}
 			</div>
 			{control}

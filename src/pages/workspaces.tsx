@@ -125,7 +125,7 @@ export default function WorkspacesPage() {
             </TableRow>
           ) : (
             data?.data.map((workspace) => (
-              <TableRow key={workspace.id} className="cursor-pointer" onClick={() => window.location.href = `workspace/${workspace.id}`}>
+              <TableRow key={workspace.id} className="cursor-pointer" onClick={() => window.location.href = `workspaces/${workspace.id}`}>
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">

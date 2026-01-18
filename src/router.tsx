@@ -125,23 +125,36 @@ export const router = createBrowserRouter([
               </Suspense>
             ),
           },
+          {
+            path: ":id",
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <UserDetailsPage />
+              </Suspense>
+            ),
+          },
         ],
       },
       {
-        path: "user/:id",
-        element: (
-          <Suspense fallback={<SimpleFallback />}>
-            <UserDetailsPage />
-          </Suspense>
-        ),
-      },
-      {
         path: "organizations",
-        element: (
-          <Suspense fallback={<SimpleFallback />}>
-            <OrganizationsPage />
-          </Suspense>
-        ),
+        children: [
+          {
+            index: true,
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <OrganizationsPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: ":id",
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <OrganizationDetailsPage />
+              </Suspense>
+            ),
+          }
+        ]
       },
       {
         path: "segments",
@@ -170,28 +183,25 @@ export const router = createBrowserRouter([
         ],
       },
       {
-        path: "organization/:id",
-        element: (
-          <Suspense fallback={<SimpleFallback />}>
-            <OrganizationDetailsPage />
-          </Suspense>
-        ),
-      },
-      {
         path: "workspaces",
-        element: (
-          <Suspense fallback={<SimpleFallback />}>
-            <WorkspacesPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "workspace/:id",
-        element: (
-          <Suspense fallback={<SimpleFallback />}>
-            <WorkspaceDetailsPage />
-          </Suspense>
-        ),
+        children: [
+          {
+            index: true,
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <WorkspacesPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: ":id",
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <WorkspaceDetailsPage />
+              </Suspense>
+            ),
+          }
+        ]
       },
       {
         path: "auth",
@@ -277,7 +287,7 @@ export const router = createBrowserRouter([
                 ),
               },
               {
-                path: "edit/:templateId",
+                path: ":templateId",
                 element: (
                   <Suspense fallback={<SimpleFallback />}>
                     <JWTTemplateCreateUpdatePage />

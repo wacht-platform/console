@@ -181,7 +181,7 @@ export default function AgentDetailsPage() {
                 <div className="flex items-start justify-between">
                     <div className="space-y-1">
                         <h1 className="text-2xl font-normal tracking-tight">{agent.name || "Unnamed Agent"}</h1>
-                        <p className="text-sm text-muted-foreground max-w-2xl">
+                        <p className="text-sm text-muted-foreground max-w-2xl line-clamp-4" title={agent.description || ""}>
                             {agent.description || "No description"}
                         </p>
                     </div>

@@ -1,5 +1,6 @@
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { Divider } from "@/components/ui/divider";
 import {
@@ -20,7 +21,17 @@ import {
 } from "@/components/ui/fieldset";
 import { SwitchField, SwitchGroup } from "@/components/ui/switch";
 import { Heading, Subheading } from "@/components/ui/heading";
-import { Cog6ToothIcon } from "@heroicons/react/24/outline";
+import {
+  Cog6ToothIcon,
+  KeyIcon,
+  UserIcon,
+  EnvelopeIcon,
+  LinkIcon,
+  DevicePhoneMobileIcon,
+  NoSymbolIcon,
+  ShieldCheckIcon,
+  CheckCircleIcon,
+} from "@heroicons/react/24/outline";
 import type { DeploymentAuthSettings } from "@/types/deployment";
 import {
   useAuthSettingsStore,
@@ -67,26 +78,27 @@ function MultiSessionSettingsDialog({ open, onClose }: DialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent className="p-6">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="mb-2">Customize session token</DialogTitle>
-          <DialogDescription className="mb-6">
+          <DialogTitle>Customize session token</DialogTitle>
+          <DialogDescription>
             Customize the session token to include additional information.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-8">
-          <section className="grid gap-6 sm:grid-cols-2">
-            <div className="space-y-2">
+        <div className="space-y-6 pt-2">
+          <section className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1">
               <Subheading>Maximum accounts per session</Subheading>
-              <Text>
+              <Text className="text-zinc-500">
                 Limit the number of accounts that can be active within a single
                 session.
               </Text>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-2">
               <Field className="flex items-center gap-4">
-                <FieldGroup>
+                <FieldGroup className="w-full">
                   <Input
+                    className="w-full sm:w-24"
                     aria-label="Max accounts"
                     name="maxAccounts"
                     value={maxAccountsPerSession}
@@ -94,39 +106,35 @@ function MultiSessionSettingsDialog({ open, onClose }: DialogProps) {
                   />
                 </FieldGroup>
               </Field>
-              <Text>Set a value between 1 and 10.</Text>
+              <Text className="text-xs text-zinc-400">Set a value between 1 and 10.</Text>
             </div>
           </section>
 
-          <Divider className="my-8" soft />
-
-          <section className="grid gap-6 sm:grid-cols-2">
-            <div className="space-y-2">
+          <section className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1">
               <Subheading>Maximum user logins</Subheading>
-              <Text>
+              <Text className="text-zinc-500">
                 Set the maximum number of active sessions a user can have at the
                 same time.
               </Text>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-2">
               <Field className="flex items-center gap-4">
-                <FieldGroup>
+                <FieldGroup className="w-full">
                   <Input
                     aria-label="Max user logins"
                     name="maxUserLogins"
-                    className="text-right"
+                    className="w-full sm:w-24"
                     value={maxSessionsPerAccount}
                     onChange={(e) => setMaxSessionsPerAccount(e.target.value)}
                   />
                 </FieldGroup>
               </Field>
-              <Text>Set a value between 1 and 10.</Text>
+              <Text className="text-xs text-zinc-400">Set a value between 1 and 10.</Text>
             </div>
           </section>
-
-          <Divider className="my-8" soft />
         </div>
-        <DialogFooter className="flex justify-end gap-4 mt-6">
+        <DialogFooter className="mt-2">
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
@@ -149,17 +157,17 @@ function EmailSettingsDialog({ open, onClose }: DialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Email address</DialogTitle>
           <DialogDescription>Configure email address attribute</DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <SwitchGroup className="space-y-0">
+        <div className="space-y-6 pt-2">
+          <SwitchGroup className="space-y-0 text-sm">
             <SwitchField>
               <Label>Enable</Label>
               <Description>
-                Users can add email addresses to their account
+                Allow users to add and manage email addresses on their account
               </Description>
               <Switch
                 name="email_enabled"
@@ -173,8 +181,7 @@ function EmailSettingsDialog({ open, onClose }: DialogProps) {
             <SwitchField>
               <Label>Require</Label>
               <Description>
-                Users must provide an email address to sign up, and must maintain
-                one on their account at all times
+                Users must provide a valid email address during the sign-up process
               </Description>
               <Switch
                 name="email_required"
@@ -188,8 +195,7 @@ function EmailSettingsDialog({ open, onClose }: DialogProps) {
             <SwitchField>
               <Label>Verify at sign-up</Label>
               <Description>
-                Require users to verify their email addresses before they can sign
-                up
+                Ensure the provided email is valid by requiring verification before sign-up
               </Description>
               <Switch
                 name="email_verify_signup"
@@ -201,18 +207,18 @@ function EmailSettingsDialog({ open, onClose }: DialogProps) {
             </SwitchField>
           </SwitchGroup>
 
-          <Divider soft />
-
-          <div>
-            <h3 className="text-sm font-medium mb-2">Verification methods</h3>
-            <p className="text-sm text-muted-foreground mb-2">
-              Select how users can verify an email address
-            </p>
-            <SwitchGroup>
+          <div className="space-y-2">
+            <div>
+              <Subheading>Verification methods</Subheading>
+              <Text className="text-xs text-zinc-500">
+                Choose how users verify ownership of their email address
+              </Text>
+            </div>
+            <SwitchGroup className="space-y-0">
               <SwitchField>
                 <Label>Email verification link</Label>
                 <Description>
-                  Verify by clicking a link sent to the email address
+                  Send a secure, one-click confirmation link to the user's inbox
                 </Description>
                 <Switch
                   name="email_verify_link"
@@ -230,7 +236,7 @@ function EmailSettingsDialog({ open, onClose }: DialogProps) {
               <SwitchField>
                 <Label>Email verification code</Label>
                 <Description>
-                  Verify by entering a one-time passcode sent to the email address
+                  Send a 6-digit one-time passcode for manual entry
                 </Description>
                 <Switch
                   name="email_verify_code"
@@ -243,8 +249,8 @@ function EmailSettingsDialog({ open, onClose }: DialogProps) {
             </SwitchGroup>
           </div>
         </div>
-        <DialogFooter>
-          <Button onClick={onClose}>Continue</Button>
+        <DialogFooter className="mt-2">
+          <Button onClick={onClose} className="w-full sm:w-auto">Continue</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -262,17 +268,17 @@ function PhoneSettingsDialog({ open, onClose }: DialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Phone number</DialogTitle>
           <DialogDescription>Configure phone number attribute</DialogDescription>
         </DialogHeader>
-        <div className="space-y-3 py-4">
-          <SwitchGroup>
+        <div className="space-y-6 pt-2">
+          <SwitchGroup className="space-y-0">
             <SwitchField>
               <Label>Enable</Label>
               <Description>
-                Users can add phone numbers to their account
+                Allow users to add and manage phone numbers on their account
               </Description>
               <Switch
                 name="phone_enabled"
@@ -286,8 +292,7 @@ function PhoneSettingsDialog({ open, onClose }: DialogProps) {
             <SwitchField>
               <Label>Require</Label>
               <Description>
-                Users must provide a phone number to sign up, and must maintain
-                one on their account at all times
+                Users must provide a valid phone number during the sign-up process
               </Description>
               <Switch
                 name="phone_required"
@@ -301,8 +306,7 @@ function PhoneSettingsDialog({ open, onClose }: DialogProps) {
             <SwitchField>
               <Label>Verify at sign-up</Label>
               <Description>
-                Require users to verify their phone numbers before they can sign
-                up
+                Ensure the provided phone is valid by requiring verification before sign-up
               </Description>
               <Switch
                 name="phone_verify_signup"
@@ -314,19 +318,18 @@ function PhoneSettingsDialog({ open, onClose }: DialogProps) {
             </SwitchField>
           </SwitchGroup>
 
-          <Divider soft />
-
-          <div>
-            <h3 className="text-sm font-medium mb-2">Verification methods</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Select how users can verify a phone number
-            </p>
-            <SwitchGroup>
+          <div className="space-y-2">
+            <div>
+              <Subheading>Verification methods</Subheading>
+              <Text className="text-xs text-zinc-500">
+                Choose how users verify ownership of their phone number
+              </Text>
+            </div>
+            <SwitchGroup className="space-y-0">
               <SwitchField>
                 <Label>SMS verification code</Label>
                 <Description>
-                  Verify by entering a one-time verification code sent via SMS to
-                  the phone number
+                  Send a 6-digit one-time passcode via SMS message
                 </Description>
                 <Switch
                   name="phone_sms_verification"
@@ -340,8 +343,7 @@ function PhoneSettingsDialog({ open, onClose }: DialogProps) {
               <SwitchField>
                 <Label>WhatsApp verification code</Label>
                 <Description>
-                  Verify by entering a one-time verification code sent via
-                  WhatsApp to the phone number
+                  Send a 6-digit one-time passcode via WhatsApp message
                 </Description>
                 <Switch
                   name="phone_whatsapp_verification"
@@ -357,8 +359,8 @@ function PhoneSettingsDialog({ open, onClose }: DialogProps) {
             </SwitchGroup>
           </div>
         </div>
-        <DialogFooter>
-          <Button onClick={onClose}>Continue</Button>
+        <DialogFooter className="mt-2">
+          <Button onClick={onClose} className="w-full sm:w-auto">Continue</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -398,15 +400,15 @@ function UsernameSettingsDialog({ open, onClose }: DialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Username</DialogTitle>
           <DialogDescription>Configure username attribute</DialogDescription>
         </DialogHeader>
-        <div className="space-y-3 py-4">
+        <div className="space-y-6 pt-2">
           <SwitchField>
             <Label>Require</Label>
-            <Description>Users must provide a username to sign up</Description>
+            <Description>Users must choose a unique username during sign up</Description>
             <Switch
               name="username_required"
               checked={settings.username?.required}
@@ -416,54 +418,53 @@ function UsernameSettingsDialog({ open, onClose }: DialogProps) {
             />
           </SwitchField>
 
-          <Divider soft />
-
-          <div>
-            <h3 className="text-sm font-medium mb-2">Rules</h3>
-            <div className="space-y-4">
-              <div className="flex-1">
-                <p className="text-sm font-medium">
-                  Enforce minimum username length
-                </p>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Usernames must contain 1 or more characters. Select a higher
-                  value to increase the minimum length, up to 64 characters.
-                </p>
-                <Input
-                  type="number"
-                  value={settings.username?.min_length ?? ""}
-                  onChange={handleUsernameMinLengthChange}
-                  min={1}
-                  max={64}
-                  className="w-20"
-                />{" "}
-                characters
+          <div className="space-y-4">
+            <Subheading>Constraints</Subheading>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Text className="text-sm font-medium">
+                  Minimum username length
+                </Text>
+                <Text className="text-xs text-zinc-500">
+                  Usernames must contain at least this many characters (1-64)
+                </Text>
+                <div className="flex items-center gap-3">
+                  <Input
+                    type="number"
+                    value={settings.username?.min_length ?? ""}
+                    onChange={handleUsernameMinLengthChange}
+                    min={1}
+                    max={64}
+                    className="w-24"
+                  />
+                  <Text className="text-sm text-zinc-500">characters</Text>
+                </div>
               </div>
 
-              <div className="flex-1">
-                <p className="text-sm font-medium">
-                  Enforce maximum username length
-                </p>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Usernames must contain up to 64 characters. Select a lower value
-                  to decrease the maximum length, but it must be at least 1
-                  characters.
-                </p>
-                <Input
-                  type="number"
-                  value={settings.username?.max_length ?? ""}
-                  onChange={handleUsernameMaxLengthChange}
-                  min={1}
-                  max={64}
-                  className="w-20"
-                />{" "}
-                characters
+              <div className="space-y-2">
+                <Text className="text-sm font-medium">
+                  Maximum username length
+                </Text>
+                <Text className="text-xs text-zinc-500">
+                  Usernames cannot exceed this length (1-64)
+                </Text>
+                <div className="flex items-center gap-3">
+                  <Input
+                    type="number"
+                    value={settings.username?.max_length ?? ""}
+                    onChange={handleUsernameMaxLengthChange}
+                    min={1}
+                    max={64}
+                    className="w-24"
+                  />
+                  <Text className="text-sm text-zinc-500">characters</Text>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        <DialogFooter>
-          <Button onClick={onClose}>Continue</Button>
+        <DialogFooter className="mt-2">
+          <Button onClick={onClose} className="w-full sm:w-auto">Continue</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -492,17 +493,17 @@ function PasswordSettingsDialog({ open, onClose }: DialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Password policies</DialogTitle>
           <DialogDescription>
-            Configure strength and complexity requirements for user passwords
+            Configure password strength and complexity requirements
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-3 py-4">
+        <div className="space-y-6 pt-2">
           <SwitchField>
             <Label>Enable</Label>
-            <Description>Users can sign in with a password</Description>
+            <Description>Allow users to sign in using their email and a personal password</Description>
             <Switch
               name="password_enabled"
               checked={settings.password?.enabled}
@@ -512,27 +513,32 @@ function PasswordSettingsDialog({ open, onClose }: DialogProps) {
             />
           </SwitchField>
 
-          <Divider soft />
-
-          <div className="flex-1 mb-4">
-            <p className="text-sm font-medium">Minimum password length</p>
-            <p className="text-sm text-muted-foreground mb-2">
-              Set the minimum required length for passwords
-            </p>
-            <Input
-              type="number"
-              value={settings.password?.min_length ?? ""}
-              onChange={handlePasswordMinLengthChange}
-              min={6}
-              max={128}
-            />
+          <div className="space-y-2">
+            <Subheading>Minimum password length</Subheading>
+            <Text className="text-xs text-zinc-500">
+              Set the minimum number of characters required for a valid password (6-128)
+            </Text>
+            <div className="flex items-center gap-3 mt-1">
+              <Input
+                type="number"
+                value={settings.password?.min_length ?? ""}
+                onChange={handlePasswordMinLengthChange}
+                min={6}
+                max={128}
+                className="w-24"
+              />
+              <Text className="text-sm text-zinc-500">characters</Text>
+            </div>
           </div>
 
-          <div>
-            <h3 className="text-sm font-medium mb-2">Rules</h3>
-            <SwitchGroup>
+          <div className="space-y-4">
+            <Subheading>Complexity Rules</Subheading>
+            <SwitchGroup className="space-y-0">
               <SwitchField>
-                <Label>Require at least 1 lowercase character</Label>
+                <Label>Require lowercase</Label>
+                <Description>
+                  Passwords must contain at least one lowercase letter (a-z)
+                </Description>
                 <Switch
                   name="password_lowercase"
                   checked={settings.password?.require_lowercase || false}
@@ -543,7 +549,10 @@ function PasswordSettingsDialog({ open, onClose }: DialogProps) {
               </SwitchField>
 
               <SwitchField>
-                <Label>Require at least 1 uppercase character</Label>
+                <Label>Require uppercase</Label>
+                <Description>
+                  Passwords must contain at least one uppercase letter (A-Z)
+                </Description>
                 <Switch
                   name="password_uppercase"
                   checked={settings.password?.require_uppercase || false}
@@ -554,7 +563,10 @@ function PasswordSettingsDialog({ open, onClose }: DialogProps) {
               </SwitchField>
 
               <SwitchField>
-                <Label>Require at least 1 number</Label>
+                <Label>Require number</Label>
+                <Description>
+                  Passwords must contain at least one numerical digit (0-9)
+                </Description>
                 <Switch
                   name="password_number"
                   checked={settings.password?.require_number || false}
@@ -565,7 +577,10 @@ function PasswordSettingsDialog({ open, onClose }: DialogProps) {
               </SwitchField>
 
               <SwitchField>
-                <Label>Require at least 1 special character</Label>
+                <Label>Require special character</Label>
+                <Description>
+                  Passwords must contain at least one symbol (!@#$%^&*)
+                </Description>
                 <Switch
                   name="password_special"
                   checked={settings.password?.require_special || false}
@@ -577,8 +592,8 @@ function PasswordSettingsDialog({ open, onClose }: DialogProps) {
             </SwitchGroup>
           </div>
         </div>
-        <DialogFooter>
-          <Button onClick={onClose}>Continue</Button>
+        <DialogFooter className="mt-2">
+          <Button onClick={onClose} className="w-full sm:w-auto">Continue</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -599,17 +614,17 @@ function FirstNameSettings({ open, onClose }: DialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>First name</DialogTitle>
           <DialogDescription>Configure first name attribute</DialogDescription>
         </DialogHeader>
-        <div className="space-y-3">
-          <SwitchGroup>
+        <div className="space-y-6 pt-2">
+          <SwitchGroup className="space-y-0">
             <SwitchField>
               <Label>Enable</Label>
               <Description>
-                Users can add first names to their account
+                Collect and store user's first name
               </Description>
               <Switch
                 name="first_name_enabled"
@@ -623,7 +638,7 @@ function FirstNameSettings({ open, onClose }: DialogProps) {
             <SwitchField>
               <Label>Require</Label>
               <Description>
-                Users must provide a first name to sign up
+                Users must provide a first name to complete sign up
               </Description>
               <Switch
                 name="first_name_required"
@@ -635,8 +650,8 @@ function FirstNameSettings({ open, onClose }: DialogProps) {
             </SwitchField>
           </SwitchGroup>
         </div>
-        <DialogFooter>
-          <Button onClick={onClose}>Continue</Button>
+        <DialogFooter className="mt-2">
+          <Button onClick={onClose} className="w-full sm:w-auto">Continue</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -654,16 +669,16 @@ function LastNameSettings({ open, onClose }: DialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Last name</DialogTitle>
           <DialogDescription>Configure last name attribute</DialogDescription>
         </DialogHeader>
-        <div className="space-y-3 py-4">
-          <SwitchGroup>
+        <div className="space-y-6 pt-2">
+          <SwitchGroup className="space-y-0">
             <SwitchField>
               <Label>Enable</Label>
-              <Description>Users can add last names to their account</Description>
+              <Description>Collect and store user's last name</Description>
               <Switch
                 name="last_name_enabled"
                 checked={settings.last_name?.enabled}
@@ -675,7 +690,7 @@ function LastNameSettings({ open, onClose }: DialogProps) {
 
             <SwitchField>
               <Label>Require</Label>
-              <Description>Users must provide a last name to sign up</Description>
+              <Description>Users must provide a last name to complete sign up</Description>
               <Switch
                 name="last_name_required"
                 checked={settings.last_name?.required}
@@ -686,8 +701,8 @@ function LastNameSettings({ open, onClose }: DialogProps) {
             </SwitchField>
           </SwitchGroup>
         </div>
-        <DialogFooter>
-          <Button onClick={onClose}>Continue</Button>
+        <DialogFooter className="mt-2">
+          <Button onClick={onClose} className="w-full sm:w-auto">Continue</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -709,19 +724,19 @@ function EmailLinkSettingsDialog({ open, onClose }: DialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Email Link Configuration</DialogTitle>
           <DialogDescription>
-            Configure email link security settings.
+            Configure email link security settings
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 pb-4">
-          <SwitchGroup>
+        <div className="space-y-6 pt-2">
+          <SwitchGroup className="space-y-0">
             <SwitchField>
               <Label>Enable</Label>
               <Description>
-                Users can sign in with an email verification link
+                Allow users to sign in by receiving a secure link via email
               </Description>
               <Switch
                 name="email_link_enabled"
@@ -733,10 +748,9 @@ function EmailLinkSettingsDialog({ open, onClose }: DialogProps) {
             </SwitchField>
 
             <SwitchField>
-              <Label>Require same device and browser</Label>
+              <Label>Require same device</Label>
               <Description>
-                Enable to ensure email link verification happens from the same
-                device and browser on which the sign-in or sign-up was initiated.
+                Ensure the email link is opened on the same device used for sign-in
               </Description>
               <Switch
                 name="email_link_same_device"
@@ -748,8 +762,8 @@ function EmailLinkSettingsDialog({ open, onClose }: DialogProps) {
             </SwitchField>
           </SwitchGroup>
         </div>
-        <DialogFooter>
-          <Button onClick={onClose}>Continue</Button>
+        <DialogFooter className="mt-2">
+          <Button onClick={onClose} className="w-full sm:w-auto">Continue</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -774,18 +788,20 @@ function PasskeySettingsDialog({ open, onClose }: DialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Passkey Configuration</DialogTitle>
           <DialogDescription>
-            Configure passkey authentication settings.
+            Configure passkey authentication settings
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-3 py-4">
-          <SwitchGroup>
+        <div className="space-y-6 pt-2">
+          <SwitchGroup className="space-y-0">
             <SwitchField>
               <Label>Enable</Label>
-              <Description>Enable passkey authentication</Description>
+              <Description>
+                Allow users to register and sign in using secure biometric or hardware keys
+              </Description>
               <Switch
                 name="passkey_enabled"
                 checked={settings.passkey?.enabled}
@@ -794,9 +810,9 @@ function PasskeySettingsDialog({ open, onClose }: DialogProps) {
             </SwitchField>
 
             <SwitchField>
-              <Label>Prompt registration after login</Label>
+              <Label>Prompt registration</Label>
               <Description>
-                Prompt users to register a passkey after they sign in with another method.
+                Gently encourage users to set up a passkey immediately after a successful sign-in
               </Description>
               <Switch
                 name="passkey_prompt_registration"
@@ -808,8 +824,7 @@ function PasskeySettingsDialog({ open, onClose }: DialogProps) {
             <SwitchField>
               <Label>Allow autofill</Label>
               <Description>
-                Enable to allow users to autofill passkey credentials in the
-                browser.
+                Let the browser automatically suggest available passkeys for a faster sign-in experience
               </Description>
               <Switch
                 name="passkey_autofill"
@@ -819,8 +834,8 @@ function PasskeySettingsDialog({ open, onClose }: DialogProps) {
             </SwitchField>
           </SwitchGroup>
         </div>
-        <DialogFooter>
-          <Button onClick={onClose}>Continue</Button>
+        <DialogFooter className="mt-2">
+          <Button onClick={onClose} className="w-full sm:w-auto">Continue</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -840,113 +855,147 @@ function FirstFactorDialog({ open, onClose }: DialogProps) {
   // Build list of available options based on what's enabled
   const availableOptions = [];
 
-  // Check if email_password is enabled (toggle is on)
   if (settings.auth_factors_enabled?.email_password) {
     availableOptions.push({
       value: "email_password",
       label: "Email + Password",
-      description: "Users sign in with email and password",
+      description: "Users sign in with their email address and a password",
+      icon: KeyIcon,
     });
   }
 
-  // Check if username_password is enabled (toggle is on)
   if (settings.auth_factors_enabled?.username_password) {
     availableOptions.push({
       value: "username_password",
       label: "Username + Password",
-      description: "Users sign in with username and password",
+      description: "Users sign in with a unique username and a password",
+      icon: UserIcon,
     });
   }
 
-  // Check if email_otp is enabled (toggle is on)
   if (settings.auth_factors_enabled?.email_otp) {
     availableOptions.push({
       value: "email_otp",
-      label: "Email OTP",
-      description: "Users sign in with email and receive a one-time password",
+      label: "Email Code",
+      description: "Users receive a one-time verification code via email",
+      icon: EnvelopeIcon,
     });
   }
 
-  // Check if email_magic_link is enabled (toggle is on)
   if (settings.auth_factors_enabled?.email_magic_link) {
     availableOptions.push({
       value: "email_magic_link",
       label: "Email Magic Link",
-      description: "Users sign in by clicking a link sent to their email",
+      description:
+        "Users sign in by clicking a secure link sent to their email",
+      icon: LinkIcon,
     });
   }
 
-  // Check if phone_otp is enabled (toggle is on)
   if (settings.auth_factors_enabled?.phone_otp) {
     availableOptions.push({
       value: "phone_otp",
-      label: "Phone OTP",
-      description: "Users sign in with phone number and receive an SMS code",
+      label: "Phone Code",
+      description: "Users receive a one-time verification code via SMS",
+      icon: DevicePhoneMobileIcon,
     });
   }
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Default Sign-in Method</DialogTitle>
           <DialogDescription>
-            Select which authentication method users will see by default. Only
-            enabled methods are shown.
+            Choose the primary authentication method presented to users when they
+            sign in.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 pt-2">
           {availableOptions.length === 0 ? (
-            <div className="py-6 text-center">
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                No authentication methods are currently enabled. Please enable at
-                least one method first.
+            <div className="py-12 text-center bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-800">
+              <NoSymbolIcon className="mx-auto h-8 w-8 text-zinc-400 mb-2" />
+              <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                No methods enabled
+              </p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+                Enable at least one method to continue
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {availableOptions.map((option) => (
-                <div key={option.value} className="relative">
-                  <div
-                    className="flex items-start space-x-3 p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer"
-                    onClick={() =>
-                      handleFirstFactorChange(
-                        option.value as DeploymentAuthSettings["first_factor"],
-                      )
-                    }
+            <div className="grid gap-3">
+              {availableOptions.map((option) => {
+                const isSelected = settings.first_factor === option.value;
+                const Icon = option.icon;
+                return (
+                  <label
+                    key={option.value}
+                    className={cn(
+                      "group relative flex items-start space-x-4 p-4 rounded-xl border-2 transition-all cursor-pointer",
+                      isSelected
+                        ? "border-zinc-900 bg-zinc-50 dark:border-zinc-100 dark:bg-zinc-900/50 ring-1 ring-zinc-900/5 dark:ring-zinc-100/5"
+                        : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/30",
+                    )}
                   >
+                    <div
+                      className={cn(
+                        "flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-lg border transition-colors",
+                        isSelected
+                          ? "bg-zinc-950 border-zinc-900 dark:bg-zinc-50 dark:border-zinc-100"
+                          : "bg-white border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800 group-hover:border-zinc-300 dark:group-hover:border-zinc-700",
+                      )}
+                    >
+                      <Icon
+                        className={cn(
+                          "w-5 h-5",
+                          isSelected
+                            ? "text-zinc-50 dark:text-zinc-950"
+                            : "text-zinc-500 dark:text-zinc-400",
+                        )}
+                      />
+                    </div>
+                    <div className="flex-1 pr-6">
+                      <span
+                        className={cn(
+                          "block text-sm font-semibold transition-colors",
+                          isSelected
+                            ? "text-zinc-950 dark:text-zinc-50"
+                            : "text-zinc-700 dark:text-zinc-300",
+                        )}
+                      >
+                        {option.label}
+                      </span>
+                      <span className="block text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                        {option.description}
+                      </span>
+                    </div>
                     <input
                       type="radio"
-                      id={option.value}
                       name="first_factor"
-                      checked={settings.first_factor === option.value}
+                      checked={isSelected}
                       onChange={() =>
                         handleFirstFactorChange(
                           option.value as DeploymentAuthSettings["first_factor"],
                         )
                       }
-                      className="mt-1"
+                      className="sr-only"
                     />
-                    <div className="flex-1">
-                      <label
-                        htmlFor={option.value}
-                        className="text-sm font-medium text-zinc-900 dark:text-zinc-100 cursor-pointer"
-                      >
-                        {option.label}
-                      </label>
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                        {option.description}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                    {isSelected && (
+                      <CheckCircleIcon className="absolute top-4 right-4 w-5 h-5 text-zinc-900 dark:text-zinc-100" />
+                    )}
+                  </label>
+                );
+              })}
             </div>
           )}
         </div>
-        <DialogFooter>
-          <Button onClick={onClose} disabled={availableOptions.length === 0}>
-            Continue
+        <DialogFooter className="mt-4">
+          <Button
+            onClick={onClose}
+            disabled={availableOptions.length === 0}
+            className="w-full h-11 text-sm font-semibold"
+          >
+            Save Settings
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -964,82 +1013,102 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
     updateSecondFactorPolicy(policy);
   };
 
+  const policies = [
+    {
+      id: "none",
+      label: "Disabled",
+      description:
+        "Users cannot set up or use second factors for authentication",
+      icon: NoSymbolIcon,
+    },
+    {
+      id: "optional",
+      label: "Optional",
+      description:
+        "Users can choose to enable second factors for their accounts",
+      icon: ShieldCheckIcon,
+    },
+  ];
+
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Enforce Second Factor on Account</DialogTitle>
+          <DialogTitle>Second Factor Policy</DialogTitle>
           <DialogDescription>
-            Configure whether second factors are optional or enforced
+            Configure how multi-factor authentication is applied across your
+            deployment.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-3 py-4">
-          <div className="mb-4">
-            <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-2">
-              Policy
-            </h3>
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  id="none"
-                  name="second_factor_policy"
-                  checked={settings.second_factor_policy === "none"}
-                  onChange={() => handlePolicyChange("none")}
-                />
+        <div className="space-y-4 pt-2">
+          <div className="grid gap-3">
+            {policies.map((policy) => {
+              const isSelected = settings.second_factor_policy === policy.id;
+              const Icon = policy.icon;
+              return (
                 <label
-                  htmlFor="none"
-                  className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
+                  key={policy.id}
+                  className={cn(
+                    "group relative flex items-start space-x-4 p-4 rounded-xl border-2 transition-all cursor-pointer",
+                    isSelected
+                      ? "border-zinc-900 bg-zinc-50 dark:border-zinc-100 dark:bg-zinc-900/50 ring-1 ring-zinc-900/5 dark:ring-zinc-100/5"
+                      : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/30",
+                  )}
                 >
-                  None
+                  <div
+                    className={cn(
+                      "flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-lg border transition-colors",
+                      isSelected
+                        ? "bg-zinc-950 border-zinc-900 dark:bg-zinc-50 dark:border-zinc-100"
+                        : "bg-white border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800 group-hover:border-zinc-300 dark:group-hover:border-zinc-700",
+                    )}
+                  >
+                    <Icon
+                      className={cn(
+                        "w-5 h-5",
+                        isSelected
+                          ? "text-zinc-50 dark:text-zinc-950"
+                          : "text-zinc-500 dark:text-zinc-400",
+                      )}
+                    />
+                  </div>
+                  <div className="flex-1 pr-6">
+                    <span
+                      className={cn(
+                        "block text-sm font-semibold transition-colors",
+                        isSelected
+                          ? "text-zinc-950 dark:text-zinc-50"
+                          : "text-zinc-700 dark:text-zinc-300",
+                      )}
+                    >
+                      {policy.label}
+                    </span>
+                    <span className="block text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                      {policy.description}
+                    </span>
+                  </div>
+                  <input
+                    type="radio"
+                    name="second_factor_policy"
+                    checked={isSelected}
+                    onChange={() => handlePolicyChange(policy.id as any)}
+                    className="sr-only"
+                  />
+                  {isSelected && (
+                    <CheckCircleIcon className="absolute top-4 right-4 w-5 h-5 text-zinc-900 dark:text-zinc-100" />
+                  )}
                 </label>
-              </div>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 pl-6 mb-2">
-                Don't allow second factors
-              </p>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  id="optional"
-                  name="second_factor_policy"
-                  checked={settings.second_factor_policy === "optional"}
-                  onChange={() => handlePolicyChange("optional")}
-                />
-                <label
-                  htmlFor="optional"
-                  className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
-                >
-                  Optional
-                </label>
-              </div>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 pl-6 mb-2">
-                Allow users to optionally set up second factors
-              </p>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  id="enforced"
-                  name="second_factor_policy"
-                  checked={settings.second_factor_policy === "enforced"}
-                  onChange={() => handlePolicyChange("enforced")}
-                />
-                <label
-                  htmlFor="enforced"
-                  className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
-                >
-                  Enforced
-                </label>
-              </div>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 pl-6">
-                Require users to set up second factors
-              </p>
-            </div>
+              );
+            })}
           </div>
         </div>
-        <DialogFooter>
-          <Button onClick={onClose}>Continue</Button>
+        <DialogFooter className="mt-4">
+          <Button
+            onClick={onClose}
+            className="w-full h-11 text-sm font-semibold"
+          >
+            Save Policy
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
