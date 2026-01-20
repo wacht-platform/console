@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Text } from "@/components/ui/text";
 import { Spinner } from "@/components/ui/spinner";
 import {
 	EnvelopeIcon,
@@ -9,7 +8,6 @@ import {
 	CheckCircleIcon,
 	CloudArrowUpIcon,
 	RocketLaunchIcon,
-	ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import {
 	Dialog,
