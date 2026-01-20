@@ -83,7 +83,8 @@ export function ApplicationLayout() {
   } else if (isB2BRoute) {
     currentTab = location.pathname.includes('/b2b-settings/workspaces') ? 'workspaces' : 'organizations';
   } else if (isCustomizationRoute) {
-    currentTab = location.pathname.includes('/customization/emails') ? 'emails' : 'deployment-settings';
+    currentTab = location.pathname.includes('/customization/emails') ? 'emails' :
+      location.pathname.includes('/customization/ai-settings') ? 'ai-settings' : 'deployment-settings';
   } else if (isAuthRoute) {
     currentTab = location.pathname.includes('/auth/sso') ? 'sso' :
       location.pathname.includes('/auth/sessions') ? 'sessions' :
@@ -158,6 +159,7 @@ export function ApplicationLayout() {
                       <>
                         <TabsTrigger value="deployment-settings">Deployment Settings</TabsTrigger>
                         <TabsTrigger value="emails">Email Settings</TabsTrigger>
+                        <TabsTrigger value="ai-settings">AI Settings</TabsTrigger>
                       </>
                     )}
                     {isAuthRoute && (

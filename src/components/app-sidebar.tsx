@@ -8,6 +8,7 @@ import {
   IconLock,
   IconBuilding,
   IconCirclePlus,
+  IconCreditCard,
 } from "@tabler/icons-react"
 import { useLocation } from "react-router"
 import { NavMain } from "@/components/nav-main"
@@ -68,6 +69,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: "customization",
       icon: IconSettings,
       isActive: pathname.includes("customization"),
+    },
+    {
+      title: "Billing",
+      url: "billing",
+      icon: IconCreditCard,
+      isActive: pathname.includes("billing"),
     },
   ]
 

@@ -16,7 +16,6 @@ const OrganizationsPage = lazyImport(() => import("./pages/organizations"));
 const SegmentsLayout = lazyImport(() => import("./pages/segments/layout"));
 const SegmentsManagePage = lazyImport(() => import("./pages/segments/manage"));
 const SegmentDetailsPage = lazyImport(() => import("./pages/segments/detail"));
-const WorkspacesPage = lazyImport(() => import("./pages/workspaces"));
 const OrganizationDetailsPage = lazyImport(() => import("./pages/organization/[id]"));
 const WorkspaceDetailsPage = lazyImport(() => import("./pages/workspace/[id]"));
 const SchemaFactorsPage = lazyImport(() => import("./pages/auth/schema-factors"));
@@ -40,6 +39,9 @@ const EmailsPage = lazyImport(() => import("./pages/emails"));
 const EmailTemplateEditor = lazyImport(
   () => import("./pages/emails/template-editor"),
 );
+const AISettingsPage = lazyImport(
+  () => import("./pages/customization/ai-settings"),
+);
 const SMSPage = lazyImport(() => import("./pages/sms"));
 const ApplicationSettingsPage = lazyImport(() => import("./pages/settings"));
 const ProjectsPage = lazyImport(() => import("./pages/projects"));
@@ -48,6 +50,7 @@ const JWTTemplateCreateUpdatePage = lazyImport(
   () => import("./pages/auth/jwt-template-create-update"),
 );
 const DnsVerificationPage = lazyImport(() => import("./pages/dns-verification"));
+const BillingPage = lazyImport(() => import("./pages/billing"));
 // AI Agents pages
 const CreateAgentsPage = lazyImport(() => import("./pages/ai-agents/create-agents"));
 const WorkflowsPage = lazyImport(() => import("./pages/ai-agents/workflows"));
@@ -153,6 +156,14 @@ export const router = createBrowserRouter([
                 <OrganizationDetailsPage />
               </Suspense>
             ),
+          },
+          {
+            path: "workspace/:id",
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <WorkspaceDetailsPage />
+              </Suspense>
+            ),
           }
         ]
       },
@@ -181,27 +192,6 @@ export const router = createBrowserRouter([
             ),
           },
         ],
-      },
-      {
-        path: "workspaces",
-        children: [
-          {
-            index: true,
-            element: (
-              <Suspense fallback={<SimpleFallback />}>
-                <WorkspacesPage />
-              </Suspense>
-            ),
-          },
-          {
-            path: ":id",
-            element: (
-              <Suspense fallback={<SimpleFallback />}>
-                <WorkspaceDetailsPage />
-              </Suspense>
-            ),
-          }
-        ]
       },
       {
         path: "auth",
@@ -430,6 +420,14 @@ export const router = createBrowserRouter([
               },
             ],
           },
+          {
+            path: "ai-settings",
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <AISettingsPage />
+              </Suspense>
+            ),
+          },
         ],
       },
       {
@@ -445,6 +443,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<SimpleFallback />}>
             <ApplicationSettingsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "billing",
+        element: (
+          <Suspense fallback={<SimpleFallback />}>
+            <BillingPage />
           </Suspense>
         ),
       },

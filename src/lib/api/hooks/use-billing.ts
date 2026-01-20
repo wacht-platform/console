@@ -22,11 +22,21 @@ export interface BillingAccount {
   updated_at?: string;
 }
 
+export interface DodoProduct {
+  id: number;
+  plan_name: string;
+  product_id: string;
+  display_name: string;
+  description: string;
+  base_price_cents: number;
+  is_active: boolean;
+}
+
 export interface Subscription {
   id: string;
   billing_account_id: string;
-  chargebee_customer_id: string;
-  chargebee_subscription_id: string;
+  provider_customer_id: string;
+  provider_subscription_id: string;
   status: string;
   created_at?: string;
   updated_at?: string;
@@ -50,23 +60,25 @@ export interface BillingAccountWithSubscription {
   payment_method_status?: string;
   currency: string;
   locale: string;
+  pulse_balance_cents: number;
   created_at?: string;
   updated_at?: string;
   subscription?: Subscription;
 }
 
 export interface CreateCheckoutRequest {
-  plan_id: string;
+  plan_name: string;
   legal_name: string;
   billing_email: string;
   billing_phone?: string;
   tax_id?: string;
+  return_url: string;
 }
 
 export interface CheckoutResponse {
-  id: string;
+  checkout_id: string;
   type: string;
-  url: string;
+  checkout_url: string;
   state: string;
   embed?: boolean;
   created_at?: number;
@@ -159,8 +171,8 @@ export function useChangePlan() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (newPlanId: string) => {
-      await apiClient.post("/billing/change-plan", { new_plan_id: newPlanId });
+    mutationFn: async (newPlanName: string) => {
+      await apiClient.post("/billing/change-plan", { plan_name: newPlanName });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["billing"] });
@@ -187,6 +199,55 @@ export function useUsageMetrics() {
     queryFn: async () => {
       const { data } = await apiClient.get<UsageResponse>("/billing/usage");
       return data;
+    },
+  });
+}
+// Pulse Credits types
+export interface PulseTransaction {
+  id: string;
+  billing_account_id: string;
+  amount_pulse_cents: number;
+  transaction_type: "purchase" | "usage_sms" | "usage_ai" | "refund" | "adjustment";
+  reference_id?: string;
+  created_at: string;
+}
+
+export interface BuyPulseRequest {
+  pulse_amount: number;
+  return_url: string;
+}
+
+// List available pulse products (denominations)
+export function usePulseProducts() {
+  return useQuery({
+    queryKey: ["pulse-products"],
+    queryFn: async () => {
+      const { data } = await apiClient.get<DodoProduct[]>(`/billing/pulse/products`);
+      return data;
+    },
+  });
+}
+
+// List pulse transactions
+export function usePulseTransactions() {
+  return useQuery({
+    queryKey: ["pulse-transactions"],
+    queryFn: async () => {
+      const { data } = await apiClient.get<PulseTransaction[]>(`/billing/pulse/transactions`);
+      return data;
+    },
+  });
+}
+
+// Buy pulse credits
+export function useBuyPulse() {
+  return useMutation({
+    mutationFn: async (data: BuyPulseRequest) => {
+      const { data: response } = await apiClient.post<CheckoutResponse>(
+        `/billing/pulse/buy`,
+        data,
+      );
+      return response;
     },
   });
 }
