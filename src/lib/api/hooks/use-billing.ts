@@ -144,27 +144,17 @@ export function useCancelSubscription() {
 }
 
 // Get invoices list
-export function useInvoices() {
+export function useInvoices(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["invoices"],
     queryFn: async () => {
       const response = await apiClient.get("/billing/invoices");
       return response.data;
     },
+    enabled: options?.enabled ?? true,
   });
 }
 
-// Get single invoice
-export function useInvoice(invoiceId: string) {
-  return useQuery({
-    queryKey: ["invoice", invoiceId],
-    queryFn: async () => {
-      const response = await apiClient.get(`/billing/invoices/${invoiceId}`);
-      return response.data;
-    },
-    enabled: !!invoiceId,
-  });
-}
 
 // Change subscription plan
 export function useChangePlan() {
@@ -193,13 +183,14 @@ export interface UsageResponse {
 }
 
 // Get current usage metrics
-export function useUsageMetrics() {
+export function useUsageMetrics(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["usage-metrics"],
     queryFn: async () => {
       const { data } = await apiClient.get<UsageResponse>("/billing/usage");
       return data;
     },
+    enabled: options?.enabled ?? true,
   });
 }
 // Pulse Credits types
@@ -229,13 +220,14 @@ export function usePulseProducts() {
 }
 
 // List pulse transactions
-export function usePulseTransactions() {
+export function usePulseTransactions(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["pulse-transactions"],
     queryFn: async () => {
       const { data } = await apiClient.get<PulseTransaction[]>(`/billing/pulse/transactions`);
       return data;
     },
+    enabled: options?.enabled ?? true,
   });
 }
 

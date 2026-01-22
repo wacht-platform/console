@@ -11,6 +11,17 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { useBillingAccount } from "@/lib/api/hooks/use-billing";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import {
+  Dialog,
+  DialogTitle,
+  DialogDescription,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Text } from "@/components/ui/text";
 
 export function ApplicationLayout() {
   const navigate = useNavigate();
@@ -19,9 +30,26 @@ export function ApplicationLayout() {
   const [isCreateProjectDialogOpen, setIsCreateProjectDialogOpen] = useState(false);
   const [isBillingSetupDialogOpen, setIsBillingSetupDialogOpen] = useState(false);
   const [isCreateProductionDialogOpen, setIsCreateProductionDialogOpen] = useState(false);
+  const [isPendingBillingDialogOpen, setIsPendingBillingDialogOpen] = useState(false);
+
+  const { data: billingAccount } = useBillingAccount();
 
   const handleBillingSetupSuccess = () => {
     setIsBillingSetupDialogOpen(false);
+  };
+
+  const guardAction = (action: () => void) => {
+    if (
+      !billingAccount ||
+      billingAccount.status === "cancelled" ||
+      billingAccount.status === "failed"
+    ) {
+      setIsBillingSetupDialogOpen(true);
+    } else if (billingAccount.status === "pending") {
+      setIsPendingBillingDialogOpen(true);
+    } else {
+      action();
+    }
   };
 
   const {
@@ -75,6 +103,7 @@ export function ApplicationLayout() {
   const isAuthRoute = location.pathname.includes('/auth/') || location.pathname.endsWith('/auth');
   const isWebhooksRoute = location.pathname.includes('/webhooks');
   const isLLMRoute = location.pathname.includes('/llms/');
+  const isBillingRoute = location.pathname.includes('/billing');
 
   let currentTab = '';
   if (isUsersRoute) {
@@ -98,6 +127,8 @@ export function ApplicationLayout() {
     currentTab = location.pathname.includes('/workflows') ? 'workflows' :
       location.pathname.includes('/tools') ? 'tools' :
         location.pathname.includes('/knowledge-base') ? 'knowledge-base' : 'ai-agents';
+  } else if (isBillingRoute) {
+    currentTab = location.pathname.includes('/billing/usage') ? 'usage' : 'subscription';
   }
 
   const handleTabChange = (value: string) => {
@@ -114,6 +145,8 @@ export function ApplicationLayout() {
       navigate(`${basePath}/webhooks${value === 'overview' ? '' : `/${value}`}`);
     } else if (isLLMRoute) {
       navigate(`${basePath}/llms/${value}`);
+    } else if (isBillingRoute) {
+      navigate(`${basePath}/billing/${value}`);
     }
   };
 
@@ -130,15 +163,15 @@ export function ApplicationLayout() {
       <AppSidebar variant="inset" />
       <SidebarInset className="h-full overflow-hidden">
         <SiteHeader
-          onCreateProject={() => setIsCreateProjectDialogOpen(true)}
-          onCreateStaging={() => console.log("Create Staging")}
-          onCreateProduction={() => setIsCreateProductionDialogOpen(true)}
+          onCreateProject={() => guardAction(() => setIsCreateProjectDialogOpen(true))}
+          onCreateStaging={() => guardAction(() => console.log("Create Staging"))}
+          onCreateProduction={() => guardAction(() => setIsCreateProductionDialogOpen(true))}
           canCreateStaging={true}
           canCreateProduction={!!selectedProject}
         />
         <div className="flex flex-1 flex-col overflow-y-auto">
           <div className="@container/main flex flex-1 flex-col gap-2">
-            {(isUsersRoute || isB2BRoute || isCustomizationRoute || isAuthRoute || isWebhooksRoute || isLLMRoute) && (
+            {(isUsersRoute || isB2BRoute || isCustomizationRoute || isAuthRoute || isWebhooksRoute || isLLMRoute || isBillingRoute) && (
               <div className="px-4 pt-4 lg:px-6 lg:pt-6">
                 <Tabs value={currentTab} onValueChange={handleTabChange}>
                   <TabsList>
@@ -187,6 +220,12 @@ export function ApplicationLayout() {
                         <TabsTrigger value="knowledge-base">Knowledge Base</TabsTrigger>
                       </>
                     )}
+                    {isBillingRoute && (
+                      <>
+                        <TabsTrigger value="subscription">Subscription</TabsTrigger>
+                        <TabsTrigger value="usage">Usage & Credits</TabsTrigger>
+                      </>
+                    )}
                   </TabsList>
                 </Tabs>
               </div>
@@ -212,6 +251,46 @@ export function ApplicationLayout() {
         onClose={() => setIsCreateProductionDialogOpen(false)}
         projectId={selectedProject!.id}
       />}
+
+      <Dialog
+        open={isPendingBillingDialogOpen}
+        onClose={() => setIsPendingBillingDialogOpen(false)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+                <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600 dark:text-yellow-500" />
+              </div>
+              <DialogTitle>Subscription Not Complete</DialogTitle>
+            </div>
+            <DialogDescription>
+              <Text>
+                Your billing account has been created but the subscription payment
+                has not been completed yet.
+              </Text>
+              <ul className="list-disc list-inside mt-3 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                <li>You closed the payment page before completing checkout</li>
+                <li>The payment is still processing</li>
+                <li>There was an issue with your payment method</li>
+              </ul>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsPendingBillingDialogOpen(false)}>
+              Close
+            </Button>
+            <Button
+              onClick={() => {
+                setIsPendingBillingDialogOpen(false);
+                setIsBillingSetupDialogOpen(true);
+              }}
+            >
+              Complete Checkout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }

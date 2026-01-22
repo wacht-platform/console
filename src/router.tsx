@@ -3,6 +3,7 @@ import { ApplicationLayout } from "@/components/application-layout";
 import { Suspense } from "react";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { lazyImport } from "@/lib/lazy-import";
+import { Navigate } from "react-router";
 
 const SimpleFallback = () => <InlineLoader />;
 
@@ -50,7 +51,8 @@ const JWTTemplateCreateUpdatePage = lazyImport(
   () => import("./pages/auth/jwt-template-create-update"),
 );
 const DnsVerificationPage = lazyImport(() => import("./pages/dns-verification"));
-const BillingPage = lazyImport(() => import("./pages/billing"));
+const BillingSubscriptionPage = lazyImport(() => import("./pages/billing/subscription"));
+const BillingUsagePage = lazyImport(() => import("./pages/billing/usage"));
 // AI Agents pages
 const CreateAgentsPage = lazyImport(() => import("./pages/ai-agents/create-agents"));
 const WorkflowsPage = lazyImport(() => import("./pages/ai-agents/workflows"));
@@ -448,11 +450,28 @@ export const router = createBrowserRouter([
       },
       {
         path: "billing",
-        element: (
-          <Suspense fallback={<SimpleFallback />}>
-            <BillingPage />
-          </Suspense>
-        ),
+        children: [
+          {
+            index: true,
+            element: <Navigate to="subscription" replace />,
+          },
+          {
+            path: "subscription",
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <BillingSubscriptionPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "usage",
+            element: (
+              <Suspense fallback={<SimpleFallback />}>
+                <BillingUsagePage />
+              </Suspense>
+            ),
+          },
+        ],
       },
       {
         path: "dns-verification",

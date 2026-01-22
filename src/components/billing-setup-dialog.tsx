@@ -104,7 +104,7 @@ export function BillingSetupDialog({
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const createCheckout = useCreateCheckout();
-  const { refetch: refetchBilling } = useBillingAccount();
+  const { data: billingAccount, refetch: refetchBilling } = useBillingAccount();
 
   const handleInputChange = (
     field: keyof CreateCheckoutRequest,
@@ -190,7 +190,18 @@ export function BillingSetupDialog({
   }, []);
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      if (billingAccount) {
+        setFormData({
+          plan_name: selectedPlanId || planId,
+          legal_name: billingAccount.legal_name || "",
+          billing_email: billingAccount.billing_email || "",
+          billing_phone: billingAccount.billing_phone || "",
+          tax_id: billingAccount.tax_id || "",
+          return_url: window.location.href,
+        });
+      }
+    } else {
       stopPolling();
       setSelectedPlanId(planId);
       setFormData({
@@ -203,7 +214,7 @@ export function BillingSetupDialog({
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, planId]);
+  }, [open, billingAccount, planId]);
 
   const isFormValid = formData.legal_name && formData.billing_email;
 

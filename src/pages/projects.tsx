@@ -44,7 +44,7 @@ export default function ProjectsPage() {
     useState(false);
 
   const handleCreateProject = () => {
-    if (!billingAccount) {
+    if (!billingAccount || billingAccount.status === "cancelled" || billingAccount.status === "failed") {
       setBillingSetupDialogOpen(true);
     } else if (billingAccount.status === "pending") {
       setPendingBillingDialogOpen(true);
