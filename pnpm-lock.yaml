@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@chargebee/chargebee-js-types':
-        specifier: ^1.0.8
-        version: 1.0.8
       '@dnd-kit/core':
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -249,9 +246,6 @@ packages:
 
   '@bufbuild/protobuf@2.10.2':
     resolution: {integrity: sha512-uFsRXwIGyu+r6AMdz+XijIIZJYpoWeYzILt5yZ2d3mCjQrWUTVpVD9WL/jZAbvp+Ed04rOhrsk7FiTcEDseB5A==}
-
-  '@chargebee/chargebee-js-types@1.0.8':
-    resolution: {integrity: sha512-M8bJtZ7WnZQ9rTEqnaym1iM72BmxWV1mesjw5WRaGoj4aHuMXFK2VKdkGmVnDLm6QEpRySdU4ePsZ+eogRSORA==}
 
   '@dnd-kit/accessibility@3.1.1':
     resolution: {integrity: sha512-2P+YgaXF+gRsIihwwY1gCsQSYnu9Zyj2py8kY5fFvUM1qm2WA2u639R6YNVfU4GWr+ZM5mqEsfHZZLoRONbemw==}
@@ -3056,8 +3050,6 @@ snapshots:
   '@babel/runtime@7.28.6': {}
 
   '@bufbuild/protobuf@2.10.2': {}
-
-  '@chargebee/chargebee-js-types@1.0.8': {}
 
   '@dnd-kit/accessibility@3.1.1(react@19.2.3)':
     dependencies:

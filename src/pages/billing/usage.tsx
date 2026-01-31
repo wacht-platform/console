@@ -34,35 +34,35 @@ const UsageBar = ({ label, metric, limit, unit, icon: Icon, overageRate, getUsag
     return (
         <div className="group">
             <div className="flex justify-between items-end mb-2">
-                <div className="flex items-center gap-2 text-sm text-zinc-400">
-                    <Icon className="w-4 h-4 text-zinc-600" />
+                <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                    <Icon className="w-4 h-4 text-zinc-500 dark:text-zinc-600" />
                     {label}
                 </div>
                 <div className="text-right">
-                    <div className="text-sm font-mono text-zinc-300">
-                        {usage.toLocaleString()} <span className="text-zinc-600">/ {hasLimit ? (limit >= 1000 ? `${limit / 1000}k` : limit) : '∞'}</span> {unit}
+                    <div className="text-sm font-mono text-zinc-700 dark:text-zinc-300">
+                        {usage.toLocaleString()} <span className="text-zinc-500 dark:text-zinc-600">/ {hasLimit ? (limit >= 1000 ? `${limit / 1000}k` : limit) : '∞'}</span> {unit}
                     </div>
                 </div>
             </div>
-            <div className="h-1.5 w-full bg-zinc-800/50 rounded-full overflow-hidden relative">
+            <div className="h-1.5 w-full bg-zinc-200 dark:bg-zinc-800/50 rounded-full overflow-hidden relative">
                 <div
-                    className={clsx("h-full rounded-full transition-all duration-500", isOverage ? "bg-red-500" : "bg-zinc-600 group-hover:bg-zinc-500")}
+                    className={clsx("h-full rounded-full transition-all duration-500", isOverage ? "bg-red-500" : "bg-zinc-400 dark:bg-zinc-600 group-hover:bg-zinc-500 dark:group-hover:bg-zinc-500")}
                     style={{ width: hasLimit ? `${percent}%` : '2%' }}
                 />
             </div>
             <div className="mt-2 flex justify-between items-center h-5">
-                <div className="text-[10px] text-zinc-600 font-normal uppercase tracking-wider">
+                <div className="text-[10px] text-zinc-500 dark:text-zinc-600 font-normal uppercase tracking-wider">
                     {isOverage ? (
-                        <span className="text-red-400">Overage: {(usage - limit).toLocaleString()} {unit}</span>
+                        <span className="text-red-500 dark:text-red-400">Overage: {(usage - limit).toLocaleString()} {unit}</span>
                     ) : hasLimit ? (
                         `${(limit - usage).toLocaleString()} remaining`
                     ) : (
                         "Unlimited quota"
                     )}
                 </div>
-                <div className="text-[10px] text-zinc-500 font-mono flex items-center gap-2">
+                <div className="text-[10px] text-zinc-500 dark:text-zinc-500 font-mono flex items-center gap-2">
                     {cost > 0 && <span>{(cost / 100).toFixed(2)} INR</span>}
-                    {overageRate && <span className="text-zinc-600">({overageRate})</span>}
+                    {overageRate && <span className="text-zinc-400 dark:text-zinc-600">({overageRate})</span>}
                 </div>
             </div>
         </div>
@@ -123,27 +123,27 @@ export default function BillingUsagePage() {
         return (
             <div className="space-y-16 animate-in fade-in duration-700">
                 <div>
-                    <h1 className="text-xl font-normal text-white tracking-tight mb-2">Usage & Credits</h1>
-                    <p className="text-zinc-500 text-sm font-light">Monitor your platform consumption and estimated costs in real-time.</p>
+                    <h1 className="text-xl font-normal text-zinc-900 dark:text-white tracking-tight mb-2">Usage & Credits</h1>
+                    <p className="text-zinc-500 dark:text-zinc-500 text-sm font-light">Monitor your platform consumption and estimated costs in real-time.</p>
                 </div>
-                <div className="bg-[#111113] border border-zinc-800/60 rounded-xl p-12 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-6 opacity-[0.02] pointer-events-none">
-                        <CpuChipIcon className="w-48 h-48 text-zinc-500" />
+                <div className="bg-white dark:bg-[#111113] border border-zinc-200 dark:border-zinc-800/60 rounded-xl p-12 relative overflow-hidden shadow-sm dark:shadow-none">
+                    <div className="absolute top-0 right-0 p-6 opacity-[0.02] dark:opacity-[0.02] pointer-events-none">
+                        <CpuChipIcon className="w-48 h-48 text-zinc-400 dark:text-zinc-500" />
                     </div>
                     <div className="relative z-10 text-center max-w-2xl mx-auto">
                         <div className="mb-6">
-                            <Badge variant="outline" className="bg-zinc-900/50 text-zinc-500 border-zinc-800 text-[10px] px-3 py-1 font-normal uppercase tracking-wider">
+                            <Badge variant="outline" className="bg-zinc-100 dark:bg-zinc-900/50 text-zinc-600 dark:text-zinc-500 border-zinc-300 dark:border-zinc-800 text-[10px] px-3 py-1 font-normal uppercase tracking-wider">
                                 No Active Subscription
                             </Badge>
                         </div>
-                        <h2 className="text-2xl font-light text-white mb-4">Subscribe to Track Usage</h2>
-                        <p className="text-zinc-500 text-sm font-light leading-relaxed mb-8">
+                        <h2 className="text-2xl font-light text-zinc-900 dark:text-white mb-4">Subscribe to Track Usage</h2>
+                        <p className="text-zinc-500 dark:text-zinc-500 text-sm font-light leading-relaxed mb-8">
                             Usage metrics and cost tracking are available with an active subscription.
                             Choose a plan to start monitoring your platform consumption.
                         </p>
                         <Button
                             size="lg"
-                            className="bg-white text-black hover:bg-zinc-200 border-transparent text-sm h-11 font-medium px-8"
+                            className="bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 border-transparent text-sm h-11 font-medium px-8"
                             onClick={() => navigate('../subscription')}
                         >
                             View Plans & Pricing
@@ -161,25 +161,25 @@ export default function BillingUsagePage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
                 <div>
-                    <h1 className="text-xl font-normal text-white tracking-tight mb-2">Usage & Credits</h1>
-                    <p className="text-zinc-500 text-sm font-light">
-                        Managing <span className="text-zinc-400">{subscription?.provider_customer_id || 'Personal Account'}</span> • {formattedPeriod}
+                    <h1 className="text-xl font-normal text-zinc-900 dark:text-white tracking-tight mb-2">Usage & Credits</h1>
+                    <p className="text-zinc-500 dark:text-zinc-500 text-sm font-light">
+                        Managing <span className="text-zinc-700 dark:text-zinc-400">{subscription?.provider_customer_id || 'Personal Account'}</span> • {formattedPeriod}
                     </p>
                 </div>
                 <div className="text-right">
-                    <div className="text-sm text-zinc-500 mb-1 font-light">Estimated Cost</div>
-                    <div className="text-4xl font-light text-zinc-100 tracking-tight">
-                        {(totalCost / 100).toFixed(2)} <span className="text-sm text-zinc-500 ml-1">INR</span>
+                    <div className="text-sm text-zinc-500 dark:text-zinc-500 mb-1 font-light">Estimated Cost</div>
+                    <div className="text-4xl font-light text-zinc-900 dark:text-zinc-100 tracking-tight">
+                        {(totalCost / 100).toFixed(2)} <span className="text-sm text-zinc-500 dark:text-zinc-500 ml-1">INR</span>
                     </div>
                 </div>
             </div>
 
             <div className="space-y-12">
                 {/* Single Column Quota Monitor */}
-                <div className="bg-[#111113] border border-zinc-800/60 rounded-xl p-8">
+                <div className="bg-white dark:bg-[#111113] border border-zinc-200 dark:border-zinc-800/60 rounded-xl p-8 shadow-sm dark:shadow-none">
                     <div className="flex items-center gap-2 mb-10">
-                        <CpuChipIcon className="w-5 h-5 text-indigo-500/80" />
-                        <h3 className="text-sm font-normal text-zinc-300">Resource Quota Monitor</h3>
+                        <CpuChipIcon className="w-5 h-5 text-indigo-600 dark:text-indigo-500/80" />
+                        <h3 className="text-sm font-normal text-zinc-700 dark:text-zinc-300">Resource Quota Monitor</h3>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-12">
@@ -245,13 +245,13 @@ export default function BillingUsagePage() {
                         />
                     </div>
 
-                    <div className="mt-12 pt-8 border-t border-zinc-800/30">
+                    <div className="mt-12 pt-8 border-t border-zinc-200 dark:border-zinc-800/30">
                         <div className="flex justify-between items-center text-xs">
-                            <span className="text-zinc-500 font-light flex items-center gap-2">
+                            <span className="text-zinc-500 dark:text-zinc-500 font-light flex items-center gap-2">
                                 <ClockIcon className="w-3.5 h-3.5" />
                                 Rate limiting enforced at
                             </span>
-                            <span className="font-mono text-indigo-400 uppercase">{currentPlan.rateLimit || 'Custom'}</span>
+                            <span className="font-mono text-indigo-600 dark:text-indigo-400 uppercase">{currentPlan.rateLimit || 'Custom'}</span>
                         </div>
                     </div>
                 </div>
@@ -259,10 +259,10 @@ export default function BillingUsagePage() {
                 <PulseDashboard balance={billingAccount?.pulse_balance_cents || 0} onTopUp={() => setPulseTopUpOpen(true)} />
 
                 {/* Credit Activity History */}
-                <div className="bg-[#111113] border border-zinc-800/60 rounded-xl overflow-hidden flex flex-col">
-                    <div className="p-5 border-b border-zinc-800/50 flex justify-between items-center bg-zinc-900/10">
-                        <h4 className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                            <ClockIcon className="w-3.5 h-3.5 text-zinc-600" />
+                <div className="bg-white dark:bg-[#111113] border border-zinc-200 dark:border-zinc-800/60 rounded-xl overflow-hidden flex flex-col shadow-sm dark:shadow-none">
+                    <div className="p-5 border-b border-zinc-200 dark:border-zinc-800/50 flex justify-between items-center bg-zinc-50 dark:bg-zinc-900/10">
+                        <h4 className="text-[10px] font-medium text-zinc-500 dark:text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                            <ClockIcon className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-600" />
                             Credit Activity History
                         </h4>
                     </div>
@@ -270,36 +270,36 @@ export default function BillingUsagePage() {
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
-                                <tr className="border-b border-zinc-800/40">
-                                    <th className="px-6 py-3 text-[9px] font-medium text-zinc-600 uppercase tracking-widest">Date</th>
-                                    <th className="px-6 py-3 text-[9px] font-medium text-zinc-600 uppercase tracking-widest">Transaction Type</th>
-                                    <th className="px-6 py-3 text-[9px] font-medium text-zinc-600 uppercase tracking-widest">Reference ID</th>
-                                    <th className="px-6 py-3 text-right text-[9px] font-medium text-zinc-600 uppercase tracking-widest">Pulse Amount</th>
+                                <tr className="border-b border-zinc-200 dark:border-zinc-800/40">
+                                    <th className="px-6 py-3 text-[9px] font-medium text-zinc-500 dark:text-zinc-600 uppercase tracking-widest">Date</th>
+                                    <th className="px-6 py-3 text-[9px] font-medium text-zinc-500 dark:text-zinc-600 uppercase tracking-widest">Transaction Type</th>
+                                    <th className="px-6 py-3 text-[9px] font-medium text-zinc-500 dark:text-zinc-600 uppercase tracking-widest">Reference ID</th>
+                                    <th className="px-6 py-3 text-right text-[9px] font-medium text-zinc-500 dark:text-zinc-600 uppercase tracking-widest">Pulse Amount</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-zinc-800/20">
+                            <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/20">
                                 {transactions && transactions.length > 0 ? (
                                     transactions.slice(0, 10).map((tx) => (
-                                        <tr key={tx.id} className="group hover:bg-zinc-900/10 transition-colors">
-                                            <td className="px-6 py-4 text-[12px] text-zinc-500 font-light">
+                                        <tr key={tx.id} className="group hover:bg-zinc-50 dark:hover:bg-zinc-900/10 transition-colors">
+                                            <td className="px-6 py-4 text-[12px] text-zinc-500 dark:text-zinc-500 font-light">
                                                 {format(parseISO(tx.created_at), "MMM d, HH:mm")}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <Badge variant="outline" className={clsx(
                                                     "text-[8px] px-2 py-0.5 font-medium uppercase tracking-widest rounded-full",
-                                                    tx.transaction_type === 'purchase' ? "text-emerald-400 border-emerald-500/10 bg-emerald-500/[0.02]" :
-                                                        tx.transaction_type.startsWith('usage') ? "text-zinc-500 border-zinc-800" :
-                                                            "text-indigo-400 border-indigo-500/10 bg-indigo-500/[0.02]"
+                                                    tx.transaction_type === 'purchase' ? "text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/10 bg-emerald-50 dark:bg-emerald-500/[0.02]" :
+                                                        tx.transaction_type.startsWith('usage') ? "text-zinc-500 dark:text-zinc-500 border-zinc-300 dark:border-zinc-800" :
+                                                            "text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/10 bg-indigo-50 dark:bg-indigo-500/[0.02]"
                                                 )}>
                                                     {tx.transaction_type.replace('_', ' ')}
                                                 </Badge>
                                             </td>
-                                            <td className="px-6 py-4 text-[12px] text-zinc-600 font-light truncate max-w-[200px]">
+                                            <td className="px-6 py-4 text-[12px] text-zinc-500 dark:text-zinc-600 font-light truncate max-w-[200px]">
                                                 {tx.reference_id || '-'}
                                             </td>
                                             <td className={clsx(
                                                 "px-6 py-4 text-right text-[13px] font-mono",
-                                                tx.amount_pulse_cents > 0 ? "text-emerald-400" : "text-zinc-300"
+                                                tx.amount_pulse_cents > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-zinc-700 dark:text-zinc-300"
                                             )}>
                                                 {tx.amount_pulse_cents > 0 ? '+' : ''}{tx.amount_pulse_cents.toLocaleString()}
                                             </td>
@@ -307,7 +307,7 @@ export default function BillingUsagePage() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={4} className="px-6 py-12 text-center text-zinc-600 text-xs font-light italic">
+                                        <td colSpan={4} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-600 text-xs font-light italic">
                                             No subscription usage or pulse purchases found.
                                         </td>
                                     </tr>
@@ -325,33 +325,33 @@ export default function BillingUsagePage() {
 
 function PulseDashboard({ balance, onTopUp }: { balance: number, onTopUp: () => void }) {
     return (
-        <div className="bg-[#111113] border border-zinc-800/60 rounded-xl py-6 px-8 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-[0.03] pointer-events-none group-hover:opacity-[0.05] transition-opacity">
-                <BoltIcon className="w-32 h-32 text-indigo-500" />
+        <div className="bg-white dark:bg-[#111113] border border-zinc-200 dark:border-zinc-800/60 rounded-xl py-6 px-8 relative overflow-hidden group shadow-sm dark:shadow-none">
+            <div className="absolute top-0 right-0 p-4 opacity-[0.03] dark:opacity-[0.03] pointer-events-none group-hover:opacity-[0.05] dark:group-hover:opacity-[0.05] transition-opacity">
+                <BoltIcon className="w-32 h-32 text-indigo-400 dark:text-indigo-500" />
             </div>
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
                 <div className="flex flex-col md:flex-row md:items-center gap-8 lg:gap-12">
                     <div>
-                        <div className="text-[10px] text-zinc-500 mb-1.5 font-medium uppercase tracking-[0.15em]">Available Balance</div>
+                        <div className="text-[10px] text-zinc-500 dark:text-zinc-500 mb-1.5 font-medium uppercase tracking-[0.15em]">Available Balance</div>
                         <div className="flex items-baseline gap-1.5">
-                            <span className="text-4xl font-light text-white tracking-tighter tabular-nums">
+                            <span className="text-4xl font-light text-zinc-900 dark:text-white tracking-tighter tabular-nums">
                                 {(balance / 100).toFixed(2)}
                             </span>
-                            <span className="text-sm text-zinc-500 font-light">INR</span>
+                            <span className="text-sm text-zinc-500 dark:text-zinc-500 font-light">INR</span>
                         </div>
-                        <div className="text-[10px] text-indigo-400/80 font-medium uppercase tracking-widest mt-2 bg-indigo-500/5 border border-indigo-500/10 w-fit px-2.5 py-0.5 rounded-full">
+                        <div className="text-[10px] text-indigo-600 dark:text-indigo-400/80 font-medium uppercase tracking-widest mt-2 bg-indigo-50 dark:bg-indigo-500/5 border border-indigo-200 dark:border-indigo-500/10 w-fit px-2.5 py-0.5 rounded-full">
                             {balance.toLocaleString()} Pulse
                         </div>
                     </div>
                     <div className="max-w-sm">
-                        <p className="text-[12px] text-zinc-500 font-light leading-relaxed italic border-l border-zinc-800 pl-6">
+                        <p className="text-[12px] text-zinc-500 dark:text-zinc-500 font-light leading-relaxed italic border-l border-zinc-300 dark:border-zinc-800 pl-6">
                             Credits never expire and are shared across your workspace. Use them for AI Agents, SMS, and other platform features. Note: Credits cannot be used to offset recurring subscription costs.
                         </p>
                     </div>
                 </div>
                 <div className="shrink-0">
                     <Button
-                        className="px-8 bg-white text-black hover:bg-zinc-200 border-transparent text-[11px] h-10 font-medium rounded-lg shadow-xl shadow-white/5 transition-all"
+                        className="px-8 bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 border-transparent text-[11px] h-10 font-medium rounded-lg shadow-xl dark:shadow-none transition-all"
                         onClick={onTopUp}
                     >
                         <PlusIcon className="w-3.5 h-3.5 mr-2" />
