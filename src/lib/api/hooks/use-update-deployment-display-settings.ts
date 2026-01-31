@@ -40,7 +40,7 @@ async function updateDeploymentDisplaySettings(
   settings: DeploymentDisplaySettingsUpdates
 ): Promise<void> {
   await apiClient.patch(
-    `/deployments/${deploymentId}/settings/display-settings`,
+    `/deployments/${deploymentId}/settings/display`,
     settings
   );
 }

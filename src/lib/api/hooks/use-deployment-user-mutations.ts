@@ -31,7 +31,7 @@ async function createUser(deploymentId: string, data: CreateUserRequest) {
 
 async function inviteUser(deploymentId: string, data: InviteUserRequest) {
   const response = await apiClient.post(
-    `/deployments/${deploymentId}/invited-users`,
+    `/deployments/${deploymentId}/invitations`,
     data
   );
   return response.data.data;
@@ -88,7 +88,7 @@ async function deleteUser(deploymentId: string, userId: string) {
 
 async function deleteInvitation(deploymentId: string, invitationId: string) {
   const response = await apiClient.delete(
-    `/deployments/${deploymentId}/invited-users/${invitationId}`
+    `/deployments/${deploymentId}/invitations/${invitationId}`
   );
   return response.data;
 }
@@ -98,7 +98,7 @@ async function approveWaitlistUser(
   waitlistUserId: string
 ) {
   const response = await apiClient.post(
-    `/deployments/${deploymentId}/user-waitlist/${waitlistUserId}/approve`
+    `/deployments/${deploymentId}/waitlist/${waitlistUserId}/approve`
   );
   return response.data.data;
 }

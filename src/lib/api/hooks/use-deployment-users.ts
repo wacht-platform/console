@@ -24,7 +24,7 @@ async function fetchInvitedUsers(
   params: QueryParams
 ): Promise<PaginatedResponse<DeploymentInvitation>> {
   const { data } = await apiClient.get<PaginatedResponse<DeploymentInvitation>>(
-    `/deployments/${deploymentId}/invited-users`,
+    `/deployments/${deploymentId}/invitations`,
     { params }
   );
   return data;
@@ -36,7 +36,7 @@ async function fetchUserWaitlist(
 ): Promise<PaginatedResponse<DeploymentWaitlistUser>> {
   const { data } = await apiClient.get<
     PaginatedResponse<DeploymentWaitlistUser>
-  >(`/deployments/${deploymentId}/user-waitlist`, { params });
+  >(`/deployments/${deploymentId}/waitlist`, { params });
   return data;
 }
 

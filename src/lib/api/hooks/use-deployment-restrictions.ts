@@ -4,7 +4,7 @@ import { useProjects } from "./use-projects";
 import type { DeploymentRestrictions } from "@/types/deployment";
 
 async function updateDeploymentRestrictions(deploymentId: string, restrictions: DeploymentRestrictions) {
-    const { data } = await apiClient.patch(`/deployments/${deploymentId}/restrictions`, restrictions);
+    const { data } = await apiClient.patch(`/deployments/${deploymentId}/settings/restrictions`, restrictions);
     return data;
 }
 

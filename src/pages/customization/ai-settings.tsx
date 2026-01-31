@@ -25,7 +25,7 @@ interface UpdateAISettingsRequest {
 
 async function fetchAISettings(deploymentId: string): Promise<AISettingsResponse> {
     const { data } = await apiClient.get<AISettingsResponse>(
-        `/deployments/${deploymentId}/settings/ai-settings`
+        `/deployments/${deploymentId}/ai/settings`
     );
     return data;
 }
@@ -35,7 +35,7 @@ async function updateAISettings(
     settings: UpdateAISettingsRequest
 ): Promise<AISettingsResponse> {
     const { data } = await apiClient.put<AISettingsResponse>(
-        `/deployments/${deploymentId}/settings/ai-settings`,
+        `/deployments/${deploymentId}/ai/settings`,
         settings
     );
     return data;

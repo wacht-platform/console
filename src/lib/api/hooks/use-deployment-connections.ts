@@ -7,7 +7,7 @@ async function fetchDeploymentSocialConnections(
     deploymentId: string,
 ): Promise<DeploymentSocialConnection[]> {
     const { data } = await apiClient.get<{ data: DeploymentSocialConnection[] }>(
-        `/deployments/${deploymentId}/social-connections`,
+        `/deployments/${deploymentId}/settings/social-connections`,
     );
     return data.data;
 }
@@ -35,7 +35,7 @@ interface UpsertParams {
 
 async function upsertDeploymentSocialConnection({ deploymentId, payload }: UpsertParams): Promise<DeploymentSocialConnection> {
     const { data } = await apiClient.put<{ data: DeploymentSocialConnection }>(
-        `/deployments/${deploymentId}/social-connections`,
+        `/deployments/${deploymentId}/settings/social-connections`,
         payload
     );
     return data.data;

@@ -30,7 +30,7 @@ async function fetchTools(
   params: GetToolsParams = {},
 ): Promise<PaginatedResponse<AiTool>> {
   const { data } = await apiClient.get<PaginatedResponse<AiTool>>(
-    `/deployments/${deploymentId}/ai-tools`,
+    `/deployments/${deploymentId}/ai/tools`,
     { params },
   );
   return data;
@@ -41,7 +41,7 @@ async function fetchTool(
   toolId: string,
 ): Promise<AiTool> {
   const { data } = await apiClient.get<{ data: AiTool }>(
-    `/deployments/${deploymentId}/ai-tools/${toolId}`,
+    `/deployments/${deploymentId}/ai/tools/${toolId}`,
   );
   return data.data;
 }
@@ -51,7 +51,7 @@ async function createTool(
   tool: CreateToolRequest,
 ): Promise<AiTool> {
   const { data } = await apiClient.post<{ data: AiTool }>(
-    `/deployments/${deploymentId}/ai-tools`,
+    `/deployments/${deploymentId}/ai/tools`,
     tool,
   );
   return data.data;
@@ -63,14 +63,14 @@ async function updateTool(
   tool: UpdateToolRequest,
 ): Promise<AiTool> {
   const { data } = await apiClient.patch<{ data: AiTool }>(
-    `/deployments/${deploymentId}/ai-tools/${toolId}`,
+    `/deployments/${deploymentId}/ai/tools/${toolId}`,
     tool,
   );
   return data.data;
 }
 
 async function deleteTool(deploymentId: string, toolId: string): Promise<void> {
-  await apiClient.delete(`/deployments/${deploymentId}/ai-tools/${toolId}`);
+  await apiClient.delete(`/deployments/${deploymentId}/ai/tools/${toolId}`);
 }
 
 export function useTools(params: GetToolsParams = {}) {
