@@ -16,7 +16,8 @@ interface GenerateTicketResponse {
 export function useGenerateAgentTicket() {
     return useMutation({
         mutationFn: async (req: GenerateTicketRequest): Promise<GenerateTicketResponse> => {
-            const response = await apiClient.post(`/deployments/${req.deployment_id}/agent/tickets`, {
+            const response = await apiClient.post(`/deployments/${req.deployment_id}/session/tickets`, {
+                ticket_type: "agent_access",
                 agent_ids: req.agent_ids,
                 context_group: req.context_group,
                 expires_in: req.expires_in,

@@ -172,13 +172,17 @@ export function useApproveWaitlistUser() {
 }
 
 interface ImpersonateUserResponse {
-  token: string;
-  redirect_url: string;
+  ticket: string;
+  expires_at: number;
 }
 
 async function impersonateUser(deploymentId: string, userId: string) {
   const response = await apiClient.post<ImpersonateUserResponse>(
-    `/deployments/${deploymentId}/users/${userId}/impersonate`
+    `/deployments/${deploymentId}/session/tickets`,
+    {
+      ticket_type: "impersonation",
+      user_id: userId,
+    }
   );
   return response.data;
 }

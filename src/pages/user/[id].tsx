@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { useUserDetails } from "@/lib/api/hooks/use-user-details";
 import { useDarkMode } from "@/lib/hooks/use-dark-mode";
+import { useProjects } from "@/lib/api/hooks/use-projects";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import type { UserEmailAddress, UserPhoneNumber } from "@/types/user";
 import {
@@ -67,6 +68,7 @@ export default function UserDetailsPage() {
   const userId = id || "";
   const navigate = useNavigate();
   const isDarkMode = useDarkMode();
+  const { selectedDeployment } = useProjects();
   const { data: user, isLoading, error } = useUserDetails(userId);
 
   // Mutations
@@ -149,8 +151,12 @@ export default function UserDetailsPage() {
   const handleImpersonate = async () => {
     try {
       const response = await impersonateUser(userId);
-      if (response?.redirect_url) window.open(response.redirect_url, "_blank");
-      else toast.error("Failed to get impersonation URL");
+      if (response?.ticket) {
+        const redirectUrl = `${selectedDeployment?.frontend_host}?ticket=${response.ticket}`;
+        window.open(redirectUrl, "_blank");
+      } else {
+        toast.error("Failed to get impersonation ticket");
+      }
     } catch (error) {
       toast.error("Failed to impersonate user");
     }
