@@ -53,8 +53,8 @@ export const plans = [
         },
         overages: {
             mau: "0.02 USD /user",
-            orgs: "0.006 USD /org",
-            workspaces: "0.0075 USD /workspace",
+            orgs: "0.75 USD /org",
+            workspaces: "0.75 USD /workspace",
             emails: "1.20 USD /1k emails",
             webhooks: "0.12 USD /1k reqs",
         } as any
