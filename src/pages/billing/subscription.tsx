@@ -139,7 +139,7 @@ export default function BillingSubscriptionPage() {
     const subscription = billingAccount?.subscription;
     const currentPlan =
         subscription?.status === "active"
-            ? (plans.find((p) => subscription.provider_subscription_id?.includes(p.id)) || (subscription.provider_subscription_id?.includes('enterprise') ? enterprisePlan : plans[0]))
+            ? (plans.find((p) => p.id === subscription.plan_name) || (subscription.plan_name === 'enterprise' ? enterprisePlan : plans[0]))
             : plans[0];
 
     const invoices = invoicesData?.items || [];
