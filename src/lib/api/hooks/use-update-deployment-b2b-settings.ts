@@ -30,7 +30,7 @@ async function updateDeploymentB2bSettings(
     settings: B2bSettingsUpdate
 ): Promise<void> {
     await apiClient.patch(
-        `/deployments/${deploymentId}/settings/b2b-settings`,
+        `/deployments/${deploymentId}/settings/b2b`,
         settings
     );
 }

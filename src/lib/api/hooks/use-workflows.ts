@@ -21,7 +21,7 @@ async function fetchWorkflows(
 ): Promise<PaginatedResponse<AiWorkflowWithDetails>> {
   const { data } = await apiClient.get<
     PaginatedResponse<AiWorkflowWithDetails>
-  >(`/deployments/${deploymentId}/ai-workflows`, { params });
+  >(`/deployments/${deploymentId}/ai/workflows`, { params });
   return data;
 }
 
@@ -30,7 +30,7 @@ async function fetchWorkflowById(
   workflowId: string,
 ): Promise<AiWorkflow> {
   const { data } = await apiClient.get<AiWorkflow>(
-    `/deployments/${deploymentId}/ai-workflows/${workflowId}`,
+    `/deployments/${deploymentId}/ai/workflows/${workflowId}`,
   );
   return data;
 }
@@ -40,7 +40,7 @@ async function createWorkflow(
   workflow: CreateWorkflowRequest,
 ): Promise<AiWorkflow> {
   const { data } = await apiClient.post<{ data: AiWorkflow }>(
-    `/deployments/${deploymentId}/ai-workflows`,
+    `/deployments/${deploymentId}/ai/workflows`,
     workflow,
   );
   return data.data;
@@ -52,7 +52,7 @@ async function updateWorkflow(
   workflow: UpdateWorkflowRequest,
 ): Promise<AiWorkflow> {
   const { data } = await apiClient.patch<{ data: AiWorkflow }>(
-    `/deployments/${deploymentId}/ai-workflows/${workflowId}`,
+    `/deployments/${deploymentId}/ai/workflows/${workflowId}`,
     workflow,
   );
   return data.data;
@@ -63,7 +63,7 @@ async function deleteWorkflow(
   workflowId: string,
 ): Promise<void> {
   await apiClient.delete(
-    `/deployments/${deploymentId}/ai-workflows/${workflowId}`,
+    `/deployments/${deploymentId}/ai/workflows/${workflowId}`,
   );
 }
 

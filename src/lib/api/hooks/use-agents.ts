@@ -44,7 +44,7 @@ async function fetchAgents(
   params: GetAgentsParams = {},
 ): Promise<PaginatedResponse<Agent>> {
   const { data } = await apiClient.get<PaginatedResponse<Agent>>(
-    `/deployments/${deploymentId}/ai-agents`,
+    `/deployments/${deploymentId}/ai/agents`,
     { params },
   );
   return data;
@@ -55,7 +55,7 @@ async function fetchAgent(
   agentId: string,
 ): Promise<Agent> {
   const { data } = await apiClient.get<{ data: Agent }>(
-    `/deployments/${deploymentId}/ai-agents/${agentId}`,
+    `/deployments/${deploymentId}/ai/agents/${agentId}`,
   );
   return data.data;
 }
@@ -65,7 +65,7 @@ async function createAgent(
   agent: CreateAgentRequest,
 ): Promise<Agent> {
   const { data } = await apiClient.post<{ data: Agent }>(
-    `/deployments/${deploymentId}/ai-agents`,
+    `/deployments/${deploymentId}/ai/agents`,
     agent,
   );
   return data.data;
@@ -77,7 +77,7 @@ async function updateAgent(
   agent: UpdateAgentRequest,
 ): Promise<Agent> {
   const { data } = await apiClient.patch<{ data: Agent }>(
-    `/deployments/${deploymentId}/ai-agents/${agentId}`,
+    `/deployments/${deploymentId}/ai/agents/${agentId}`,
     agent,
   );
   return data.data;
@@ -87,7 +87,7 @@ async function deleteAgent(
   deploymentId: string,
   agentId: string,
 ): Promise<void> {
-  await apiClient.delete(`/deployments/${deploymentId}/ai-agents/${agentId}`);
+  await apiClient.delete(`/deployments/${deploymentId}/ai/agents/${agentId}`);
 }
 
 export function useAgents(params: GetAgentsParams = {}) {
@@ -146,7 +146,7 @@ async function fetchAgentDetails(
   agentId: string,
 ): Promise<AgentWithFeatures> {
   const { data } = await apiClient.get<AgentWithFeatures>(
-    `/deployments/${deploymentId}/ai-agents/${agentId}/details`,
+    `/deployments/${deploymentId}/ai/agents/${agentId}/details`,
   );
   return data;
 }

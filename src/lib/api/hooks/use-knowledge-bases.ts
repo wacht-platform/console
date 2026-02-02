@@ -65,7 +65,7 @@ async function fetchKnowledgeBases(
   if (params?.search) searchParams.set("search", params.search);
 
   const { data } = await apiClient.get<KnowledgeBasesResponse>(
-    `/deployments/${deploymentId}/ai-knowledge-bases?${searchParams.toString()}`,
+    `/deployments/${deploymentId}/ai/knowledge-bases?${searchParams.toString()}`,
   );
   return data;
 }
@@ -75,7 +75,7 @@ async function fetchKnowledgeBase(
   knowledgeBaseId: string,
 ): Promise<KnowledgeBase> {
   const { data } = await apiClient.get<KnowledgeBase>(
-    `/deployments/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}`,
+    `/deployments/${deploymentId}/ai/knowledge-bases/${knowledgeBaseId}`,
   );
   return data;
 }
@@ -85,7 +85,7 @@ async function createKnowledgeBase(
   request: CreateKnowledgeBaseRequest,
 ): Promise<KnowledgeBase> {
   const { data } = await apiClient.post<KnowledgeBase>(
-    `/deployments/${deploymentId}/ai-knowledge-bases`,
+    `/deployments/${deploymentId}/ai/knowledge-bases`,
     request,
   );
   return data;
@@ -97,7 +97,7 @@ async function updateKnowledgeBase(
   request: UpdateKnowledgeBaseRequest,
 ): Promise<KnowledgeBase> {
   const { data } = await apiClient.patch<KnowledgeBase>(
-    `/deployments/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}`,
+    `/deployments/${deploymentId}/ai/knowledge-bases/${knowledgeBaseId}`,
     request,
   );
   return data;
@@ -108,7 +108,7 @@ async function deleteKnowledgeBase(
   knowledgeBaseId: string,
 ): Promise<void> {
   await apiClient.delete(
-    `/deployments/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}`,
+    `/deployments/${deploymentId}/ai/knowledge-bases/${knowledgeBaseId}`,
   );
 }
 
@@ -118,7 +118,7 @@ async function deleteDocument(
   documentId: string,
 ): Promise<void> {
   await apiClient.delete(
-    `/deployments/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}/documents/${documentId}`,
+    `/deployments/${deploymentId}/ai/knowledge-bases/${knowledgeBaseId}/documents/${documentId}`,
   );
 }
 
@@ -135,7 +135,7 @@ async function fetchKnowledgeBaseDocuments(
   if (params?.offset) searchParams.set("offset", params.offset.toString());
 
   const { data } = await apiClient.get<DocumentsResponse>(
-    `/deployments/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}/documents?${searchParams.toString()}`,
+    `/deployments/${deploymentId}/ai/knowledge-bases/${knowledgeBaseId}/documents?${searchParams.toString()}`,
   );
   return data;
 }
@@ -146,7 +146,7 @@ async function uploadDocument(
   formData: FormData,
 ): Promise<KnowledgeBaseDocument> {
   const { data } = await apiClient.post<KnowledgeBaseDocument>(
-    `/deployments/${deploymentId}/ai-knowledge-bases/${knowledgeBaseId}/documents`,
+    `/deployments/${deploymentId}/ai/knowledge-bases/${knowledgeBaseId}/documents`,
     formData,
     {
       headers: {

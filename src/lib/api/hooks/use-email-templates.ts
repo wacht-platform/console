@@ -5,7 +5,7 @@ import { EmailTemplate } from "@/types/deployment";
 
 async function fetchEmailTemplate(deploymentId: string, templateId: string): Promise<EmailTemplate> {
   const { data } = await apiClient.get<EmailTemplate>(
-    `/deployments/${deploymentId}/email-templates/${templateId}`
+    `/deployments/${deploymentId}/settings/email-templates/${templateId}`
   );
   return data;
 }
@@ -16,7 +16,7 @@ async function updateEmailTemplate(
   template: EmailTemplate
 ): Promise<EmailTemplate> {
   const { data } = await apiClient.patch<EmailTemplate>(
-    `/deployments/${deploymentId}/email-templates/${templateId}`,
+    `/deployments/${deploymentId}/settings/email-templates/${templateId}`,
     template
   );
   return data;

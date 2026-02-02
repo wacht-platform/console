@@ -152,7 +152,7 @@ export default function UserDetailsPage() {
     try {
       const response = await impersonateUser(userId);
       if (response?.ticket) {
-        const redirectUrl = `${selectedDeployment?.frontend_host}?ticket=${response.ticket}`;
+        const redirectUrl = `https://${selectedDeployment?.frontend_host}/sign-in?ticket=${response.ticket}`;
         window.open(redirectUrl, "_blank");
       } else {
         toast.error("Failed to get impersonation ticket");

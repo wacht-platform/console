@@ -9,7 +9,7 @@ interface Role {
 }
 
 const fetchDeploymentOrgRoles = async (deploymentId: string): Promise<Role[]> => {
-    const response = await apiClient.get(`/deployments/${deploymentId}/organization-roles`);
+    const response = await apiClient.get(`/deployments/${deploymentId}/organizations/roles`);
     return response.data.data;
 };
 

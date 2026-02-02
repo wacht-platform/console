@@ -10,7 +10,7 @@ async function getSmtpConfig(
   params: SmtpConfigParams
 ): Promise<CustomSmtpConfig | null> {
   const { data } = await apiClient.get<CustomSmtpConfig | null>(
-    `/deployments/${params.deploymentId}/settings/email-provider/smtp`
+    `/deployments/${params.deploymentId}/settings/email/smtp`
   );
   return data;
 }
@@ -20,7 +20,7 @@ async function verifySmtpConnection(
   config: SmtpConfigRequest
 ): Promise<void> {
   await apiClient.post(
-    `/deployments/${deploymentId}/settings/email-provider/smtp/verify`,
+    `/deployments/${deploymentId}/settings/email/smtp/verify`,
     config
   );
 }
@@ -30,7 +30,7 @@ async function updateSmtpConfig(
   config: SmtpConfigRequest
 ): Promise<CustomSmtpConfig> {
   const { data } = await apiClient.post<CustomSmtpConfig>(
-    `/deployments/${deploymentId}/settings/email-provider/smtp`,
+    `/deployments/${deploymentId}/settings/email/smtp`,
     config
   );
   return data;
@@ -38,7 +38,7 @@ async function updateSmtpConfig(
 
 async function removeSmtpConfig(deploymentId: string): Promise<void> {
   await apiClient.delete(
-    `/deployments/${deploymentId}/settings/email-provider/smtp`
+    `/deployments/${deploymentId}/settings/email/smtp`
   );
 }
 

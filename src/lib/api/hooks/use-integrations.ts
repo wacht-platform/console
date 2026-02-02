@@ -16,7 +16,7 @@ async function fetchIntegrations(
     params: GetIntegrationsParams = {},
 ): Promise<PaginatedResponse<AgentIntegration>> {
     const { data } = await apiClient.get<PaginatedResponse<AgentIntegration>>(
-        `/deployments/${deploymentId}/agents/${agentId}/integrations`,
+        `/deployments/${deploymentId}/ai/agents/${agentId}/integrations`,
         { params },
     );
     return data;
@@ -28,7 +28,7 @@ async function fetchIntegration(
     integrationId: string,
 ): Promise<AgentIntegration> {
     const { data } = await apiClient.get<{ data: AgentIntegration }>(
-        `/deployments/${deploymentId}/agents/${agentId}/integrations/${integrationId}`,
+        `/deployments/${deploymentId}/ai/agents/${agentId}/integrations/${integrationId}`,
     );
     return data.data;
 }
@@ -39,7 +39,7 @@ async function createIntegration(
     integration: CreateIntegrationRequest,
 ): Promise<AgentIntegration> {
     const { data } = await apiClient.post<{ data: AgentIntegration }>(
-        `/deployments/${deploymentId}/agents/${agentId}/integrations`,
+        `/deployments/${deploymentId}/ai/agents/${agentId}/integrations`,
         integration,
     );
     return data.data;
@@ -52,7 +52,7 @@ async function updateIntegration(
     integration: UpdateIntegrationRequest,
 ): Promise<AgentIntegration> {
     const { data } = await apiClient.patch<{ data: AgentIntegration }>(
-        `/deployments/${deploymentId}/agents/${agentId}/integrations/${integrationId}`,
+        `/deployments/${deploymentId}/ai/agents/${agentId}/integrations/${integrationId}`,
         integration,
     );
     return data.data;
@@ -63,7 +63,7 @@ async function deleteIntegration(
     agentId: string,
     integrationId: string,
 ): Promise<void> {
-    await apiClient.delete(`/deployments/${deploymentId}/agents/${agentId}/integrations/${integrationId}`);
+    await apiClient.delete(`/deployments/${deploymentId}/ai/agents/${agentId}/integrations/${integrationId}`);
 }
 
 export function useIntegrations(agentId: string, params: GetIntegrationsParams = {}) {

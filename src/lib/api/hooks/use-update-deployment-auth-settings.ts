@@ -8,7 +8,7 @@ async function updateDeploymentAuthSettings(
   settings: DeploymentAuthSettingsUpdates
 ): Promise<void> {
   await apiClient.patch(
-    `/deployments/${deploymentId}/settings/auth-settings`,
+    `/deployments/${deploymentId}/settings/auth`,
     settings
   );
 }
