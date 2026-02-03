@@ -1,28 +1,27 @@
 
 export interface SnippetParams {
-    frameworkCategory: 'frontend' | 'backend';
-    activeFramework: { id: string; pkg: string; name: string };
-    activeExample: string;
-    framework: string;
+  frameworkCategory: 'frontend' | 'backend';
+  activeFramework: { id: string; pkg: string; name: string };
+  activeExample: string;
+  framework: string;
 }
 
 export const getCodeSnippets = ({
-    frameworkCategory,
-    activeFramework,
-    activeExample,
-    framework
+  frameworkCategory,
+  activeFramework,
+  activeExample,
 }: SnippetParams) => {
-    const installCmd = frameworkCategory === 'frontend'
-        ? `npm install ${activeFramework.pkg}`
-        : (activeFramework.id === 'rust' ? 'cargo add wacht' : `npm install ${activeFramework.pkg}`);
+  const installCmd = frameworkCategory === 'frontend'
+    ? `npm install ${activeFramework.pkg}`
+    : (activeFramework.id === 'rust' ? 'cargo add wacht' : `npm install ${activeFramework.pkg}`);
 
-    let setup = '';
-    let usage = '';
+  let setup = '';
+  let usage = '';
 
-    // Frontend Examples
-    if (frameworkCategory === 'frontend') {
-        if (activeFramework.id === 'nextjs') {
-            setup = `// app/layout.tsx
+  // Frontend Examples
+  if (frameworkCategory === 'frontend') {
+    if (activeFramework.id === 'nextjs') {
+      setup = `// app/layout.tsx
 import { DeploymentProvider } from "@wacht/nextjs";
 import "@wacht/nextjs/styles.css";
 
@@ -37,8 +36,8 @@ export default function RootLayout({ children }) {
     </html>
   );
 }`;
-        } else {
-            setup = `// main.tsx
+    } else {
+      setup = `// main.tsx
 import { DeploymentProvider } from "${activeFramework.pkg}";
 import "${activeFramework.pkg}/styles.css";
 import App from "./App";
@@ -48,10 +47,10 @@ createRoot(document.getElementById("root")!).render(
     <App />
   </DeploymentProvider>
 );`;
-        }
+    }
 
-        if (activeExample === 'notifications') {
-            usage = `// components/navbar.tsx
+    if (activeExample === 'notifications') {
+      usage = `// components/navbar.tsx
 import { 
   NotificationBell, 
   SignedIn, 
@@ -71,8 +70,8 @@ export default function Navbar() {
     </nav>
   );
 }`;
-        } else if (activeExample === 'tenancy') {
-            usage = `// components/header.tsx
+    } else if (activeExample === 'tenancy') {
+      usage = `// components/header.tsx
 import { 
   OrganizationSwitcher, 
   useOrganization,
@@ -104,9 +103,9 @@ export default function Header() {
     </header>
   );
 }`;
-        } else {
-            // Auth Example
-            usage = `// App.tsx
+    } else {
+      // Auth Example
+      usage = `// App.tsx
 import { 
   DeploymentInitialized, 
   DeploymentInitializing, 
@@ -143,18 +142,18 @@ export default function App() {
     </>
   );
 }`;
-        }
     }
+  }
 
-    // Backend Examples
-    else {
-        setup = activeFramework.id === 'rust'
-            ? `let client = wacht::Client::new(dotenv!("WACHT_SECRET_KEY"));`
-            : `const wacht = new Wacht(process.env.WACHT_SECRET_KEY);`;
+  // Backend Examples
+  else {
+    setup = activeFramework.id === 'rust'
+      ? `let client = wacht::Client::new(dotenv!("WACHT_SECRET_KEY"));`
+      : `const wacht = new Wacht(process.env.WACHT_SECRET_KEY);`;
 
-        if (activeExample === 'webhooks') {
-            usage = activeFramework.id === 'rust'
-                ? `#[post("/webhook")]
+    if (activeExample === 'webhooks') {
+      usage = activeFramework.id === 'rust'
+        ? `#[post("/webhook")]
 async fn handle_webhook(req: Request, client: Data<Client>) -> Response {
     let event = client.webhooks.construct_event(payload, sig, secret)?;
     match event.type_ {
@@ -162,7 +161,7 @@ async fn handle_webhook(req: Request, client: Data<Client>) -> Response {
         _ => { /* ... */ }
     }
 }`
-                : `app.post('/webhook', (req, res) => {
+        : `app.post('/webhook', (req, res) => {
   const event = wacht.webhooks.constructEvent(req.body, sig, secret);
   switch (event.type) {
     case 'user.created':
@@ -170,9 +169,9 @@ async fn handle_webhook(req: Request, client: Data<Client>) -> Response {
       break;
   }
 });`;
-        } else if (activeExample === 'management') {
-            usage = activeFramework.id === 'rust'
-                ? `// Create a new user organization
+    } else if (activeExample === 'management') {
+      usage = activeFramework.id === 'rust'
+        ? `// Create a new user organization
 let org = client.organizations().create(CreateOrganization {
     name: "Acme Corp",
     slug: "acme",
@@ -180,7 +179,7 @@ let org = client.organizations().create(CreateOrganization {
 
 // Add a user to the organization
 client.organizations().add_member(&org.id, "user_123", "admin").await?;`
-                : `// Create a new user organization
+        : `// Create a new user organization
 const org = await wacht.organizations.create({
   name: 'Acme Corp',
   slug: 'acme',
@@ -188,21 +187,21 @@ const org = await wacht.organizations.create({
 
 // Add a user to the organization
 await wacht.organizations.addMember(org.id, 'user_123', 'admin');`;
-        } else {
-            // Verify Token (Default)
-            usage = activeFramework.id === 'rust'
-                ? `// middleware.rs
+    } else {
+      // Verify Token (Default)
+      usage = activeFramework.id === 'rust'
+        ? `// middleware.rs
 let token = req.headers().get("Authorization")?;
 let session = client.verify_token(token).await?;
 
 println!("Authenticated user: {}", session.user_id);`
-                : `// middleware.ts
+        : `// middleware.ts
 const token = req.headers.authorization?.split(' ')[1];
 const session = await wacht.verifyToken(token);
 
 console.log(\`Authenticated user: \${session.userId}\`);`;
-        }
     }
+  }
 
-    return { installCmd, setup, usage };
+  return { installCmd, setup, usage };
 };
