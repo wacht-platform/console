@@ -22,18 +22,12 @@ const apiEndpoints = [
   },
   {
     id: "api-2",
-    endpoint: "/api/v1/workflows",
-    description: "Workflow management",
-    access: "Workflow agents only",
-  },
-  {
-    id: "api-3",
     endpoint: "/api/v1/data",
     description: "Data access and storage",
     access: "Restricted",
   },
   {
-    id: "api-4",
+    id: "api-3",
     endpoint: "/api/v1/users",
     description: "User management",
     access: "Admin agents only",

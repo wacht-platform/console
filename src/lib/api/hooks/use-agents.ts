@@ -16,7 +16,6 @@ export interface Agent {
   deployment_id: string;
   configuration: AgentConfiguration;
   tools_count: number;
-  workflows_count: number;
   knowledge_bases_count: number;
 }
 
@@ -127,11 +126,6 @@ export interface AgentWithFeatures extends Agent {
     id: string;
     name: string;
     tool_type: string;
-    description?: string;
-  }>;
-  workflows: Array<{
-    id: string;
-    name: string;
     description?: string;
   }>;
   knowledge_bases: Array<{

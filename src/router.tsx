@@ -55,10 +55,6 @@ const BillingSubscriptionPage = lazyImport(() => import("./pages/billing/subscri
 const BillingUsagePage = lazyImport(() => import("./pages/billing/usage"));
 // AI Agents pages
 const CreateAgentsPage = lazyImport(() => import("./pages/ai-agents/create-agents"));
-const WorkflowsPage = lazyImport(() => import("./pages/ai-agents/workflows"));
-const CreateWorkflowPage = lazyImport(
-  () => import("./pages/ai-agents/create-workflow"),
-);
 const ToolsPage = lazyImport(() => import("./pages/ai-agents/tools"));
 const KnowledgeBasePage = lazyImport(
   () => import("./pages/ai-agents/knowledge-base"),
@@ -306,30 +302,6 @@ export const router = createBrowserRouter([
             element: (
               <Suspense fallback={<SimpleFallback />}>
                 <AgentDetailsPage />
-              </Suspense>
-            ),
-          },
-          {
-            path: "workflows",
-            element: (
-              <Suspense fallback={<SimpleFallback />}>
-                <WorkflowsPage />
-              </Suspense>
-            ),
-          },
-          {
-            path: "workflows/create-workflow",
-            element: (
-              <Suspense fallback={<SimpleFallback />}>
-                <CreateWorkflowPage />
-              </Suspense>
-            ),
-          },
-          {
-            path: "workflows/edit/:workflowId",
-            element: (
-              <Suspense fallback={<SimpleFallback />}>
-                <CreateWorkflowPage />
               </Suspense>
             ),
           },

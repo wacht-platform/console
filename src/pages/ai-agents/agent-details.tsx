@@ -5,7 +5,6 @@ import {
     ClipboardDocumentIcon,
     LinkIcon,
     WrenchScrewdriverIcon,
-    FireIcon,
     BookOpenIcon,
     CheckIcon,
     PencilIcon,
@@ -24,7 +23,6 @@ import { useDeleteIntegration } from "../../lib/api/hooks/use-integrations";
 import { useGenerateAgentTicket } from "../../lib/hooks/use-generate-ticket";
 import { useProjects } from "../../lib/api/hooks/use-projects";
 import { useTools } from "../../lib/api/hooks/use-tools";
-import { useWorkflows } from "../../lib/api/hooks/use-workflows";
 import { useKnowledgeBases } from "../../lib/api/hooks/use-knowledge-bases";
 import { BsMicrosoftTeams } from "react-icons/bs";
 import { SiWhatsapp, SiClickup } from "react-icons/si";
@@ -95,19 +93,15 @@ export default function AgentDetailsPage() {
 
     // Fetch related resources to manually map them (workaround for backend details endpoint)
     const { data: toolsData } = useTools({ limit: 100 });
-    const { data: workflowsData } = useWorkflows({ limit: 100 });
     const { data: knowledgeBasesData } = useKnowledgeBases({ limit: 100 });
 
     const allTools = toolsData?.tools || [];
-    const allWorkflows = workflowsData?.workflows || [];
     const allKnowledgeBases = knowledgeBasesData?.data || [];
 
     const attachedToolIds = (agent?.configuration?.tool_ids as string[]) || [];
-    const attachedWorkflowIds = (agent?.configuration?.workflow_ids as string[]) || [];
     const attachedKbIds = (agent?.configuration?.knowledge_base_ids as string[]) || [];
 
     const attachedTools = allTools.filter(t => attachedToolIds.includes(t.id));
-    const attachedWorkflows = allWorkflows.filter(w => attachedWorkflowIds.includes(w.id));
     const attachedKnowledgeBases = allKnowledgeBases.filter(kb => attachedKbIds.includes(kb.id));
 
     const handleCopyUrl = async (url: string) => {
@@ -211,10 +205,6 @@ export default function AgentDetailsPage() {
                     <TabsTrigger value="tools">
                         <WrenchScrewdriverIcon className="h-4 w-4 mr-2" />
                         Tools
-                    </TabsTrigger>
-                    <TabsTrigger value="workflows">
-                        <FireIcon className="h-4 w-4 mr-2" />
-                        Workflows
                     </TabsTrigger>
                     <TabsTrigger value="knowledge">
                         <BookOpenIcon className="h-4 w-4 mr-2" />
@@ -361,40 +351,6 @@ export default function AgentDetailsPage() {
                         <div className="text-center py-12 border rounded-lg border-dashed">
                             <p className="text-muted-foreground">No tools attached to this agent.</p>
                             <Button variant="link" onClick={() => setIsEditDialogOpen(true)}>Edit Agent to add Tools</Button>
-                        </div>
-                    )}
-                </TabsContent>
-
-                {/* Workflows Content */}
-                <TabsContent value="workflows" className="pt-6">
-                    {attachedWorkflows.length > 0 ? (
-                        <div className="rounded-md border">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Description</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {attachedWorkflows.map((workflow: any) => (
-                                        <TableRow key={workflow.id}>
-                                            <TableCell className="font-medium">
-                                                <div className="flex items-center gap-2">
-                                                    <FireIcon className="h-4 w-4 text-orange-500" />
-                                                    {workflow.name}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-muted-foreground max-w-sm truncate" title={workflow.description}>{workflow.description || "No description"}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    ) : (
-                        <div className="text-center py-12 border rounded-lg border-dashed">
-                            <p className="text-muted-foreground">No workflows attached.</p>
-                            <Button variant="link" onClick={() => setIsEditDialogOpen(true)}>Edit Agent to add Workflows</Button>
                         </div>
                     )}
                 </TabsContent>

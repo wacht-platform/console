@@ -124,9 +124,8 @@ export function ApplicationLayout() {
       location.pathname.includes('/webhooks/deliveries') ? 'deliveries' :
         location.pathname.includes('/webhooks/analytics') ? 'analytics' : 'overview';
   } else if (isLLMRoute) {
-    currentTab = location.pathname.includes('/workflows') ? 'workflows' :
-      location.pathname.includes('/tools') ? 'tools' :
-        location.pathname.includes('/knowledge-base') ? 'knowledge-base' : 'ai-agents';
+    currentTab = location.pathname.includes('/tools') ? 'tools' :
+      location.pathname.includes('/knowledge-base') ? 'knowledge-base' : 'ai-agents';
   } else if (isBillingRoute) {
     currentTab = location.pathname.includes('/billing/usage') ? 'usage' : 'subscription';
   }
@@ -215,7 +214,6 @@ export function ApplicationLayout() {
                     {isLLMRoute && (
                       <>
                         <TabsTrigger value="ai-agents">AI Agents</TabsTrigger>
-                        <TabsTrigger value="workflows">Workflows</TabsTrigger>
                         <TabsTrigger value="tools">Tools</TabsTrigger>
                         <TabsTrigger value="knowledge-base">Knowledge Base</TabsTrigger>
                       </>

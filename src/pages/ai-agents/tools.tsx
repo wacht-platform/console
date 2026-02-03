@@ -84,7 +84,7 @@ export default function ToolsPage() {
 				<div>
 					<h1 className="text-xl font-normal tracking-tight">Tools</h1>
 					<p className="text-sm text-muted-foreground">
-						Manage tools that can be used by AI agents and workflows
+						Manage tools that can be used by AI agents
 					</p>
 				</div>
 				{!isLoading && !error && (

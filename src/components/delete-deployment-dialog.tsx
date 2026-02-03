@@ -85,7 +85,7 @@ export function DeleteDeploymentDialog({
                   <ul className="list-disc list-inside space-y-1">
                     <li>All users, organizations, and workspaces will be deleted</li>
                     <li>All authentication settings and configurations will be lost</li>
-                    <li>All AI agents, workflows, tools, and knowledge bases will be deleted</li>
+                    <li>All AI agents, tools, and knowledge bases will be deleted</li>
                     <li>All sessions and user data will be permanently removed</li>
                     {isProduction && (
                       <>

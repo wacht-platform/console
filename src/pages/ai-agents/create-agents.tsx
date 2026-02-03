@@ -48,7 +48,7 @@ export default function CreateAgentsPage() {
 				<div>
 					<h1 className="text-xl font-normal tracking-tight">AI Agents</h1>
 					<p className="text-sm text-muted-foreground">
-						Manage AI agents that combine tools, workflows, and knowledge bases
+						Manage AI agents that combine tools and knowledge bases
 					</p>
 				</div>
 				{!isLoading && !error && (
@@ -134,17 +134,12 @@ export default function CreateAgentsPage() {
 												{agent.tools_count} tools
 											</Badge>
 										)}
-										{agent.workflows_count > 0 && (
-											<Badge variant="secondary" className="font-normal">
-												{agent.workflows_count} workflows
-											</Badge>
-										)}
 										{agent.knowledge_bases_count > 0 && (
 											<Badge variant="secondary" className="font-normal">
 												{agent.knowledge_bases_count} docs
 											</Badge>
 										)}
-										{agent.tools_count === 0 && agent.workflows_count === 0 && agent.knowledge_bases_count === 0 && (
+										{agent.tools_count === 0 && agent.knowledge_bases_count === 0 && (
 											<span className="text-xs text-muted-foreground italic">No capabilities</span>
 										)}
 									</div>

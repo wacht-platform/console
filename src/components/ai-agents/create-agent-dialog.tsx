@@ -22,7 +22,6 @@ import { toast } from 'sonner';
 import type { Agent } from "../../lib/api/hooks/use-agents";
 import { useCreateAgent, useUpdateAgent } from "../../lib/api/hooks/use-agents";
 import { useTools } from "../../lib/api/hooks/use-tools";
-import { useWorkflows } from "../../lib/api/hooks/use-workflows";
 import { useKnowledgeBases } from "../../lib/api/hooks/use-knowledge-bases";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
@@ -36,7 +35,6 @@ interface AgentFormData {
 	name: string;
 	description: string;
 	toolIds: string[];
-	workflowIds: string[];
 	knowledgeBaseIds: string[];
 	integrationIds: string[];
 }
@@ -56,7 +54,6 @@ export function CreateAgentDialog({
 		name: "",
 		description: "",
 		toolIds: [],
-		workflowIds: [],
 		knowledgeBaseIds: [],
 		integrationIds: [],
 	});
@@ -72,11 +69,9 @@ export function CreateAgentDialog({
 
 	// Fetch available resources
 	const { data: toolsData } = useTools({ limit: 100 });
-	const { data: workflowsData } = useWorkflows({ limit: 100 });
 	const { data: knowledgeBasesData } = useKnowledgeBases({ limit: 100 });
 
 	const tools = toolsData?.tools || [];
-	const workflows = workflowsData?.workflows || [];
 	const knowledgeBases = knowledgeBasesData?.data || [];
 
 	// Reset form when dialog opens/closes
@@ -88,7 +83,6 @@ export function CreateAgentDialog({
 					name: agent.name,
 					description: agent.description || "",
 					toolIds: (agent.configuration?.tool_ids as string[]) || [],
-					workflowIds: (agent.configuration?.workflow_ids as string[]) || [],
 					knowledgeBaseIds: (agent.configuration?.knowledge_base_ids as string[]) || [],
 					integrationIds: (agent.configuration?.integration_ids as string[]) || [],
 				});
@@ -97,7 +91,6 @@ export function CreateAgentDialog({
 					name: "",
 					description: "",
 					toolIds: [],
-					workflowIds: [],
 					knowledgeBaseIds: [],
 					integrationIds: [],
 				});
@@ -142,7 +135,6 @@ export function CreateAgentDialog({
 				description: formData.description.trim() || undefined,
 				configuration: {
 					tool_ids: formData.toolIds,
-					workflow_ids: formData.workflowIds,
 					knowledge_base_ids: formData.knowledgeBaseIds,
 					integration_ids: formData.integrationIds,
 					quick_questions: [],
@@ -170,10 +162,9 @@ export function CreateAgentDialog({
 		}
 	};
 
-	const toggleSelection = (id: string, type: 'tools' | 'workflows' | 'knowledgeBases') => {
+	const toggleSelection = (id: string, type: 'tools' | 'knowledgeBases') => {
 		const fieldMap = {
 			tools: 'toolIds',
-			workflows: 'workflowIds',
 			knowledgeBases: 'knowledgeBaseIds',
 		} as const;
 		const fieldName = fieldMap[type];
@@ -269,48 +260,6 @@ export function CreateAgentDialog({
 													<div className="flex-1 min-w-0">
 														<div className="font-medium text-sm truncate">{tool.name}</div>
 														<div className="text-xs text-muted-foreground truncate">{tool.tool_type}</div>
-													</div>
-												</div>
-											))
-										)}
-									</div>
-								</div>
-
-								{/* Workflows Section */}
-								<div className="space-y-3">
-									<div className="flex items-center justify-between">
-										<Label className="flex items-center gap-2 text-base">
-											<FireIcon className="h-4 w-4 text-orange-500" />
-											Workflows
-										</Label>
-										{formData.workflowIds.length > 0 && (
-											<Badge variant="secondary">{formData.workflowIds.length} selected</Badge>
-										)}
-									</div>
-									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-										{workflows.length === 0 ? (
-											<div className="col-span-full text-sm text-muted-foreground py-2 italic text-center border border-dashed rounded-lg">
-												No workflows available
-											</div>
-										) : (
-											workflows.map((workflow) => (
-												<div
-													key={workflow.id}
-													onClick={() => toggleSelection(workflow.id, 'workflows')}
-													className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all hover:bg-muted/50 ${formData.workflowIds.includes(workflow.id)
-														? "border-primary bg-primary/5 hover:bg-primary/10"
-														: "border-border"
-														}`}
-												>
-													<div className={`mt-0.5 h-4 w-4 rounded flex items-center justify-center border ${formData.workflowIds.includes(workflow.id)
-														? "bg-primary border-primary text-primary-foreground"
-														: "border-muted-foreground"
-														}`}>
-														{formData.workflowIds.includes(workflow.id) && <CheckIcon className="h-3 w-3" />}
-													</div>
-													<div className="flex-1 min-w-0">
-														<div className="font-medium text-sm truncate">{workflow.name}</div>
-														<div className="text-xs text-muted-foreground truncate">{workflow.description || "No description"}</div>
 													</div>
 												</div>
 											))
