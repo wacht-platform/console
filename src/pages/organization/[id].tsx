@@ -319,7 +319,7 @@ export default function OrganizationDetailsPage() {
   };
 
   return (
-    <div className="container mx-auto">
+    <div>
       <CreateWorkspaceModal
         isOpen={createWorkspaceModalOpen}
         onClose={() => setCreateWorkspaceModalOpen(false)}
