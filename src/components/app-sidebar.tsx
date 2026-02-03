@@ -9,6 +9,7 @@ import {
   IconBuilding,
   IconCirclePlus,
   IconCreditCard,
+  IconRocket,
 } from "@tabler/icons-react"
 import { useLocation } from "react-router"
 import { NavMain } from "@/components/nav-main"
@@ -99,6 +100,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
   ]
 
+  const navOnboarding = [
+    {
+      title: "Quickstart",
+      url: "getting-started",
+      icon: IconRocket,
+      isActive: pathname.includes("getting-started"),
+    },
+  ]
+
   return (
     <Sidebar collapsible="none" {...props}>
       <SidebarHeader>
@@ -109,7 +119,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <div className="flex flex-col gap-4">
+        <NavMain items={navOnboarding} />
+        <div className="flex flex-col gap-4 -mt-2">
           <NavMain title="MANAGEMENT" items={navManagement} />
           <NavMain title="CONFIGURATION" items={navConfiguration} />
           <NavMain title="DEVELOPERS" items={navDevelopers} />
