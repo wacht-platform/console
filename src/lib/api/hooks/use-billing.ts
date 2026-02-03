@@ -37,6 +37,8 @@ export interface Subscription {
   billing_account_id: string;
   provider_customer_id: string;
   provider_subscription_id: string;
+  product_id?: string;
+  plan_name?: string;
   status: string;
   created_at?: string;
   updated_at?: string;

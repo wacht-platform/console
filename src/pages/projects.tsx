@@ -96,7 +96,6 @@ export default function ProjectsPage() {
             <Button
               onClick={handleCreateProject}
               className="w-full sm:w-auto flex items-center justify-center gap-2 shadow-sm rounded-lg"
-              size="lg"
             >
               <PlusIcon className="w-5 h-5" />
               <span>New project</span>

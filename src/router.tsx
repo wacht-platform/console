@@ -8,6 +8,7 @@ import { Navigate } from "react-router";
 const SimpleFallback = () => <InlineLoader />;
 
 const OverviewPage = lazyImport(() => import("./pages/overview"));
+const GettingStartedPage = lazyImport(() => import("./pages/getting-started"));
 
 const ActiveUsersPage = lazyImport(() => import("./pages/users/active"));
 const InvitedUsersPage = lazyImport(() => import("./pages/users/invited"));
@@ -88,6 +89,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<SimpleFallback />}>
             <OverviewPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "getting-started",
+        element: (
+          <Suspense fallback={<SimpleFallback />}>
+            <GettingStartedPage />
           </Suspense>
         ),
       },
