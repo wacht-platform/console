@@ -453,7 +453,7 @@ export default function JWTTemplateCreateUpdatePage() {
                       name="secret_key"
                       value={secretKey}
                       onChange={handleSecretKeyChange}
-                      className="mt-2 font-mono text-sm"
+                      className="mt-2 text-sm"
                       rows={4}
                       placeholder="Enter your secret key here..."
                     />

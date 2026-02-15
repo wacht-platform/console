@@ -235,14 +235,14 @@ export function DomainManagement({ organizationId }: DomainManagementProps) {
                           {domain.verified ? (
                             <Badge
                               color="green"
-                              className="inline-flex items-center gap-1.5 px-1.5 py-0 rounded text-[10px] font-medium"
+                              className="inline-flex items-center gap-1.5 px-1.5 py-0 rounded text-xs font-medium"
                             >
                               <CheckCircleIcon className="w-3 h-3" /> Verified
                             </Badge>
                           ) : (
                             <Badge
                               color="yellow"
-                              className="inline-flex items-center gap-1.5 px-1.5 py-0 rounded text-[10px] font-medium"
+                              className="inline-flex items-center gap-1.5 px-1.5 py-0 rounded text-xs font-medium"
                             >
                               <XCircleIcon className="w-3 h-3" /> Unverified
                             </Badge>
@@ -296,28 +296,28 @@ export function DomainManagement({ organizationId }: DomainManagementProps) {
                       </h5>
                       <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
                         <div className="sm:col-span-2 space-y-1.5">
-                          <label className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Type</label>
+                          <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Type</label>
                           <Input
                             readOnly
                             value="TXT"
-                            className="font-mono text-xs h-9 bg-white dark:bg-zinc-800"
+                            className="text-xs h-9 bg-white dark:bg-zinc-800"
                           />
                         </div>
                         <div className="sm:col-span-3 space-y-1.5">
-                          <label className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Name / Host</label>
+                          <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Name / Host</label>
                           <Input
                             readOnly
                             value={`${domain.verification_dns_record_name || "_wacht-verification"}.${domain.fqdn}`}
-                            className="font-mono text-xs h-9 bg-white dark:bg-zinc-800"
+                            className="text-xs h-9 bg-white dark:bg-zinc-800"
                           />
                         </div>
                         <div className="sm:col-span-7 space-y-1.5">
-                          <label className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Value</label>
+                          <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Value</label>
                           <div className="relative">
                             <Input
                               readOnly
                               value={domain.verification_dns_record_data || domain.verification_token || ""}
-                              className="font-mono text-xs  h-9 pr-24 bg-white dark:bg-zinc-800"
+                              className="text-xs  h-9 pr-24 bg-white dark:bg-zinc-800"
                             />
                             <div className="absolute inset-y-0 right-1 flex items-center">
                               <Button
@@ -353,16 +353,16 @@ export function DomainManagement({ organizationId }: DomainManagementProps) {
             <div className="rounded-md bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-3">
               <div className="flex justify-between items-center mb-1">
                 <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Type</span>
-                <span className="text-xs font-mono text-zinc-700 dark:text-zinc-300">TXT</span>
+                <span className="text-xs text-zinc-700 dark:text-zinc-300">TXT</span>
               </div>
               <div className="flex justify-between items-center mb-1">
                 <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Name/Host</span>
-                <span className="text-xs font-mono text-zinc-700 dark:text-zinc-300">@</span>
+                <span className="text-xs text-zinc-700 dark:text-zinc-300">@</span>
               </div>
               <div className="mt-2">
                 <div className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">Value</div>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 p-2 bg-white dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700 font-mono text-xs break-all">
+                  <code className="flex-1 p-2 bg-white dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700 text-xs break-all">
                     {verificationRecord}
                   </code>
                   <Button

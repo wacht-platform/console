@@ -11,16 +11,19 @@ import {
 	DialogTitle,
 } from "../ui/dialog";
 import { Badge } from "../ui/badge";
+import { Switch } from "../ui/switch";
 import {
 	WrenchScrewdriverIcon,
 	FireIcon,
 	BookOpenIcon,
 	CheckIcon,
+	UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from 'sonner';
 
 import type { Agent } from "../../lib/api/hooks/use-agents";
-import { useCreateAgent, useUpdateAgent } from "../../lib/api/hooks/use-agents";
+import { useCreateAgent, useUpdateAgent, useAgents } from "../../lib/api/hooks/use-agents";
+import type { Agent } from "../../lib/api/hooks/use-agents";
 import { useTools } from "../../lib/api/hooks/use-tools";
 import { useKnowledgeBases } from "../../lib/api/hooks/use-knowledge-bases";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
@@ -37,6 +40,13 @@ interface AgentFormData {
 	toolIds: string[];
 	knowledgeBaseIds: string[];
 	integrationIds: string[];
+	subAgentIds: string[];
+	spawnConfig: {
+		maxParallelChildren?: number;
+		defaultTimeoutSecs?: number;
+		allowFork?: boolean;
+		allowExec?: boolean;
+	};
 }
 
 interface FormErrors {
@@ -56,6 +66,13 @@ export function CreateAgentDialog({
 		toolIds: [],
 		knowledgeBaseIds: [],
 		integrationIds: [],
+		subAgentIds: [],
+		spawnConfig: {
+			maxParallelChildren: 10,
+			defaultTimeoutSecs: 300,
+			allowFork: true,
+			allowExec: true,
+		},
 	});
 
 	const [errors, setErrors] = useState<FormErrors>({});
@@ -74,6 +91,12 @@ export function CreateAgentDialog({
 	const tools = toolsData?.tools || [];
 	const knowledgeBases = knowledgeBasesData?.data || [];
 
+	// Fetch all agents for sub-agent selection (exclude current agent when editing)
+	const { data: agentsData } = useAgents({ limit: 100 });
+	const availableAgents = (agentsData?.agents || []).filter(
+		(a: Agent) => !agent || a.id !== agent.id
+	);
+
 	// Reset form when dialog opens/closes
 	useEffect(() => {
 		if (open) {
@@ -85,6 +108,13 @@ export function CreateAgentDialog({
 					toolIds: (agent.configuration?.tool_ids as string[]) || [],
 					knowledgeBaseIds: (agent.configuration?.knowledge_base_ids as string[]) || [],
 					integrationIds: (agent.configuration?.integration_ids as string[]) || [],
+					subAgentIds: (agent.sub_agents as string[]) || [],
+					spawnConfig: {
+						maxParallelChildren: agent.spawn_config?.max_parallel_children ?? 10,
+						defaultTimeoutSecs: agent.spawn_config?.default_timeout_secs ?? 300,
+						allowFork: agent.spawn_config?.allow_fork ?? true,
+						allowExec: agent.spawn_config?.allow_exec ?? true,
+					},
 				});
 			} else {
 				setFormData({
@@ -93,6 +123,13 @@ export function CreateAgentDialog({
 					toolIds: [],
 					knowledgeBaseIds: [],
 					integrationIds: [],
+					subAgentIds: [],
+					spawnConfig: {
+						maxParallelChildren: 10,
+						defaultTimeoutSecs: 300,
+						allowFork: true,
+						allowExec: true,
+					},
 				});
 			}
 			setErrors({});
@@ -138,6 +175,13 @@ export function CreateAgentDialog({
 					knowledge_base_ids: formData.knowledgeBaseIds,
 					integration_ids: formData.integrationIds,
 					quick_questions: [],
+				},
+				sub_agents: formData.subAgentIds.length > 0 ? formData.subAgentIds : undefined,
+				spawn_config: {
+					max_parallel_children: formData.spawnConfig.maxParallelChildren,
+					default_timeout_secs: formData.spawnConfig.defaultTimeoutSecs,
+					allow_fork: formData.spawnConfig.allowFork,
+					allow_exec: formData.spawnConfig.allowExec,
 				},
 			};
 
@@ -191,9 +235,10 @@ export function CreateAgentDialog({
 				<form onSubmit={handleSubmit} className="flex-1 overflow-hidden flex flex-col">
 					<Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
 						<div className="px-6">
-							<TabsList className="grid w-full grid-cols-2">
+							<TabsList className="grid w-full grid-cols-3">
 								<TabsTrigger value="details">Details</TabsTrigger>
 								<TabsTrigger value="capabilities">Capabilities</TabsTrigger>
+								<TabsTrigger value="subAgents">Agent Swarm</TabsTrigger>
 							</TabsList>
 						</div>
 
@@ -309,6 +354,149 @@ export function CreateAgentDialog({
 									</div>
 								</div>
 							</TabsContent>
+
+							<TabsContent value="subAgents" className="mt-0 space-y-8">
+								{/* Sub-Agents Selection */}
+								<div className="space-y-3">
+									<div className="flex items-center justify-between">
+										<Label className="flex items-center gap-2 text-base">
+											<UserGroupIcon className="h-4 w-4 text-purple-500" />
+											Sub-Agents
+										</Label>
+										{formData.subAgentIds.length > 0 && (
+											<Badge variant="secondary">{formData.subAgentIds.length} selected</Badge>
+										)}
+									</div>
+									<p className="text-sm text-muted-foreground">
+										Select agents that this agent can spawn during execution. These will be available as child agents for delegation.
+									</p>
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+										{availableAgents.length === 0 ? (
+											<div className="col-span-full text-sm text-muted-foreground py-2 italic text-center border border-dashed rounded-lg">
+												No other agents available
+											</div>
+										) : (
+											availableAgents.map((subAgent: Agent) => (
+												<div
+													key={subAgent.id}
+													onClick={() => {
+														const newIds = formData.subAgentIds.includes(subAgent.id)
+															? formData.subAgentIds.filter(id => id !== subAgent.id)
+															: [...formData.subAgentIds, subAgent.id];
+														setFormData({ ...formData, subAgentIds: newIds });
+													}}
+													className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all hover:bg-muted/50 ${
+														formData.subAgentIds.includes(subAgent.id)
+															? "border-primary bg-primary/5 hover:bg-primary/10"
+															: "border-border"
+													}`}
+												>
+													<div className={`mt-0.5 h-4 w-4 rounded flex items-center justify-center border ${
+														formData.subAgentIds.includes(subAgent.id)
+															? "bg-primary border-primary text-primary-foreground"
+															: "border-muted-foreground"
+													}`}>
+														{formData.subAgentIds.includes(subAgent.id) && <CheckIcon className="h-3 w-3" />}
+													</div>
+													<div className="flex-1 min-w-0">
+														<div className="font-medium text-sm truncate">{subAgent.name}</div>
+														<div className="text-xs text-muted-foreground truncate">
+															{subAgent.description || "No description"}
+														</div>
+													</div>
+												</div>
+											))
+										)}
+									</div>
+								</div>
+
+								{/* Spawn Configuration */}
+								<div className="space-y-4">
+									<div className="flex items-center gap-2">
+										<FireIcon className="h-4 w-4 text-orange-500" />
+										<Label className="text-base">Spawn Configuration</Label>
+									</div>
+									<p className="text-sm text-muted-foreground">
+										Configure how this agent can spawn child agents.
+									</p>
+
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+										<div className="space-y-2">
+											<Label>Max Parallel Children</Label>
+											<Input
+												type="number"
+												min="1"
+												max="50"
+												value={formData.spawnConfig.maxParallelChildren ?? 10}
+												onChange={(e) => setFormData({
+													...formData,
+													spawnConfig: {
+														...formData.spawnConfig,
+														maxParallelChildren: parseInt(e.target.value) || 10
+													}
+												})}
+												className="w-full"
+											/>
+											<p className="text-xs text-muted-foreground">
+												Maximum number of child agents running simultaneously
+											</p>
+										</div>
+
+										<div className="space-y-2">
+											<Label>Default Timeout (seconds)</Label>
+											<Input
+												type="number"
+												min="10"
+												max="3600"
+												value={formData.spawnConfig.defaultTimeoutSecs ?? 300}
+												onChange={(e) => setFormData({
+													...formData,
+													spawnConfig: {
+														...formData.spawnConfig,
+														defaultTimeoutSecs: parseInt(e.target.value) || 300
+													}
+												})}
+												className="w-full"
+											/>
+											<p className="text-xs text-muted-foreground">
+												Default timeout for spawned child agents
+											</p>
+										</div>
+									</div>
+
+									<div className="space-y-3 pt-2">
+										<div className="flex items-center justify-between">
+											<Label htmlFor="allowFork">Allow Fork (spawn copy of self)</Label>
+											<Switch
+												id="allowFork"
+												checked={formData.spawnConfig.allowFork ?? true}
+												onCheckedChange={(checked) => setFormData({
+													...formData,
+													spawnConfig: {
+														...formData.spawnConfig,
+														allowFork: checked
+													}
+												})}
+											/>
+										</div>
+
+										<div className="flex items-center justify-between">
+											<Label htmlFor="allowExec">Allow Exec (spawn different agents)</Label>
+											<Switch
+												id="allowExec"
+												checked={formData.spawnConfig.allowExec ?? true}
+												onCheckedChange={(checked) => setFormData({
+													...formData,
+													spawnConfig: {
+														...formData.spawnConfig,
+														allowExec: checked
+													}
+												})}
+											/>
+										</div>
+									</div>
+								</div>
+							</TabsContent>
 						</div>
 
 						<div className="flex items-center justify-end gap-3 p-4 border-t bg-muted/40 shrink-0">
@@ -317,7 +505,6 @@ export function CreateAgentDialog({
 							</Button>
 							<Button
 								type="submit"
-								onClick={handleSubmit}
 								disabled={isSubmitting || !formData.name.trim()}
 							>
 								{isSubmitting

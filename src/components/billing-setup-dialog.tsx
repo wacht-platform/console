@@ -334,7 +334,7 @@ export function BillingSetupDialog({
                               <span className="text-[9px] text-zinc-500 font-normal lowercase">/mo</span>
                             </div>
                           </div>
-                          <div className="text-[10px] text-zinc-500 dark:text-zinc-400 flex flex-wrap gap-x-3 gap-y-0.5">
+                          <div className="text-xs text-zinc-500 dark:text-zinc-400 flex flex-wrap gap-x-3 gap-y-0.5">
                             <span className="flex items-center gap-1">
                               <CheckBadgeIcon className="w-2.5 h-2.5 text-blue-500" />
                               {plan.mau}

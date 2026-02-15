@@ -45,7 +45,7 @@ const InvoiceRow = ({ inv }: { inv: any }) => {
                     <Button
                         size="sm"
                         variant="ghost"
-                        className="h-7 text-[10px] py-0 px-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-white font-normal"
+                        className="h-7 text-xs py-0 px-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-white font-normal"
                         onClick={() => {
                             if (inv.invoice_pdf_url) {
                                 window.open(inv.invoice_pdf_url, "_blank");
@@ -161,7 +161,7 @@ export default function BillingSubscriptionPage() {
 
                     <div className="relative z-10 text-center max-w-2xl mx-auto">
                         <div className="mb-6">
-                            <Badge variant="outline" className="bg-zinc-100 dark:bg-zinc-900/50 text-zinc-600 dark:text-zinc-500 border-zinc-300 dark:border-zinc-800 text-[10px] px-3 py-1 font-normal uppercase tracking-wider">
+                            <Badge variant="outline" className="bg-zinc-100 dark:bg-zinc-900/50 text-zinc-600 dark:text-zinc-500 border-zinc-300 dark:border-zinc-800 text-xs px-3 py-1 font-normal uppercase tracking-wider">
                                 No Active Subscription
                             </Badge>
                         </div>
@@ -197,7 +197,7 @@ export default function BillingSubscriptionPage() {
                                 key={plan.id}
                                 className="group relative p-6 rounded-xl border transition-all duration-300 flex flex-col bg-white dark:bg-[#111113] border-zinc-200 dark:border-zinc-800/60 hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900/30 shadow-sm dark:shadow-none"
                             >
-                                {plan.popular && <div className="absolute top-0 right-0 bg-indigo-600/90 text-[10px] font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl text-white tracking-widest text-[9px]">RECOMMENDED</div>}
+                                {plan.popular && <div className="absolute top-0 right-0 bg-indigo-600/90 text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl text-white tracking-widest text-[9px]">RECOMMENDED</div>}
 
                                 <div className="mb-6">
                                     <div className="text-zinc-900 dark:text-zinc-200 font-normal text-base">{plan.name}</div>
@@ -236,7 +236,7 @@ export default function BillingSubscriptionPage() {
                             <div>
                                 <div className="flex items-center gap-3 mb-2">
                                     <h3 className="text-lg font-normal text-zinc-900 dark:text-white">Enterprise</h3>
-                                    <Badge variant="outline" className="text-zinc-500 dark:text-zinc-500 border-zinc-300 dark:border-zinc-700 text-[10px] uppercase tracking-wider px-2 font-normal">Custom Solutions</Badge>
+                                    <Badge variant="outline" className="text-zinc-500 dark:text-zinc-500 border-zinc-300 dark:border-zinc-700 text-xs uppercase tracking-wider px-2 font-normal">Custom Solutions</Badge>
                                 </div>
                                 <p className="text-zinc-500 dark:text-zinc-500 text-sm font-light max-w-xl mb-4 leading-relaxed">
                                     For large-scale deployments requiring dedicated support, custom contracts, and unlimited volume.
@@ -290,7 +290,7 @@ export default function BillingSubscriptionPage() {
                         <div className="flex items-center gap-3 mb-2">
                             <h2 className="text-lg font-normal text-zinc-900 dark:text-white">{currentPlan.name} Plan</h2>
                             {subscription?.status === "active" && (
-                                <Badge variant="outline" className="bg-emerald-50 dark:bg-emerald-500/5 text-emerald-600 dark:text-emerald-500 border-emerald-200 dark:border-emerald-500/20 text-[10px] px-2 font-normal flex items-center gap-1">
+                                <Badge variant="outline" className="bg-emerald-50 dark:bg-emerald-500/5 text-emerald-600 dark:text-emerald-500 border-emerald-200 dark:border-emerald-500/20 text-xs px-2 font-normal flex items-center gap-1">
                                     <CheckIcon className="w-3 h-3" />
                                     Active
                                 </Badge>
@@ -319,7 +319,7 @@ export default function BillingSubscriptionPage() {
                         <DocumentTextIcon className="w-4 h-4 text-zinc-500 dark:text-zinc-500" />
                         Payment History
                     </h3>
-                    <Button size="sm" variant="ghost" className="text-[10px] h-7 text-zinc-500 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 font-normal uppercase tracking-wider" onClick={handleOpenPortal}>
+                    <Button size="sm" variant="ghost" className="text-xs h-7 text-zinc-500 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 font-normal uppercase tracking-wider" onClick={handleOpenPortal}>
                         Full History & Portal
                     </Button>
                 </div>
@@ -372,7 +372,7 @@ export default function BillingSubscriptionPage() {
                                         : "bg-white dark:bg-[#111113] border-zinc-200 dark:border-zinc-800/60 hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900/30"
                                 )}
                             >
-                                {plan.popular && <div className="absolute top-0 right-0 bg-indigo-600/90 text-[10px] font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl text-white tracking-widest text-[9px]">RECOMMENDED</div>}
+                                {plan.popular && <div className="absolute top-0 right-0 bg-indigo-600/90 text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl text-white tracking-widest text-[9px]">RECOMMENDED</div>}
 
                                 <div className="mb-6">
                                     <div className="text-zinc-900 dark:text-zinc-200 font-normal text-base">{plan.name}</div>
@@ -418,7 +418,7 @@ export default function BillingSubscriptionPage() {
                         <div>
                             <div className="flex items-center gap-3 mb-2">
                                 <h3 className="text-lg font-normal text-zinc-900 dark:text-white">Enterprise</h3>
-                                <Badge variant="outline" className="text-zinc-500 dark:text-zinc-500 border-zinc-300 dark:border-zinc-700 text-[10px] uppercase tracking-wider px-2 font-normal">Custom Solutions</Badge>
+                                <Badge variant="outline" className="text-zinc-500 dark:text-zinc-500 border-zinc-300 dark:border-zinc-700 text-xs uppercase tracking-wider px-2 font-normal">Custom Solutions</Badge>
                             </div>
                             <p className="text-zinc-500 dark:text-zinc-500 text-sm font-light max-w-xl mb-4 leading-relaxed">
                                 For large-scale deployments requiring dedicated support, custom contracts, and unlimited volume.

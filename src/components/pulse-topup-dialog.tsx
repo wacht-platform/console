@@ -124,11 +124,11 @@ export function PulseTopUpDialog({ open, onClose }: PulseTopUpDialogProps) {
                             <div className="space-y-3 relative z-10">
                                 <div className="flex justify-between items-center">
                                     <span className="text-xs font-light text-zinc-600 dark:text-zinc-400">Credits Allocation</span>
-                                    <span className="text-xs font-mono text-zinc-700 dark:text-zinc-200">${(selectedAmount / 100).toFixed(2)}</span>
+                                    <span className="text-xs text-zinc-700 dark:text-zinc-200">${(selectedAmount / 100).toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-xs font-light text-zinc-500 dark:text-zinc-500/80">Processing Fees</span>
-                                    <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400">${(fee / 100).toFixed(2)}</span>
+                                    <span className="text-xs text-zinc-500 dark:text-zinc-400">${(fee / 100).toFixed(2)}</span>
                                 </div>
                                 <div className="pt-4 mt-4 border-t border-zinc-300 dark:border-zinc-800/50 flex justify-between items-center">
                                     <div className="flex items-baseline gap-1.5">
@@ -137,13 +137,13 @@ export function PulseTopUpDialog({ open, onClose }: PulseTopUpDialogProps) {
                                             {(total / 100).toFixed(2)}
                                         </span>
                                     </div>
-                                    <span className="text-[10px] text-zinc-500 dark:text-zinc-600 font-light italic">Secure one-time transaction</span>
+                                    <span className="text-xs text-zinc-500 dark:text-zinc-600 font-light italic">Secure one-time transaction</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-center gap-3 text-[10px] text-zinc-500 dark:text-zinc-600 font-light pt-1">
+                    <div className="flex items-center justify-center gap-3 text-xs text-zinc-500 dark:text-zinc-600 font-light pt-1">
                         <ShieldCheckIcon className="w-3.5 h-3.5 text-emerald-500/60 dark:text-emerald-500/60" />
                         Encrypted transaction. No card data is stored.
                     </div>

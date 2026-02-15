@@ -1,4 +1,4 @@
-export type RateLimitUnit = 'second' | 'minute' | 'hour' | 'day';
+export type RateLimitUnit = 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'calendar_day' | 'month' | 'calendar_month';
 export type RateLimitMode = 'per_key' | 'per_ip' | 'per_key_and_ip';
 
 export interface RateLimit {

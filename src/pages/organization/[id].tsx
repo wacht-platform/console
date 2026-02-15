@@ -830,7 +830,7 @@ export default function OrganizationDetailsPage() {
                             <Badge
                               key={s.id}
                               variant="secondary"
-                              className="text-[10px] px-1 py-0 h-5"
+                              className="text-xs px-1 py-0 h-5"
                             >
                               {s.name}
                             </Badge>

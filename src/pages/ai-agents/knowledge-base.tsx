@@ -369,7 +369,7 @@ export default function KnowledgeBasePage() {
 															</div>
 														</TableCell>
 														<TableCell className="py-2">
-															<Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-normal">
+															<Badge variant="secondary" className="text-xs h-5 px-1.5 font-normal">
 																{getFileTypeLabel(doc.file_type)}
 															</Badge>
 														</TableCell>

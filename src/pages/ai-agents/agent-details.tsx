@@ -12,13 +12,16 @@ import {
     PlusIcon,
     EllipsisVerticalIcon,
     CodeBracketIcon,
+    UserGroupIcon,
+    FireIcon,
+    InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "../../components/ui/button";
 import { InlineLoader } from "../../components/ui/loading-screen";
 import { ConfirmationDialog } from "../../components/modals/confirmation-dialog";
 import { CreateAgentDialog } from "../../components/ai-agents/create-agent-dialog";
 import { CreateIntegrationDialog } from "../../components/ai-agents/create-integration-dialog";
-import { useAgentById, useDeleteAgent, type Agent } from "../../lib/api/hooks/use-agents";
+import { useAgentById, useDeleteAgent, useAgents, type Agent } from "../../lib/api/hooks/use-agents";
 import { useDeleteIntegration } from "../../lib/api/hooks/use-integrations";
 import { useGenerateAgentTicket } from "../../lib/hooks/use-generate-ticket";
 import { useProjects } from "../../lib/api/hooks/use-projects";
@@ -42,6 +45,7 @@ import {
 } from "../../components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Badge } from "../../components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../components/ui/tooltip";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import type { AgentIntegration } from "@/types/agent-integration";
@@ -94,9 +98,14 @@ export default function AgentDetailsPage() {
     // Fetch related resources to manually map them (workaround for backend details endpoint)
     const { data: toolsData } = useTools({ limit: 100 });
     const { data: knowledgeBasesData } = useKnowledgeBases({ limit: 100 });
+    const { data: agentsData } = useAgents({ limit: 100 });
 
     const allTools = toolsData?.tools || [];
     const allKnowledgeBases = knowledgeBasesData?.data || [];
+    const allAgents = agentsData?.agents || [];
+
+    const subAgentIds = (agent?.sub_agents as string[]) || [];
+    const subAgents = allAgents.filter(a => subAgentIds.includes(a.id) && a.id !== agent?.id);
 
     const attachedToolIds = (agent?.configuration?.tool_ids as string[]) || [];
     const attachedKbIds = (agent?.configuration?.knowledge_base_ids as string[]) || [];
@@ -210,6 +219,10 @@ export default function AgentDetailsPage() {
                         <BookOpenIcon className="h-4 w-4 mr-2" />
                         Knowledge Base
                     </TabsTrigger>
+                    <TabsTrigger value="swarm">
+                        <UserGroupIcon className="h-4 w-4 mr-2" />
+                        Swarm
+                    </TabsTrigger>
                     <TabsTrigger value="debug">
                         <CodeBracketIcon className="h-4 w-4 mr-2" />
                         Debug
@@ -253,7 +266,7 @@ export default function AgentDetailsPage() {
                                             <TableCell>
                                                 {integration.webhook_url && integration.integration_type !== "clickup" ? (
                                                     <div className="flex items-center gap-2">
-                                                        <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
+                                                        <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] text-sm">
                                                             {integration.webhook_url.length > 40 ? integration.webhook_url.substring(0, 40) + "..." : integration.webhook_url}
                                                         </code>
                                                         <Button
@@ -389,6 +402,115 @@ export default function AgentDetailsPage() {
                     )}
                 </TabsContent>
 
+                {/* Swarm Content */}
+                <TabsContent value="swarm" className="pt-6 space-y-8">
+                    {/* Spawn Configuration */}
+                    <div>
+                        <div className="flex items-center gap-2 mb-4">
+                            <FireIcon className="h-5 w-5 text-orange-500" />
+                            <h3 className="text-lg font-medium">Spawn Configuration</h3>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-4">
+                            Settings that control how this agent can spawn child agents during execution.
+                        </p>
+
+                        {agent.spawn_config ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div className="border rounded-lg p-4">
+                                    <p className="text-sm text-muted-foreground mb-1">Max Parallel Children</p>
+                                    <p className="text-2xl font-semibold">{agent.spawn_config.max_parallel_children ?? 10}</p>
+                                </div>
+                                <div className="border rounded-lg p-4">
+                                    <p className="text-sm text-muted-foreground mb-1">Default Timeout</p>
+                                    <p className="text-2xl font-semibold">{agent.spawn_config.default_timeout_secs ?? 300}s</p>
+                                </div>
+                                <div className="border rounded-lg p-4">
+                                    <div className="flex items-center gap-1 mb-1">
+                                        <p className="text-sm text-muted-foreground">Allow Fork</p>
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <InformationCircleIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Spawn a copy of itself to handle sub-tasks independently</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </div>
+                                    <p className={`text-2xl font-semibold ${agent.spawn_config.allow_fork !== false ? 'text-green-600' : 'text-red-600'}`}>
+                                        {agent.spawn_config.allow_fork !== false ? 'Yes' : 'No'}
+                                    </p>
+                                </div>
+                                <div className="border rounded-lg p-4">
+                                    <div className="flex items-center gap-1 mb-1">
+                                        <p className="text-sm text-muted-foreground">Allow Exec</p>
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <InformationCircleIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Spawn different agents from the approved swarm list</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </div>
+                                    <p className={`text-2xl font-semibold ${agent.spawn_config.allow_exec !== false ? 'text-green-600' : 'text-red-600'}`}>
+                                        {agent.spawn_config.allow_exec !== false ? 'Yes' : 'No'}
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">No spawn configuration set. Edit agent to configure.</p>
+                        )}
+                    </div>
+
+                    {/* Sub-Agents */}
+                    <div>
+                        <div className="flex items-center gap-2 mb-4">
+                            <UserGroupIcon className="h-5 w-5 text-purple-500" />
+                            <h3 className="text-lg font-medium">Swarm Agents</h3>
+                            {subAgents.length > 0 && (
+                                <Badge variant="secondary">{subAgents.length}</Badge>
+                            )}
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-4">
+                            Agents that this agent can spawn during execution for task delegation.
+                        </p>
+
+                        {subAgents.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {subAgents.map((subAgent: Agent) => (
+                                    <div
+                                        key={subAgent.id}
+                                        className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <UserGroupIcon className="h-4 w-4 text-primary" />
+                                            <p className="font-medium">{subAgent.name}</p>
+                                        </div>
+                                        <p className="text-sm text-muted-foreground line-clamp-2">
+                                            {subAgent.description || "No description"}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-12 border rounded-lg border-dashed">
+                                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                                    <UserGroupIcon className="h-6 w-6 text-primary" />
+                                </div>
+                                <h3 className="mt-2 text-sm font-normal">No swarm agents</h3>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    This agent cannot spawn other agents. Edit agent to add swarm members.
+                                </p>
+                                <div className="mt-6">
+                                    <Button variant="link" onClick={() => setIsEditDialogOpen(true)}>
+                                        Edit Agent Swarm Configuration
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </TabsContent>
+
                 {/* Debug Content */}
                 <TabsContent value="debug" className="pt-6">
                     <div>
@@ -406,7 +528,7 @@ export default function AgentDetailsPage() {
                                             onChange={(e) => setContextGroup(e.target.value)}
                                             placeholder="e.g., test-session-1"
                                         />
-                                        <p className="text-[10px] text-muted-foreground">Identifier for the test session</p>
+                                        <p className="text-xs text-muted-foreground">Identifier for the test session</p>
                                     </div>
                                     <Button
                                         className="mb-[26px]"

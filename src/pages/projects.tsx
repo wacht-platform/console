@@ -325,12 +325,12 @@ function ProjectCard({ project, index, highlightMode }: ProjectCardProps) {
         <CardContent className="flex-1 px-6 pb-6 pt-0">
           <div className="flex flex-wrap gap-2 mt-2">
             {production && (
-              <Badge variant="outline" className="bg-green-50/50 dark:bg-green-500/5 text-green-600 dark:text-green-400 border-green-200/50 dark:border-green-500/20 text-[10px] font-medium px-2 py-0.5">
+              <Badge variant="outline" className="bg-green-50/50 dark:bg-green-500/5 text-green-600 dark:text-green-400 border-green-200/50 dark:border-green-500/20 text-xs font-medium px-2 py-0.5">
                 Production
               </Badge>
             )}
             {staging && (
-              <Badge variant="outline" className="bg-blue-50/50 dark:bg-blue-500/5 text-blue-600 dark:text-blue-400 border-blue-200/50 dark:border-blue-500/20 text-[10px] font-medium px-2 py-0.5">
+              <Badge variant="outline" className="bg-blue-50/50 dark:bg-blue-500/5 text-blue-600 dark:text-blue-400 border-blue-200/50 dark:border-blue-500/20 text-xs font-medium px-2 py-0.5">
                 Staging
               </Badge>
             )}
@@ -338,7 +338,7 @@ function ProjectCard({ project, index, highlightMode }: ProjectCardProps) {
         </CardContent>
 
         <CardFooter className="px-6 py-4 bg-neutral-50/50 dark:bg-neutral-800/30 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between mt-auto">
-          <div className="flex items-center gap-2 text-[10px] text-neutral-500 dark:text-neutral-400">
+          <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
             <ClockIcon className="w-3.5 h-3.5" />
             <span>Created {format(new Date(created_at), "MMM d, yyyy")}</span>
           </div>

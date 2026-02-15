@@ -39,7 +39,7 @@ const UsageBar = ({ label, metric, limit, unit, icon: Icon, overageRate, getUsag
                     {label}
                 </div>
                 <div className="text-right">
-                    <div className="text-sm font-mono text-zinc-700 dark:text-zinc-300">
+                    <div className="text-sm text-zinc-700 dark:text-zinc-300">
                         {usage.toLocaleString()} <span className="text-zinc-500 dark:text-zinc-600">/ {hasLimit ? (limit >= 1000 ? `${limit / 1000}k` : limit) : '∞'}</span> {unit}
                     </div>
                 </div>
@@ -51,7 +51,7 @@ const UsageBar = ({ label, metric, limit, unit, icon: Icon, overageRate, getUsag
                 />
             </div>
             <div className="mt-2 flex justify-between items-center h-5">
-                <div className="text-[10px] text-zinc-500 dark:text-zinc-600 font-normal uppercase tracking-wider">
+                <div className="text-xs text-zinc-500 dark:text-zinc-600 font-normal uppercase tracking-wider">
                     {isOverage ? (
                         <span className="text-red-500 dark:text-red-400">Overage: {(usage - limit).toLocaleString()} {unit}</span>
                     ) : hasLimit ? (
@@ -60,7 +60,7 @@ const UsageBar = ({ label, metric, limit, unit, icon: Icon, overageRate, getUsag
                         "Unlimited quota"
                     )}
                 </div>
-                <div className="text-[10px] text-zinc-500 dark:text-zinc-500 font-mono flex items-center gap-2">
+                <div className="text-xs text-zinc-500 dark:text-zinc-500 flex items-center gap-2">
                     {cost > 0 && <span>{(cost / 100).toFixed(2)} INR</span>}
                     {overageRate && <span className="text-zinc-400 dark:text-zinc-600">({overageRate})</span>}
                 </div>
@@ -132,7 +132,7 @@ export default function BillingUsagePage() {
                     </div>
                     <div className="relative z-10 text-center max-w-2xl mx-auto">
                         <div className="mb-6">
-                            <Badge variant="outline" className="bg-zinc-100 dark:bg-zinc-900/50 text-zinc-600 dark:text-zinc-500 border-zinc-300 dark:border-zinc-800 text-[10px] px-3 py-1 font-normal uppercase tracking-wider">
+                            <Badge variant="outline" className="bg-zinc-100 dark:bg-zinc-900/50 text-zinc-600 dark:text-zinc-500 border-zinc-300 dark:border-zinc-800 text-xs px-3 py-1 font-normal uppercase tracking-wider">
                                 No Active Subscription
                             </Badge>
                         </div>
@@ -251,7 +251,7 @@ export default function BillingUsagePage() {
                                 <ClockIcon className="w-3.5 h-3.5" />
                                 Rate limiting enforced at
                             </span>
-                            <span className="font-mono text-indigo-600 dark:text-indigo-400 uppercase">{currentPlan.rateLimit || 'Custom'}</span>
+                            <span className="text-indigo-600 dark:text-indigo-400 uppercase">{currentPlan.rateLimit || 'Custom'}</span>
                         </div>
                     </div>
                 </div>
@@ -261,7 +261,7 @@ export default function BillingUsagePage() {
                 {/* Credit Activity History */}
                 <div className="bg-white dark:bg-[#111113] border border-zinc-200 dark:border-zinc-800/60 rounded-xl overflow-hidden flex flex-col shadow-sm dark:shadow-none">
                     <div className="p-5 border-b border-zinc-200 dark:border-zinc-800/50 flex justify-between items-center bg-zinc-50 dark:bg-zinc-900/10">
-                        <h4 className="text-[10px] font-medium text-zinc-500 dark:text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                        <h4 className="text-xs font-medium text-zinc-500 dark:text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                             <ClockIcon className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-600" />
                             Credit Activity History
                         </h4>
@@ -332,14 +332,14 @@ function PulseDashboard({ balance, onTopUp }: { balance: number, onTopUp: () => 
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
                 <div className="flex flex-col md:flex-row md:items-center gap-8 lg:gap-12">
                     <div>
-                        <div className="text-[10px] text-zinc-500 dark:text-zinc-500 mb-1.5 font-medium uppercase tracking-[0.15em]">Available Balance</div>
+                        <div className="text-xs text-zinc-500 dark:text-zinc-500 mb-1.5 font-medium uppercase tracking-[0.15em]">Available Balance</div>
                         <div className="flex items-baseline gap-1.5">
                             <span className="text-4xl font-light text-zinc-900 dark:text-white tracking-tighter tabular-nums">
                                 {(balance / 100).toFixed(2)}
                             </span>
                             <span className="text-sm text-zinc-500 dark:text-zinc-500 font-light">INR</span>
                         </div>
-                        <div className="text-[10px] text-indigo-600 dark:text-indigo-400/80 font-medium uppercase tracking-widest mt-2 bg-indigo-50 dark:bg-indigo-500/5 border border-indigo-200 dark:border-indigo-500/10 w-fit px-2.5 py-0.5 rounded-full">
+                        <div className="text-xs text-indigo-600 dark:text-indigo-400/80 font-medium uppercase tracking-widest mt-2 bg-indigo-50 dark:bg-indigo-500/5 border border-indigo-200 dark:border-indigo-500/10 w-fit px-2.5 py-0.5 rounded-full">
                             {balance.toLocaleString()} Pulse
                         </div>
                     </div>

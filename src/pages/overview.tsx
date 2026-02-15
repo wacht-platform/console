@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { FingerPrintIcon, UserPlusIcon, ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
 import { SectionCards } from "@/components/section-cards";
 import { useProjects } from "@/lib/api/hooks/use-projects";
-import { useAnalyticsStats, useRecentSignups, useRecentSignins } from "@/lib/api/hooks/use-analytics";
+import { useAnalyticsStats } from "@/lib/api/hooks/use-analytics";
 import {
 	Table,
 	TableBody,
@@ -83,7 +83,7 @@ export default function OverviewPage() {
 		return "Good evening";
 	};
 
-	// Analytics data hooks
+	// Analytics data - single hook now returns everything
 	const { data: stats, isLoading: statsLoading } = useAnalyticsStats(
 		selectedDeployment?.id || "",
 		currentRange.from,
@@ -91,17 +91,11 @@ export default function OverviewPage() {
 		!!selectedDeployment?.id
 	);
 
-	const { data: recentSignupsData, isLoading: signupsLoading } = useRecentSignups(
-		selectedDeployment?.id || "",
-		10,
-		!!selectedDeployment?.id
-	);
-
-	const { data: recentSigninsData, isLoading: signinsLoading } = useRecentSignins(
-		selectedDeployment?.id || "",
-		10,
-		!!selectedDeployment?.id
-	);
+	// Extract recent signups/signins from stats response
+	const recentSignupsData = stats?.recent_signups || [];
+	const recentSigninsData = stats?.recent_signins || [];
+	const signupsLoading = statsLoading;
+	const signinsLoading = statsLoading;
 
 	// Map analytics stats to section cards data
 	const sectionCardsData = [

@@ -1,0 +1,136 @@
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useParams } from "react-router";
+import { Button } from "@/components/ui/button";
+import { InlineLoader } from "@/components/ui/loading-screen";
+import { apiClient } from "@/lib/api/client";
+import { useProjects } from "@/lib/api/hooks/use-projects";
+
+type VanityKind = "webhook" | "api-auth";
+
+interface VanityEmbedShellProps {
+  kind: VanityKind;
+}
+
+interface TicketResponse {
+  ticket: string;
+  expires_at: number;
+}
+
+const ticketCache = new Map<string, string>();
+
+function createIframePath(kind: VanityKind, pathname: string): string {
+  if (kind === "api-auth") return "/api-auth";
+  return `/webhook${pathname.split("/webhooks")[1] ?? ""}`;
+}
+
+async function createSessionTicket(
+  deploymentId: string,
+  kind: VanityKind,
+): Promise<TicketResponse> {
+  const slug = `slug_${deploymentId}`;
+  const body =
+    kind === "webhook"
+      ? { ticket_type: "webhook_app_access", webhook_app_slug: slug }
+      : { ticket_type: "api_auth_access", api_auth_app_slug: slug };
+
+  const response = await apiClient.post<TicketResponse>(
+    `/deployments/${deploymentId}/session/tickets`,
+    body,
+  );
+  return response.data;
+}
+
+export function VanityEmbedShell({ kind }: VanityEmbedShellProps) {
+  const { deploymentId } = useParams();
+  const { pathname } = useLocation();
+  const { selectedDeployment } = useProjects();
+  const [ticket, setTicket] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [nonce, setNonce] = useState(0);
+
+  const cacheKey = `${kind}:${deploymentId ?? ""}`;
+  const vanityBaseUrl = selectedDeployment?.backend_host
+    ? `https://${selectedDeployment.backend_host}/vanity`
+    : null;
+  const vanityPath = useMemo(
+    () => createIframePath(kind, pathname),
+    [kind, pathname],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      if (!deploymentId || !vanityBaseUrl) {
+        setLoading(true);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      const cached = ticketCache.get(cacheKey);
+      if (cached) {
+        if (!cancelled) {
+          setTicket(cached);
+          setLoading(false);
+        }
+        return;
+      }
+
+      try {
+        const result = await createSessionTicket(deploymentId, kind);
+        if (cancelled) return;
+        ticketCache.set(cacheKey, result.ticket);
+        setTicket(result.ticket);
+      } catch (e) {
+        if (cancelled) return;
+        setError(e instanceof Error ? e.message : "Failed to create session ticket");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [cacheKey, deploymentId, kind, nonce, vanityBaseUrl]);
+
+  if (loading || !ticket || !vanityBaseUrl) {
+    return <InlineLoader />;
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 flex flex-col gap-3">
+        <p className="text-sm text-muted-foreground">{error}</p>
+        <Button
+          className="w-fit"
+          variant="outline"
+          onClick={() => {
+            ticketCache.delete(cacheKey);
+            setNonce((n) => n + 1);
+          }}
+        >
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
+  const src = `${vanityBaseUrl}${vanityPath}?ticket=${encodeURIComponent(ticket)}`;
+
+  return (
+    <div className="h-[calc(100vh-5.25rem)] w-full">
+      <iframe
+        key={`${cacheKey}:${vanityPath}`}
+        src={src}
+        title={kind === "webhook" ? "Webhook" : "API Auth"}
+        className="h-full w-full border-0"
+        allow="clipboard-read; clipboard-write"
+      />
+    </div>
+  );
+}

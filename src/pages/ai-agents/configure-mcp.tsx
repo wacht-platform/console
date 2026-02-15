@@ -70,7 +70,7 @@ export default function ConfigureMCPPage() {
           <TableBody>
             {apiEndpoints.map((api) => (
               <TableRow key={api.id}>
-                <TableCell className="font-mono text-sm">
+                <TableCell className="text-sm">
                   {api.endpoint}
                 </TableCell>
                 <TableCell>{api.description}</TableCell>

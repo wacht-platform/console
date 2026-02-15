@@ -17,7 +17,7 @@ async function uploadImage(
   formData.append("image", file);
 
   const response = await apiClient.post<UploadResponse>(
-    `/deployments/${deploymentId}/upload/${imageType}`,
+    `/deployments/${deploymentId}/settings/upload/${imageType}`,
     formData,
     {
       headers: {

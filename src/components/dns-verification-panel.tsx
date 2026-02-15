@@ -66,7 +66,7 @@ function DnsRecordRow({ record }: { record: DnsRecord }) {
 
 	return (
 		<TableRow>
-			<TableCell className="font-mono text-sm w-[20%] min-w-[120px] max-w-0">
+			<TableCell className="text-sm w-[20%] min-w-[120px] max-w-0">
 				<div className="truncate" title={record.name}>
 					{record.name}
 				</div>

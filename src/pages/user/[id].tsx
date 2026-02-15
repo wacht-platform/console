@@ -266,33 +266,33 @@ export default function UserDetailsPage() {
 
           <div className="mb-6">
             <h1 className="text-xl font-normal text-zinc-900 dark:text-zinc-50">{user.first_name} {user.last_name}</h1>
-            <p className="text-sm font-mono text-zinc-500 mt-1">User ID: {user.id}</p>
+            <p className="text-sm text-zinc-500 mt-1">User ID: {user.id}</p>
           </div>
 
           <div className="mb-0 pt-3 border-t border-zinc-100 dark:border-zinc-800/50">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4 gap-x-8">
               <div className="space-y-0.5">
-                <p className="text-[10px] text-zinc-500 font-normal uppercase tracking-wider">Primary Email</p>
+                <p className="text-xs text-zinc-500 font-normal uppercase tracking-wider">Primary Email</p>
                 <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{user.primary_email_address || "-"}</p>
               </div>
               <div className="space-y-0.5">
-                <p className="text-[10px] text-zinc-500 font-normal uppercase tracking-wider">Primary Phone</p>
+                <p className="text-xs text-zinc-500 font-normal uppercase tracking-wider">Primary Phone</p>
                 <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{user.primary_phone_number || "Not provided"}</p>
               </div>
               <div className="space-y-0.5">
-                <p className="text-[10px] text-zinc-500 font-normal uppercase tracking-wider">Username</p>
+                <p className="text-xs text-zinc-500 font-normal uppercase tracking-wider">Username</p>
                 <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{user.username || "Not provided"}</p>
               </div>
               <div className="space-y-0.5">
-                <p className="text-[10px] text-zinc-500 font-normal uppercase tracking-wider">Created</p>
+                <p className="text-xs text-zinc-500 font-normal uppercase tracking-wider">Created</p>
                 <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{format(new Date(user.created_at), "MMM d, yyyy")}</p>
               </div>
               <div className="space-y-0.5">
-                <p className="text-[10px] text-zinc-500 font-normal uppercase tracking-wider">Last Session</p>
+                <p className="text-xs text-zinc-500 font-normal uppercase tracking-wider">Last Session</p>
                 <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{format(new Date(user.updated_at), "MMM d, yyyy")}</p>
               </div>
               <div className="space-y-0.5">
-                <p className="text-[10px] text-zinc-500 font-normal uppercase tracking-wider">2FA Policy</p>
+                <p className="text-xs text-zinc-500 font-normal uppercase tracking-wider">2FA Policy</p>
                 <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal capitalize">{user.second_factor_policy || "None"}</p>
               </div>
             </div>
@@ -335,7 +335,7 @@ export default function UserDetailsPage() {
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-normal">{email.email}</span>
                               {email.id === user.primary_email_address_id && (
-                                <Badge variant="secondary" className="font-normal text-[10px] h-4 bg-zinc-100/80 dark:bg-zinc-800/80 border-none text-zinc-500">Primary</Badge>
+                                <Badge variant="secondary" className="font-normal text-xs h-4 bg-zinc-100/80 dark:bg-zinc-800/80 border-none text-zinc-500">Primary</Badge>
                               )}
                             </div>
                           </TableCell>
@@ -393,7 +393,7 @@ export default function UserDetailsPage() {
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-normal">{phone.phone_number}</span>
                               {phone.id === user.primary_phone_number_id && (
-                                <Badge variant="secondary" className="font-normal text-[10px] h-4 bg-zinc-100/80 dark:bg-zinc-800/80 border-none text-zinc-500">Primary</Badge>
+                                <Badge variant="secondary" className="font-normal text-xs h-4 bg-zinc-100/80 dark:bg-zinc-800/80 border-none text-zinc-500">Primary</Badge>
                               )}
                             </div>
                           </TableCell>

@@ -1,25 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "../client";
 
-export interface AnalyticsStats {
-  unique_signins: number;
-  signups: number;
-  organizations_created: number;
-  workspaces_created: number;
-  total_signups: number;
-  unique_signins_change?: number;
-  signups_change?: number;
-  organizations_created_change?: number;
-  workspaces_created_change?: number;
-}
-
-export interface RecentSignup {
-  name: string | null;
-  email: string | null;
-  method: string | null;
-  date: string;
-}
-
 export interface AnalyticsStatsResponse {
   unique_signins: number;
   signups: number;
@@ -30,10 +11,15 @@ export interface AnalyticsStatsResponse {
   signups_change?: number;
   organizations_created_change?: number;
   workspaces_created_change?: number;
+  recent_signups: RecentSignup[];
+  recent_signins: RecentSignup[];
 }
 
-export interface RecentSignupsResponse {
-  signups: RecentSignup[];
+export interface RecentSignup {
+  name?: string | null;
+  email?: string | null;
+  method?: string | null;
+  date: string;
 }
 
 export const useAnalyticsStats = (
@@ -43,52 +29,12 @@ export const useAnalyticsStats = (
   enabled = true,
 ) => {
   return useQuery({
-    queryKey: ["analytics", "stats", deploymentId, from, to],
+    queryKey: ["analytics", deploymentId, from, to],
     queryFn: async (): Promise<AnalyticsStatsResponse> => {
       const response = await apiClient.get(
-        `/deployments/${deploymentId}/analytics/stats`,
+        `/deployments/${deploymentId}/analytics`,
         {
           params: { from, to },
-        },
-      );
-      return response.data;
-    },
-    enabled,
-  });
-};
-
-export const useRecentSignups = (
-  deploymentId: string,
-  limit = 10,
-  enabled = true,
-) => {
-  return useQuery({
-    queryKey: ["analytics", "recent-signups", deploymentId, limit],
-    queryFn: async (): Promise<RecentSignupsResponse> => {
-      const response = await apiClient.get(
-        `/deployments/${deploymentId}/analytics/recent-signups`,
-        {
-          params: { limit },
-        },
-      );
-      return response.data;
-    },
-    enabled,
-  });
-};
-
-export const useRecentSignins = (
-  deploymentId: string,
-  limit = 10,
-  enabled = true,
-) => {
-  return useQuery({
-    queryKey: ["analytics", "recent-signins", deploymentId, limit],
-    queryFn: async (): Promise<RecentSignupsResponse> => {
-      const response = await apiClient.get(
-        `/deployments/${deploymentId}/analytics/recent-signins`,
-        {
-          params: { limit },
         },
       );
       return response.data;

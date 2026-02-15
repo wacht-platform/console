@@ -69,7 +69,7 @@ function PackageManagerSwitcher({ command }: { command: string }) {
                             key={m}
                             onClick={() => setActive(m)}
                             className={cn(
-                                "px-2.5 py-1 text-[10px] font-medium rounded-md transition-all",
+                                "px-2.5 py-1 text-xs font-medium rounded-md transition-all",
                                 active === m ? "bg-white/10 text-white shadow-sm" : "text-muted-foreground hover:text-white"
                             )}
                         >
@@ -81,7 +81,7 @@ function PackageManagerSwitcher({ command }: { command: string }) {
                     {copied ? <IconCheck className="h-3 w-3" /> : <IconCopy className="h-3 w-3" />}
                 </Button>
             </div>
-            <div className="p-3 font-mono text-[12px] text-zinc-300">
+            <div className="p-3 text-[12px] text-zinc-300">
                 <span className="text-zinc-500 select-none opacity-40">$</span> <span className="text-fuchsia-400">{getCommand()}</span>
             </div>
         </div>
@@ -119,7 +119,7 @@ function CodeEditor({ code, filename, language = "typescript" }: { code: string,
         <div className="flex flex-col rounded-lg border border-border/30 bg-[#0c0c0c] overflow-hidden shadow-sm group">
             <div className="flex items-center justify-between px-3 py-2.5 bg-zinc-900/40 border-b border-white/[0.03]">
                 <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-medium text-zinc-400 font-mono tracking-tight">{filename}</span>
+                    <span className="text-[11px] font-medium text-zinc-400 tracking-tight">{filename}</span>
                 </div>
                 <div className="flex items-center">
                     <Button

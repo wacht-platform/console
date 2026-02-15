@@ -8,23 +8,18 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import { useRecentSignups } from "@/lib/api/hooks/use-analytics";
 import { format } from "date-fns";
+import type { RecentSignup } from "@/lib/api/hooks/use-analytics";
 
 interface RecentSignupsTableProps {
-  deploymentId: string;
-  limit?: number;
-  enabled?: boolean;
+  data?: RecentSignup[];
+  isLoading?: boolean;
 }
 
 export const RecentSignupsTable: React.FC<RecentSignupsTableProps> = ({
-  deploymentId,
-  limit = 10,
-  enabled = true,
+  data,
+  isLoading = false,
 }) => {
-  const { data: recentSignupsData, isLoading: signupsLoading } =
-    useRecentSignups(deploymentId, limit, enabled);
-
   return (
     <Table className="mt-4 [--gutter:--spacing(6)] lg:[--gutter:--spacing(10)]">
       <TableHead>
@@ -36,14 +31,14 @@ export const RecentSignupsTable: React.FC<RecentSignupsTableProps> = ({
         </TableRow>
       </TableHead>
       <TableBody>
-        {signupsLoading ? (
+        {isLoading ? (
           <TableRow>
             <TableCell colSpan={4} className="text-center py-8">
-              Loading recent signups...
+              Loading...
             </TableCell>
           </TableRow>
-        ) : recentSignupsData?.signups?.length ? (
-          recentSignupsData.signups.map((user, index) => (
+        ) : data?.length ? (
+          data.map((user, index) => (
             <TableRow key={`${user.email}-${index}`}>
               <TableCell>
                 <span>{user.name || "Anonymous"}</span>

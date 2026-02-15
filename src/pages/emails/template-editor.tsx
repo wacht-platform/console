@@ -321,7 +321,7 @@ export default function EmailTemplateEditor() {
                           <span className="font-medium text-gray-700 dark:text-gray-300 text-xs mb-0.5">
                             {variable.label}
                           </span>
-                          <span className="font-mono text-[10px] text-gray-500 dark:text-gray-500">
+                          <span className="text-xs text-gray-500 dark:text-gray-500">
                             {`{{${variable.key}}}`}
                           </span>
                         </div>

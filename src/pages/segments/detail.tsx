@@ -266,7 +266,7 @@ export default function SegmentDetailsPage() {
               ) : (
                 entities.map((entity) => (
                   <TableRow key={entity.id}>
-                    <TableCell className="font-mono text-xs text-zinc-500">
+                    <TableCell className="text-xs text-zinc-500">
                       {entity.id}
                     </TableCell>
                     {segment.type === "user" ? (

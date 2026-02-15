@@ -569,7 +569,7 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                             {template.name}
                           </span>
                           <span className={`
-                            text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide
+                            text-xs font-medium px-1.5 py-0.5 rounded uppercase tracking-wide
                             ${template.protocol === 'saml'
                               ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
                               : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
@@ -715,7 +715,7 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                         <Textarea
                           {...form.register("idp_certificate")}
                           placeholder="-----BEGIN CERTIFICATE-----..."
-                          className="font-mono text-xs h-32 dark:bg-zinc-800/50"
+                          className="text-xs h-32 dark:bg-zinc-800/50"
                         />
                         <p className="text-xs text-zinc-500 dark:text-zinc-400">
                           Paste the entire PEM-encoded certificate, including headers.
@@ -892,7 +892,7 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                             {connection.protocol.toUpperCase()} Connection
                           </h4>
                           {connection.domain_id ? (
-                            <Badge color="blue" className="px-1.5 py-0 text-[10px]">
+                            <Badge color="blue" className="px-1.5 py-0 text-xs">
                               {domains?.find(
                                 (d) => d.id === String(connection.domain_id),
                               )?.fqdn || "Unknown Domain"}
@@ -904,11 +904,11 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                         <div className="mt-1 flex flex-col sm:flex-row sm:items-center gap-x-6 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
                           <div className="flex items-center gap-1">
                             <span className="font-medium">Entity ID:</span>
-                            <span className="font-mono truncate max-w-[200px]">{connection.idp_entity_id || "Not set"}</span>
+                            <span className="truncate max-w-[200px]">{connection.idp_entity_id || "Not set"}</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <span className="font-medium">SSO URL:</span>
-                            <span className="font-mono truncate max-w-[200px]">{connection.idp_sso_url || "Not set"}</span>
+                            <span className="truncate max-w-[200px]">{connection.idp_sso_url || "Not set"}</span>
                           </div>
                         </div>
                       </div>

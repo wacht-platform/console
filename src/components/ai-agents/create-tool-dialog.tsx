@@ -420,7 +420,7 @@ export function CreateToolDialog({
               <Label>Event Data (Optional JSON)</Label>
               <Textarea
                 placeholder="{\n  &quot;key&quot;: &quot;value&quot;\n}"
-                className="font-mono text-sm"
+                className="text-sm"
                 rows={5}
                 value={eventDataString}
                 onChange={(e) => setEventDataString(e.target.value)}

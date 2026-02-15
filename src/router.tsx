@@ -63,14 +63,12 @@ const KnowledgeBasePage = lazyImport(
 const AgentDetailsPage = lazyImport(
   () => import("./pages/ai-agents/agent-details"),
 );
-const WebhooksPage = lazyImport(() => import("./pages/webhooks"));
-const WebhookEndpointsPage = lazyImport(() => import("./pages/webhooks/endpoints"));
-const WebhookDeliveriesPage = lazyImport(() => import("./pages/webhooks/deliveries"));
-const WebhookDeliveryDetailsPage = lazyImport(
-  () => import("./pages/webhooks/delivery-details"),
+const WebhooksEmbedPage = lazyImport(() => import("./pages/webhooks/embed"));
+const ApiKeysEmbedPage = lazyImport(() => import("./pages/api-keys/embed"));
+const WebhookCatalogsPage = lazyImport(() => import("./pages/webhooks/catalogs"));
+const ApiKeyRateLimitSchemesPage = lazyImport(
+  () => import("./pages/api-keys/rate-limit-schemes"),
 );
-const WebhookAnalyticsPage = lazyImport(() => import("./pages/webhooks/analytics"));
-const ApiKeysPage = lazyImport(() => import("./pages/api-keys"));
 const NotFoundPage = lazyImport(() => import("./pages/not-found"));
 const ErrorBoundaryPage = lazyImport(() => import("./pages/error-boundary"));
 
@@ -463,60 +461,34 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "webhooks",
-        children: [
-          {
-            index: true,
-            element: (
-              <Suspense fallback={<SimpleFallback />}>
-                <WebhooksPage />
-              </Suspense>
-            ),
-          },
-          {
-            path: "endpoints",
-            element: (
-              <Suspense fallback={<SimpleFallback />}>
-                <WebhookEndpointsPage />
-              </Suspense>
-            ),
-          },
-          {
-            path: "deliveries",
-            children: [
-              {
-                index: true,
-                element: (
-                  <Suspense fallback={<SimpleFallback />}>
-                    <WebhookDeliveriesPage />
-                  </Suspense>
-                ),
-              },
-              {
-                path: ":deliveryId",
-                element: (
-                  <Suspense fallback={<SimpleFallback />}>
-                    <WebhookDeliveryDetailsPage />
-                  </Suspense>
-                ),
-              },
-            ],
-          },
-          {
-            path: "analytics",
-            element: (
-              <Suspense fallback={<SimpleFallback />}>
-                <WebhookAnalyticsPage />
-              </Suspense>
-            ),
-          },
-        ],
+        path: "webhooks/catalogs",
+        element: (
+          <Suspense fallback={<SimpleFallback />}>
+            <WebhookCatalogsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "webhooks/*",
+        element: (
+          <Suspense fallback={<SimpleFallback />}>
+            <WebhooksEmbedPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "api-keys/rate-limit-schemes",
+        element: (
+          <Suspense fallback={<SimpleFallback />}>
+            <ApiKeyRateLimitSchemesPage />
+          </Suspense>
+        ),
       },
       {
         path: "api-keys",
         element: (
           <Suspense fallback={<SimpleFallback />}>
-            <ApiKeysPage />
+            <ApiKeysEmbedPage />
           </Suspense>
         ),
       },
