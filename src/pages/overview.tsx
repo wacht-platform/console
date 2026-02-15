@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Heading } from "@/components/ui/heading";
 import { useSession } from "@wacht/react-router";
+import type { RecentSignup } from "@/lib/api/hooks/use-analytics";
 
 // Date range options for analytics
 const DATE_RANGES = {
@@ -188,8 +189,8 @@ export default function OverviewPage() {
 								<TableBody>
 									{signupsLoading ? (
 										<SkeletonTableRows rows={5} columns={4} withAvatar={false} />
-									) : recentSignupsData?.signups?.length ? (
-										recentSignupsData.signups.map((user, index) => (
+									) : recentSignupsData?.length ? (
+										recentSignupsData.map((user: RecentSignup, index: number) => (
 											<TableRow key={`${user.email}-${index}`}>
 												<TableCell>
 													<span className="font-normal">{user.name || "Anonymous"}</span>
@@ -235,8 +236,8 @@ export default function OverviewPage() {
 								<TableBody>
 									{signinsLoading ? (
 										<SkeletonTableRows rows={5} columns={4} withAvatar={false} />
-									) : recentSigninsData?.signups?.length ? (
-										recentSigninsData.signups.map((user, index) => (
+									) : recentSigninsData?.length ? (
+										recentSigninsData.map((user: RecentSignup, index: number) => (
 											<TableRow key={`signin-${user.email}-${index}`}>
 												<TableCell>
 													<span className="font-normal">{user.name || "Anonymous"}</span>

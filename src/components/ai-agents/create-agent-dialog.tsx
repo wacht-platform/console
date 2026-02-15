@@ -23,7 +23,6 @@ import { toast } from 'sonner';
 
 import type { Agent } from "../../lib/api/hooks/use-agents";
 import { useCreateAgent, useUpdateAgent, useAgents } from "../../lib/api/hooks/use-agents";
-import type { Agent } from "../../lib/api/hooks/use-agents";
 import { useTools } from "../../lib/api/hooks/use-tools";
 import { useKnowledgeBases } from "../../lib/api/hooks/use-knowledge-bases";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
