@@ -1,5 +1,9 @@
 import { VanityEmbedShell } from "@/components/vanity-embed-shell";
 
 export default function WebhooksEmbedPage() {
-  return <VanityEmbedShell kind="webhook" />;
+  return (
+    <div className="-m-5">
+      <VanityEmbedShell kind="webhook" />
+    </div>
+  );
 }

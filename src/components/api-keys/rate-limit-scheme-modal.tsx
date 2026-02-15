@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeftIcon, PlusIcon } from "@heroicons/react/24/outline";
 import {
   Dialog,
   DialogContent,
@@ -55,6 +56,8 @@ type RateLimitRuleForm = {
   priority: string;
 };
 
+type ModalView = "rules" | "rule-detail";
+
 const createDefaultRule = (): RateLimitRuleForm => ({
   unit: "minute",
   duration: "1",
@@ -91,6 +94,8 @@ export function RateLimitSchemeModal({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [rules, setRules] = useState<RateLimitRuleForm[]>([createDefaultRule()]);
+  const [view, setView] = useState<ModalView>("rules");
+  const [activeRuleIndex, setActiveRuleIndex] = useState<number>(0);
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -103,6 +108,8 @@ export function RateLimitSchemeModal({
           ? schemeToEdit.rules.map(toRuleForm)
           : [createDefaultRule()],
       );
+      setView("rules");
+      setActiveRuleIndex(0);
       setFormError(null);
       return;
     }
@@ -111,6 +118,8 @@ export function RateLimitSchemeModal({
     setName("");
     setDescription("");
     setRules([createDefaultRule()]);
+    setView("rules");
+    setActiveRuleIndex(0);
     setFormError(null);
   }, [schemeToEdit, isOpen]);
 
@@ -129,13 +138,30 @@ export function RateLimitSchemeModal({
   };
 
   const addRule = () => {
-    setRules((current) => [...current, createDefaultRule()]);
+    setRules((current) => {
+      const next = [...current, createDefaultRule()];
+      const newIndex = next.length - 1;
+      setActiveRuleIndex(newIndex);
+      setView("rule-detail");
+      return next;
+    });
   };
 
   const removeRule = (index: number) => {
     setRules((current) =>
-      current.length === 1 ? current : current.filter((_, i) => i !== index),
+      current.length === 1
+        ? current
+        : current.filter((_, i) => i !== index),
     );
+    if (view === "rule-detail") {
+      setView("rules");
+      setActiveRuleIndex(0);
+    }
+  };
+
+  const openRuleDetail = (index: number) => {
+    setActiveRuleIndex(index);
+    setView("rule-detail");
   };
 
   const parseRules = (): RateLimitRule[] | null => {
@@ -218,81 +244,146 @@ export function RateLimitSchemeModal({
     }
   };
 
-  const isPending = createScheme.isPending || updateScheme.isPending;
+  const isPending = useMemo(
+    () => createScheme.isPending || updateScheme.isPending,
+    [createScheme.isPending, updateScheme.isPending],
+  );
+  const activeRule = rules[activeRuleIndex];
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-4xl">
-        <DialogHeader>
-          <DialogTitle>
-            {schemeToEdit ? "Edit Rate Limit Scheme" : "Create Rate Limit Scheme"}
-          </DialogTitle>
-        </DialogHeader>
-        <form className="space-y-5" onSubmit={onSubmit}>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Slug</Label>
-              <Input
-                value={slug}
-                onChange={(event) => setSlug(event.target.value)}
-                placeholder="public-api-default"
-                disabled={!!schemeToEdit}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Name</Label>
-              <Input
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="Public API Defaults"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Description</Label>
-            <Input
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              placeholder="Optional"
-            />
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label>Rules</Label>
-              <Button type="button" variant="outline" size="sm" onClick={addRule}>
-                Add Rule
-              </Button>
-            </div>
-
-            {rules.map((rule, index) => (
-              <div
-                key={`rule-${index}`}
-                className="space-y-4 rounded-lg border border-border p-4"
+      <DialogContent className="sm:max-w-5xl min-h-[72vh] max-h-[92vh] overflow-hidden">
+        <DialogHeader className="space-y-1">
+          <div className="flex items-center gap-2">
+            {view === "rule-detail" ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => setView("rules")}
               >
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">Rule {index + 1}</p>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeRule(index)}
-                    disabled={rules.length === 1}
-                  >
-                    Remove
-                  </Button>
+                <ArrowLeftIcon className="h-4 w-4" />
+              </Button>
+            ) : null}
+            <DialogTitle>
+              {view === "rule-detail"
+                ? `Rule ${activeRuleIndex + 1}`
+                : schemeToEdit
+                  ? "Edit Rate Limit Scheme"
+                  : "Create Rate Limit Scheme"}
+            </DialogTitle>
+          </div>
+        </DialogHeader>
+        <form className="flex min-h-[64vh] h-full flex-col" onSubmit={onSubmit}>
+          <div className="flex-1 space-y-6 overflow-y-auto pr-1">
+            {view === "rules" ? (
+              <>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Slug</Label>
+                    <Input
+                      value={slug}
+                      onChange={(event) => setSlug(event.target.value)}
+                      placeholder="public-api-default"
+                      disabled={!!schemeToEdit}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Name</Label>
+                    <Input
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                      placeholder="Public API Defaults"
+                      required
+                    />
+                  </div>
                 </div>
 
-                <div className="grid gap-3 md:grid-cols-3">
+                <div className="space-y-2">
+                  <Label>Description</Label>
+                  <Input
+                    value={description}
+                    onChange={(event) => setDescription(event.target.value)}
+                    placeholder="Optional"
+                  />
+                </div>
+
+                <div className="space-y-3 border-t border-border/60 pt-4">
+                  <div className="flex items-center justify-between">
+                    <Label>Rules</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addRule}
+                    >
+                      <PlusIcon className="mr-1 h-4 w-4" /> Add Rule
+                    </Button>
+                  </div>
+
+                  <div className="divide-y divide-border border-y border-border/60">
+                    {rules.map((rule, index) => (
+                      <div
+                        key={`rule-row-${index}`}
+                        className="grid grid-cols-12 items-center gap-2 px-2 py-3"
+                      >
+                        <div className="col-span-3 min-w-0">
+                          <p className="truncate text-sm font-medium">
+                            Rule {index + 1}
+                          </p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {RATE_LIMIT_MODES.find((item) => item.value === rule.mode)
+                              ?.label || "Mode"}
+                          </p>
+                        </div>
+                        <div className="col-span-5 min-w-0 text-xs text-muted-foreground">
+                          <p className="truncate">
+                            {rule.max_requests} req / {rule.duration} {rule.unit}
+                          </p>
+                          <p className="truncate">
+                            Endpoints: {rule.endpoints || "*"}
+                          </p>
+                        </div>
+                        <div className="col-span-2 text-xs text-muted-foreground">
+                          Priority {rule.priority || "0"}
+                        </div>
+                        <div className="col-span-2 flex justify-end gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-xs"
+                            onClick={() => openRuleDetail(index)}
+                          >
+                            Configure
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-xs"
+                            onClick={() => removeRule(index)}
+                            disabled={rules.length === 1}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : activeRule ? (
+              <>
+                <div className="grid gap-3 lg:grid-cols-3">
                   <div className="space-y-2">
                     <Label>Unit</Label>
                     <Select
-                      value={rule.unit}
+                      value={activeRule.unit}
                       onValueChange={(value: RateLimitUnit) =>
-                        updateRule(index, { unit: value })
+                        updateRule(activeRuleIndex, { unit: value })
                       }
                     >
                       <SelectTrigger>
@@ -313,9 +404,9 @@ export function RateLimitSchemeModal({
                     <Input
                       type="number"
                       min={1}
-                      value={rule.duration}
+                      value={activeRule.duration}
                       onChange={(event) =>
-                        updateRule(index, { duration: event.target.value })
+                        updateRule(activeRuleIndex, { duration: event.target.value })
                       }
                     />
                   </div>
@@ -325,21 +416,23 @@ export function RateLimitSchemeModal({
                     <Input
                       type="number"
                       min={1}
-                      value={rule.max_requests}
+                      value={activeRule.max_requests}
                       onChange={(event) =>
-                        updateRule(index, { max_requests: event.target.value })
+                        updateRule(activeRuleIndex, {
+                          max_requests: event.target.value,
+                        })
                       }
                     />
                   </div>
                 </div>
 
-                <div className="grid gap-3 md:grid-cols-2">
+                <div className="grid gap-3 lg:grid-cols-2">
                   <div className="space-y-2">
                     <Label>Mode</Label>
                     <Select
-                      value={rule.mode}
+                      value={activeRule.mode}
                       onValueChange={(value: RateLimitMode) =>
-                        updateRule(index, { mode: value })
+                        updateRule(activeRuleIndex, { mode: value })
                       }
                     >
                       <SelectTrigger>
@@ -359,9 +452,9 @@ export function RateLimitSchemeModal({
                     <Label>Priority</Label>
                     <Input
                       type="number"
-                      value={rule.priority}
+                      value={activeRule.priority}
                       onChange={(event) =>
-                        updateRule(index, { priority: event.target.value })
+                        updateRule(activeRuleIndex, { priority: event.target.value })
                       }
                     />
                   </div>
@@ -370,20 +463,23 @@ export function RateLimitSchemeModal({
                 <div className="space-y-2">
                   <Label>Endpoints</Label>
                   <Input
-                    value={rule.endpoints}
+                    value={activeRule.endpoints}
                     onChange={(event) =>
-                      updateRule(index, { endpoints: event.target.value })
+                      updateRule(activeRuleIndex, { endpoints: event.target.value })
                     }
                     placeholder="*, /v1/users, /v1/orders/*"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Comma-separated list. Use `*` to apply this rule globally.
+                  </p>
                 </div>
-              </div>
-            ))}
+              </>
+            ) : null}
           </div>
 
           {formError ? <p className="text-sm text-red-500">{formError}</p> : null}
 
-          <DialogFooter>
+          <DialogFooter className="mt-auto border-t border-border/60 pt-4">
             <Button type="button" variant="outline" onClick={handleClose}>
               Cancel
             </Button>

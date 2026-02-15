@@ -204,7 +204,7 @@ function ProviderSettingsDialog({
         </DialogHeader>
         <div className="space-y-4 py-4">
           <FieldGroup>
-            <Field className="space-y-2">
+            <Field>
               <div className="flex items-center justify-between">
                 <Label>Enable for sign-up and sign-in</Label>
                 <Switch
@@ -220,7 +220,7 @@ function ProviderSettingsDialog({
                 method.
               </Description>
             </Field>
-            <Field className="space-y-2">
+            <Field>
               <div className="flex items-center justify-between">
                 <Label>Use custom credentials</Label>
                 <Switch
@@ -445,6 +445,9 @@ export default function SSOConnectionsPage() {
     }, 100);
   };
 
+  const { mutate: upsertConnection, isPending: isTogglingConnection } =
+    useUpsertDeploymentSocialConnection();
+
   const handleSwitchToggle = (
     providerInfo: (typeof providerConnections)[0],
     checked: boolean,
@@ -454,8 +457,24 @@ export default function SSOConnectionsPage() {
     if (checked) {
       handleOpenSettings(providerInfo);
     } else {
-      toast.info(
-        `Disabling ${providerInfo.name} requires confirmation or further action. This action is not yet fully implemented.`
+      upsertConnection(
+        {
+          deploymentId: selectedDeployment.id,
+          payload: {
+            provider: providerInfo.provider,
+            enabled: false,
+            credentials: null,
+          },
+        },
+        {
+          onSuccess: () => {
+            toast.success(`${providerInfo.name} OAuth disabled successfully.`);
+          },
+          onError: (error) => {
+            console.error("Disable error:", error);
+            toast.error(`Failed to disable ${providerInfo.name} OAuth.`);
+          },
+        },
       );
     }
   };
@@ -515,6 +534,7 @@ export default function SSOConnectionsPage() {
                     onCheckedChange={(checked: boolean) =>
                       handleSwitchToggle(provider, checked)
                     }
+                    disabled={isTogglingConnection}
                   />
                 </div>
               </div>
