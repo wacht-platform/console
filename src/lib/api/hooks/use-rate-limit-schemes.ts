@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import type {
   CreateRateLimitSchemeRequest,
   RateLimitScheme,
+  UpdateRateLimitSchemeRequest,
 } from "@/types/rate-limit-scheme";
 
 function extractSchemes(payload: unknown): RateLimitScheme[] {
@@ -47,6 +48,18 @@ async function createRateLimitScheme(
   return extractScheme(response.data);
 }
 
+async function updateRateLimitScheme(
+  deploymentId: string,
+  slug: string,
+  request: UpdateRateLimitSchemeRequest,
+): Promise<RateLimitScheme> {
+  const response = await apiClient.patch(
+    `/deployments/${deploymentId}/api-auth/rate-limit-schemes/${slug}`,
+    request,
+  );
+  return extractScheme(response.data);
+}
+
 export function useRateLimitSchemes() {
   const { selectedDeployment } = useProjects();
   const deploymentId = selectedDeployment?.id?.toString();
@@ -76,6 +89,35 @@ export function useCreateRateLimitScheme() {
     onError: (error: unknown) => {
       const message =
         error instanceof Error ? error.message : "Failed to create rate limit scheme";
+      toast.error(message);
+    },
+  });
+}
+
+export function useUpdateRateLimitScheme() {
+  const queryClient = useQueryClient();
+  const { selectedDeployment } = useProjects();
+
+  return useMutation({
+    mutationFn: async ({
+      slug,
+      request,
+    }: {
+      slug: string;
+      request: UpdateRateLimitSchemeRequest;
+    }) => {
+      if (!selectedDeployment?.id) {
+        throw new Error("No deployment selected");
+      }
+      return updateRateLimitScheme(selectedDeployment.id.toString(), slug, request);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["api-auth-rate-limit-schemes"] });
+      toast.success("Rate limit scheme updated");
+    },
+    onError: (error: unknown) => {
+      const message =
+        error instanceof Error ? error.message : "Failed to update rate limit scheme";
       toast.error(message);
     },
   });

@@ -1,152 +1,146 @@
-import { FormEvent, useMemo, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMemo, useState } from "react";
+import { MagnifyingGlassIcon, Squares2X2Icon } from "@heroicons/react/24/outline";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useCreateWebhookEventCatalog, useWebhookEventCatalogs } from "@/lib/api/hooks/use-webhook-event-catalogs";
-import type { WebhookEventDefinition } from "@/types/webhook-catalog";
-import { Heading } from "@/components/ui/heading";
-import { Text } from "@/components/ui/text";
-
-const DEFAULT_EVENTS_JSON = JSON.stringify(
-  [
-    {
-      name: "user.created",
-      description: "Emitted when a user is created",
-      schema: {},
-      example_payload: {},
-      is_archived: false,
-    },
-  ],
-  null,
-  2,
-);
+import { SkeletonTableRows } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useWebhookEventCatalogs } from "@/lib/api/hooks/use-webhook-event-catalogs";
+import type { WebhookEventCatalog } from "@/types/webhook-catalog";
+import { WebhookCatalogModal } from "@/components/webhooks/webhook-catalog-modal";
 
 export default function WebhookCatalogsPage() {
-  const { data: catalogs = [], isLoading } = useWebhookEventCatalogs();
-  const createCatalog = useCreateWebhookEventCatalog();
-  const [slug, setSlug] = useState("");
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [eventsJson, setEventsJson] = useState(DEFAULT_EVENTS_JSON);
-  const [formError, setFormError] = useState<string | null>(null);
+  const { data = [], isLoading } = useWebhookEventCatalogs();
+  const [search, setSearch] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [catalogToEdit, setCatalogToEdit] = useState<WebhookEventCatalog | null>(null);
 
-  const sortedCatalogs = useMemo(
-    () => [...catalogs].sort((a, b) => b.created_at.localeCompare(a.created_at)),
-    [catalogs],
-  );
+  const filteredCatalogs = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return [...data]
+      .filter((catalog) => {
+        if (!term) return true;
+        const haystack = `${catalog.name} ${catalog.slug} ${catalog.description ?? ""}`.toLowerCase();
+        return haystack.includes(term);
+      })
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  }, [data, search]);
 
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setFormError(null);
-    try {
-      const parsed = JSON.parse(eventsJson) as WebhookEventDefinition[];
-      if (!Array.isArray(parsed)) {
-        setFormError("events JSON must be an array");
-        return;
-      }
-      await createCatalog.mutateAsync({
-        slug: slug.trim(),
-        name: name.trim(),
-        description: description.trim() || undefined,
-        events: parsed,
-      });
-      setSlug("");
-      setName("");
-      setDescription("");
-      setEventsJson(DEFAULT_EVENTS_JSON);
-    } catch (error) {
-      setFormError(
-        error instanceof Error ? error.message : "Failed to create event catalog",
-      );
-    }
+  const openCreateModal = () => {
+    setCatalogToEdit(null);
+    setIsModalOpen(true);
   };
 
+  const openEditModal = (catalog: WebhookEventCatalog) => {
+    setCatalogToEdit(catalog);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setCatalogToEdit(null);
+  };
+
+  const getEventSummary = (eventCount: number) =>
+    eventCount === 1 ? "1 event" : `${eventCount} events`;
+
+  const columns = 6;
+
   return (
-    <div className="space-y-6">
-      <div className="space-y-1">
-        <Heading>Event Catalogs</Heading>
-        <Text className="text-sm text-muted-foreground">
-          Create shared webhook event catalogs and reuse them across apps.
-        </Text>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-xl font-normal tracking-tight">Webhook Catalogs</h1>
+        <p className="text-sm text-muted-foreground">
+          Create shared event catalogs and reuse them across webhook apps.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle className="text-base">Create Catalog</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form className="space-y-4" onSubmit={onSubmit}>
-              <div className="grid gap-4 md:grid-cols-2">
-                <Input
-                  placeholder="slug"
-                  value={slug}
-                  onChange={(event) => setSlug(event.target.value)}
-                  required
-                />
-                <Input
-                  placeholder="name"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  required
-                />
-              </div>
-              <Input
-                placeholder="description (optional)"
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-              />
-              <div className="space-y-2">
-                <Text className="text-xs text-muted-foreground">
-                  Events definition JSON array
-                </Text>
-                <Textarea
-                  className="min-h-[260px] font-mono text-xs"
-                  value={eventsJson}
-                  onChange={(event) => setEventsJson(event.target.value)}
-                />
-              </div>
-              {formError ? (
-                <p className="text-sm text-red-500">{formError}</p>
-              ) : null}
-              <Button type="submit" disabled={createCatalog.isPending}>
-                {createCatalog.isPending ? "Creating..." : "Create Catalog"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1 max-w-sm">
+          <MagnifyingGlassIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search catalogs..."
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Button onClick={openCreateModal} className="ml-auto">
+          Create Catalog
+        </Button>
+      </div>
 
-        <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle className="text-base">Existing Catalogs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <p className="text-sm text-muted-foreground">Loading catalogs...</p>
-            ) : sortedCatalogs.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No catalogs found.</p>
-            ) : (
-              <div className="space-y-2">
-                {sortedCatalogs.map((catalog) => (
-                  <div
-                    key={catalog.slug}
-                    className="rounded-lg border border-border/60 px-3 py-2.5 flex items-center justify-between"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{catalog.name}</p>
-                      <p className="text-xs text-muted-foreground truncate">{catalog.slug}</p>
-                    </div>
-                    <p className="text-xs text-muted-foreground whitespace-nowrap ml-3">
-                      {catalog.events?.length ?? 0} events
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Slug</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead>Events</TableHead>
+            <TableHead>Updated</TableHead>
+            <TableHead className="text-right">Action</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {isLoading ? (
+            <SkeletonTableRows rows={10} columns={columns} withAvatar={false} />
+          ) : filteredCatalogs.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={columns} className="h-24 text-center">
+                <div className="flex flex-col items-center justify-center gap-1">
+                  <Squares2X2Icon className="h-8 w-8 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    {search ? "No catalogs found" : "No catalogs yet"}
+                  </p>
+                  {search && (
+                    <p className="text-xs text-muted-foreground">
+                      Try adjusting your search
                     </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ) : (
+            filteredCatalogs.map((catalog) => (
+              <TableRow key={catalog.slug}>
+                <TableCell className="font-medium">{catalog.name}</TableCell>
+                <TableCell className="text-muted-foreground">{catalog.slug}</TableCell>
+                <TableCell className="max-w-[280px] truncate text-muted-foreground">
+                  {catalog.description || "-"}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {getEventSummary(catalog.events?.length ?? 0)}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {format(new Date(catalog.updated_at), "MMM d, yyyy")}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => openEditModal(catalog)}
+                  >
+                    Edit
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+
+      <WebhookCatalogModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        catalogToEdit={catalogToEdit}
+      />
     </div>
   );
 }

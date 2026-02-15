@@ -40,3 +40,9 @@ export interface CreateRateLimitSchemeRequest {
   description?: string;
   rules: RateLimitRule[];
 }
+
+export interface UpdateRateLimitSchemeRequest {
+  name: string;
+  description?: string;
+  rules: RateLimitRule[];
+}

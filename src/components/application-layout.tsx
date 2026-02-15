@@ -101,7 +101,6 @@ export function ApplicationLayout() {
   const isB2BRoute = location.pathname.includes('/b2b-settings');
   const isCustomizationRoute = location.pathname.includes('/customization');
   const isAuthRoute = location.pathname.includes('/auth/') || location.pathname.endsWith('/auth');
-  const isWebhooksRoute = location.pathname.includes('/webhooks');
   const isLLMRoute = location.pathname.includes('/llms/');
   const isBillingRoute = location.pathname.includes('/billing');
 
@@ -119,11 +118,6 @@ export function ApplicationLayout() {
       location.pathname.includes('/auth/sessions') ? 'sessions' :
         location.pathname.includes('/auth/restrictions') ? 'restrictions' :
           location.pathname.includes('/auth/jwt-templates') ? 'jwt-templates' : 'schema-factors';
-  } else if (isWebhooksRoute) {
-    currentTab = location.pathname.includes('/webhooks/endpoints') ? 'endpoints' :
-      location.pathname.includes('/webhooks/deliveries') ? 'deliveries' :
-        location.pathname.includes('/webhooks/analytics') ? 'analytics' :
-          location.pathname.includes('/webhooks/catalogs') ? 'catalogs' : 'overview';
   } else if (isLLMRoute) {
     currentTab = location.pathname.includes('/tools') ? 'tools' :
       location.pathname.includes('/knowledge-base') ? 'knowledge-base' : 'ai-agents';
@@ -141,8 +135,6 @@ export function ApplicationLayout() {
       navigate(`${basePath}/customization${value === 'deployment-settings' ? '' : `/${value}`}`);
     } else if (isAuthRoute) {
       navigate(`${basePath}/auth/${value}`);
-    } else if (isWebhooksRoute) {
-      navigate(`${basePath}/webhooks${value === 'overview' ? '' : `/${value}`}`);
     } else if (isLLMRoute) {
       navigate(`${basePath}/llms/${value}`);
     } else if (isBillingRoute) {
@@ -171,7 +163,7 @@ export function ApplicationLayout() {
         />
         <div className="flex flex-1 flex-col overflow-y-auto">
           <div className="@container/main flex flex-1 flex-col gap-2">
-            {(isUsersRoute || isB2BRoute || isCustomizationRoute || isAuthRoute || isWebhooksRoute || isLLMRoute || isBillingRoute) && (
+            {(isUsersRoute || isB2BRoute || isCustomizationRoute || isAuthRoute || isLLMRoute || isBillingRoute) && (
               <div className="px-4 pt-4 lg:px-6 lg:pt-6">
                 <Tabs value={currentTab} onValueChange={handleTabChange}>
                   <TabsList>
@@ -202,15 +194,6 @@ export function ApplicationLayout() {
                         <TabsTrigger value="sessions">Sessions</TabsTrigger>
                         <TabsTrigger value="restrictions">Restrictions</TabsTrigger>
                         <TabsTrigger value="jwt-templates">JWT Templates</TabsTrigger>
-                      </>
-                    )}
-                    {isWebhooksRoute && (
-                      <>
-                        <TabsTrigger value="overview">Overview</TabsTrigger>
-                        <TabsTrigger value="endpoints">Endpoints</TabsTrigger>
-                        <TabsTrigger value="deliveries">Deliveries</TabsTrigger>
-                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                        <TabsTrigger value="catalogs">Catalogs</TabsTrigger>
                       </>
                     )}
                     {isLLMRoute && (

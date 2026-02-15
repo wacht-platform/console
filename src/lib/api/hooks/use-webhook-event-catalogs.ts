@@ -4,6 +4,7 @@ import { useProjects } from "./use-projects";
 import { toast } from "sonner";
 import type {
   CreateWebhookEventCatalogRequest,
+  UpdateWebhookEventCatalogRequest,
   WebhookEventCatalog,
 } from "@/types/webhook-catalog";
 
@@ -45,6 +46,18 @@ async function createWebhookEventCatalog(
   return extractCatalog(response.data);
 }
 
+async function updateWebhookEventCatalog(
+  deploymentId: string,
+  slug: string,
+  request: UpdateWebhookEventCatalogRequest,
+): Promise<WebhookEventCatalog> {
+  const response = await apiClient.put(
+    `/deployments/${deploymentId}/webhooks/event-catalogs/${slug}`,
+    request,
+  );
+  return extractCatalog(response.data);
+}
+
 export function useWebhookEventCatalogs() {
   const { selectedDeployment } = useProjects();
   const deploymentId = selectedDeployment?.id?.toString();
@@ -74,6 +87,39 @@ export function useCreateWebhookEventCatalog() {
     onError: (error: unknown) => {
       const message =
         error instanceof Error ? error.message : "Failed to create event catalog";
+      toast.error(message);
+    },
+  });
+}
+
+export function useUpdateWebhookEventCatalog() {
+  const queryClient = useQueryClient();
+  const { selectedDeployment } = useProjects();
+
+  return useMutation({
+    mutationFn: async ({
+      slug,
+      request,
+    }: {
+      slug: string;
+      request: UpdateWebhookEventCatalogRequest;
+    }) => {
+      if (!selectedDeployment?.id) {
+        throw new Error("No deployment selected");
+      }
+      return updateWebhookEventCatalog(
+        selectedDeployment.id.toString(),
+        slug,
+        request,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["webhook-event-catalogs"] });
+      toast.success("Event catalog updated");
+    },
+    onError: (error: unknown) => {
+      const message =
+        error instanceof Error ? error.message : "Failed to update event catalog";
       toast.error(message);
     },
   });

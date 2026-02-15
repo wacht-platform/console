@@ -23,3 +23,9 @@ export interface CreateWebhookEventCatalogRequest {
   description?: string;
   events: WebhookEventDefinition[];
 }
+
+export interface UpdateWebhookEventCatalogRequest {
+  name: string;
+  description?: string;
+  events: WebhookEventDefinition[];
+}

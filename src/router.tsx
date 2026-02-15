@@ -461,7 +461,7 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "webhooks/catalogs",
+        path: "webhook-catalogs",
         element: (
           <Suspense fallback={<SimpleFallback />}>
             <WebhookCatalogsPage />
@@ -477,7 +477,7 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "api-keys/rate-limit-schemes",
+        path: "rate-limit-schemes",
         element: (
           <Suspense fallback={<SimpleFallback />}>
             <ApiKeyRateLimitSchemesPage />

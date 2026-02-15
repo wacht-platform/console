@@ -10,6 +10,8 @@ import {
   IconCirclePlus,
   IconCreditCard,
   IconRocket,
+  IconWebhook,
+  IconGauge,
 } from "@tabler/icons-react"
 import { useLocation } from "react-router"
 import { NavMain } from "@/components/nav-main"
@@ -49,6 +51,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: "segments",
       icon: IconCirclePlus,
       isActive: pathname.includes("segments"),
+    },
+    {
+      title: "Webhook Catalogs",
+      url: "webhook-catalogs",
+      icon: IconWebhook,
+      isActive: pathname.includes("webhook-catalogs"),
+    },
+    {
+      title: "Rate Limit Schemes",
+      url: "rate-limit-schemes",
+      icon: IconGauge,
+      isActive: pathname.includes("rate-limit-schemes"),
     },
   ]
 
