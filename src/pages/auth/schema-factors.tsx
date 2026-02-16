@@ -21,10 +21,7 @@ import {
 } from "@/components/ui/fieldset";
 import { SwitchField } from "@/components/ui/switch";
 import { Heading } from "@/components/ui/heading";
-import {
-    Cog6ToothIcon,
-    NoSymbolIcon,
-} from "@heroicons/react/24/outline";
+import { Cog6ToothIcon, NoSymbolIcon } from "@heroicons/react/24/outline";
 import type { DeploymentAuthSettings } from "@/types/deployment";
 import {
     useAuthSettingsStore,
@@ -1051,7 +1048,6 @@ function FirstFactorDialog({ open, onClose }: DialogProps) {
             label: "Phone Code",
             description: "Users receive a one-time verification code via SMS",
         });
-        });
     }
 
     return (
@@ -1060,7 +1056,8 @@ function FirstFactorDialog({ open, onClose }: DialogProps) {
                 <DialogHeader>
                     <DialogTitle>Default Sign-in Method</DialogTitle>
                     <DialogDescription>
-                        Choose the primary authentication method presented to users when they sign in.
+                        Choose the primary authentication method presented to
+                        users when they sign in.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-2 pt-2">
@@ -1076,7 +1073,8 @@ function FirstFactorDialog({ open, onClose }: DialogProps) {
                         </div>
                     ) : (
                         availableOptions.map((option) => {
-                            const isSelected = settings.first_factor === option.value;
+                            const isSelected =
+                                settings.first_factor === option.value;
                             return (
                                 <label
                                     key={option.value}
@@ -1159,12 +1157,14 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
                 <DialogHeader>
                     <DialogTitle>Second Factor Policy</DialogTitle>
                     <DialogDescription>
-                        Configure how multi-factor authentication is applied across your deployment.
+                        Configure how multi-factor authentication is applied
+                        across your deployment.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-2 pt-2">
                     {policies.map((policy) => {
-                        const isSelected = settings.second_factor_policy === policy.id;
+                        const isSelected =
+                            settings.second_factor_policy === policy.id;
                         return (
                             <label
                                 key={policy.id}
@@ -1187,7 +1187,9 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
                                     type="radio"
                                     name="second_factor_policy"
                                     checked={isSelected}
-                                    onChange={() => handlePolicyChange(policy.id)}
+                                    onChange={() =>
+                                        handlePolicyChange(policy.id)
+                                    }
                                     className="sr-only"
                                 />
                                 <div
