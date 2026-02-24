@@ -22,7 +22,7 @@ export interface ApiKeyApp {
 
 export interface ApiKey {
   id: string;
-  app_id: string;
+  app_slug: string;
   deployment_id: string;
   name: string;
   key_prefix: string;

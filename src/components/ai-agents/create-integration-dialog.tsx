@@ -1,26 +1,25 @@
-import React, { useState, useEffect } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import React, { useEffect, useState } from "react";
+import { BsMicrosoftTeams } from "react-icons/bs";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "../ui/select";
-import { Label } from "../ui/label";
+    useCreateIntegration,
+    useUpdateIntegration,
+} from "../../lib/api/hooks/use-integrations";
+import { Button } from "../ui/button";
 import {
     Dialog,
     DialogContent,
-    DialogHeader,
-    DialogFooter,
     DialogDescription,
+    DialogHeader,
     DialogTitle,
 } from "../ui/dialog";
-import { useCreateIntegration, useUpdateIntegration } from "../../lib/api/hooks/use-integrations";
-import type { AgentIntegration, IntegrationType, CreateIntegrationRequest } from "@/types/agent-integration";
-import { SiWhatsapp, SiClickup } from "react-icons/si";
-import { BsMicrosoftTeams } from "react-icons/bs";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { toast } from "sonner";
+import type {
+    AgentIntegration,
+    CreateIntegrationRequest,
+    IntegrationType,
+} from "@/types/agent-integration";
 
 interface CreateIntegrationDialogProps {
     open: boolean;
@@ -32,15 +31,16 @@ interface CreateIntegrationDialogProps {
 interface IntegrationFormData {
     name: string;
     integration_type: IntegrationType;
-    // Common config fields based on type
-    app_id: string; // Used for Teams App ID, WhatsApp Phone ID, ClickUp Client ID
-    app_password: string; // Used for Teams Password, WhatsApp Access Token, ClickUp Client Secret
-    tenant_id: string; // Used for Teams Tenant ID
-    bot_token: string; // 
-    signing_secret: string; // Used for WhatsApp Verify Token, ClickUp Webhook Secret
-    // ClickUp specfic
-    api_token: string;
-    team_id: string;
+    app_id: string;
+    app_password: string;
+    tenant_id: string;
+}
+
+interface FormErrors {
+    name?: string;
+    app_id?: string;
+    app_password?: string;
+    tenant_id?: string;
 }
 
 const getDefaultFormData = (): IntegrationFormData => ({
@@ -49,10 +49,6 @@ const getDefaultFormData = (): IntegrationFormData => ({
     app_id: "",
     app_password: "",
     tenant_id: "",
-    bot_token: "",
-    signing_secret: "",
-    api_token: "",
-    team_id: "",
 });
 
 export function CreateIntegrationDialog({
@@ -62,331 +58,303 @@ export function CreateIntegrationDialog({
     integration,
 }: CreateIntegrationDialogProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [formData, setFormData] = useState<IntegrationFormData>(getDefaultFormData());
+    const [formData, setFormData] =
+        useState<IntegrationFormData>(getDefaultFormData());
+    const [errors, setErrors] = useState<FormErrors>({});
     const createMutation = useCreateIntegration(agentId);
     const updateMutation = useUpdateIntegration(agentId);
-
     const isEditing = !!integration;
 
     useEffect(() => {
-        if (integration) {
-            const config = integration.config as Record<string, string>;
-            setFormData({
-                name: integration.name,
-                integration_type: integration.integration_type,
-                app_id: config.app_id || config.client_id || config.phone_number_id || "",
-                app_password: config.app_password || config.client_secret || config.access_token || "",
-                tenant_id: config.tenant_id || "",
-                bot_token: config.bot_token || "",
-                signing_secret: config.signing_secret || config.verify_token || config.webhook_secret || "",
-                api_token: config.api_token || "",
-                team_id: config.team_id || "",
-            });
-        } else {
+        if (!open) {
             setFormData(getDefaultFormData());
+            setErrors({});
+            return;
         }
+
+        if (!integration) {
+            setFormData(getDefaultFormData());
+            setErrors({});
+            return;
+        }
+
+        const config = integration.config as Record<string, string>;
+        setFormData({
+            name: integration.name,
+            integration_type: integration.integration_type,
+            app_id: config.app_id || "",
+            app_password: config.app_password || "",
+            tenant_id: config.tenant_id || "",
+        });
+        setErrors({});
     }, [integration, open]);
 
-    const buildConfig = (): Record<string, unknown> => {
-        switch (formData.integration_type) {
-            case "teams":
-                return {
-                    app_id: formData.app_id,
-                    app_password: formData.app_password,
-                    tenant_id: formData.tenant_id,
-                };
-            case "whatsapp":
-                return {
-                    phone_number_id: formData.app_id,
-                    access_token: formData.app_password,
-                    verify_token: formData.signing_secret,
-                };
-            case "clickup":
-                return {
-                    app_id: formData.app_id,
-                    app_password: formData.app_password,
-                };
-            default:
-                return {};
+    const validateForm = (): boolean => {
+        const newErrors: FormErrors = {};
+
+        if (!formData.name.trim()) {
+            newErrors.name = "Integration name is required";
+        } else if (formData.name.length < 2) {
+            newErrors.name = "Name must be at least 2 characters";
         }
+
+        if (!formData.app_id.trim()) {
+            newErrors.app_id = "Microsoft App ID is required";
+        }
+
+        if (!formData.app_password.trim()) {
+            newErrors.app_password = "Client Secret is required";
+        }
+
+        if (!formData.tenant_id.trim()) {
+            newErrors.tenant_id = "Tenant ID is required";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
+    const buildConfig = (): Record<string, unknown> => {
+        return {
+            app_id: formData.app_id.trim(),
+            app_password: formData.app_password.trim(),
+            tenant_id: formData.tenant_id.trim(),
+        };
+    };
 
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
+
+        setIsSubmitting(true);
         try {
             if (isEditing && integration) {
                 await updateMutation.mutateAsync({
                     id: integration.id,
-                    name: formData.name,
+                    name: formData.name.trim(),
                     config: buildConfig(),
                 });
+                toast.success("Integration updated successfully!");
             } else {
                 const request: CreateIntegrationRequest = {
-                    name: formData.name,
+                    name: formData.name.trim(),
                     integration_type: formData.integration_type,
                     config: buildConfig(),
                 };
                 await createMutation.mutateAsync(request);
+                toast.success("Integration created successfully!");
             }
             onClose();
         } catch (error) {
             console.error("Failed to save integration:", error);
+            toast.error(
+                `Failed to ${isEditing ? "update" : "create"} integration`,
+            );
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const renderConfigFields = () => {
-        switch (formData.integration_type) {
-            case "teams":
-                return (
-                    <>
-                        <div className="rounded-md bg-indigo-50 p-4 mb-4 dark:bg-indigo-900/20">
-                            <div className="flex">
-                                <div className="flex-shrink-0">
-                                    <BsMicrosoftTeams className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                                </div>
-                                <div className="ml-3">
-                                    <h3 className="text-sm font-medium text-indigo-800 dark:text-indigo-300">
-                                        Microsoft Teams Setup
-                                    </h3>
-                                    <div className="mt-2 text-sm text-indigo-700 dark:text-indigo-200">
-                                        <p>
-                                            You need to register an Azure Bot to get these credentials.{" "}
-                                            <a
-                                                href="https://portal.azure.com/#create/Microsoft.AzureBot"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="underline hover:text-indigo-600 dark:hover:text-indigo-100"
-                                            >
-                                                Create Azure Bot &rarr;
-                                            </a>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Microsoft App ID (Client ID)</Label>
-                            <Input
-                                required
-                                placeholder="e.g. 3a5f7c2d-..."
-                                value={formData.app_id}
-                                onChange={(e) => setFormData({ ...formData, app_id: e.target.value })}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Client Secret</Label>
-                            <p className="text-sm text-zinc-500">From "Certificates & secrets" in Azure Portal</p>
-                            <Input
-                                required
-                                type="password"
-                                placeholder="Value from Client secrets"
-                                value={formData.app_password}
-                                onChange={(e) => setFormData({ ...formData, app_password: e.target.value })}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Tenant ID</Label>
-                            <p className="text-sm text-zinc-500">Your Azure AD tenant ID (required for Single-Tenant bots)</p>
-                            <Input
-                                required
-                                placeholder="e.g. b7d70e3b-d7ba-44aa-91ac-..."
-                                value={formData.tenant_id}
-                                onChange={(e) => setFormData({ ...formData, tenant_id: e.target.value })}
-                            />
-                        </div>
-                    </>
-                );
-
-            case "whatsapp":
-                return (
-                    <>
-                        <div className="rounded-md bg-green-50 p-4 mb-4 dark:bg-green-900/20">
-                            <div className="flex">
-                                <div className="flex-shrink-0">
-                                    <SiWhatsapp className="h-5 w-5 text-green-600 dark:text-green-400" />
-                                </div>
-                                <div className="ml-3">
-                                    <h3 className="text-sm font-medium text-green-800 dark:text-green-300">
-                                        WhatsApp Business API
-                                    </h3>
-                                    <div className="mt-2 text-sm text-green-700 dark:text-green-200">
-                                        <p>
-                                            <a
-                                                href="https://developers.facebook.com/apps/"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="underline hover:text-green-600 dark:hover:text-green-100"
-                                            >
-                                                Go to Meta Developers &rarr;
-                                            </a>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Phone Number ID</Label>
-                            <Input
-                                required
-                                placeholder="From Meta Developer Portal"
-                                value={formData.app_id}
-                                onChange={(e) => setFormData({ ...formData, app_id: e.target.value })}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>System User Access Token</Label>
-                            <p className="text-sm text-zinc-500">Permanent token from System User</p>
-                            <Input
-                                required
-                                type="password"
-                                placeholder="EAAG..."
-                                value={formData.app_password}
-                                onChange={(e) => setFormData({ ...formData, app_password: e.target.value })}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Verify Token</Label>
-                            <p className="text-sm text-zinc-500">Used for webhook verification</p>
-                            <Input
-                                required
-                                placeholder="Your custom verify token"
-                                value={formData.signing_secret}
-                                onChange={(e) => setFormData({ ...formData, signing_secret: e.target.value })}
-                            />
-                        </div>
-                    </>
-                );
-
-            case "clickup":
-                return (
-                    <>
-                        <div className="rounded-md bg-purple-50 p-4 mb-4 dark:bg-purple-900/20">
-                            <div className="flex">
-                                <div className="flex-shrink-0">
-                                    <SiClickup className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                                </div>
-                                <div className="ml-3">
-                                    <h3 className="text-sm font-medium text-purple-800 dark:text-purple-300">
-                                        ClickUp Integration
-                                    </h3>
-                                    <div className="mt-2 text-sm text-purple-700 dark:text-purple-200">
-                                        <p className="mb-2">
-                                            <a
-                                                href="https://app.clickup.com/settings/apps"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="underline hover:text-purple-600 dark:hover:text-purple-100"
-                                            >
-                                                Create ClickUp App &rarr;
-                                            </a>
-                                        </p>
-                                        <p className="font-medium text-purple-900 dark:text-purple-100">Redirect URL:</p>
-                                        <code className="block mt-1 p-1 bg-purple-100 rounded dark:bg-purple-800/50 select-all">
-                                            https://agentlink.wacht.services/consent/clickup/callback
-                                        </code>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Client ID</Label>
-                            <Input
-                                required
-                                placeholder="From ClickUp Developer Portal"
-                                value={formData.app_id}
-                                onChange={(e) => setFormData({ ...formData, app_id: e.target.value })}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Client Secret</Label>
-                            <Input
-                                required
-                                type="password"
-                                placeholder="From ClickUp Developer Portal"
-                                value={formData.app_password}
-                                onChange={(e) => setFormData({ ...formData, app_password: e.target.value })}
-                            />
-                        </div>
-                    </>
-                );
-
-            default:
-                return null;
+    const handleInputChange = (
+        field: keyof IntegrationFormData,
+        value: string,
+    ) => {
+        setFormData({ ...formData, [field]: value });
+        if (errors[field as keyof FormErrors]) {
+            setErrors({ ...errors, [field]: undefined });
         }
     };
 
     return (
-        <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-            <DialogContent className="sm:max-w-lg mb-16">
-                <DialogHeader>
-                    <DialogTitle>{isEditing ? "Edit Integration" : "Add Integration"}</DialogTitle>
+        <Dialog open={open} onOpenChange={(value) => !value && onClose()}>
+            <DialogContent className="sm:max-w-xl max-h-[90vh] flex flex-col p-0 gap-0">
+                <DialogHeader className="p-6 pb-2">
+                    <DialogTitle>
+                        {isEditing ? "Edit Integration" : "Add Integration"}
+                    </DialogTitle>
                     <DialogDescription>
-                        Connect your AI agents to external platforms
+                        Connect this agent to external platforms and services.
                     </DialogDescription>
+                    {!isEditing && (
+                        <p className="text-sm text-amber-600">
+                            Integrations are a beta feature. Please email us to get access.
+                        </p>
+                    )}
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit}>
-                    <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <Label>Name</Label>
-                            <Input
-                                required
-                                placeholder="My Integration"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label>Platform</Label>
-                            <div className="relative">
-                                <Select
-                                    value={formData.integration_type}
-                                    onValueChange={(value) =>
-                                        setFormData({
-                                            ...formData,
-                                            integration_type: value as IntegrationType,
-                                            // Reset config
-                                            app_id: "",
-                                            app_password: "",
-                                            tenant_id: "",
-                                            bot_token: "",
-                                            signing_secret: "",
-                                            api_token: "",
-                                            team_id: "",
-                                        })
+                <form
+                    onSubmit={handleSubmit}
+                    className="flex-1 overflow-hidden flex flex-col"
+                >
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                        {/* Basic Info Section */}
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">
+                                    Integration Name{" "}
+                                    <span className="text-destructive">*</span>
+                                </Label>
+                                <Input
+                                    id="name"
+                                    required
+                                    placeholder="e.g. Production Teams Bot"
+                                    value={formData.name}
+                                    onChange={(e) =>
+                                        handleInputChange(
+                                            "name",
+                                            e.target.value,
+                                        )
                                     }
-                                    disabled={isEditing}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select platform" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="teams">Microsoft Teams</SelectItem>
-                                        <SelectItem value="clickup">ClickUp</SelectItem>
-                                        <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                />
+                                {errors.name && (
+                                    <p className="text-sm text-destructive">
+                                        {errors.name}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="platform">Platform</Label>
+                                <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
+                                    <BsMicrosoftTeams className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                                    <div>
+                                        <div className="font-medium text-sm">
+                                            Microsoft Teams
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                            Bot Framework integration
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="border-t border-zinc-200 dark:border-zinc-700 pt-4 mt-4 space-y-4 max-h-[40vh] overflow-y-auto">
-                            {renderConfigFields()}
+                        {/* Configuration Section */}
+                        <div className="border-t pt-6 space-y-4">
+                            <div className="flex items-center gap-2 mb-4">
+                                <BsMicrosoftTeams className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                                <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wider">
+                                    Teams Configuration
+                                </h3>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="app_id">
+                                        Microsoft App ID (Client ID){" "}
+                                        <span className="text-destructive">
+                                            *
+                                        </span>
+                                    </Label>
+                                    <Input
+                                        id="app_id"
+                                        required
+                                        placeholder="e.g. 12345678-1234-1234-1234-123456789012"
+                                        value={formData.app_id}
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                "app_id",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                    {errors.app_id && (
+                                        <p className="text-sm text-destructive">
+                                            {errors.app_id}
+                                        </p>
+                                    )}
+                                    <p className="text-xs text-muted-foreground">
+                                        Found in Azure Portal under App
+                                        registrations
+                                    </p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="app_password">
+                                        Client Secret{" "}
+                                        <span className="text-destructive">
+                                            *
+                                        </span>
+                                    </Label>
+                                    <Input
+                                        id="app_password"
+                                        required
+                                        type="password"
+                                        placeholder="Enter your client secret"
+                                        value={formData.app_password}
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                "app_password",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                    {errors.app_password && (
+                                        <p className="text-sm text-destructive">
+                                            {errors.app_password}
+                                        </p>
+                                    )}
+                                    <p className="text-xs text-muted-foreground">
+                                        Created in Azure Portal under
+                                        Certificates & secrets
+                                    </p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="tenant_id">
+                                        Tenant ID{" "}
+                                        <span className="text-destructive">
+                                            *
+                                        </span>
+                                    </Label>
+                                    <Input
+                                        id="tenant_id"
+                                        required
+                                        placeholder="e.g. contoso.onmicrosoft.com"
+                                        value={formData.tenant_id}
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                "tenant_id",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                    {errors.tenant_id && (
+                                        <p className="text-sm text-destructive">
+                                            {errors.tenant_id}
+                                        </p>
+                                    )}
+                                    <p className="text-xs text-muted-foreground">
+                                        Your Azure AD tenant identifier
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <DialogFooter>
-                        <Button type="button" variant="outline" onClick={onClose}>
+                    {/* Footer */}
+                    <div className="flex items-center justify-end gap-3 p-4 border-t bg-muted/40 shrink-0">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={onClose}
+                            disabled={isSubmitting}
+                        >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? "Saving..." : isEditing ? "Update" : "Create"}
+                        <Button type="submit" disabled={isSubmitting || !isEditing}>
+                            {isSubmitting
+                                ? isEditing
+                                    ? "Updating..."
+                                    : "Creating..."
+                                : isEditing
+                                  ? "Update Integration"
+                                  : "Create Integration"}
                         </Button>
-                    </DialogFooter>
+                    </div>
                 </form>
             </DialogContent>
         </Dialog>

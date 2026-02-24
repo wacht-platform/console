@@ -17,7 +17,7 @@ export interface Agent {
   configuration: AgentConfiguration;
   tools_count: number;
   knowledge_bases_count: number;
-  sub_agents?: string[];
+  sub_agents?: Array<string | number>;
   spawn_config?: SpawnConfig;
 }
 
@@ -32,6 +32,8 @@ export interface CreateAgentRequest {
   name: string;
   description?: string;
   configuration?: AgentConfiguration;
+  tool_ids?: string[];
+  knowledge_base_ids?: string[];
   sub_agents?: string[];
   spawn_config?: SpawnConfig;
 }
@@ -41,6 +43,8 @@ export interface UpdateAgentRequest {
   description?: string;
   status?: string;
   configuration?: AgentConfiguration;
+  tool_ids?: string[];
+  knowledge_base_ids?: string[];
   sub_agents?: string[];
   spawn_config?: SpawnConfig;
 }
@@ -66,21 +70,21 @@ async function fetchAgent(
   deploymentId: string,
   agentId: string,
 ): Promise<Agent> {
-  const { data } = await apiClient.get<{ data: Agent }>(
+  const { data } = await apiClient.get<{ data?: Agent } & Agent>(
     `/deployments/${deploymentId}/ai/agents/${agentId}`,
   );
-  return data.data;
+  return data.data ?? (data as Agent);
 }
 
 async function createAgent(
   deploymentId: string,
   agent: CreateAgentRequest,
 ): Promise<Agent> {
-  const { data } = await apiClient.post<{ data: Agent }>(
+  const { data } = await apiClient.post<{ data?: Agent } & Agent>(
     `/deployments/${deploymentId}/ai/agents`,
     agent,
   );
-  return data.data;
+  return data.data ?? (data as Agent);
 }
 
 async function updateAgent(
@@ -88,11 +92,11 @@ async function updateAgent(
   agentId: string,
   agent: UpdateAgentRequest,
 ): Promise<Agent> {
-  const { data } = await apiClient.patch<{ data: Agent }>(
+  const { data } = await apiClient.patch<{ data?: Agent } & Agent>(
     `/deployments/${deploymentId}/ai/agents/${agentId}`,
     agent,
   );
-  return data.data;
+  return data.data ?? (data as Agent);
 }
 
 async function deleteAgent(

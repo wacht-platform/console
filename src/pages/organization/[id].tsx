@@ -419,8 +419,8 @@ export default function OrganizationDetailsPage() {
           )}
         </TabsList>
 
-        <TabsContent value="overview" className="mt-6">
-          <div className="pt-6">
+        <TabsContent value="overview">
+          <div className="pt-4">
             <div className="mb-8">
               <h3 className="text-base text-zinc-900 dark:text-zinc-100 mb-4">
                 Organization Details
@@ -461,7 +461,7 @@ export default function OrganizationDetailsPage() {
           </div>
 
           {/* Segments Section */}
-          <div className="pt-6 border-t border-gray-100 dark:border-zinc-800">
+          <div className="pt-4 border-t border-gray-100 dark:border-zinc-800">
             <h3 className="text-sm text-zinc-900 dark:text-zinc-100 mb-3">
               Segments
             </h3>
@@ -473,8 +473,8 @@ export default function OrganizationDetailsPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="members" className="mt-6">
-          <div className="pt-6">
+        <TabsContent value="members">
+          <div className="pt-4">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-base text-zinc-900 dark:text-zinc-100">
                 Organization Members
@@ -654,9 +654,9 @@ export default function OrganizationDetailsPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="roles" className="mt-6">
-          <div className="pt-6">
-            <div className="flex justify-between items-center mb-6">
+        <TabsContent value="roles">
+          <div className="pt-4">
+            <div className="flex justify-between items-center mb-4">
               <h3 className="text-base text-zinc-900 dark:text-zinc-100">
                 Organization Roles
               </h3>
@@ -749,9 +749,9 @@ export default function OrganizationDetailsPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="workspaces" className="mt-6">
-          <div className="pt-6">
-            <div className="flex justify-between items-center mb-6">
+        <TabsContent value="workspaces">
+          <div className="pt-4">
+            <div className="flex justify-between items-center mb-4">
               <h3 className="text-base text-zinc-900 dark:text-zinc-100">
                 Organization Workspaces
               </h3>
@@ -874,13 +874,13 @@ export default function OrganizationDetailsPage() {
         </TabsContent>
 
         {deploymentSettings?.b2b_settings?.enterprise_sso_enabled && (
-          <TabsContent value="sso" className="mt-6">
+          <TabsContent value="sso">
             <EnterpriseSSO organizationId={organization.id} />
           </TabsContent>
         )}
 
-        <TabsContent value="metadata" className="mt-6">
-          <div className="pt-6 space-y-8">
+        <TabsContent value="metadata">
+          <div className="pt-4 space-y-8">
             {/* Public Metadata */}
             <div>
               <div className="flex justify-between items-center mb-4">

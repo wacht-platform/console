@@ -165,7 +165,16 @@ export default function ManageOrganizationsPage() {
     try {
       setIsSaving(true);
       const payload = {
-        ...settingsState,
+        organizations_enabled: settingsState.organizations_enabled,
+        allow_org_deletion: settingsState.allow_org_deletion,
+        custom_org_role_enabled: settingsState.custom_org_role_enabled,
+        ip_allowlist_per_org_enabled:
+          settingsState.ip_allowlist_per_org_enabled,
+        enforce_mfa_per_org_enabled:
+          settingsState.enforce_mfa_per_org_enabled,
+        enterprise_sso_enabled:
+          settingsState.enterprise_sso_enabled,
+        organization_permissions: settingsState.organization_permissions,
         max_allowed_org_members:
           settingsState.membership_limit_type === "unlimited"
             ? 0
@@ -181,12 +190,6 @@ export default function ManageOrganizationsPage() {
         default_org_creator_role_id:
           settingsState.default_org_creator_role_id || undefined,
         allow_users_to_create_orgs: settingsState.allow_users_to_create_orgs,
-        ip_allowlist_per_org_enabled:
-          settingsState.ip_allowlist_per_org_enabled,
-        enforce_mfa_per_org_enabled:
-          settingsState.enforce_mfa_per_org_enabled,
-        enterprise_sso_enabled:
-          settingsState.enterprise_sso_enabled,
       };
 
       await updateB2bSettings.mutateAsync(payload);

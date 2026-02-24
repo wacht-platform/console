@@ -1,117 +1,194 @@
+import { useMemo, useState } from "react";
+import { PencilIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { Heading } from "@/components/ui/heading";
+import { Button } from "@/components/ui/button";
 import {
-  AdjustmentsHorizontalIcon,
-  MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
-import { Heading, Subheading } from "../../components/ui/heading";
-import { Button } from "../../components/ui/button";
-import { Input, InputGroup } from "../../components/ui/input";
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Input, InputGroup } from "@/components/ui/input";
+import { InlineLoader } from "@/components/ui/loading-screen";
+import { CreateMcpServerDialog } from "@/components/ai-agents/create-mcp-server-dialog";
+import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
-
-const apiEndpoints = [
-  {
-    id: "api-1",
-    endpoint: "/api/v1/agents",
-    description: "Manage AI agents",
-    access: "All agents",
-  },
-  {
-    id: "api-2",
-    endpoint: "/api/v1/data",
-    description: "Data access and storage",
-    access: "Restricted",
-  },
-  {
-    id: "api-3",
-    endpoint: "/api/v1/users",
-    description: "User management",
-    access: "Admin agents only",
-  },
-];
+    useDeleteMcpServer,
+    useMcpServers,
+} from "@/lib/api/hooks/use-mcp-servers";
+import type { McpServer } from "@/types/mcp-server";
 
 export default function ConfigureMCPPage() {
-  return (
-    <div>
-      <div className="flex flex-col gap-2 mb-2">
-        <Heading>MCP Configuration</Heading>
-      </div>
+    const [query, setQuery] = useState("");
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [editingMcpServer, setEditingMcpServer] = useState<
+        McpServer | undefined
+    >(undefined);
+    const [deletingMcpServer, setDeletingMcpServer] = useState<
+        McpServer | undefined
+    >(undefined);
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="sm:flex-1">
-          <div className="mt-4 flex max-w-md gap-2">
-            <InputGroup className="w-64">
-              <MagnifyingGlassIcon className="size-4" />
-              <Input name="search" placeholder="Search endpoints..." />
+    const { data, isLoading } = useMcpServers({ limit: 200, offset: 0 });
+    const deleteMutation = useDeleteMcpServer();
+
+    const filteredServers = useMemo(() => {
+        const servers = data?.mcpServers ?? [];
+        const normalizedQuery = query.trim().toLowerCase();
+        if (!normalizedQuery) {
+            return servers;
+        }
+        return servers.filter((server) => {
+            const endpoint = server.config.endpoint.toLowerCase();
+            return (
+                server.name.toLowerCase().includes(normalizedQuery) ||
+                endpoint.includes(normalizedQuery)
+            );
+        });
+    }, [data?.mcpServers, query]);
+
+    const handleCreate = () => {
+        setEditingMcpServer(undefined);
+        setIsDialogOpen(true);
+    };
+
+    const handleEdit = (server: McpServer) => {
+        setEditingMcpServer(server);
+        setIsDialogOpen(true);
+    };
+
+    const handleDelete = async () => {
+        if (!deletingMcpServer) return;
+        try {
+            await deleteMutation.mutateAsync(deletingMcpServer.id);
+            setDeletingMcpServer(undefined);
+        } catch (error) {
+            console.error("Failed to delete MCP server", error);
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between gap-4">
+                <div>
+                    <Heading>MCP Servers</Heading>
+                    <p className="text-sm text-muted-foreground">
+                        Define reusable MCP servers at deployment level and
+                        attach them to agents.
+                    </p>
+                </div>
+                <Button onClick={handleCreate}>
+                    <PlusIcon className="mr-2 h-4 w-4" />
+                    New MCP Server
+                </Button>
+            </div>
+
+            <InputGroup className="w-full max-w-sm">
+                <Input
+                    placeholder="Search MCP servers..."
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                />
             </InputGroup>
-          </div>
-        </div>
-        <Button variant="outline">
-          <AdjustmentsHorizontalIcon className="mr-2 h-4 w-4" />
-          Advanced Settings
-        </Button>
-      </div>
 
-      <div className="mt-6">
-        <Subheading className="mb-4">API Endpoints</Subheading>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHeader>Endpoint</TableHeader>
-              <TableHeader>Description</TableHeader>
-              <TableHeader>Access</TableHeader>
-              <TableHeader>Actions</TableHeader>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {apiEndpoints.map((api) => (
-              <TableRow key={api.id}>
-                <TableCell className="text-sm">
-                  {api.endpoint}
-                </TableCell>
-                <TableCell>{api.description}</TableCell>
-                <TableCell>{api.access}</TableCell>
-                <TableCell>
-                  <Button variant="outline">Edit</Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            {isLoading ? (
+                <InlineLoader />
+            ) : filteredServers.length > 0 ? (
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Endpoint</TableHead>
+                            <TableHead>Auth</TableHead>
+                            <TableHead className="w-[140px] text-right">
+                                Actions
+                            </TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {filteredServers.map((server) => (
+                            <TableRow key={server.id}>
+                                <TableCell className="font-medium">
+                                    {server.name}
+                                </TableCell>
+                                <TableCell className="text-xs text-muted-foreground">
+                                    {server.config.endpoint}
+                                </TableCell>
+                                <TableCell>
+                                    {server.config.auth?.type === "token"
+                                        ? "Token"
+                                        : server.config.auth?.type ===
+                                            "oauth_client_credentials"
+                                          ? "OAuth Client Credentials"
+                                          : server.config.auth?.type ===
+                                              "oauth_authorization_code_public_pkce"
+                                            ? "OAuth Authorization Code (Public PKCE)"
+                                            : server.config.auth?.type ===
+                                                "oauth_authorization_code_confidential_pkce"
+                                              ? "OAuth Authorization Code (Confidential PKCE)"
+                                              : "None"}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <div className="inline-flex items-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleEdit(server)}
+                                        >
+                                            <PencilIcon className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                setDeletingMcpServer(server)
+                                            }
+                                        >
+                                            <TrashIcon className="h-4 w-4 text-destructive" />
+                                        </Button>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            ) : (
+                <div className="rounded-md border p-8 text-center">
+                    <h3 className="text-sm font-medium">No MCP servers</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Create your first MCP server to start attaching it to
+                        agents.
+                    </p>
+                    <Button className="mt-4" onClick={handleCreate}>
+                        <PlusIcon className="mr-2 h-4 w-4" />
+                        New MCP Server
+                    </Button>
+                </div>
+            )}
 
-      <div className="mt-6">
-        <Subheading className="mb-4">MCP Status</Subheading>
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-md bg-zinc-50 p-4 border border-zinc-200">
-            <h4 className="text-sm font-medium text-zinc-700">Uptime</h4>
-            <p className="mt-1 text-xl font-normal">14d 7h 32m</p>
-          </div>
-          <div className="rounded-md bg-zinc-50 p-4 border border-zinc-200">
-            <h4 className="text-sm font-medium text-zinc-700">Active Agents</h4>
-            <p className="mt-1 text-xl font-normal">12 / 20</p>
-          </div>
-          <div className="rounded-md bg-zinc-50 p-4 border border-zinc-200">
-            <h4 className="text-sm font-medium text-zinc-700">CPU Usage</h4>
-            <p className="mt-1 text-xl font-normal">27%</p>
-          </div>
-          <div className="rounded-md bg-zinc-50 p-4 border border-zinc-200">
-            <h4 className="text-sm font-medium text-zinc-700">Memory Usage</h4>
-            <p className="mt-1 text-xl font-normal">3.2 GB</p>
-          </div>
-        </div>
+            <CreateMcpServerDialog
+                open={isDialogOpen}
+                onClose={() => {
+                    setIsDialogOpen(false);
+                    setEditingMcpServer(undefined);
+                }}
+                mcpServer={editingMcpServer}
+            />
 
-        <div className="mt-4 flex gap-2">
-          <Button variant="outline">Restart MCP</Button>
-          <Button variant="outline" className="text-red-600 hover:bg-red-50">
-            Stop MCP
-          </Button>
+            <ConfirmationDialog
+                isOpen={!!deletingMcpServer}
+                onClose={() => setDeletingMcpServer(undefined)}
+                onConfirm={handleDelete}
+                title="Delete MCP Server"
+                message={
+                    deletingMcpServer
+                        ? `Delete "${deletingMcpServer.name}"? This removes it from all agents.`
+                        : ""
+                }
+                confirmText="Delete"
+                isLoading={deleteMutation.isPending}
+            />
         </div>
-      </div>
-    </div>
-  );
+    );
 }

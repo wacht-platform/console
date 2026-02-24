@@ -140,6 +140,16 @@ async function fetchKnowledgeBaseDocuments(
   return data;
 }
 
+async function fetchAgentKnowledgeBases(
+  deploymentId: string,
+  agentId: string,
+): Promise<KnowledgeBasesResponse> {
+  const { data } = await apiClient.get<KnowledgeBasesResponse>(
+    `/deployments/${deploymentId}/ai/agents/${agentId}/knowledge-bases`,
+  );
+  return data;
+}
+
 async function uploadDocument(
   deploymentId: string,
   knowledgeBaseId: string,
@@ -178,6 +188,17 @@ export function useKnowledgeBase(knowledgeBaseId: string) {
     queryKey: ["knowledge-base", selectedDeployment?.id, knowledgeBaseId],
     queryFn: () => fetchKnowledgeBase(selectedDeployment!.id, knowledgeBaseId),
     enabled: !!selectedDeployment?.id && !!knowledgeBaseId,
+  });
+}
+
+export function useAgentKnowledgeBases(agentId: string) {
+  const { selectedDeployment } = useProjects();
+
+  return useQuery({
+    queryKey: ["agent-knowledge-bases", selectedDeployment?.id, agentId],
+    queryFn: () => fetchAgentKnowledgeBases(selectedDeployment!.id, agentId),
+    enabled: !!selectedDeployment?.id && !!agentId,
+    select: (data) => data.data,
   });
 }
 

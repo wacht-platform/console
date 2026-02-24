@@ -183,6 +183,11 @@ export default function ManageWorkspacesPage() {
       const payload = {
         workspaces_enabled: settingsState.workspaces_enabled,
         allow_workspace_deletion: settingsState.allow_workspace_deletion,
+        default_workspace_member_role_id:
+          settingsState.default_workspace_member_role_id || undefined,
+        default_workspace_creator_role_id:
+          settingsState.default_workspace_creator_role_id || undefined,
+        workspace_permissions: settingsState.workspace_permissions,
         max_allowed_workspace_members:
           settingsState.membership_limit_type === "unlimited"
             ? 0

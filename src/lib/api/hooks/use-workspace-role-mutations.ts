@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { apiClient } from "../client";
 import { WorkspaceRole } from "@/types/organization";
+import { useProjects } from "./use-projects";
 
 interface CreateWorkspaceRoleData {
   name: string;
@@ -15,6 +16,7 @@ interface UpdateWorkspaceRoleData {
 
 export function useCreateWorkspaceRole() {
   const queryClient = useQueryClient();
+  const { selectedDeployment } = useProjects();
 
   return useMutation({
     mutationFn: async ({
@@ -24,15 +26,18 @@ export function useCreateWorkspaceRole() {
       workspaceId: string;
       data: CreateWorkspaceRoleData;
     }) => {
+      if (!selectedDeployment?.id) {
+        throw new Error("No deployment selected");
+      }
       const response = await apiClient.post<WorkspaceRole>(
-        `/workspaces/${workspaceId}/roles`,
+        `/deployments/${selectedDeployment.id}/workspaces/${workspaceId}/roles`,
         data
       );
       return response.data;
     },
-    onSuccess: (_, { workspaceId }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["workspace-details", workspaceId],
+        queryKey: ["workspace-details"],
       });
       toast.success("Workspace role created successfully");
     },
@@ -45,6 +50,7 @@ export function useCreateWorkspaceRole() {
 
 export function useUpdateWorkspaceRole() {
   const queryClient = useQueryClient();
+  const { selectedDeployment } = useProjects();
 
   return useMutation({
     mutationFn: async ({
@@ -56,15 +62,18 @@ export function useUpdateWorkspaceRole() {
       roleId: string;
       data: UpdateWorkspaceRoleData;
     }) => {
+      if (!selectedDeployment?.id) {
+        throw new Error("No deployment selected");
+      }
       const response = await apiClient.patch<WorkspaceRole>(
-        `/workspaces/${workspaceId}/roles/${roleId}`,
+        `/deployments/${selectedDeployment.id}/workspaces/${workspaceId}/roles/${roleId}`,
         data
       );
       return response.data;
     },
-    onSuccess: (_, { workspaceId }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["workspace-details", workspaceId],
+        queryKey: ["workspace-details"],
       });
       toast.success("Workspace role updated successfully");
     },
@@ -77,6 +86,7 @@ export function useUpdateWorkspaceRole() {
 
 export function useDeleteWorkspaceRole() {
   const queryClient = useQueryClient();
+  const { selectedDeployment } = useProjects();
 
   return useMutation({
     mutationFn: async ({
@@ -86,11 +96,16 @@ export function useDeleteWorkspaceRole() {
       workspaceId: string;
       roleId: string;
     }) => {
-      await apiClient.delete(`/workspaces/${workspaceId}/roles/${roleId}`);
+      if (!selectedDeployment?.id) {
+        throw new Error("No deployment selected");
+      }
+      await apiClient.delete(
+        `/deployments/${selectedDeployment.id}/workspaces/${workspaceId}/roles/${roleId}`
+      );
     },
-    onSuccess: (_, { workspaceId }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["workspace-details", workspaceId],
+        queryKey: ["workspace-details"],
       });
       toast.success("Workspace role deleted successfully");
     },

@@ -13,7 +13,7 @@ export function Field({
 
     return (
         <FieldContext.Provider value={{ id }}>
-            <div className={cn("flex flex-col gap-1", className)} {...props}>
+            <div className={cn("flex flex-col gap-2", className)} {...props}>
                 {children}
             </div>
         </FieldContext.Provider>

@@ -36,6 +36,16 @@ async function fetchTools(
   return data;
 }
 
+async function fetchAgentTools(
+  deploymentId: string,
+  agentId: string,
+): Promise<PaginatedResponse<AiTool>> {
+  const { data } = await apiClient.get<PaginatedResponse<AiTool>>(
+    `/deployments/${deploymentId}/ai/agents/${agentId}/tools`,
+  );
+  return data;
+}
+
 async function fetchTool(
   deploymentId: string,
   toolId: string,
@@ -94,6 +104,17 @@ export function useTool(toolId: string) {
     queryKey: ["tool", selectedDeployment?.id, toolId],
     queryFn: () => fetchTool(selectedDeployment!.id, toolId),
     enabled: !!selectedDeployment?.id && !!toolId,
+  });
+}
+
+export function useAgentTools(agentId: string) {
+  const { selectedDeployment } = useProjects();
+
+  return useQuery({
+    queryKey: ["agent-tools", selectedDeployment?.id, agentId],
+    queryFn: () => fetchAgentTools(selectedDeployment!.id, agentId),
+    enabled: !!selectedDeployment?.id && !!agentId,
+    select: (data) => data.data,
   });
 }
 

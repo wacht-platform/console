@@ -27,8 +27,10 @@ import { useGenerateAgentTicket } from "../../lib/hooks/use-generate-ticket";
 import { useProjects } from "../../lib/api/hooks/use-projects";
 import { useTools } from "../../lib/api/hooks/use-tools";
 import { useKnowledgeBases } from "../../lib/api/hooks/use-knowledge-bases";
+import {
+    useAgentMcpServers,
+} from "../../lib/api/hooks/use-mcp-servers";
 import { BsMicrosoftTeams } from "react-icons/bs";
-import { SiWhatsapp, SiClickup } from "react-icons/si";
 import {
     DropdownMenu,
     DropdownMenuTrigger,
@@ -55,10 +57,6 @@ const getIntegrationIcon = (type: string) => {
     switch (t) {
         case "teams":
             return <BsMicrosoftTeams className="h-5 w-5 text-[#6264A7]" />;
-        case "whatsapp":
-            return <SiWhatsapp className="h-5 w-5 text-[#25D366]" />;
-        case "clickup":
-            return <SiClickup className="h-5 w-5 text-[#7B44AC]" />;
         default:
             return <LinkIcon className="h-5 w-5 text-muted-foreground" />;
     }
@@ -68,8 +66,6 @@ const getIntegrationLabel = (type: string) => {
     const t = type.toLowerCase();
     switch (t) {
         case "teams": return "Microsoft Teams";
-        case "whatsapp": return "WhatsApp";
-        case "clickup": return "ClickUp";
         default: return type.charAt(0).toUpperCase() + type.slice(1);
     }
 };
@@ -99,6 +95,7 @@ export default function AgentDetailsPage() {
     const { data: toolsData } = useTools({ limit: 100 });
     const { data: knowledgeBasesData } = useKnowledgeBases({ limit: 100 });
     const { data: agentsData } = useAgents({ limit: 100 });
+    const { data: attachedMcpServers = [] } = useAgentMcpServers(agentId || "");
 
     const allTools = toolsData?.tools || [];
     const allKnowledgeBases = knowledgeBasesData?.data || [];
@@ -131,8 +128,7 @@ export default function AgentDetailsPage() {
     };
 
     const handleAddIntegration = () => {
-        setEditingIntegration(null);
-        setIsIntegrationDialogOpen(true);
+        return;
     };
 
     const handleEditIntegration = (integration: AgentIntegration) => {
@@ -205,12 +201,8 @@ export default function AgentDetailsPage() {
             </div>
 
             {/* Tabs */}
-            <Tabs defaultValue="integrations" className="w-full">
+            <Tabs defaultValue="tools" className="w-full">
                 <TabsList className="w-full justify-start p-1 bg-muted/20 rounded-lg h-auto inline-flex w-auto">
-                    <TabsTrigger value="integrations">
-                        <LinkIcon className="h-4 w-4 mr-2" />
-                        Integrations
-                    </TabsTrigger>
                     <TabsTrigger value="tools">
                         <WrenchScrewdriverIcon className="h-4 w-4 mr-2" />
                         Tools
@@ -218,6 +210,10 @@ export default function AgentDetailsPage() {
                     <TabsTrigger value="knowledge">
                         <BookOpenIcon className="h-4 w-4 mr-2" />
                         Knowledge Base
+                    </TabsTrigger>
+                    <TabsTrigger value="mcp">
+                        <CodeBracketIcon className="h-4 w-4 mr-2" />
+                        MCP Servers
                     </TabsTrigger>
                     <TabsTrigger value="swarm">
                         <UserGroupIcon className="h-4 w-4 mr-2" />
@@ -227,108 +223,11 @@ export default function AgentDetailsPage() {
                         <CodeBracketIcon className="h-4 w-4 mr-2" />
                         Debug
                     </TabsTrigger>
+                    <TabsTrigger value="integrations">
+                        <LinkIcon className="h-4 w-4 mr-2" />
+                        Integrations
+                    </TabsTrigger>
                 </TabsList>
-
-                {/* Integrations Content */}
-                <TabsContent value="integrations" className="pt-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h3 className="text-lg font-medium">Integrations</h3>
-                            <p className="text-sm text-muted-foreground">Connect this agent to external platforms</p>
-                        </div>
-                        <Button onClick={handleAddIntegration}>
-                            <PlusIcon className="mr-2 h-4 w-4" />
-                            Add Integration
-                        </Button>
-                    </div>
-
-                    {agent.integrations && agent.integrations.length > 0 ? (
-                        <div className="rounded-md border">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Type</TableHead>
-                                        <TableHead>Webhook URL</TableHead>
-                                        <TableHead className="w-[100px]"></TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {agent.integrations.map((integration: any) => (
-                                        <TableRow key={integration.id}>
-                                            <TableCell className="font-medium">{integration.name}</TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center gap-2">
-                                                    {getIntegrationIcon(integration.integration_type)}
-                                                    <span>{getIntegrationLabel(integration.integration_type)}</span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                {integration.webhook_url && integration.integration_type !== "clickup" ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] text-sm">
-                                                            {integration.webhook_url.length > 40 ? integration.webhook_url.substring(0, 40) + "..." : integration.webhook_url}
-                                                        </code>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-6 w-6"
-                                                            onClick={() => handleCopyUrl(integration.webhook_url)}
-                                                        >
-                                                            {copiedUrl === integration.webhook_url ? (
-                                                                <CheckIcon className="h-3 w-3 text-green-500" />
-                                                            ) : (
-                                                                <ClipboardDocumentIcon className="h-3 w-3" />
-                                                            )}
-                                                        </Button>
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-muted-foreground text-sm">-</span>
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon">
-                                                            <EllipsisVerticalIcon className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem onClick={() => handleEditIntegration(integration)}>
-                                                            Edit
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem
-                                                            onClick={() => handleDeleteIntegration(integration)}
-                                                            className="text-destructive focus:text-destructive"
-                                                        >
-                                                            Delete
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    ) : (
-                        <div className="text-center py-12 border rounded-lg border-dashed">
-                            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                                <LinkIcon className="h-6 w-6 text-primary" />
-                            </div>
-                            <h3 className="mt-2 text-sm font-normal">No integrations</h3>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                Get started by connecting your first platform
-                            </p>
-                            <div className="mt-6">
-                                <Button onClick={handleAddIntegration}>
-                                    <PlusIcon className="mr-2 h-4 w-4" />
-                                    Add Integration
-                                </Button>
-                            </div>
-                        </div>
-                    )}
-                </TabsContent>
 
                 {/* Tools Content */}
                 <TabsContent value="tools" className="pt-6">
@@ -398,6 +297,63 @@ export default function AgentDetailsPage() {
                         <div className="text-center py-12 border rounded-lg border-dashed">
                             <p className="text-muted-foreground">No knowledge bases attached.</p>
                             <Button variant="link" onClick={() => setIsEditDialogOpen(true)}>Edit Agent to add Knowledge Bases</Button>
+                        </div>
+                    )}
+                </TabsContent>
+
+                <TabsContent value="mcp" className="pt-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 className="text-lg font-medium">MCP Servers</h3>
+                            <p className="text-sm text-muted-foreground">
+                                MCP servers attached to this agent.
+                            </p>
+                        </div>
+                        <Button variant="outline" onClick={() => setIsEditDialogOpen(true)}>
+                            <PencilIcon className="mr-2 h-4 w-4" />
+                            Edit Attachments
+                        </Button>
+                    </div>
+
+                    {attachedMcpServers.length > 0 ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Endpoint</TableHead>
+                                    <TableHead>Auth</TableHead>
+                                    <TableHead className="w-[100px]"></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {attachedMcpServers.map((server) => (
+                                    <TableRow key={server.id}>
+                                        <TableCell className="font-medium">{server.name}</TableCell>
+                                        <TableCell className="text-xs text-muted-foreground">{server.config.endpoint}</TableCell>
+                                        <TableCell>
+                                            {server.config.auth?.type === "token"
+                                                ? "Token"
+                                                : server.config.auth?.type === "oauth_client_credentials"
+                                                    ? "OAuth Client Credentials"
+                                                    : server.config.auth?.type === "oauth_authorization_code_public_pkce"
+                                                        ? "OAuth Authorization Code (Public PKCE)"
+                                                        : server.config.auth?.type === "oauth_authorization_code_confidential_pkce"
+                                                            ? "OAuth Authorization Code (Confidential PKCE)"
+                                                    : "None"}
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className="text-muted-foreground text-sm">Attached</span>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <div className="text-center py-8 border rounded-lg border-dashed">
+                            <p className="text-sm text-muted-foreground">No MCP servers attached.</p>
+                            <Button variant="link" onClick={() => setIsEditDialogOpen(true)}>
+                                Edit Agent to attach MCP servers
+                            </Button>
                         </div>
                     )}
                 </TabsContent>
@@ -555,6 +511,122 @@ export default function AgentDetailsPage() {
                             </div>
                         </div>
                     </div>
+                </TabsContent>
+
+                {/* Integrations Content */}
+                <TabsContent value="integrations" className="pt-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 className="text-lg font-medium">Integrations</h3>
+                            <p className="text-sm text-muted-foreground">Connect this agent to external platforms</p>
+                            <p className="text-sm text-amber-600 mt-1">
+                                Integrations are a beta feature. Please email us to get access.
+                            </p>
+                        </div>
+                        <Button onClick={handleAddIntegration} disabled>
+                            <PlusIcon className="mr-2 h-4 w-4" />
+                            Add Integration
+                        </Button>
+                    </div>
+
+                    {agent.integrations && agent.integrations.filter((integration: any) => {
+                        const type = String(integration.integration_type || "").toLowerCase();
+                        return type === "teams";
+                    }).length > 0 ? (
+                        <div className="rounded-md border">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Type</TableHead>
+                                        <TableHead>Webhook URL</TableHead>
+                                        <TableHead className="w-[100px]"></TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {agent.integrations
+                                        .filter((integration: any) => {
+                                            const type = String(integration.integration_type || "").toLowerCase();
+                                            return type === "teams";
+                                        })
+                                        .map((integration: any) => (
+                                        <TableRow key={integration.id}>
+                                            <TableCell className="font-medium">{integration.name}</TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    {getIntegrationIcon(integration.integration_type)}
+                                                    <span>{getIntegrationLabel(integration.integration_type)}</span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                {integration.webhook_url ? (
+                                                    <div className="flex items-center gap-2">
+                                                        <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] text-sm">
+                                                            {integration.webhook_url.length > 40 ? integration.webhook_url.substring(0, 40) + "..." : integration.webhook_url}
+                                                        </code>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-6 w-6"
+                                                            onClick={() => handleCopyUrl(integration.webhook_url)}
+                                                        >
+                                                            {copiedUrl === integration.webhook_url ? (
+                                                                <CheckIcon className="h-3 w-3 text-green-500" />
+                                                            ) : (
+                                                                <ClipboardDocumentIcon className="h-3 w-3" />
+                                                            )}
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-muted-foreground text-sm">-</span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon">
+                                                            <EllipsisVerticalIcon className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onClick={() => handleEditIntegration(integration)}>
+                                                            Edit
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            onClick={() => handleDeleteIntegration(integration)}
+                                                            className="text-destructive focus:text-destructive"
+                                                        >
+                                                            Delete
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    ) : (
+                        <div className="text-center py-12 border rounded-lg border-dashed">
+                            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                                <LinkIcon className="h-6 w-6 text-primary" />
+                            </div>
+                            <h3 className="mt-2 text-sm font-normal">No integrations</h3>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Get started by connecting your first platform
+                            </p>
+                            <p className="mt-2 text-sm text-amber-600">
+                                Integrations are a beta feature. Please email us to get access.
+                            </p>
+                            <div className="mt-6">
+                                <Button onClick={handleAddIntegration} disabled>
+                                    <PlusIcon className="mr-2 h-4 w-4" />
+                                    Add Integration
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
                 </TabsContent>
             </Tabs>
 

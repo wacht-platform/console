@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -6,7 +6,6 @@ import {
 	DevicePhoneMobileIcon,
 	UserCircleIcon,
 	CheckCircleIcon,
-	CloudArrowUpIcon,
 	RocketLaunchIcon,
 } from "@heroicons/react/24/outline";
 import {
@@ -53,20 +52,8 @@ export function CreateProjectDialog({
 	const [selectedMethods, setSelectedMethods] = useState<AuthMethod[]>([
 		"email",
 	]);
-	const [logoUrl, setLogoUrl] = useState<string | null>(null);
-	const [logoFile, setLogoFile] = useState<File | null>(null);
 	const [loading, setLoading] = useState(false);
-	const logoInputRef = useRef<HTMLInputElement>(null);
 	const { createProject } = useProjects();
-
-	const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const file = event.target.files?.[0];
-		if (file) {
-			setLogoFile(file);
-			const url = URL.createObjectURL(file);
-			setLogoUrl(url);
-		}
-	};
 
 	const toggleAuthMethod = (method: AuthMethod) => {
 		if (selectedMethods.includes(method)) {
@@ -82,9 +69,6 @@ export function CreateProjectDialog({
 		setLoading(true);
 		try {
 			const formData = new FormData();
-			if (logoFile) {
-				formData.append("logo", logoFile);
-			}
 			for (const method of selectedMethods) {
 				formData.append("methods", method);
 			}
@@ -95,8 +79,6 @@ export function CreateProjectDialog({
 			onClose();
 			// Reset form
 			setAppName("");
-			setLogoUrl(null);
-			setLogoFile(null);
 			setSelectedMethods(["email"]);
 		} catch (error) {
 			console.error(error);
@@ -136,61 +118,18 @@ export function CreateProjectDialog({
 								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-800 to-transparent" />
 							</div>
 
-							<div className="flex gap-5 items-start">
-								{/* Logo Upload */}
-								<div className="flex flex-col items-center gap-2 shrink-0">
-									<button
-										type="button"
-										className={clsx(
-											"w-[72px] h-[72px] rounded-2xl transition-all duration-300",
-											logoUrl
-												? "p-0.5 ring-2 ring-blue-500/20 border-transparent shadow-lg"
-												: "border border-zinc-200 dark:border-zinc-800 border-dashed hover:border-blue-500/50 hover:bg-blue-50/50 dark:hover:bg-blue-900/10",
-											"flex items-center justify-center cursor-pointer overflow-hidden relative group bg-white dark:bg-zinc-900/50"
-										)}
-										onClick={() => logoInputRef.current?.click()}
-									>
-										{logoUrl ? (
-											<img
-												src={logoUrl}
-												alt="App logo"
-												className="w-full h-full object-cover rounded-[14px]"
-											/>
-										) : (
-											<div className="flex flex-col items-center gap-1.5 p-2">
-												<CloudArrowUpIcon className="h-5 w-5 text-zinc-400 group-hover:text-blue-500 transition-colors" />
-												<span className="text-[8px] font-medium text-zinc-400 group-hover:text-blue-500/80 uppercase tracking-wide">Logo</span>
-											</div>
-										)}
-										<div className={clsx(
-											"absolute inset-0 bg-black/40 flex items-center justify-center rounded-[14px] transition-opacity duration-200",
-											logoUrl ? "opacity-0 group-hover:opacity-100" : "opacity-0"
-										)}>
-											<span className="text-xs text-white font-medium">Change</span>
-										</div>
-									</button>
-									<input
-										type="file"
-										ref={logoInputRef}
-										className="hidden"
-										accept="image/*"
-										onChange={handleLogoUpload}
-									/>
-								</div>
-
-								{/* Project Name */}
-								<Field className="flex-1 space-y-2">
-									<Label className="text-sm font-normal text-zinc-600 dark:text-zinc-400">Project Name</Label>
-									<Input
-										type="text"
-										placeholder="e.g., Acme Dashboard"
-										className="w-full bg-zinc-50/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all rounded-xl py-2.5"
-										value={appName}
-										onChange={(e) => setAppName(e.target.value)}
-										autoFocus
-									/>
-								</Field>
-							</div>
+							{/* Project Name */}
+							<Field className="space-y-2">
+								<Label className="text-sm font-normal text-zinc-600 dark:text-zinc-400">Project Name</Label>
+								<Input
+									type="text"
+									placeholder="e.g., Acme Dashboard"
+									className="w-full bg-zinc-50/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all rounded-xl py-2.5"
+									value={appName}
+									onChange={(e) => setAppName(e.target.value)}
+									autoFocus
+								/>
+							</Field>
 						</section>
 
 						{/* Authentication Methods Section */}

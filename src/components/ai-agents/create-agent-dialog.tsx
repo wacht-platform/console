@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { apiClient } from "../../lib/api/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
@@ -18,13 +20,17 @@ import {
 	BookOpenIcon,
 	CheckIcon,
 	UserGroupIcon,
+	CircleStackIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from 'sonner';
 
 import type { Agent } from "../../lib/api/hooks/use-agents";
 import { useCreateAgent, useUpdateAgent, useAgents } from "../../lib/api/hooks/use-agents";
-import { useTools } from "../../lib/api/hooks/use-tools";
-import { useKnowledgeBases } from "../../lib/api/hooks/use-knowledge-bases";
+import { useAgentTools, useTools } from "../../lib/api/hooks/use-tools";
+import { useAgentKnowledgeBases, useKnowledgeBases } from "../../lib/api/hooks/use-knowledge-bases";
+import { useAgentMcpServers, useMcpServers } from "../../lib/api/hooks/use-mcp-servers";
+import { useAgentSubAgents, useAttachSubAgent, useDetachSubAgent } from "../../lib/api/hooks/use-sub-agents";
+import { useProjects } from "../../lib/api/hooks/use-projects";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
 interface CreateAgentDialogProps {
@@ -46,6 +52,7 @@ interface AgentFormData {
 		allowFork?: boolean;
 		allowExec?: boolean;
 	};
+	mcpServerIds: string[];
 }
 
 interface FormErrors {
@@ -72,23 +79,38 @@ export function CreateAgentDialog({
 			allowFork: true,
 			allowExec: true,
 		},
+		mcpServerIds: [],
 	});
 
 	const [errors, setErrors] = useState<FormErrors>({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isMcpSelectionInitialized, setIsMcpSelectionInitialized] = useState(false);
+	const [hasEditedMcpSelection, setHasEditedMcpSelection] = useState(false);
+	const [isCapabilitiesSelectionInitialized, setIsCapabilitiesSelectionInitialized] = useState(false);
+	const [hasEditedCapabilitiesSelection, setHasEditedCapabilitiesSelection] = useState(false);
 
 	const isEditing = !!agent;
 
 	// API hooks
 	const createAgentMutation = useCreateAgent();
 	const updateAgentMutation = useUpdateAgent();
+	const { selectedDeployment } = useProjects();
+	const queryClient = useQueryClient();
 
 	// Fetch available resources
 	const { data: toolsData } = useTools({ limit: 100 });
 	const { data: knowledgeBasesData } = useKnowledgeBases({ limit: 100 });
+	const { data: mcpServersData } = useMcpServers({ limit: 200, offset: 0 });
+	const { data: attachedMcpServers = [], isFetched: isAttachedMcpFetched } = useAgentMcpServers(agent?.id || "");
+	const { data: attachedAgentTools = [] } = useAgentTools(agent?.id || "");
+	const { data: attachedAgentKnowledgeBases = [] } = useAgentKnowledgeBases(agent?.id || "");
+	const { data: attachedSubAgents = [] } = useAgentSubAgents(agent?.id || "");
+	const attachSubAgentMutation = useAttachSubAgent();
+	const detachSubAgentMutation = useDetachSubAgent();
 
 	const tools = toolsData?.tools || [];
 	const knowledgeBases = knowledgeBasesData?.data || [];
+	const mcpServers = mcpServersData?.mcpServers || [];
 
 	// Fetch all agents for sub-agent selection (exclude current agent when editing)
 	const { data: agentsData } = useAgents({ limit: 100 });
@@ -100,20 +122,25 @@ export function CreateAgentDialog({
 	useEffect(() => {
 		if (open) {
 			setActiveTab("details");
+			setIsMcpSelectionInitialized(false);
+			setHasEditedMcpSelection(false);
+			setIsCapabilitiesSelectionInitialized(false);
+			setHasEditedCapabilitiesSelection(false);
 			if (agent) {
 				setFormData({
 					name: agent.name,
 					description: agent.description || "",
-					toolIds: (agent.configuration?.tool_ids as string[]) || [],
-					knowledgeBaseIds: (agent.configuration?.knowledge_base_ids as string[]) || [],
+					toolIds: [],
+					knowledgeBaseIds: [],
 					integrationIds: (agent.configuration?.integration_ids as string[]) || [],
-					subAgentIds: (agent.sub_agents as string[]) || [],
+					subAgentIds: (agent.sub_agents || []).map((id) => String(id)),
 					spawnConfig: {
 						maxParallelChildren: agent.spawn_config?.max_parallel_children ?? 10,
 						defaultTimeoutSecs: agent.spawn_config?.default_timeout_secs ?? 300,
 						allowFork: agent.spawn_config?.allow_fork ?? true,
 						allowExec: agent.spawn_config?.allow_exec ?? true,
 					},
+					mcpServerIds: [],
 				});
 			} else {
 				setFormData({
@@ -129,12 +156,53 @@ export function CreateAgentDialog({
 						allowFork: true,
 						allowExec: true,
 					},
+					mcpServerIds: [],
 				});
 			}
 			setErrors({});
 			setIsSubmitting(false);
 		}
 	}, [open, agent]);
+
+	useEffect(() => {
+		if (!open || !agent || isCapabilitiesSelectionInitialized || hasEditedCapabilitiesSelection) return;
+
+		const nextToolIds = attachedAgentTools.map((tool) => String(tool.id));
+		const nextKnowledgeBaseIds = attachedAgentKnowledgeBases.map((kb) => String(kb.id));
+
+		setFormData((prev) => ({
+			...prev,
+			toolIds: nextToolIds,
+			knowledgeBaseIds: nextKnowledgeBaseIds,
+		}));
+		setIsCapabilitiesSelectionInitialized(true);
+	}, [
+		open,
+		agent,
+		attachedAgentTools,
+		attachedAgentKnowledgeBases,
+		isCapabilitiesSelectionInitialized,
+		hasEditedCapabilitiesSelection,
+	]);
+
+	useEffect(() => {
+		if (!open || !agent || !isAttachedMcpFetched || isMcpSelectionInitialized || hasEditedMcpSelection) return;
+		const nextIds = attachedMcpServers.map((server) => String(server.id)).sort();
+		setFormData((prev) => {
+			const currentIds = [...prev.mcpServerIds].sort();
+			const isSame =
+				currentIds.length === nextIds.length &&
+				currentIds.every((id, index) => id === nextIds[index]);
+			if (isSame) {
+				return prev;
+			}
+			return {
+				...prev,
+				mcpServerIds: nextIds,
+			};
+		});
+		setIsMcpSelectionInitialized(true);
+	}, [open, agent, attachedMcpServers, isAttachedMcpFetched, isMcpSelectionInitialized, hasEditedMcpSelection]);
 
 	// Validation function
 	const validateForm = (): boolean => {
@@ -170,12 +238,9 @@ export function CreateAgentDialog({
 				name: formData.name.trim(),
 				description: formData.description.trim() || undefined,
 				configuration: {
-					tool_ids: formData.toolIds,
-					knowledge_base_ids: formData.knowledgeBaseIds,
 					integration_ids: formData.integrationIds,
 					quick_questions: [],
 				},
-				sub_agents: formData.subAgentIds.length > 0 ? formData.subAgentIds : undefined,
 				spawn_config: {
 					max_parallel_children: formData.spawnConfig.maxParallelChildren,
 					default_timeout_secs: formData.spawnConfig.defaultTimeoutSecs,
@@ -189,9 +254,133 @@ export function CreateAgentDialog({
 					agentId: agent.id,
 					agent: agentData,
 				});
+
+				const currentMcpIds = new Set(attachedMcpServers.map((server) => String(server.id)));
+				const desiredMcpIds = new Set(formData.mcpServerIds);
+				const mcpToDetach = [...currentMcpIds].filter((id) => !desiredMcpIds.has(id));
+				const mcpToAttach = [...desiredMcpIds].filter((id) => !currentMcpIds.has(id));
+				for (const mcpServerId of mcpToDetach) {
+					await apiClient.delete(
+						`/deployments/${selectedDeployment!.id}/ai/agents/${agent.id}/mcp-servers/${mcpServerId}`,
+					);
+				}
+				for (const mcpServerId of mcpToAttach) {
+					await apiClient.post(
+						`/deployments/${selectedDeployment!.id}/ai/agents/${agent.id}/mcp-servers/${mcpServerId}`,
+					);
+				}
+
+				const currentToolIds = new Set(attachedAgentTools.map((tool) => String(tool.id)));
+				const desiredToolIds = new Set(formData.toolIds);
+				const toolsToDetach = [...currentToolIds].filter((id) => !desiredToolIds.has(id));
+				const toolsToAttach = [...desiredToolIds].filter((id) => !currentToolIds.has(id));
+				for (const toolId of toolsToDetach) {
+					await apiClient.delete(
+						`/deployments/${selectedDeployment!.id}/ai/agents/${agent.id}/tools/${toolId}`,
+					);
+				}
+				for (const toolId of toolsToAttach) {
+					await apiClient.post(
+						`/deployments/${selectedDeployment!.id}/ai/agents/${agent.id}/tools/${toolId}`,
+					);
+				}
+
+				const currentKbIds = new Set(attachedAgentKnowledgeBases.map((kb) => String(kb.id)));
+				const desiredKbIds = new Set(formData.knowledgeBaseIds);
+				const kbsToDetach = [...currentKbIds].filter((id) => !desiredKbIds.has(id));
+				const kbsToAttach = [...desiredKbIds].filter((id) => !currentKbIds.has(id));
+				for (const kbId of kbsToDetach) {
+					await apiClient.delete(
+						`/deployments/${selectedDeployment!.id}/ai/agents/${agent.id}/knowledge-bases/${kbId}`,
+					);
+				}
+				for (const kbId of kbsToAttach) {
+					await apiClient.post(
+						`/deployments/${selectedDeployment!.id}/ai/agents/${agent.id}/knowledge-bases/${kbId}`,
+					);
+				}
+
+				const currentSubAgentIds = new Set(attachedSubAgents.map((a) => String(a.id)));
+				const desiredSubAgentIds = new Set(formData.subAgentIds);
+				const subAgentsToDetach = [...currentSubAgentIds].filter((id) => !desiredSubAgentIds.has(id));
+				const subAgentsToAttach = [...desiredSubAgentIds].filter((id) => !currentSubAgentIds.has(id));
+				for (const subAgentId of subAgentsToDetach) {
+					await detachSubAgentMutation.mutateAsync({
+						agentId: agent.id,
+						subAgentId,
+					});
+				}
+				for (const subAgentId of subAgentsToAttach) {
+					await attachSubAgentMutation.mutateAsync({
+						agentId: agent.id,
+						subAgentId,
+					});
+				}
+
+				await queryClient.invalidateQueries({
+					queryKey: ["agent-mcp-servers", selectedDeployment?.id, agent.id],
+				});
+				await queryClient.refetchQueries({
+					queryKey: ["agent-mcp-servers", selectedDeployment?.id, agent.id],
+				});
+				await queryClient.invalidateQueries({
+					queryKey: ["agent-details", selectedDeployment?.id, agent.id],
+				});
+				await queryClient.invalidateQueries({
+					queryKey: ["agent-tools", selectedDeployment?.id, agent.id],
+				});
+				await queryClient.invalidateQueries({
+					queryKey: ["agent-knowledge-bases", selectedDeployment?.id, agent.id],
+				});
+				await queryClient.invalidateQueries({
+					queryKey: ["agents", selectedDeployment?.id],
+				});
+				await queryClient.invalidateQueries({
+					queryKey: ["agent-sub-agents", selectedDeployment?.id, agent.id],
+				});
 				toast.success("Agent updated successfully");
 			} else {
-				await createAgentMutation.mutateAsync(agentData);
+				const createdAgent = await createAgentMutation.mutateAsync(agentData);
+				if (!createdAgent?.id) {
+					throw new Error("Create agent response missing id");
+				}
+				for (const toolId of formData.toolIds) {
+					await apiClient.post(
+						`/deployments/${selectedDeployment!.id}/ai/agents/${createdAgent.id}/tools/${toolId}`,
+					);
+				}
+				for (const kbId of formData.knowledgeBaseIds) {
+					await apiClient.post(
+						`/deployments/${selectedDeployment!.id}/ai/agents/${createdAgent.id}/knowledge-bases/${kbId}`,
+					);
+				}
+				for (const subAgentId of formData.subAgentIds) {
+					await attachSubAgentMutation.mutateAsync({
+						agentId: createdAgent.id,
+						subAgentId,
+					});
+				}
+				for (const mcpServerId of formData.mcpServerIds) {
+					await apiClient.post(
+						`/deployments/${selectedDeployment!.id}/ai/agents/${createdAgent.id}/mcp-servers/${mcpServerId}`,
+					);
+				}
+
+				await queryClient.invalidateQueries({
+					queryKey: ["agent-mcp-servers", selectedDeployment?.id, createdAgent.id],
+				});
+				await queryClient.invalidateQueries({
+					queryKey: ["agent-tools", selectedDeployment?.id, createdAgent.id],
+				});
+				await queryClient.invalidateQueries({
+					queryKey: ["agent-knowledge-bases", selectedDeployment?.id, createdAgent.id],
+				});
+				await queryClient.invalidateQueries({
+					queryKey: ["agent-details", selectedDeployment?.id, createdAgent.id],
+				});
+				await queryClient.invalidateQueries({
+					queryKey: ["agents", selectedDeployment?.id],
+				});
 				toast.success("Agent created successfully");
 			}
 
@@ -216,12 +405,13 @@ export function CreateAgentDialog({
 			? currentIds.filter(existingId => existingId !== id)
 			: [...currentIds, id];
 
+		setHasEditedCapabilitiesSelection(true);
 		setFormData({ ...formData, [fieldName]: newIds });
 	};
 
 	return (
 		<Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-			<DialogContent className="sm:max-w-5xl max-h-[90vh] flex flex-col p-0 gap-0">
+			<DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col p-0 gap-0">
 				<DialogHeader className="p-6 pb-2">
 					<DialogTitle>{isEditing ? "Edit Agent" : "Create Agent"}</DialogTitle>
 					<DialogDescription>
@@ -234,9 +424,10 @@ export function CreateAgentDialog({
 				<form onSubmit={handleSubmit} className="flex-1 overflow-hidden flex flex-col">
 					<Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
 						<div className="px-6">
-							<TabsList className="grid w-full grid-cols-3">
+							<TabsList className="grid w-full grid-cols-4">
 								<TabsTrigger value="details">Details</TabsTrigger>
 								<TabsTrigger value="capabilities">Capabilities</TabsTrigger>
+								<TabsTrigger value="mcp">MCP Servers</TabsTrigger>
 								<TabsTrigger value="subAgents">Agent Swarm</TabsTrigger>
 							</TabsList>
 						</div>
@@ -265,6 +456,59 @@ export function CreateAgentDialog({
 										/>
 										{errors.description && <p className="text-sm text-destructive mt-1">{errors.description}</p>}
 									</div>
+								</div>
+							</TabsContent>
+
+							<TabsContent value="mcp" className="mt-0 space-y-4">
+								<div className="flex items-center justify-between">
+									<Label className="flex items-center gap-2 text-base">
+										<CircleStackIcon className="h-4 w-4 text-cyan-500" />
+										MCP Servers
+									</Label>
+									{formData.mcpServerIds.length > 0 && (
+										<Badge variant="secondary">{formData.mcpServerIds.length} selected</Badge>
+									)}
+								</div>
+								<p className="text-sm text-muted-foreground">
+									Attach reusable MCP servers to this agent.
+								</p>
+								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+									{mcpServers.length === 0 ? (
+										<div className="col-span-full text-sm text-muted-foreground py-2 italic text-center border border-dashed rounded-lg">
+											No MCP servers available
+										</div>
+									) : (
+										mcpServers.map((mcpServer) => (
+											<div
+												key={mcpServer.id}
+												onClick={() => {
+													const mcpServerId = String(mcpServer.id);
+													const newIds = formData.mcpServerIds.includes(mcpServerId)
+														? formData.mcpServerIds.filter((id) => id !== mcpServerId)
+														: [...formData.mcpServerIds, mcpServerId];
+													setHasEditedMcpSelection(true);
+													setFormData({ ...formData, mcpServerIds: newIds });
+												}}
+												className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all hover:bg-muted/50 ${
+													formData.mcpServerIds.includes(String(mcpServer.id))
+														? "border-primary bg-primary/5 hover:bg-primary/10"
+														: "border-border"
+												}`}
+											>
+												<div className={`mt-0.5 h-4 w-4 rounded flex items-center justify-center border ${
+													formData.mcpServerIds.includes(String(mcpServer.id))
+														? "bg-primary border-primary text-primary-foreground"
+														: "border-muted-foreground"
+												}`}>
+													{formData.mcpServerIds.includes(String(mcpServer.id)) && <CheckIcon className="h-3 w-3" />}
+												</div>
+												<div className="flex-1 min-w-0">
+													<div className="font-medium text-sm truncate">{mcpServer.name}</div>
+													<div className="text-xs text-muted-foreground truncate">{mcpServer.config.endpoint}</div>
+												</div>
+											</div>
+										))
+									)}
 								</div>
 							</TabsContent>
 
