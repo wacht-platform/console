@@ -41,11 +41,8 @@ Wacht is a development toolkit that helps you build enterprise apps fast - authe
 
 ## License
 
-Licensed under PolyForm Shield License 1.0.0 - see [LICENSE.md](LICENSE.md) for details.
-
-Copyright © 2025 Intellinesia Labs (https://intellinesia.com/)
-
-**TL;DR**: You can use, modify, and distribute this for any purpose except building competing products. Read the full license for details.
+Dual-licensed under Apache License 2.0 or GNU AGPL v3+.
+See [LICENSE.md](LICENSE.md).
 
 ## Related Projects
 
