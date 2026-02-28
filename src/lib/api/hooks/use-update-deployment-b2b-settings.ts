@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../client";
 import { useProjects } from "./use-projects";
+import { DeploymentPermissionCatalogEntry } from "@/types/deployment";
 
 interface B2bSettingsUpdate {
     organizations_enabled?: boolean;
@@ -22,6 +23,8 @@ interface B2bSettingsUpdate {
     org_creation_per_user_count?: number;
     workspace_permissions?: string[];
     organization_permissions?: string[];
+    workspace_permission_catalog?: DeploymentPermissionCatalogEntry[];
+    organization_permission_catalog?: DeploymentPermissionCatalogEntry[];
     enterprise_sso_enabled?: boolean;
 }
 

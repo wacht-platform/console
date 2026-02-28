@@ -14,10 +14,11 @@ import { useUpdateDeploymentB2bSettings } from "@/lib/api/hooks/use-update-deplo
 import { useDeploymentWorkspaceRoles } from "@/lib/api/hooks/use-deployment-workspace-roles";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import SavePopup from "@/components/save-popup";
-import { DeploymentB2bSettings } from "@/types/deployment";
+import { DeploymentB2bSettings, DeploymentPermissionCatalogEntry } from "@/types/deployment";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ArchiveBoxIcon, ArrowUturnLeftIcon, PlusIcon } from "@heroicons/react/24/outline";
 
 interface WorkspaceSettingsState {
   workspaces_enabled: boolean;
@@ -32,7 +33,7 @@ interface WorkspaceSettingsState {
   custom_workspace_role_enabled: boolean;
   default_workspace_creator_role_id: string;
   enforce_mfa_per_workspace_enabled: boolean;
-  workspace_permissions: string[];
+  workspace_permission_catalog: DeploymentPermissionCatalogEntry[];
 }
 
 const initialSettingsState: WorkspaceSettingsState = {
@@ -48,7 +49,7 @@ const initialSettingsState: WorkspaceSettingsState = {
   custom_workspace_role_enabled: false,
   default_workspace_creator_role_id: "",
   enforce_mfa_per_workspace_enabled: false,
-  workspace_permissions: [],
+  workspace_permission_catalog: [],
 };
 
 export default function ManageWorkspacesPage() {
@@ -103,7 +104,12 @@ export default function ManageWorkspacesPage() {
         b2bSettings.default_workspace_creator_role?.id ?? "",
       enforce_mfa_per_workspace_enabled:
         b2bSettings.enforce_mfa_per_workspace_enabled ?? false,
-      workspace_permissions: b2bSettings.workspace_permissions ?? [],
+      workspace_permission_catalog:
+        b2bSettings.workspace_permission_catalog ??
+        (b2bSettings.workspace_permissions ?? []).map((key) => ({
+          key,
+          archived: false,
+        })),
     });
   }, []);
 
@@ -187,7 +193,7 @@ export default function ManageWorkspacesPage() {
           settingsState.default_workspace_member_role_id || undefined,
         default_workspace_creator_role_id:
           settingsState.default_workspace_creator_role_id || undefined,
-        workspace_permissions: settingsState.workspace_permissions,
+        workspace_permission_catalog: settingsState.workspace_permission_catalog,
         max_allowed_workspace_members:
           settingsState.membership_limit_type === "unlimited"
             ? 0
@@ -216,6 +222,44 @@ export default function ManageWorkspacesPage() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const workspaceActivePermissions =
+    settingsState.workspace_permission_catalog.filter((entry) => !entry.archived);
+  const workspaceArchivedPermissions =
+    settingsState.workspace_permission_catalog.filter((entry) => entry.archived);
+
+  const upsertWorkspacePermission = (rawPermission: string) => {
+    const permission = rawPermission.trim();
+    if (!permission) return;
+    const existing = settingsState.workspace_permission_catalog.find(
+      (entry) => entry.key === permission
+    );
+    if (existing && !existing.archived) return;
+
+    if (existing && existing.archived) {
+      handleSettingChange(
+        "workspace_permission_catalog",
+        settingsState.workspace_permission_catalog.map((entry) =>
+          entry.key === permission ? { ...entry, archived: false } : entry
+        )
+      );
+      return;
+    }
+
+    handleSettingChange("workspace_permission_catalog", [
+      ...settingsState.workspace_permission_catalog,
+      { key: permission, archived: false },
+    ]);
+  };
+
+  const setWorkspacePermissionArchived = (permission: string, archived: boolean) => {
+    handleSettingChange(
+      "workspace_permission_catalog",
+      settingsState.workspace_permission_catalog.map((entry) =>
+        entry.key === permission ? { ...entry, archived } : entry
+      )
+    );
   };
 
   const handleReset = () => {
@@ -418,22 +462,16 @@ export default function ManageWorkspacesPage() {
                         onKeyPress={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
-                            const permission = newPermission.trim();
-                            if (permission && !settingsState.workspace_permissions.includes(permission)) {
-                              handleSettingChange("workspace_permissions", [...settingsState.workspace_permissions, permission]);
-                              setNewPermission("");
-                            }
+                            upsertWorkspacePermission(newPermission);
+                            setNewPermission("");
                           }
                         }}
                         className="flex-1"
                       />
                       <Button
                         onClick={() => {
-                          const permission = newPermission.trim();
-                          if (permission && !settingsState.workspace_permissions.includes(permission)) {
-                            handleSettingChange("workspace_permissions", [...settingsState.workspace_permissions, permission]);
-                            setNewPermission("");
-                          }
+                          upsertWorkspacePermission(newPermission);
+                          setNewPermission("");
                         }}
                         variant="outline"
                       >
@@ -441,33 +479,68 @@ export default function ManageWorkspacesPage() {
                       </Button>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {settingsState.workspace_permissions.length === 0 ? (
+                      {workspaceActivePermissions.length === 0 ? (
                         <span className="text-sm text-gray-500 dark:text-gray-400 italic">
                           No permissions configured
                         </span>
                       ) : (
-                        settingsState.workspace_permissions.map((permission) => (
+                        workspaceActivePermissions.map((entry) => (
                           <Badge
-                            key={permission}
+                            key={entry.key}
                             color="green"
                             className="flex items-center gap-1"
                           >
-                            {permission}
-                            <button
-                              onClick={() => {
-                                handleSettingChange(
-                                  "workspace_permissions",
-                                  settingsState.workspace_permissions.filter(p => p !== permission)
-                                );
-                              }}
-                              className="ml-1 hover:text-red-500"
-                            >
-                              <XMarkIcon className="h-3 w-3" />
-                            </button>
+                            {entry.key}
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setWorkspacePermissionArchived(entry.key, true);
+                                  }}
+                                  className="ml-1 hover:text-red-500"
+                                  aria-label="Archive permission"
+                                >
+                                  <ArchiveBoxIcon className="h-3 w-3" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>Archive permission</TooltipContent>
+                            </Tooltip>
                           </Badge>
                         ))
                       )}
                     </div>
+                    {workspaceArchivedPermissions.length > 0 && (
+                      <div className="space-y-2">
+                        <Text>Archived</Text>
+                        <div className="flex flex-wrap gap-2">
+                          {workspaceArchivedPermissions.map((entry) => (
+                            <Badge
+                              key={entry.key}
+                              color="zinc"
+                              className="flex items-center gap-1"
+                            >
+                              {entry.key}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setWorkspacePermissionArchived(entry.key, false)
+                                    }
+                                    className="ml-1 hover:text-green-600"
+                                    aria-label="Unarchive permission"
+                                  >
+                                    <ArrowUturnLeftIcon className="h-3 w-3" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>Unarchive permission</TooltipContent>
+                              </Tooltip>
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </section>
               </div>

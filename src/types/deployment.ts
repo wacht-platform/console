@@ -228,6 +228,11 @@ export interface DeploymentOrganizationRole {
 	permissions: string[];
 }
 
+export interface DeploymentPermissionCatalogEntry {
+	key: string;
+	archived: boolean;
+}
+
 export interface DeploymentB2bSettings {
 	id: string;
 	created_at: string | null;
@@ -261,6 +266,8 @@ export interface DeploymentB2bSettings {
 	default_org_member_role: DeploymentOrganizationRole;
 	workspace_permissions?: string[];
 	organization_permissions?: string[];
+	workspace_permission_catalog?: DeploymentPermissionCatalogEntry[];
+	organization_permission_catalog?: DeploymentPermissionCatalogEntry[];
 	enterprise_sso_enabled?: boolean;
 }
 

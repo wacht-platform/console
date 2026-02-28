@@ -13,6 +13,7 @@ import {
   useBillingAccount,
 } from "@/lib/api/hooks/use-billing";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePostHog } from "@posthog/react";
 import {
   RocketLaunchIcon,
   SparklesIcon,
@@ -103,6 +104,7 @@ export function BillingSetupDialog({
   const checkoutWindowRef = useRef<Window | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  const posthog = usePostHog();
   const createCheckout = useCreateCheckout();
   const { data: billingAccount, refetch: refetchBilling } = useBillingAccount();
 
@@ -161,6 +163,10 @@ export function BillingSetupDialog({
     e.preventDefault();
 
     try {
+      posthog?.capture("billing_checkout_started", {
+        plan_id: selectedPlanId,
+        plan_name: plans.find(p => p.id === selectedPlanId)?.name,
+      });
       startPolling();
       const response = await createCheckout.mutateAsync(formData);
 
@@ -179,6 +185,7 @@ export function BillingSetupDialog({
       }
     } catch (error) {
       console.error("Failed to create checkout session:", error);
+      posthog?.captureException(error);
     }
   };
 

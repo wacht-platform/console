@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAddOrganizationMember } from "@/lib/api/hooks/use-organization-mutations";
 import { useDeploymentUsers } from "@/lib/api/hooks/use-deployment-users";
+import { usePostHog } from "@posthog/react";
 import {
 	Dialog,
 	DialogContent,
@@ -30,6 +31,7 @@ export function AddMemberDialog({
 }: AddMemberDialogProps) {
 	const [selectedUser, setSelectedUser] = useState<UserWithIdentifiers | null>(null);
 	const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+	const posthog = usePostHog();
 
 	// Fetch all users when dialog opens
 	const { data: users, isLoading: usersLoading } = useDeploymentUsers({
@@ -62,9 +64,14 @@ export function AddMemberDialog({
 					role_ids: selectedRoles,
 				},
 			});
+			posthog?.capture("organization_member_added", {
+				organization_id: organizationId,
+				role_count: selectedRoles.length,
+			});
 			onClose();
 		} catch (error) {
 			console.error("Failed to add member:", error);
+			posthog?.captureException(error);
 		}
 	};
 

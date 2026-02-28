@@ -2,6 +2,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { Heading, Subheading } from "@/components/ui/heading";
+import { usePostHog } from "@posthog/react";
 import {
   Dialog,
   DialogContent,
@@ -76,6 +77,7 @@ function ProviderSettingsDialog({
   );
   const [redirectUriError, setRedirectUriError] = useState<string | null>(null);
 
+  const posthogDialog = usePostHog();
   const { mutate: upsertConnection, isPending: isSaving } =
     useUpsertDeploymentSocialConnection();
 
@@ -175,9 +177,18 @@ function ProviderSettingsDialog({
     upsertConnection(
       { deploymentId, payload },
       {
-        onSuccess,
+        onSuccess: () => {
+          posthogDialog?.capture("social_connection_configured", {
+            provider,
+            provider_name: providerName,
+            sign_in_enabled: signInEnabled,
+            use_custom_credentials: useCustomCredentials,
+          });
+          onSuccess();
+        },
         onError: (error) => {
           console.error("Save error:", error);
+          posthogDialog?.captureException(error);
         },
       },
     );
@@ -413,6 +424,7 @@ export default function SSOConnectionsPage() {
   const { data: socialConnections, isLoading } =
     useDeploymentSocialConnections();
   const { selectedDeployment } = useProjects();
+  const posthog = usePostHog();
 
   console.log(selectedDeployment?.mode === "production");
 
@@ -455,6 +467,10 @@ export default function SSOConnectionsPage() {
     if (!selectedDeployment) return;
 
     if (checked) {
+      posthog?.capture("social_connection_enabled", {
+        provider: providerInfo.provider,
+        provider_name: providerInfo.name,
+      });
       handleOpenSettings(providerInfo);
     } else {
       upsertConnection(
@@ -468,10 +484,15 @@ export default function SSOConnectionsPage() {
         },
         {
           onSuccess: () => {
+            posthog?.capture("social_connection_disabled", {
+              provider: providerInfo.provider,
+              provider_name: providerInfo.name,
+            });
             toast.success(`${providerInfo.name} OAuth disabled successfully.`);
           },
           onError: (error) => {
             console.error("Disable error:", error);
+            posthog?.captureException(error);
             toast.error(`Failed to disable ${providerInfo.name} OAuth.`);
           },
         },

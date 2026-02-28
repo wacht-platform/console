@@ -13,7 +13,7 @@ import {
     IconInfoCircle,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Select,
@@ -28,22 +28,20 @@ import { useTheme } from "@/lib/providers/theme";
 function StepWrapper({
     number,
     children,
-    last = false,
 }: {
     number: number;
     children: React.ReactNode;
-    last?: boolean;
 }) {
     return (
-        <div className="flex gap-6 group">
-            <div className="flex flex-col items-center">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted/40 border border-border/60 text-[11px] font-medium select-none group-hover:border-primary/40 transition-colors">
+        <section className="rounded-2xl border border-border/70 bg-card/70 p-5 md:p-6">
+            <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-[11px] text-primary">
                     {number}
                 </div>
-                {!last && <div className="w-[1px] flex-1 bg-border/30 my-2" />}
+                <div className="h-px flex-1 bg-border/60" />
             </div>
-            <div className="flex-1 pb-10">{children}</div>
-        </div>
+            {children}
+        </section>
     );
 }
 
@@ -68,8 +66,8 @@ function PackageManagerSwitcher({ command }: { command: string }) {
     };
 
     return (
-        <div className="rounded-lg border border-border/30 bg-muted/30 dark:bg-zinc-950/40 overflow-hidden shadow-sm">
-            <div className="flex items-center justify-between px-2 py-1.5 border-b border-border/10 bg-muted/20 dark:bg-zinc-900/20">
+        <div className="overflow-hidden rounded-xl border border-border/70 bg-background">
+            <div className="flex items-center justify-between border-b border-border/70 bg-muted/30 px-2 py-1.5">
                 <div className="flex gap-1">
                     {managers.map((m) => (
                         <button
@@ -89,7 +87,7 @@ function PackageManagerSwitcher({ command }: { command: string }) {
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 text-muted-foreground hover:text-foreground dark:hover:text-white"
+                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
                     onClick={handleCopy}
                 >
                     {copied ? (
@@ -99,13 +97,9 @@ function PackageManagerSwitcher({ command }: { command: string }) {
                     )}
                 </Button>
             </div>
-            <div className="p-3 text-[12px] text-muted-foreground dark:text-zinc-300">
-                <span className="text-muted-foreground/50 select-none dark:opacity-40">
-                    $
-                </span>{" "}
-                <span className="text-fuchsia-600 dark:text-fuchsia-400">
-                    {getCommand()}
-                </span>
+            <div className="p-3 text-[12px]">
+                <span className="select-none text-muted-foreground/50">$</span>{" "}
+                <span className="text-primary">{getCommand()}</span>
             </div>
         </div>
     );
@@ -119,14 +113,14 @@ function AlertBlock({
     children: React.ReactNode;
 }) {
     return (
-        <div className="p-3 rounded-lg border border-blue-200/50 dark:border-blue-500/10 bg-blue-50/50 dark:bg-blue-500/5 space-y-1.5 my-3">
-            <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400/80">
+        <div className="my-3 space-y-1.5 rounded-lg border border-border/70 bg-muted/30 p-3">
+            <div className="flex items-center gap-2 text-muted-foreground">
                 <IconInfoCircle className="h-3.5 w-3.5" />
                 <span className="text-[11px] font-medium uppercase tracking-wider">
                     {title}
                 </span>
             </div>
-            <div className="text-[12px] text-muted-foreground/80 leading-relaxed">
+            <div className="text-[12px] leading-relaxed text-muted-foreground/90">
                 {children}
             </div>
         </div>
@@ -241,42 +235,45 @@ export default function GettingStartedPage() {
     const [framework, setFramework] = useState<string>("react-router");
     const [activeExample, setActiveExample] = useState<string>("auth");
 
-    const frameworks =
-        frameworkCategory === "frontend"
-            ? [
-                  {
-                      id: "react-router",
-                      name: "React Router",
-                      icon: IconBrandReact,
-                      pkg: "@wacht/react-router",
-                  },
-                  {
-                      id: "nextjs",
-                      name: "Next.js",
-                      icon: IconBrandNextjs,
-                      pkg: "@wacht/nextjs",
-                  },
-                  {
-                      id: "tanstack",
-                      name: "TanStack",
-                      icon: IconBrandTypescript,
-                      pkg: "@wacht/tanstack-router",
-                  },
-              ]
-            : [
-                  {
-                      id: "rust",
-                      name: "Rust",
-                      icon: IconBrandRust,
-                      pkg: "wacht",
-                  },
-                  {
-                      id: "nodejs",
-                      name: "Node.js",
-                      icon: IconBrandNodejs,
-                      pkg: "@wacht/node-sdk",
-                  },
-              ];
+    const frameworks = useMemo(
+        () =>
+            frameworkCategory === "frontend"
+                ? [
+                      {
+                          id: "react-router",
+                          name: "React Router",
+                          icon: IconBrandReact,
+                          pkg: "@wacht/react-router",
+                      },
+                      {
+                          id: "nextjs",
+                          name: "Next.js",
+                          icon: IconBrandNextjs,
+                          pkg: "@wacht/nextjs",
+                      },
+                      {
+                          id: "tanstack",
+                          name: "TanStack",
+                          icon: IconBrandTypescript,
+                          pkg: "@wacht/tanstack-router",
+                      },
+                  ]
+                : [
+                      {
+                          id: "rust",
+                          name: "Rust",
+                          icon: IconBrandRust,
+                          pkg: "wacht",
+                      },
+                      {
+                          id: "nodejs",
+                          name: "Node.js",
+                          icon: IconBrandNodejs,
+                          pkg: "@wacht/node-sdk",
+                      },
+                  ],
+        [frameworkCategory],
+    );
 
     const activeFramework =
         frameworks.find((f) => f.id === framework) || frameworks[0];
@@ -307,19 +304,18 @@ export default function GettingStartedPage() {
     });
 
     return (
-        <div className="animate-in fade-in duration-500">
-            {/* Page Header */}
-            <div className="mb-10 space-y-4">
-                <div className="flex items-center justify-between">
-                    <Heading className="text-3xl font-medium tracking-tight">
+        <div className="animate-in fade-in duration-300">
+            <div className="mb-8 space-y-5">
+                <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                    <Heading className="text-3xl tracking-tight md:text-2xl">
                         Quickstart
                     </Heading>
-                    <div className="min-w-[140px]">
+                    <div className="min-w-42.5">
                         <Select
                             value={activeExample}
                             onValueChange={setActiveExample}
                         >
-                            <SelectTrigger className="h-8 bg-muted/20 border-border/30 focus:ring-0 text-[12px] font-medium px-3">
+                            <SelectTrigger className="h-9 border-border/70 bg-background text-[12px] w-full">
                                 <SelectValue placeholder="Select mode" />
                             </SelectTrigger>
                             <SelectContent align="end">
@@ -353,21 +349,20 @@ export default function GettingStartedPage() {
                     </div>
                 </div>
 
-                <Text className="text-muted-foreground text-[14px] font-normal max-w-2xl leading-relaxed opacity-80">
+                <Text className="max-w-3xl text-[14px] leading-relaxed text-muted-foreground">
                     Secure your application with Wacht in minutes. Select your
                     framework and follow the steps to complete the integration.
                 </Text>
 
-                {/* Integration Type Switcher */}
-                <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-                    <div className="flex p-0.5 rounded-lg bg-muted/20 border border-border/30">
+                <div className="flex flex-col items-start gap-4 rounded-xl border border-border/70 bg-muted/20 p-4 md:flex-row md:items-center md:justify-between">
+                    <div className="flex rounded-lg border border-border/70 bg-background p-0.5">
                         <button
                             onClick={() => setFrameworkCategory("frontend")}
                             className={cn(
-                                "px-3.5 py-1 rounded-md text-[12px] font-medium transition-all",
+                                "rounded-md px-3.5 py-1 text-[12px] transition-all",
                                 frameworkCategory === "frontend"
-                                    ? "bg-background text-foreground shadow-sm ring-1 ring-border/20"
-                                    : "text-muted-foreground hover:text-foreground/80",
+                                    ? "bg-primary/10 text-primary"
+                                    : "text-muted-foreground hover:text-foreground",
                             )}
                         >
                             Frontend
@@ -375,26 +370,25 @@ export default function GettingStartedPage() {
                         <button
                             onClick={() => setFrameworkCategory("backend")}
                             className={cn(
-                                "px-3.5 py-1 rounded-md text-[12px] font-medium transition-all",
+                                "rounded-md px-3.5 py-1 text-[12px] transition-all",
                                 frameworkCategory === "backend"
-                                    ? "bg-background text-foreground shadow-sm ring-1 ring-border/20"
-                                    : "text-muted-foreground hover:text-foreground/80",
+                                    ? "bg-primary/10 text-primary"
+                                    : "text-muted-foreground hover:text-foreground",
                             )}
                         >
                             Backend
                         </button>
                     </div>
-                    <div className="h-5 w-px bg-border/20 hidden md:block" />
                     <div className="flex flex-wrap gap-1.5">
                         {frameworks.map((f) => (
                             <button
                                 key={f.id}
                                 onClick={() => setFramework(f.id)}
                                 className={cn(
-                                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all",
+                                    "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 transition-all",
                                     activeFramework.id === f.id
-                                        ? "bg-primary/5 border-primary/20 text-primary"
-                                        : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/20 hover:text-foreground/80",
+                                        ? "border-primary/30 bg-primary/10 text-primary"
+                                        : "border-border/60 bg-background text-muted-foreground hover:text-foreground",
                                 )}
                             >
                                 <f.icon className="h-3.5 w-3.5" />
@@ -407,15 +401,14 @@ export default function GettingStartedPage() {
                 </div>
             </div>
 
-            {/* Stepped Flow */}
-            <div className="space-y-0 max-w-5xl">
+            <div className="w-full space-y-4">
                 <StepWrapper number={1}>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-10">
                         <div className="space-y-2">
-                            <h3 className="text-lg font-medium tracking-tight">
+                            <h3 className="text-lg tracking-tight">
                                 Install {activeFramework.name} SDK
                             </h3>
-                            <p className="text-muted-foreground text-[13px] leading-relaxed opacity-70">
+                            <p className="text-[13px] leading-relaxed text-muted-foreground">
                                 Run the following command in your terminal to
                                 install the official {activeFramework.name}{" "}
                                 library for Wacht.
@@ -426,12 +419,12 @@ export default function GettingStartedPage() {
                 </StepWrapper>
 
                 <StepWrapper number={2}>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-10">
                         <div className="space-y-2">
-                            <h3 className="text-lg font-medium tracking-tight">
+                            <h3 className="text-lg tracking-tight">
                                 Configure API Keys
                             </h3>
-                            <p className="text-muted-foreground text-[13px] leading-relaxed opacity-70">
+                            <p className="text-[13px] leading-relaxed text-muted-foreground">
                                 Create a{" "}
                                 <code className="px-1 py-0 bg-muted/50 rounded text-[11px]">
                                     .env
@@ -449,12 +442,12 @@ export default function GettingStartedPage() {
                 </StepWrapper>
 
                 <StepWrapper number={3}>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-10">
                         <div className="space-y-2">
-                            <h3 className="text-lg font-medium tracking-tight">
+                            <h3 className="text-lg tracking-tight">
                                 Initialize the Provider
                             </h3>
-                            <p className="text-muted-foreground text-[13px] leading-relaxed opacity-70">
+                            <p className="text-[13px] leading-relaxed text-muted-foreground">
                                 Wrap your application with the{" "}
                                 <code className="px-1 py-0 bg-muted/50 rounded text-[11px]">
                                     DeploymentProvider
@@ -481,10 +474,10 @@ export default function GettingStartedPage() {
                     </div>
                 </StepWrapper>
 
-                <StepWrapper number={4} last>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+                <StepWrapper number={4}>
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-10">
                         <div className="space-y-2">
-                            <h3 className="text-lg font-medium tracking-tight">
+                            <h3 className="text-lg tracking-tight">
                                 {activeExample === "auth"
                                     ? "Add Authentication UI"
                                     : activeExample === "tenancy"
@@ -497,7 +490,7 @@ export default function GettingStartedPage() {
                                             ? "Manage Resources"
                                             : "Handle Events"}
                             </h3>
-                            <p className="text-muted-foreground text-[13px] leading-relaxed opacity-70">
+                            <p className="text-[13px] leading-relaxed text-muted-foreground">
                                 {activeExample === "auth"
                                     ? "Protect your routes using the SignedIn and SignedOut components to control access."
                                     : activeExample === "tenancy"

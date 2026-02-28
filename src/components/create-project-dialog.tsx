@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { usePostHog } from "@posthog/react";
 import {
 	EnvelopeIcon,
 	DevicePhoneMobileIcon,
@@ -54,6 +55,7 @@ export function CreateProjectDialog({
 	]);
 	const [loading, setLoading] = useState(false);
 	const { createProject } = useProjects();
+	const posthog = usePostHog();
 
 	const toggleAuthMethod = (method: AuthMethod) => {
 		if (selectedMethods.includes(method)) {
@@ -76,12 +78,18 @@ export function CreateProjectDialog({
 			formData.append("name", appName);
 
 			await createProject(formData);
+			posthog?.capture("project_created", {
+				project_name: appName,
+				auth_methods: selectedMethods,
+				auth_method_count: selectedMethods.length,
+			});
 			onClose();
 			// Reset form
 			setAppName("");
 			setSelectedMethods(["email"]);
 		} catch (error) {
 			console.error(error);
+			posthog?.captureException(error);
 		} finally {
 			setLoading(false);
 		}

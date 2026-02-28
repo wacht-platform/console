@@ -15,9 +15,11 @@ import { AppLoading } from "./components/ui/loading-screen";
 import { apiClient } from "./lib/api/client";
 import { Toaster } from "sonner";
 import { useTheme } from "./lib/providers/theme";
+import { usePostHog } from "@posthog/react";
 
 function SignedInRoutes() {
     const { getToken, session, loading } = useSession();
+    const posthog = usePostHog();
     const [interceptorReady, setInterceptorReady] = React.useState(false);
 
     useEffect(() => {
@@ -42,6 +44,16 @@ function SignedInRoutes() {
     const activeSignInId = session?.active_signin?.id;
     const activeOrgMembershipId =
         session?.active_signin?.active_organization_membership_id;
+
+    // Identify the user in PostHog once the session is loaded
+    useEffect(() => {
+        if (loading) return;
+        if (!session?.active_signin) return;
+        const signin = session.active_signin;
+        posthog?.identify(signin.id, {
+            email: signin.primary_email_address ?? undefined,
+        });
+    }, [loading, session?.active_signin, posthog]);
 
     useEffect(() => {
         if (loading) return;

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { apiClient } from "../../lib/api/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { usePostHog } from "@posthog/react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
@@ -90,6 +91,7 @@ export function CreateAgentDialog({
 	const [hasEditedCapabilitiesSelection, setHasEditedCapabilitiesSelection] = useState(false);
 
 	const isEditing = !!agent;
+	const posthog = usePostHog();
 
 	// API hooks
 	const createAgentMutation = useCreateAgent();
@@ -381,12 +383,21 @@ export function CreateAgentDialog({
 				await queryClient.invalidateQueries({
 					queryKey: ["agents", selectedDeployment?.id],
 				});
+				posthog?.capture("ai_agent_created", {
+					agent_id: createdAgent.id,
+					agent_name: formData.name.trim(),
+					tool_count: formData.toolIds.length,
+					knowledge_base_count: formData.knowledgeBaseIds.length,
+					mcp_server_count: formData.mcpServerIds.length,
+					sub_agent_count: formData.subAgentIds.length,
+				});
 				toast.success("Agent created successfully");
 			}
 
 			onClose();
 		} catch (error) {
 			console.error("Failed to save agent:", error);
+			posthog?.captureException(error);
 			const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
 			toast.error(isEditing ? `Failed to update agent: ${errorMessage}` : `Failed to create agent: ${errorMessage}`);
 		} finally {

@@ -14,10 +14,11 @@ import { useUpdateDeploymentB2bSettings } from "@/lib/api/hooks/use-update-deplo
 import { useDeploymentOrgRoles } from "@/lib/api/hooks/use-deployment-org-roles";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import SavePopup from "@/components/save-popup";
-import { DeploymentB2bSettings } from "@/types/deployment";
+import { DeploymentB2bSettings, DeploymentPermissionCatalogEntry } from "@/types/deployment";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ArchiveBoxIcon, ArrowUturnLeftIcon, PlusIcon } from "@heroicons/react/24/outline";
 
 interface B2BSettingsState {
   organizations_enabled: boolean;
@@ -33,7 +34,7 @@ interface B2BSettingsState {
   ip_allowlist_per_org_enabled: boolean;
   enforce_mfa_per_org_enabled: boolean;
   enterprise_sso_enabled: boolean;
-  organization_permissions: string[];
+  organization_permission_catalog: DeploymentPermissionCatalogEntry[];
 }
 
 const initialSettingsState: B2BSettingsState = {
@@ -50,7 +51,7 @@ const initialSettingsState: B2BSettingsState = {
   ip_allowlist_per_org_enabled: false,
   enforce_mfa_per_org_enabled: false,
   enterprise_sso_enabled: false,
-  organization_permissions: [],
+  organization_permission_catalog: [],
 };
 
 export default function ManageOrganizationsPage() {
@@ -100,7 +101,12 @@ export default function ManageOrganizationsPage() {
       enforce_mfa_per_org_enabled:
         b2bSettings.enforce_mfa_per_org_enabled ?? false,
       enterprise_sso_enabled: b2bSettings.enterprise_sso_enabled ?? false,
-      organization_permissions: b2bSettings.organization_permissions ?? [],
+      organization_permission_catalog:
+        b2bSettings.organization_permission_catalog ??
+        (b2bSettings.organization_permissions ?? []).map((key) => ({
+          key,
+          archived: false,
+        })),
     });
   }, []);
 
@@ -174,7 +180,7 @@ export default function ManageOrganizationsPage() {
           settingsState.enforce_mfa_per_org_enabled,
         enterprise_sso_enabled:
           settingsState.enterprise_sso_enabled,
-        organization_permissions: settingsState.organization_permissions,
+        organization_permission_catalog: settingsState.organization_permission_catalog,
         max_allowed_org_members:
           settingsState.membership_limit_type === "unlimited"
             ? 0
@@ -202,6 +208,44 @@ export default function ManageOrganizationsPage() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const organizationActivePermissions =
+    settingsState.organization_permission_catalog.filter((entry) => !entry.archived);
+  const organizationArchivedPermissions =
+    settingsState.organization_permission_catalog.filter((entry) => entry.archived);
+
+  const upsertOrganizationPermission = (rawPermission: string) => {
+    const permission = rawPermission.trim();
+    if (!permission) return;
+    const existing = settingsState.organization_permission_catalog.find(
+      (entry) => entry.key === permission
+    );
+    if (existing && !existing.archived) return;
+
+    if (existing && existing.archived) {
+      handleSettingChange(
+        "organization_permission_catalog",
+        settingsState.organization_permission_catalog.map((entry) =>
+          entry.key === permission ? { ...entry, archived: false } : entry
+        )
+      );
+      return;
+    }
+
+    handleSettingChange("organization_permission_catalog", [
+      ...settingsState.organization_permission_catalog,
+      { key: permission, archived: false },
+    ]);
+  };
+
+  const setOrganizationPermissionArchived = (permission: string, archived: boolean) => {
+    handleSettingChange(
+      "organization_permission_catalog",
+      settingsState.organization_permission_catalog.map((entry) =>
+        entry.key === permission ? { ...entry, archived } : entry
+      )
+    );
   };
 
   const handleReset = () => {
@@ -423,22 +467,16 @@ export default function ManageOrganizationsPage() {
                         onKeyPress={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
-                            const permission = newPermission.trim();
-                            if (permission && !settingsState.organization_permissions.includes(permission)) {
-                              handleSettingChange("organization_permissions", [...settingsState.organization_permissions, permission]);
-                              setNewPermission("");
-                            }
+                            upsertOrganizationPermission(newPermission);
+                            setNewPermission("");
                           }
                         }}
                         className="flex-1"
                       />
                       <Button
                         onClick={() => {
-                          const permission = newPermission.trim();
-                          if (permission && !settingsState.organization_permissions.includes(permission)) {
-                            handleSettingChange("organization_permissions", [...settingsState.organization_permissions, permission]);
-                            setNewPermission("");
-                          }
+                          upsertOrganizationPermission(newPermission);
+                          setNewPermission("");
                         }}
                         variant="outline"
                       >
@@ -446,33 +484,68 @@ export default function ManageOrganizationsPage() {
                       </Button>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {settingsState.organization_permissions.length === 0 ? (
+                      {organizationActivePermissions.length === 0 ? (
                         <span className="text-sm text-gray-500 dark:text-gray-400 italic">
                           No permissions configured
                         </span>
                       ) : (
-                        settingsState.organization_permissions.map((permission) => (
+                        organizationActivePermissions.map((entry) => (
                           <Badge
-                            key={permission}
+                            key={entry.key}
                             color="blue"
                             className="flex items-center gap-1"
                           >
-                            {permission}
-                            <button
-                              onClick={() => {
-                                handleSettingChange(
-                                  "organization_permissions",
-                                  settingsState.organization_permissions.filter(p => p !== permission)
-                                );
-                              }}
-                              className="ml-1 hover:text-red-500"
-                            >
-                              <XMarkIcon className="h-3 w-3" />
-                            </button>
+                            {entry.key}
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setOrganizationPermissionArchived(entry.key, true);
+                                  }}
+                                  className="ml-1 hover:text-red-500"
+                                  aria-label="Archive permission"
+                                >
+                                  <ArchiveBoxIcon className="h-3 w-3" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>Archive permission</TooltipContent>
+                            </Tooltip>
                           </Badge>
                         ))
                       )}
                     </div>
+                    {organizationArchivedPermissions.length > 0 && (
+                      <div className="space-y-2">
+                        <Text>Archived</Text>
+                        <div className="flex flex-wrap gap-2">
+                          {organizationArchivedPermissions.map((entry) => (
+                            <Badge
+                              key={entry.key}
+                              color="zinc"
+                              className="flex items-center gap-1"
+                            >
+                              {entry.key}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setOrganizationPermissionArchived(entry.key, false)
+                                    }
+                                    className="ml-1 hover:text-green-600"
+                                    aria-label="Unarchive permission"
+                                  >
+                                    <ArrowUturnLeftIcon className="h-3 w-3" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>Unarchive permission</TooltipContent>
+                              </Tooltip>
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </section>
               </div>

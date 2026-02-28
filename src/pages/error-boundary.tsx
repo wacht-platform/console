@@ -3,10 +3,16 @@ import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { Heading } from "../components/ui/heading";
 import { Text } from "../components/ui/text";
 import { Button } from "../components/ui/button";
+import { usePostHog } from "@posthog/react";
 
 export default function ErrorBoundaryPage() {
     const error = useRouteError();
     const navigate = useNavigate();
+    const posthog = usePostHog();
+
+    if (error) {
+        posthog?.captureException(error);
+    }
 
     let errorMessage = "An unexpected error occurred";
     let errorDetails = "";

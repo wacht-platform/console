@@ -4,6 +4,8 @@ import {
     FingerPrintIcon,
     UserPlusIcon,
     ArrowRightOnRectangleIcon,
+    CalendarDaysIcon,
+    RectangleStackIcon,
 } from "@heroicons/react/24/outline";
 import { SectionCards } from "@/components/section-cards";
 import { useProjects } from "@/lib/api/hooks/use-projects";
@@ -29,6 +31,7 @@ import {
 import { Heading } from "@/components/ui/heading";
 import { useSession } from "@wacht/react-router";
 import type { RecentSignup } from "@/lib/api/hooks/use-analytics";
+import { Badge } from "@/components/ui/badge";
 
 // Date range options for analytics
 const DATE_RANGES = {
@@ -106,21 +109,11 @@ export default function OverviewPage() {
                 ? "..."
                 : stats?.unique_signins?.toString() || "0",
             change: statsLoading ? 0 : stats?.unique_signins_change || 0,
-            description: "No data for comparison",
-            footer:
-                stats?.unique_signins_change && stats.unique_signins_change >= 0
-                    ? "Trending up this period"
-                    : "Down this period",
         },
         {
             title: "New Sign Ups",
             value: statsLoading ? "..." : stats?.signups?.toString() || "0",
             change: statsLoading ? 0 : stats?.signups_change || 0,
-            description: "No data for comparison",
-            footer:
-                stats?.signups_change && stats.signups_change >= 0
-                    ? "User growth"
-                    : "Acquisition needs attention",
         },
         {
             title: "New Organizations",
@@ -128,12 +121,6 @@ export default function OverviewPage() {
                 ? "..."
                 : stats?.organizations_created?.toString() || "0",
             change: statsLoading ? 0 : stats?.organizations_created_change || 0,
-            description: "No data for comparison",
-            footer:
-                stats?.organizations_created_change &&
-                stats.organizations_created_change >= 0
-                    ? "Strong organization growth"
-                    : "Organization creation down",
         },
         {
             title: "New Workspaces",
@@ -141,28 +128,27 @@ export default function OverviewPage() {
                 ? "..."
                 : stats?.workspaces_created?.toString() || "0",
             change: statsLoading ? 0 : stats?.workspaces_created_change || 0,
-            description: "No data for comparison",
-            footer:
-                stats?.workspaces_created_change &&
-                stats.workspaces_created_change >= 0
-                    ? "Workspace growth"
-                    : "Workspace creation down",
         },
     ];
 
     return (
-        <div className="space-y-8">
-            <div className="flex items-center justify-between">
-                <Heading>
-                    {getGreeting()}, {userName}
-                </Heading>
-            </div>
-
-            <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <Heading className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                        Overview
+        <div className="space-y-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div className="space-y-2">
+                    <Heading className="text-2xl tracking-tight">
+                        {getGreeting()}, {userName}
                     </Heading>
+                    <p className="text-sm text-muted-foreground">
+                        {selectedDeployment
+                            ? `Performance snapshot for ${selectedDeployment.name}`
+                            : "Select a deployment to view analytics."}
+                    </p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="h-9 gap-2 rounded-lg px-3">
+                        <CalendarDaysIcon className="size-4" />
+                        {currentRange.label}
+                    </Badge>
                     <Select
                         value={selectedPeriod}
                         onValueChange={(val) =>
@@ -181,16 +167,25 @@ export default function OverviewPage() {
                         </SelectContent>
                     </Select>
                 </div>
+            </div>
+
+            <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                    <RectangleStackIcon className="size-4 text-muted-foreground" />
+                    <h2 className="text-sm uppercase tracking-[0.14em] text-muted-foreground">
+                        Key Metrics
+                    </h2>
+                </div>
                 <SectionCards data={sectionCardsData} />
             </div>
 
-            <div className="space-y-6">
-                <Heading className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                    Recent Signups
-                </Heading>
+            <div className="h-px w-full bg-border/70" />
+
+            <div>
+                <h2 className="mb-3 text-base text-foreground">Recent Activity</h2>
                 <Tabs
                     defaultValue="signups"
-                    className="w-full flex-col justify-start gap-6"
+                    className="w-full flex-col justify-start gap-4"
                 >
                     <div className="flex items-center justify-between">
                         <TabsList>
@@ -202,156 +197,106 @@ export default function OverviewPage() {
                             </TabsTrigger>
                         </TabsList>
                     </div>
+
                     <TabsContent value="signups">
-                        <div className="overflow-hidden rounded-lg border">
-                            <Table>
-                                <TableHeader className="bg-muted/50">
-                                    <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Email</TableHead>
-                                        <TableHead>Method</TableHead>
-                                        <TableHead>Date</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {signupsLoading ? (
-                                        <SkeletonTableRows
-                                            rows={5}
-                                            columns={4}
-                                            withAvatar={false}
-                                        />
-                                    ) : recentSignupsData?.length ? (
-                                        recentSignupsData.map(
-                                            (
-                                                user: RecentSignup,
-                                                index: number,
-                                            ) => (
-                                                <TableRow
-                                                    key={`${user.email}-${index}`}
-                                                >
-                                                    <TableCell>
-                                                        <span className="font-normal">
-                                                            {user.name ||
-                                                                "Anonymous"}
-                                                        </span>
-                                                    </TableCell>
-                                                    <TableCell className="text-zinc-600 dark:text-zinc-400">
-                                                        {user.email || "N/A"}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
-                                                            <FingerPrintIcon className="size-4" />
-                                                            <span>
-                                                                {user.method ||
-                                                                    "Email"}
-                                                            </span>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="text-zinc-600 dark:text-zinc-400">
-                                                        {format(
-                                                            new Date(user.date),
-                                                            "MMM dd, HH:mm",
-                                                        )}
-                                                    </TableCell>
-                                                </TableRow>
-                                            ),
-                                        )
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell
-                                                colSpan={4}
-                                                className="p-0"
-                                            >
-                                                <EmptyState
-                                                    icon={
-                                                        <UserPlusIcon className="w-12 h-12" />
-                                                    }
-                                                    title="No signups yet"
-                                                    description="When users sign up for your application, they will appear here."
-                                                />
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
+                        <ActivityTable
+                            loading={signupsLoading}
+                            rows={recentSignupsData}
+                            emptyIcon={<UserPlusIcon className="h-12 w-12" />}
+                            emptyTitle="No signups yet"
+                            emptyDescription="When users sign up for your application, they will appear here."
+                        />
                     </TabsContent>
+
                     <TabsContent value="signins">
-                        <div className="overflow-hidden rounded-lg border">
-                            <Table>
-                                <TableHeader className="bg-muted/50">
-                                    <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Email</TableHead>
-                                        <TableHead>Method</TableHead>
-                                        <TableHead>Date</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {signinsLoading ? (
-                                        <SkeletonTableRows
-                                            rows={5}
-                                            columns={4}
-                                            withAvatar={false}
-                                        />
-                                    ) : recentSigninsData?.length ? (
-                                        recentSigninsData.map(
-                                            (
-                                                user: RecentSignup,
-                                                index: number,
-                                            ) => (
-                                                <TableRow
-                                                    key={`signin-${user.email}-${index}`}
-                                                >
-                                                    <TableCell>
-                                                        <span className="font-normal">
-                                                            {user.name ||
-                                                                "Anonymous"}
-                                                        </span>
-                                                    </TableCell>
-                                                    <TableCell className="text-zinc-600 dark:text-zinc-400">
-                                                        {user.email || "N/A"}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
-                                                            <FingerPrintIcon className="size-4" />
-                                                            <span>
-                                                                {user.method ||
-                                                                    "Email"}
-                                                            </span>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="text-zinc-600 dark:text-zinc-400">
-                                                        {format(
-                                                            new Date(user.date),
-                                                            "MMM dd, HH:mm",
-                                                        )}
-                                                    </TableCell>
-                                                </TableRow>
-                                            ),
-                                        )
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell
-                                                colSpan={4}
-                                                className="p-0"
-                                            >
-                                                <EmptyState
-                                                    icon={
-                                                        <ArrowRightOnRectangleIcon className="w-12 h-12" />
-                                                    }
-                                                    title="No sign-ins yet"
-                                                    description="User sign-in activity will be displayed here once users start authenticating."
-                                                />
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
+                        <ActivityTable
+                            loading={signinsLoading}
+                            rows={recentSigninsData}
+                            emptyIcon={<ArrowRightOnRectangleIcon className="h-12 w-12" />}
+                            emptyTitle="No sign-ins yet"
+                            emptyDescription="User sign-in activity will be displayed here once users start authenticating."
+                        />
                     </TabsContent>
                 </Tabs>
             </div>
+        </div>
+    );
+}
+
+function ActivityTable({
+    loading,
+    rows,
+    emptyIcon,
+    emptyTitle,
+    emptyDescription,
+}: {
+    loading: boolean;
+    rows: RecentSignup[];
+    emptyIcon: React.ReactNode;
+    emptyTitle: string;
+    emptyDescription: string;
+}) {
+    return (
+        <div className="overflow-hidden rounded-lg border border-border/80">
+            <Table>
+                <TableHeader className="bg-muted/30">
+                    <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Method</TableHead>
+                        <TableHead>Date</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {loading ? (
+                        <SkeletonTableRows
+                            rows={5}
+                            columns={4}
+                            withAvatar={false}
+                        />
+                    ) : rows?.length ? (
+                        rows.map((user: RecentSignup, index: number) => (
+                            <TableRow
+                                key={`${user.email || "unknown"}-${user.date}-${index}`}
+                            >
+                                <TableCell>
+                                    <span className="font-normal">
+                                        {user.name || "Anonymous"}
+                                    </span>
+                                </TableCell>
+                                <TableCell className="text-zinc-600 dark:text-zinc-400">
+                                    {user.email || "N/A"}
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
+                                        <FingerPrintIcon className="size-4" />
+                                        <span>{user.method || "Email"}</span>
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-zinc-600 dark:text-zinc-400">
+                                    {format(
+                                        new Date(user.date),
+                                        "MMM dd, HH:mm",
+                                    )}
+                                </TableCell>
+                            </TableRow>
+                        ))
+                    ) : (
+                        <TableRow>
+                            <TableCell
+                                colSpan={4}
+                                className="p-0"
+                            >
+                                <EmptyState
+                                    icon={emptyIcon}
+                                    title={emptyTitle}
+                                    description={emptyDescription}
+                                />
+                            </TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
         </div>
     );
 }
