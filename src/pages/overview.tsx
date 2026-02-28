@@ -139,16 +139,10 @@ export default function OverviewPage() {
                         {getGreeting()}, {userName}
                     </Heading>
                     <p className="text-sm text-muted-foreground">
-                        {selectedDeployment
-                            ? `Performance snapshot for ${selectedDeployment.name}`
-                            : "Select a deployment to view analytics."}
+                      See how your app is performing.
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="h-9 gap-2 rounded-lg px-3">
-                        <CalendarDaysIcon className="size-4" />
-                        {currentRange.label}
-                    </Badge>
                     <Select
                         value={selectedPeriod}
                         onValueChange={(val) =>
