@@ -40,7 +40,7 @@
     "@tailwindcss/vite": "^4.0.1",
     "@tanstack/react-query": "^5.66.0",
     "@tanstack/react-table": "^8.21.3",
-    "@wacht/react-router": "0.0.1-alpha.11",
+    "@wacht/react-router": "1.0.0-beta.0",
     "@xyflow/react": "^12.6.4",
     "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
