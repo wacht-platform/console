@@ -22,6 +22,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Text } from "@/components/ui/text";
+import type { Deployment } from "@/types/deployment";
 
 export function ApplicationLayout() {
     const navigate = useNavigate();
@@ -63,6 +64,7 @@ export function ApplicationLayout() {
         isLoading: isStoreLoading,
         notFound,
         initializeFromUrl,
+        setSelectedDeployment,
     } = useProjects();
 
     useEffect(() => {
@@ -174,6 +176,13 @@ export function ApplicationLayout() {
         } else if (isBillingRoute) {
             navigate(`${basePath}/billing/${value}`);
         }
+    };
+
+    const handleProductionDeploymentCreated = (deployment: Deployment) => {
+        setSelectedDeployment(deployment, false);
+        navigate(
+            `/project/${selectedProject?.id}/deployment/${deployment.id}/setup/go-live`,
+        );
     };
 
     return (
@@ -327,6 +336,7 @@ export function ApplicationLayout() {
                     open={isCreateProductionDialogOpen}
                     onClose={() => setIsCreateProductionDialogOpen(false)}
                     projectId={selectedProject!.id}
+                    onCreated={handleProductionDeploymentCreated}
                 />
             )}
 

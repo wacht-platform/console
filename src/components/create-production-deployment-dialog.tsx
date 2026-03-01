@@ -22,6 +22,7 @@ import { useCreateProductionDeployment } from "@/lib/api/hooks/use-projects";
 import { toast } from 'sonner';
 import clsx from "clsx";
 import { motion, AnimatePresence } from "framer-motion";
+import type { Deployment } from "@/types/deployment";
 
 type AuthMethod =
 	| "email"
@@ -38,12 +39,14 @@ interface CreateProductionDeploymentDialogProps {
 	open: boolean;
 	onClose: () => void;
 	projectId: string;
+	onCreated?: (deployment: Deployment) => void;
 }
 
 export function CreateProductionDeploymentDialog({
 	open,
 	onClose,
 	projectId,
+	onCreated,
 }: CreateProductionDeploymentDialogProps) {
 	const [customDomain, setCustomDomain] = useState("");
 	const [selectedMethods, setSelectedMethods] = useState<AuthMethod[]>([
@@ -102,12 +105,13 @@ export function CreateProductionDeploymentDialog({
 		setValidationError("");
 
 		try {
-			await createProductionDeployment({
+			const deployment = await createProductionDeployment({
 				projectId,
 				customDomain: customDomain.trim(),
 				authMethods: selectedMethods,
 			});
 			toast.success("Production deployment created successfully!");
+			onCreated?.(deployment);
 			onClose();
 			setCustomDomain("");
 			setSelectedMethods(["email"]);
@@ -281,10 +285,8 @@ export function CreateProductionDeploymentDialog({
 							onClick={handleCreate}
 							disabled={isLoading || !customDomain.trim() || selectedMethods.length === 0}
 							className={clsx(
-								"min-w-[160px] shadow-lg shadow-green-500/10 transition-all duration-300",
-								!customDomain.trim() || selectedMethods.length === 0 || isLoading
-									? "opacity-50 cursor-not-allowed"
-									: "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white transform hover:translate-y-[-1px]"
+								"min-w-40 shadow-lg shadow-green-500/10 transition-all duration-300",
+								"bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white transform hover:-translate-y-px"
 							)}
 						>
 							{isLoading ? (

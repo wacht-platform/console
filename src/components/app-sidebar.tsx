@@ -21,11 +21,14 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { OrganizationSwitcher } from "@wacht/react-router";
+import { useProjects } from "@/lib/api/hooks/use-projects";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { pathname } = useLocation();
+    const { selectedDeployment } = useProjects();
     const isAuthRoute = /\/auth(?:\/|$)/.test(pathname);
     const isOAuthRoute = /\/oauth(?:\/|$)/.test(pathname);
+    const isProductionDeployment = selectedDeployment?.mode === "production";
 
     const navManagement = [
         {
@@ -130,6 +133,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenu>
             </SidebarHeader>
             <SidebarContent>
+                {isProductionDeployment && (
+                    <NavMain
+                        items={[
+                            {
+                                title: "Go Live",
+                                url: "setup/go-live",
+                                icon: IconSettings,
+                                isActive: pathname.includes("/setup/go-live"),
+                            },
+                        ]}
+                    />
+                )}
                 <NavMain items={navOnboarding} />
                 <div className="flex flex-col gap-4 -mt-2">
                     <NavMain title="MANAGEMENT" items={navManagement} />

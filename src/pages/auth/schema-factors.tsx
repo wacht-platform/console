@@ -372,28 +372,6 @@ function PhoneSettingsDialog({ open, onClose }: DialogProps) {
                                 Send a 6-digit one-time passcode via SMS message
                             </Description>
                         </Field>
-                        <Field>
-                            <div className="flex items-center justify-between">
-                                <Label>WhatsApp verification code</Label>
-                                <Switch
-                                    name="phone_whatsapp_verification"
-                                    checked={
-                                        settings.phone_number
-                                            ?.whatsapp_verification_allowed
-                                    }
-                                    onCheckedChange={(checked) =>
-                                        handlePhoneSettingChange(
-                                            "whatsapp_verification_allowed",
-                                            checked,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <Description>
-                                Send a 6-digit one-time passcode via WhatsApp
-                                message
-                            </Description>
-                        </Field>
                     </FieldGroup>
                 </div>
                 <DialogFooter className="mt-2">

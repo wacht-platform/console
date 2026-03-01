@@ -143,15 +143,15 @@ function DnsRecordSection({
 			<div className="w-full max-w-full overflow-hidden">
 				<div className="overflow-x-auto">
 					<Table className="table-fixed w-full min-w-full">
-						<TableHead>
+						<TableHeader>
 							<TableRow>
-								<TableHeader className="w-[20%] min-w-[120px]">Name</TableHeader>
-								<TableHeader className="w-[10%] min-w-[60px]">Type</TableHeader>
-								<TableHeader className="w-[45%] min-w-[200px]">Value</TableHeader>
-								<TableHeader className="w-[15%] min-w-[100px]">Status</TableHeader>
-								<TableHeader className="w-[10%] min-w-[80px]">Last Checked</TableHeader>
+								<TableHead className="w-[20%] min-w-[120px]">Name</TableHead>
+								<TableHead className="w-[10%] min-w-[60px]">Type</TableHead>
+								<TableHead className="w-[45%] min-w-[200px]">Value</TableHead>
+								<TableHead className="w-[15%] min-w-[100px]">Status</TableHead>
+								<TableHead className="w-[10%] min-w-[80px]">Last Checked</TableHead>
 							</TableRow>
-						</TableHead>
+						</TableHeader>
 						<TableBody>
 							{records.map((record, index) => (
 								<DnsRecordRow key={`${record.name}-${index}`} record={record} />
@@ -401,7 +401,7 @@ export function DnsVerificationPanel({
 									{verifiedRecords} of {totalRecords} records configured
 								</Badge>
 								<Link
-									to="dns-verification"
+									to="setup/go-live"
 									className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center space-x-1"
 								>
 									<span>View Details</span>
