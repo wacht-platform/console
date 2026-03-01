@@ -181,7 +181,7 @@ export function ApplicationLayout() {
     const handleProductionDeploymentCreated = (deployment: Deployment) => {
         setSelectedDeployment(deployment, false);
         navigate(
-            `/project/${selectedProject?.id}/deployment/${deployment.id}/setup/go-live`,
+            `/project/${selectedProject?.id}/deployment/${deployment.id}/go-live`,
         );
     };
 

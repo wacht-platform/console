@@ -401,7 +401,7 @@ export function DnsVerificationPanel({
 									{verifiedRecords} of {totalRecords} records configured
 								</Badge>
 								<Link
-									to="setup/go-live"
+									to="go-live"
 									className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center space-x-1"
 								>
 									<span>View Details</span>
@@ -475,12 +475,12 @@ export function DnsVerificationPanel({
 				</div>
 
 				{/* Email Provider Toggle */}
-				<div className="flex gap-4">
+				<div className="flex gap-3">
 					<button
 						type="button"
 						onClick={() => setEmailConfigMode("postmark")}
-						className={`flex-1 p-5 rounded-lg border-2 transition-all ${emailConfigMode === "postmark"
-							? "border-indigo-500 bg-indigo-50 dark:border-indigo-400 dark:bg-indigo-500/10"
+						className={`flex-1 p-4 rounded-lg border transition-all ${emailConfigMode === "postmark"
+							? "border-indigo-400 bg-indigo-50/70 dark:border-indigo-500 dark:bg-indigo-500/10"
 							: "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600 bg-white dark:bg-neutral-800/50"
 							}`}
 					>
@@ -508,8 +508,8 @@ export function DnsVerificationPanel({
 					<button
 						type="button"
 						onClick={() => setEmailConfigMode("smtp")}
-						className={`flex-1 p-5 rounded-lg border-2 transition-all ${emailConfigMode === "smtp"
-							? "border-indigo-500 bg-indigo-50 dark:border-indigo-400 dark:bg-indigo-500/10"
+						className={`flex-1 p-4 rounded-lg border transition-all ${emailConfigMode === "smtp"
+							? "border-indigo-400 bg-indigo-50/70 dark:border-indigo-500 dark:bg-indigo-500/10"
 							: "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600 bg-white dark:bg-neutral-800/50"
 							}`}
 					>
@@ -548,7 +548,7 @@ export function DnsVerificationPanel({
 
 				{/* SMTP Configuration Form */}
 				{emailConfigMode === "smtp" && onSmtpSubmit && onSmtpVerify && onSmtpRemove && (
-					<div className="mt-4 bg-white dark:bg-neutral-900 rounded-lg border border-gray-200 dark:border-neutral-700 p-6">
+					<div className="mt-3 bg-white dark:bg-neutral-900 rounded-lg border border-gray-200/80 dark:border-neutral-700/80 p-5">
 						<SmtpConfigForm
 							existingConfig={smtpConfig}
 							onSubmit={onSmtpSubmit}

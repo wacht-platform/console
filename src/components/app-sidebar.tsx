@@ -115,6 +115,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ];
 
     const navOnboarding = [
+        ...(isProductionDeployment
+            ? [
+                  {
+                      title: "Go Live",
+                      url: "go-live",
+                      icon: IconSettings,
+                      isActive: pathname.includes("/go-live"),
+                  },
+              ]
+            : []),
         {
             title: "Quickstart",
             url: "getting-started",
@@ -133,18 +143,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenu>
             </SidebarHeader>
             <SidebarContent>
-                {isProductionDeployment && (
-                    <NavMain
-                        items={[
-                            {
-                                title: "Go Live",
-                                url: "setup/go-live",
-                                icon: IconSettings,
-                                isActive: pathname.includes("/setup/go-live"),
-                            },
-                        ]}
-                    />
-                )}
                 <NavMain items={navOnboarding} />
                 <div className="flex flex-col gap-4 -mt-2">
                     <NavMain title="MANAGEMENT" items={navManagement} />

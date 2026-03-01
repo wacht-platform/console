@@ -497,15 +497,15 @@ export const router = createBrowserRouter([
                         path: "oauth-apps",
                         element: <Navigate to="../../oauth" replace />,
                     },
-                    {
-                        path: "go-live",
-                        element: (
-                            <Suspense fallback={<SimpleFallback />}>
-                                <DnsVerificationPage />
-                            </Suspense>
-                        ),
-                    },
                 ],
+            },
+            {
+                path: "go-live",
+                element: (
+                    <Suspense fallback={<SimpleFallback />}>
+                        <DnsVerificationPage />
+                    </Suspense>
+                ),
             },
             {
                 path: "oauth",
@@ -579,7 +579,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "dns-verification",
-                element: <Navigate to="../setup/go-live" replace />,
+                element: <Navigate to="../go-live" replace />,
             },
             {
                 path: "webhooks/*",
