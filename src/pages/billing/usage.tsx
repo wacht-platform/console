@@ -24,7 +24,17 @@ import clsx from "clsx";
 import { format, startOfMonth, endOfMonth, parseISO } from "date-fns";
 import { plans, enterprisePlan } from "./plans";
 
-const UsageBar = ({ label, metric, limit, unit, icon: Icon, overageRate, getUsage, getCost }: any) => {
+const UsageBar = ({
+    label,
+    metric,
+    limit,
+    unit,
+    icon: Icon,
+    overageRate,
+    getUsage,
+    getCost,
+    formatCost,
+}: any) => {
     const usage = getUsage(metric);
     const cost = getCost(metric);
     const hasLimit = typeof limit === 'number';
@@ -61,7 +71,7 @@ const UsageBar = ({ label, metric, limit, unit, icon: Icon, overageRate, getUsag
                     )}
                 </div>
                 <div className="text-xs text-zinc-500 dark:text-zinc-500 flex items-center gap-2">
-                    {cost > 0 && <span>{(cost / 100).toFixed(2)} INR</span>}
+                    {cost > 0 && <span>{formatCost(cost)}</span>}
                     {overageRate && <span className="text-zinc-400 dark:text-zinc-600">({overageRate})</span>}
                 </div>
             </div>
@@ -74,6 +84,15 @@ export default function BillingUsagePage() {
     const navigate = useNavigate();
 
     const { data: billingAccount, isLoading, refetch } = useBillingAccount();
+
+    const billingCurrency = (billingAccount?.currency || "USD").toUpperCase();
+    const formatCurrencyFromCents = (valueInCents: number) =>
+        new Intl.NumberFormat(undefined, {
+            style: "currency",
+            currency: billingCurrency,
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(valueInCents / 100);
 
     const hasActiveSubscription = billingAccount?.subscription?.status === "active";
     const { data: usageData } = useUsageMetrics({ enabled: hasActiveSubscription });
@@ -96,7 +115,10 @@ export default function BillingUsagePage() {
     const subscription = billingAccount?.subscription;
     const currentPlan =
         subscription?.status === "active"
-            ? (plans.find((p) => subscription.provider_subscription_id?.includes(p.id)) || (subscription.provider_subscription_id?.includes('enterprise') ? enterprisePlan : plans[0]))
+            ? (plans.find((p) => p.id === subscription.plan_name) ||
+                (subscription.plan_name === "enterprise"
+                    ? enterprisePlan
+                    : plans[0]))
             : plans[0];
 
     const getUsage = (metric: string) => usageData?.snapshots.find(s => s.metric_name === metric)?.quantity || 0;
@@ -150,7 +172,11 @@ export default function BillingUsagePage() {
                         </Button>
                     </div>
                 </div>
-                <PulseDashboard balance={billingAccount?.pulse_balance_cents || 0} onTopUp={() => setPulseTopUpOpen(true)} />
+                <PulseDashboard
+                    balance={billingAccount?.pulse_balance_cents || 0}
+                    currency={billingCurrency}
+                    onTopUp={() => setPulseTopUpOpen(true)}
+                />
                 <PulseTopUpDialog open={pulseTopUpOpen} onClose={() => setPulseTopUpOpen(false)} />
             </div>
         );
@@ -169,7 +195,7 @@ export default function BillingUsagePage() {
                 <div className="text-right">
                     <div className="text-sm text-zinc-500 dark:text-zinc-500 mb-1 font-light">Estimated Cost</div>
                     <div className="text-4xl font-light text-zinc-900 dark:text-zinc-100 tracking-tight">
-                        {(totalCost / 100).toFixed(2)} <span className="text-sm text-zinc-500 dark:text-zinc-500 ml-1">INR</span>
+                        {formatCurrencyFromCents(totalCost)}
                     </div>
                 </div>
             </div>
@@ -192,6 +218,7 @@ export default function BillingUsagePage() {
                             overageRate={currentPlan.overages?.mau}
                             getUsage={getUsage}
                             getCost={getCost}
+                            formatCost={formatCurrencyFromCents}
                         />
                         <UsageBar
                             label="Active Organizations"
@@ -202,6 +229,7 @@ export default function BillingUsagePage() {
                             overageRate={currentPlan.overages?.orgs}
                             getUsage={getUsage}
                             getCost={getCost}
+                            formatCost={formatCurrencyFromCents}
                         />
                         <UsageBar
                             label="Provisioned Workspaces"
@@ -212,6 +240,7 @@ export default function BillingUsagePage() {
                             overageRate={currentPlan.overages?.workspaces}
                             getUsage={getUsage}
                             getCost={getCost}
+                            formatCost={formatCurrencyFromCents}
                         />
                         <UsageBar
                             label="Webhooks Delivered"
@@ -222,6 +251,7 @@ export default function BillingUsagePage() {
                             overageRate="0.10 /1k"
                             getUsage={getUsage}
                             getCost={getCost}
+                            formatCost={formatCurrencyFromCents}
                         />
                         <UsageBar
                             label="API Identity Checks"
@@ -232,6 +262,7 @@ export default function BillingUsagePage() {
                             overageRate={currentPlan.overages?.api_keys}
                             getUsage={getUsage}
                             getCost={getCost}
+                            formatCost={formatCurrencyFromCents}
                         />
                         <UsageBar
                             label="Emails Sent"
@@ -242,6 +273,7 @@ export default function BillingUsagePage() {
                             overageRate={currentPlan.overages?.emails}
                             getUsage={getUsage}
                             getCost={getCost}
+                            formatCost={formatCurrencyFromCents}
                         />
                     </div>
 
@@ -256,7 +288,11 @@ export default function BillingUsagePage() {
                     </div>
                 </div>
 
-                <PulseDashboard balance={billingAccount?.pulse_balance_cents || 0} onTopUp={() => setPulseTopUpOpen(true)} />
+                <PulseDashboard
+                    balance={billingAccount?.pulse_balance_cents || 0}
+                    currency={billingCurrency}
+                    onTopUp={() => setPulseTopUpOpen(true)}
+                />
 
                 {/* Credit Activity History */}
                 <div className="bg-white dark:bg-[#111113] border border-zinc-200 dark:border-zinc-800/60 rounded-xl overflow-hidden flex flex-col shadow-sm dark:shadow-none">
@@ -301,7 +337,7 @@ export default function BillingUsagePage() {
                                                 "px-6 py-4 text-right text-[13px] font-mono",
                                                 tx.amount_pulse_cents > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-zinc-700 dark:text-zinc-300"
                                             )}>
-                                                {tx.amount_pulse_cents > 0 ? '+' : ''}{tx.amount_pulse_cents.toLocaleString()}
+                                                {tx.amount_pulse_cents > 0 ? '+' : ''}{Math.abs(tx.amount_pulse_cents).toLocaleString()} pulse
                                             </td>
                                         </tr>
                                     ))
@@ -323,7 +359,22 @@ export default function BillingUsagePage() {
     );
 }
 
-function PulseDashboard({ balance, onTopUp }: { balance: number, onTopUp: () => void }) {
+function PulseDashboard({
+    balance,
+    currency,
+    onTopUp,
+}: {
+    balance: number,
+    currency: string,
+    onTopUp: () => void
+}) {
+    const formattedBalance = new Intl.NumberFormat(undefined, {
+        style: "currency",
+        currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(balance / 100);
+
     return (
         <div className="bg-white dark:bg-[#111113] border border-zinc-200 dark:border-zinc-800/60 rounded-xl py-6 px-8 relative overflow-hidden group shadow-sm dark:shadow-none">
             <div className="absolute top-0 right-0 p-4 opacity-[0.03] dark:opacity-[0.03] pointer-events-none group-hover:opacity-[0.05] dark:group-hover:opacity-[0.05] transition-opacity">
@@ -333,11 +384,8 @@ function PulseDashboard({ balance, onTopUp }: { balance: number, onTopUp: () => 
                 <div className="flex flex-col md:flex-row md:items-center gap-8 lg:gap-12">
                     <div>
                         <div className="text-xs text-zinc-500 dark:text-zinc-500 mb-1.5 font-medium uppercase tracking-[0.15em]">Available Balance</div>
-                        <div className="flex items-baseline gap-1.5">
-                            <span className="text-4xl font-light text-zinc-900 dark:text-white tracking-tighter tabular-nums">
-                                {(balance / 100).toFixed(2)}
-                            </span>
-                            <span className="text-sm text-zinc-500 dark:text-zinc-500 font-light">INR</span>
+                        <div className="text-4xl font-light text-zinc-900 dark:text-white tracking-tighter tabular-nums">
+                            {formattedBalance}
                         </div>
                         <div className="text-xs text-indigo-600 dark:text-indigo-400/80 font-medium uppercase tracking-widest mt-2 bg-indigo-50 dark:bg-indigo-500/5 border border-indigo-200 dark:border-indigo-500/10 w-fit px-2.5 py-0.5 rounded-full">
                             {balance.toLocaleString()} Pulse

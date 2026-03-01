@@ -31,12 +31,8 @@ export function CreateWorkspaceRoleDialog({
 
   const createRole = useCreateWorkspaceRole();
   const { deploymentSettings } = useCurrentDeployemnt();
-
-  // Get available permissions from deployment B2B settings
   const availablePermissions = React.useMemo(() => {
     const workspacePermissions = deploymentSettings?.b2b_settings?.workspace_permissions || [];
-
-    // Convert to options format - just show the permission string as-is
     return workspacePermissions.map(permission => ({
       id: permission,
       name: permission,

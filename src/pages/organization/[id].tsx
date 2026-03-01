@@ -524,6 +524,7 @@ export default function OrganizationDetailsPage() {
                   </div>
                   <div className="w-full sm:w-64">
                     <Listbox
+                      className="w-full"
                       value={`${sortKey}-${sortOrder}`}
                       onChange={(value) => {
                         const [key, order] = value.split("-");

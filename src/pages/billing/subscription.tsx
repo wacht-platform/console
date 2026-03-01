@@ -78,11 +78,19 @@ export default function BillingSubscriptionPage() {
     const posthog = usePostHog();
 
     const { data: billingAccount, isLoading, refetch } = useBillingAccount();
+    const billingCurrency = (billingAccount?.currency || "USD").toUpperCase();
+    const formatCurrency = (amount: number, currency = billingCurrency) =>
+        new Intl.NumberFormat(undefined, {
+            style: "currency",
+            currency,
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(amount);
 
     // Only fetch invoices if there's an active subscription
     const hasActiveSubscription =
         billingAccount?.subscription?.status === "active";
-    const { data: invoicesData } = useInvoices({
+    const { data: invoicesData, isLoading: invoicesLoading } = useInvoices({
         enabled: hasActiveSubscription,
     });
     const customerPortal = useCustomerPortal();
@@ -112,14 +120,8 @@ export default function BillingSubscriptionPage() {
 
         if (hasActiveSubscription) {
             const currentPlan =
-                plans.find((p) =>
-                    billingAccount.subscription?.provider_subscription_id?.includes(
-                        p.id,
-                    ),
-                ) ||
-                (billingAccount.subscription?.provider_subscription_id?.includes(
-                    "enterprise",
-                )
+                plans.find((p) => p.id === billingAccount.subscription?.plan_name) ||
+                (billingAccount.subscription?.plan_name === "enterprise"
                     ? enterprisePlan
                     : plans[0]);
 
@@ -276,10 +278,14 @@ export default function BillingSubscriptionPage() {
 
                                 <div className="mb-8 font-mono">
                                     <div className="text-2xl text-zinc-900 dark:text-zinc-200 font-light">
-                                        {plan.priceDisplay}
-                                        <span className="text-sm text-zinc-500 dark:text-zinc-600 font-sans ml-1">
-                                            /mo
-                                        </span>
+                                        {typeof plan.price === "number"
+                                            ? formatCurrency(plan.price)
+                                            : plan.priceDisplay}
+                                        {typeof plan.price === "number" && (
+                                            <span className="text-sm text-zinc-500 dark:text-zinc-600 font-sans ml-1">
+                                                /mo
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
 
@@ -412,9 +418,12 @@ export default function BillingSubscriptionPage() {
                                 variant="outline"
                                 className="bg-zinc-100 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 text-xs h-9 font-normal gap-2"
                                 onClick={handleOpenPortal}
+                                disabled={customerPortal.isPending}
                             >
                                 <CreditCardIcon className="w-3.5 h-3.5" />
-                                Manage Payment Method
+                                {customerPortal.isPending
+                                    ? "Opening Portal..."
+                                    : "Manage Payment Method"}
                             </Button>
                         </div>
                     </div>
@@ -423,10 +432,14 @@ export default function BillingSubscriptionPage() {
                             Base Price
                         </div>
                         <div className="text-2xl font-light text-zinc-900 dark:text-zinc-200">
-                            {currentPlan.priceDisplay}
-                            <span className="text-sm text-zinc-500 dark:text-zinc-600 font-light ml-0.5">
-                                /mo
-                            </span>
+                            {typeof currentPlan.price === "number"
+                                ? formatCurrency(currentPlan.price)
+                                : currentPlan.priceDisplay}
+                            {typeof currentPlan.price === "number" && (
+                                <span className="text-sm text-zinc-500 dark:text-zinc-600 font-light ml-0.5">
+                                    /mo
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -444,6 +457,7 @@ export default function BillingSubscriptionPage() {
                         variant="ghost"
                         className="text-xs h-7 text-zinc-500 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 font-normal uppercase tracking-wider"
                         onClick={handleOpenPortal}
+                        disabled={customerPortal.isPending}
                     >
                         Full History & Portal
                     </Button>
@@ -469,7 +483,16 @@ export default function BillingSubscriptionPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/20">
-                                {invoices.length > 0 ? (
+                                {invoicesLoading ? (
+                                    <tr>
+                                        <td
+                                            colSpan={4}
+                                            className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-600 text-xs font-light italic"
+                                        >
+                                            Loading payment history...
+                                        </td>
+                                    </tr>
+                                ) : invoices.length > 0 ? (
                                     invoices.map((inv: any) => (
                                         <InvoiceRow
                                             key={inv.payment_id}
@@ -528,10 +551,14 @@ export default function BillingSubscriptionPage() {
 
                                 <div className="mb-8 font-mono">
                                     <div className="text-2xl text-zinc-900 dark:text-zinc-200 font-light">
-                                        {plan.priceDisplay}
-                                        <span className="text-sm text-zinc-500 dark:text-zinc-600 font-sans ml-1">
-                                            /mo
-                                        </span>
+                                        {typeof plan.price === "number"
+                                            ? formatCurrency(plan.price)
+                                            : plan.priceDisplay}
+                                        {typeof plan.price === "number" && (
+                                            <span className="text-sm text-zinc-500 dark:text-zinc-600 font-sans ml-1">
+                                                /mo
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
 
@@ -558,10 +585,14 @@ export default function BillingSubscriptionPage() {
                                             ? "bg-zinc-100 dark:bg-zinc-900/50 text-zinc-500 dark:text-zinc-500 border-zinc-300 dark:border-zinc-800 cursor-default"
                                             : "bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 border-transparent",
                                     )}
-                                    disabled={isCurrent}
+                                    disabled={isCurrent || changePlan.isPending}
                                     onClick={() => handleSelectPlan(plan.id)}
                                 >
-                                    {isCurrent ? "Current Plan" : "Select Plan"}
+                                    {isCurrent
+                                        ? "Current Plan"
+                                        : changePlan.isPending
+                                          ? "Switching..."
+                                          : "Select Plan"}
                                 </Button>
                             </div>
                         );
