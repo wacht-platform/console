@@ -50,6 +50,7 @@ interface ProviderSettingsDialogProps {
   provider?: SocialConnectionProvider;
   connection?: DeploymentSocialConnection;
   deploymentId?: string;
+  isProductionDeployment?: boolean;
 }
 
 const DialogDescription = DialogDescriptionBase;
@@ -62,6 +63,7 @@ function ProviderSettingsDialog({
   provider,
   connection,
   deploymentId,
+  isProductionDeployment = false,
 }: ProviderSettingsDialogProps) {
   const [signInEnabled, setSignInEnabled] = useState(false);
   const [useCustomCredentials, setUseCustomCredentials] = useState(false);
@@ -125,7 +127,17 @@ function ProviderSettingsDialog({
     setClientSecretError(null);
     setRedirectUriError(null);
 
-    if (useCustomCredentials) {
+    const customCredentialsRequired =
+      isProductionDeployment && !!signInEnabled;
+
+    if (customCredentialsRequired && !useCustomCredentials) {
+      setClientIdError("Custom credentials are required in production.");
+      setClientSecretError("Custom credentials are required in production.");
+      setRedirectUriError("Custom credentials are required in production.");
+      return false;
+    }
+
+    if (useCustomCredentials || customCredentialsRequired) {
       if (!clientId.trim()) {
         setClientIdError("Client ID is required.");
         isValid = false;
@@ -196,7 +208,7 @@ function ProviderSettingsDialog({
 
   const isSaveDisabled =
     isSaving ||
-    (useCustomCredentials &&
+    ((useCustomCredentials || (isProductionDeployment && signInEnabled)) &&
       (!clientId ||
         !clientSecret ||
         !redirectUri ||
@@ -220,7 +232,12 @@ function ProviderSettingsDialog({
                 <Label>Enable for sign-up and sign-in</Label>
                 <Switch
                   checked={signInEnabled}
-                  onCheckedChange={setSignInEnabled}
+                  onCheckedChange={(checked) => {
+                    setSignInEnabled(checked);
+                    if (checked && isProductionDeployment) {
+                      setUseCustomCredentials(true);
+                    }
+                  }}
                   name="enable_sign_in"
                   disabled={isSaving}
                   aria-describedby="enable-signin-description"
@@ -238,16 +255,22 @@ function ProviderSettingsDialog({
                   checked={useCustomCredentials}
                   onCheckedChange={setUseCustomCredentials}
                   name="use_custom_credentials"
-                  disabled={isSaving}
+                  disabled={isSaving || (isProductionDeployment && signInEnabled)}
                   aria-describedby="custom-credentials-description"
                 />
               </div>
               <Description>
-                Use your own credentials. If turned off, default shared
-                credentials will be used.
+                Use your own credentials.
               </Description>
             </Field>
           </FieldGroup>
+
+          {isProductionDeployment && signInEnabled && !useCustomCredentials && (
+            <p className="text-sm text-red-500">
+              Custom credentials are required to enable social login in
+              production.
+            </p>
+          )}
 
           {useCustomCredentials && (
             <FieldGroup className="border-t border-zinc-200 dark:border-zinc-700 pt-4 mt-4 space-y-3">
@@ -426,8 +449,6 @@ export default function SSOConnectionsPage() {
   const { selectedDeployment } = useProjects();
   const posthog = usePostHog();
 
-  console.log(selectedDeployment?.mode === "production");
-
   const providerConnections = useMemo(() => {
     return PROVIDERS.map((provider) => {
       const connection = socialConnections?.find(
@@ -436,8 +457,6 @@ export default function SSOConnectionsPage() {
       return { ...provider, connection };
     });
   }, [socialConnections]);
-
-  console.log(providerConnections);
 
   const handleOpenSettings = (
     providerInfo: (typeof providerConnections)[0],
@@ -513,6 +532,7 @@ export default function SSOConnectionsPage() {
         provider={selectedProviderInfo?.provider}
         connection={selectedProviderInfo?.connection}
         deploymentId={selectedDeployment?.id}
+        isProductionDeployment={selectedDeployment?.mode === "production"}
         onSuccess={() => {
           handleCloseSettings();
         }}

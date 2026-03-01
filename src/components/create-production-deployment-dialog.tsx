@@ -13,11 +13,6 @@ import {
 	CheckCircleIcon,
 	ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
-import DiscordIcon from "@/assets/discord.svg";
-import GithubIcon from "@/assets/github.svg";
-import GitlabIcon from "@/assets/gitlab.svg";
-import GoogleIcon from "@/assets/google.svg";
-import LinkedInIcon from "@/assets/linkedin.svg";
 import { useCreateProductionDeployment } from "@/lib/api/hooks/use-projects";
 import { toast } from 'sonner';
 import clsx from "clsx";
@@ -27,13 +22,7 @@ import type { Deployment } from "@/types/deployment";
 type AuthMethod =
 	| "email"
 	| "phone"
-	| "username"
-	| "google_oauth"
-	| "microsoft_oauth"
-	| "linkedin_oauth"
-	| "discord_oauth"
-	| "github_oauth"
-	| "gitlab_oauth";
+	| "username";
 
 interface CreateProductionDeploymentDialogProps {
 	open: boolean;
@@ -202,15 +191,15 @@ export function CreateProductionDeploymentDialog({
 							</div>
 						</section>
 
-						<section className="space-y-5">
+							<section className="space-y-5">
 							<div className="flex items-center gap-2">
 								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-800 to-transparent" />
 								<span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Authentication Methods</span>
 								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-800 to-transparent" />
 							</div>
 
-							<div className="space-y-4">
-								<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+								<div className="space-y-4">
+									<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 									<AuthMethodCard
 										icon={<EnvelopeIcon className="h-5 w-5" />}
 										label="Email"
@@ -227,49 +216,15 @@ export function CreateProductionDeploymentDialog({
 										icon={<UserCircleIcon className="h-5 w-5" />}
 										label="Username"
 										selected={selectedMethods.includes("username")}
-										onClick={() => toggleAuthMethod("username")}
-									/>
+											onClick={() => toggleAuthMethod("username")}
+										/>
+									</div>
+									<Text className="text-xs text-zinc-500 dark:text-zinc-400 px-1">
+										Social sign-in providers are configured after deployment creation.
+										Add provider credentials first, then enable them from Authentication settings.
+									</Text>
 								</div>
-
-								<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-									<AuthMethodCard
-										icon={<img src={GoogleIcon} alt="Google" className="h-5 w-5" />}
-										label="Google"
-										selected={selectedMethods.includes("google_oauth")}
-										onClick={() => toggleAuthMethod("google_oauth")}
-										compact
-									/>
-									<AuthMethodCard
-										icon={<img src={GithubIcon} alt="GitHub" className="h-5 w-5" />}
-										label="GitHub"
-										selected={selectedMethods.includes("github_oauth")}
-										onClick={() => toggleAuthMethod("github_oauth")}
-										compact
-									/>
-									<AuthMethodCard
-										icon={<img src={DiscordIcon} alt="Discord" className="h-5 w-5" />}
-										label="Discord"
-										selected={selectedMethods.includes("discord_oauth")}
-										onClick={() => toggleAuthMethod("discord_oauth")}
-										compact
-									/>
-									<AuthMethodCard
-										icon={<img src={LinkedInIcon} alt="LinkedIn" className="h-5 w-5" />}
-										label="LinkedIn"
-										selected={selectedMethods.includes("linkedin_oauth")}
-										onClick={() => toggleAuthMethod("linkedin_oauth")}
-										compact
-									/>
-									<AuthMethodCard
-										icon={<img src={GitlabIcon} alt="GitLab" className="h-5 w-5" />}
-										label="GitLab"
-										selected={selectedMethods.includes("gitlab_oauth")}
-										onClick={() => toggleAuthMethod("gitlab_oauth")}
-										compact
-									/>
-								</div>
-							</div>
-						</section>
+							</section>
 					</div>
 
 					<DialogFooter className="p-8 pt-6 pb-8 border-t border-zinc-100 dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-900/30">
