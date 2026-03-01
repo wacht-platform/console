@@ -62,7 +62,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             isActive: isAuthRoute && !pathname.includes("auth-methods"),
         },
         {
-            title: "B2B Settings",
+            title: "Multi Tenancy",
             url: "b2b-settings",
             icon: IconBuilding,
             isActive: pathname.includes("b2b-settings"),
