@@ -16,8 +16,6 @@ interface TicketResponse {
     expires_at: number;
 }
 
-const ticketCache = new Map<string, string>();
-
 function createIframePath(kind: VanityKind, pathname: string): string {
     if (kind === "api-auth") return "/api-auth";
     return `/webhook${pathname.split("/webhooks")[1] ?? ""}`;
@@ -54,7 +52,6 @@ export function VanityEmbedShell({ kind }: VanityEmbedShellProps) {
     const [loading, setLoading] = useState(true);
     const [nonce, setNonce] = useState(0);
 
-    const cacheKey = `${kind}:${deploymentId ?? ""}`;
     const vanityBaseUrl = deployment?.backend_host
         ? `${deployment.backend_host}/vanity`
         : null;
@@ -74,20 +71,11 @@ export function VanityEmbedShell({ kind }: VanityEmbedShellProps) {
 
             setLoading(true);
             setError(null);
-
-            const cached = ticketCache.get(cacheKey);
-            if (cached) {
-                if (!cancelled) {
-                    setTicket(cached);
-                    setLoading(false);
-                }
-                return;
-            }
+            setTicket(null);
 
             try {
                 const result = await createSessionTicket(deploymentId, kind);
                 if (cancelled) return;
-                ticketCache.set(cacheKey, result.ticket);
                 setTicket(result.ticket);
             } catch (e) {
                 if (cancelled) return;
@@ -105,7 +93,7 @@ export function VanityEmbedShell({ kind }: VanityEmbedShellProps) {
         return () => {
             cancelled = true;
         };
-    }, [cacheKey, deploymentId, kind, nonce, vanityBaseUrl]);
+    }, [deploymentId, kind, nonce, vanityBaseUrl, vanityPath]);
 
     if (loading || !ticket || !vanityBaseUrl) {
         return <InlineLoader />;
@@ -118,10 +106,7 @@ export function VanityEmbedShell({ kind }: VanityEmbedShellProps) {
                 <Button
                     className="w-fit"
                     variant="outline"
-                    onClick={() => {
-                        ticketCache.delete(cacheKey);
-                        setNonce((n) => n + 1);
-                    }}
+                    onClick={() => setNonce((n) => n + 1)}
                 >
                     Retry
                 </Button>
@@ -134,7 +119,7 @@ export function VanityEmbedShell({ kind }: VanityEmbedShellProps) {
     return (
         <div className="h-[calc(100vh-5.25rem)] w-full">
             <iframe
-                key={`${cacheKey}:${vanityPath}`}
+                key={`${kind}:${deploymentId ?? ""}:${vanityPath}:${ticket}`}
                 src={src}
                 title={kind === "webhook" ? "Webhook" : "API Auth"}
                 className="h-full w-full border-0 outline-none"

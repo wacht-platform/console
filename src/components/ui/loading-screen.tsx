@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Spinner } from "./spinner";
-import { SkeletonTable, SkeletonList, SkeletonCard, SkeletonProjectCard } from "./skeleton";
+import { SkeletonTable, SkeletonList, SkeletonCard, Skeleton } from "./skeleton";
 
 interface LoadingScreenProps {
 	type?: "page" | "table" | "list" | "card" | "inline";
@@ -101,10 +101,44 @@ export function ProjectLoadingGrid({
 	className?: string;
 }) {
 	return (
-		<div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ${className}`}>
-			{Array.from({ length: items }).map((_, index) => (
-				<SkeletonProjectCard key={`project-skeleton-${index}`} />
-			))}
+		<div className={`overflow-hidden rounded-xl border border-border/80 bg-card ${className}`}>
+			<div className="hidden grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_160px_120px_130px_28px] items-center gap-3 border-b border-border/70 bg-muted/30 px-4 py-2 md:grid">
+				<Skeleton className="h-3 w-20" />
+				<Skeleton className="h-3 w-14" />
+				<Skeleton className="h-3 w-24" />
+				<Skeleton className="h-3 w-20" />
+				<Skeleton className="h-3 w-16" />
+				<Skeleton className="h-3 w-3 rounded-sm" />
+			</div>
+
+			<div>
+				{Array.from({ length: items }).map((_, index) => (
+					<div
+						key={`project-row-skeleton-${index}`}
+						className={`px-4 py-3 ${index === 0 ? "" : "border-t border-border/70"}`}
+					>
+						<div className="grid gap-3 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_160px_120px_130px_28px] md:items-center">
+							<div className="min-w-0">
+								<div className="flex items-center gap-3">
+									<Skeleton className="h-8 w-8 rounded-md" />
+									<div className="min-w-0 space-y-2">
+										<Skeleton className="h-3 w-36" />
+										<Skeleton className="h-3 w-28 md:hidden" />
+									</div>
+								</div>
+							</div>
+							<Skeleton className="hidden h-3 w-40 md:block" />
+							<div className="flex items-center gap-2">
+								<Skeleton className="h-4 w-10 rounded-md" />
+								<Skeleton className="h-4 w-14 rounded-md" />
+							</div>
+							<Skeleton className="h-3 w-8" />
+							<Skeleton className="h-3 w-20" />
+							<Skeleton className="hidden h-4 w-4 rounded-sm md:block" />
+						</div>
+					</div>
+				))}
+			</div>
 		</div>
 	);
 }
