@@ -37,7 +37,7 @@ const UsageBar = ({
 }: any) => {
     const usage = getUsage(metric);
     const cost = getCost(metric);
-    const hasLimit = typeof limit === 'number';
+    const hasLimit = typeof limit === 'number' && limit > 0;
     const percent = hasLimit && limit > 0 ? Math.min((usage / limit) * 100, 100) : 0;
     const isOverage = hasLimit && limit > 0 && usage > limit;
 
