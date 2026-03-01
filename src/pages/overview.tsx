@@ -4,7 +4,6 @@ import {
     FingerPrintIcon,
     UserPlusIcon,
     ArrowRightOnRectangleIcon,
-    CalendarDaysIcon,
     RectangleStackIcon,
 } from "@heroicons/react/24/outline";
 import { SectionCards } from "@/components/section-cards";
@@ -31,7 +30,6 @@ import {
 import { Heading } from "@/components/ui/heading";
 import { useSession } from "@wacht/react-router";
 import type { RecentSignup } from "@/lib/api/hooks/use-analytics";
-import { Badge } from "@/components/ui/badge";
 
 // Date range options for analytics
 const DATE_RANGES = {
