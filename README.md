@@ -1,53 +1,77 @@
-# Wacht Console Dashboard
+<h1 align="center">
+  <a href="https://wacht.dev" style="text-decoration:none;">Wacht Console</a>
+</h1>
 
-The React frontend for managing Wacht applications. This is where you configure your deployments, manage users, set up organizations, and handle all the admin stuff for your customer-facing apps.
+<p align="center">Administrative control plane for configuring and operating Wacht deployments.</p>
 
-Wacht is a development toolkit that helps you build enterprise apps fast - authentication, user management, organizations, AI tools, and analytics are all included.
+<p align="center">
+  <a href="https://wacht.dev">Website</a> |
+  <a href="https://docs.wacht.dev">Documentation</a> |
+  <a href="https://github.com/wacht-platform/console/issues">Issues</a>
+</p>
 
-## What you can do
+## Overview
 
-**User stuff**
-- Manage users and their profiles
-- Track signups and activity
-- Handle user analytics
+Wacht Console is the interface used by platform teams to manage authentication, B2B access, API auth, webhooks, agents, and billing for each deployment.
 
-**Organizations & workspaces**
-- Create and manage organizations
-- Set up workspaces within orgs
-- Custom roles and permissions
-- Invite and manage members
+Core areas in this app:
 
-**Authentication**
-- Configure MFA
-- Set up social logins
-- Create JWT templates
-- Web3 auth support
+- Project and deployment lifecycle
+- Authentication factors and social sign-in configuration
+- Organizations, workspaces, roles, and permission catalogs
+- API auth apps, API keys, and gateway audit views
+- Webhook apps, endpoints, deliveries, and replay tooling
+- Agent configuration and operational controls
+- Billing, plan usage, and subscription state
 
-**AI tools**
-- Build AI agents
-- Visual workflow builder (drag & drop)
-- Upload knowledge bases
-- Configure API tools
+## Repository layout
 
-**Analytics**
-- Real-time dashboard stats
-- User activity tracking
-- Growth metrics
+- `src/pages/` - route-level screens
+- `src/components/` - domain components (users, orgs, workspaces, api-keys, webhooks, agents)
+- `src/lib/api/` - API client modules used by UI screens
+- `src/lib/store/` - client state containers
+- `src/hooks/` - feature hooks
+- `src/contexts/` - app-level providers
 
-**Other stuff**
-- Email templates and settings
-- SMS configuration
-- DNS verification
+## Local development
 
-## License
+Install and start the development server:
 
-Dual-licensed under Apache License 2.0 or GNU AGPL v3+.
-See [LICENSE.md](LICENSE.md).
+```bash
+pnpm install
+pnpm dev
+```
 
-## Related Projects
+Default local URL: `http://localhost:5173`
 
-- [Wacht Console API](../wacht-dashboard-api) - Backend console API for this dashboard
+Build and preview:
+
+```bash
+pnpm build
+pnpm preview
+```
+
+Lint:
+
+```bash
+pnpm lint
+```
+
+## Environment
+
+Create `.env` in this directory:
+
+```bash
+VITE_API_URL=http://localhost:3000
+```
+
+Use your deployed API host in non-local environments.
 
 ## Support
 
-For support and questions, please open an issue in the GitHub repository.
+- Report issues: [GitHub Issues](https://github.com/wacht-platform/console/issues)
+- Product docs: [docs.wacht.dev](https://docs.wacht.dev)
+
+## License
+
+GNU Affero General Public License v3.0 (AGPL-3.0-only). See [LICENSE.md](./LICENSE.md).

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +25,8 @@ import {
 import { InformationCircleIcon } from "@heroicons/react/24/solid";
 import { Spinner } from "@/components/ui/spinner";
 import clsx from "clsx";
+import { toast } from "sonner";
+import { format, parseISO } from "date-fns";
 
 interface BillingSetupDialogProps {
   open: boolean;
@@ -107,6 +110,40 @@ export function BillingSetupDialog({
   const posthog = usePostHog();
   const createCheckout = useCreateCheckout();
   const { data: billingAccount, refetch: refetchBilling } = useBillingAccount();
+  const checkoutFlowState = billingAccount?.checkout_flow_state || "idle";
+  const checkoutFlowError = billingAccount?.checkout_flow_error;
+  const checkoutFlowLabel = (() => {
+    switch (checkoutFlowState) {
+      case "checkout_created":
+        return "Waiting for payment";
+      case "payment_received_waiting_subscription":
+        return "Payment received";
+      case "subscription_active_waiting_payment":
+        return "Subscription active";
+      case "active":
+        return "Completed";
+      case "failed":
+        return "Failed";
+      default:
+        return "Idle";
+    }
+  })();
+  const checkoutFlowMessage = (() => {
+    switch (checkoutFlowState) {
+      case "checkout_created":
+        return "Checkout was created. Waiting for payment confirmation.";
+      case "payment_received_waiting_subscription":
+        return "Payment confirmed. Waiting for subscription activation webhook.";
+      case "subscription_active_waiting_payment":
+        return "Subscription activated. Waiting for payment confirmation webhook.";
+      case "active":
+        return "Payment and subscription are both confirmed.";
+      case "failed":
+        return checkoutFlowError || "The last billing flow failed.";
+      default:
+        return null;
+    }
+  })();
 
   const handleInputChange = (
     field: keyof CreateCheckoutRequest,
@@ -184,7 +221,17 @@ export function BillingSetupDialog({
         }
       }
     } catch (error) {
+      stopPolling();
       console.error("Failed to create checkout session:", error);
+      if (axios.isAxiosError(error)) {
+        const message =
+          (typeof error.response?.data?.message === "string" && error.response?.data?.message) ||
+          (typeof error.response?.data?.error === "string" && error.response?.data?.error) ||
+          "Failed to create checkout session";
+        toast.error(message);
+      } else {
+        toast.error("Failed to create checkout session");
+      }
       posthog?.captureException(error);
     }
   };
@@ -384,6 +431,32 @@ export function BillingSetupDialog({
                     <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">Billing Identity</h3>
                     <p className="text-xs text-zinc-500">How should we address your invoices?</p>
                   </div>
+
+                  {((checkoutFlowState && checkoutFlowState !== "idle") || billingAccount?.status === "pending") && (
+                    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/30 px-4 py-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-[11px] uppercase tracking-wider text-zinc-500">Checkout Progress</span>
+                        <span
+                          className={clsx(
+                            "text-[10px] uppercase tracking-wider",
+                            checkoutFlowState === "active"
+                              ? "text-emerald-600 dark:text-emerald-400"
+                              : checkoutFlowState === "failed"
+                                ? "text-red-600 dark:text-red-400"
+                                : "text-amber-600 dark:text-amber-400",
+                          )}
+                        >
+                          {checkoutFlowLabel}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+                        {checkoutFlowMessage || "Waiting for billing webhooks to settle."}
+                        {billingAccount?.last_checkout_session_created_at
+                          ? ` • ${format(parseISO(billingAccount.last_checkout_session_created_at), "MMM d, yyyy • HH:mm")}`
+                          : ""}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="space-y-5">
                     <div className="space-y-1.5">

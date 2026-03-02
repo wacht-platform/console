@@ -16,7 +16,7 @@ export const getCodeSnippets = ({
     : (activeFramework.id === 'rust' ? 'cargo add wacht' : `npm install ${activeFramework.pkg}`);
 
   let setup = '';
-  let usage = '';
+  let usage: string | { filename: string, language: string, code: string }[] = '';
 
   // Frontend Examples
   if (frameworkCategory === 'frontend') {
@@ -103,6 +103,249 @@ export default function Header() {
     </header>
   );
 }`;
+    } else if (activeExample === 'webhooks') {
+      usage = [
+        {
+          filename: 'server.ts',
+          language: 'typescript',
+          code: `import { sessions } from "@wacht/backend";
+
+// Create a secure endpoint that generates a ticket for the current user/tenant
+export async function POST() {
+  const { ticket } = await sessions.createSessionTicket({
+    ticket_type: 'webhook_app_access',
+    webhook_app_slug: 'my-app'
+  });
+  return Response.json({ ticket });
+}`
+        },
+        {
+          filename: 'App.tsx (Hooks)',
+          language: 'typescript',
+          code: `import { useState } from "react";
+import { 
+  WebhookAppProvider, 
+  useWebhookAppSession,
+  useWebhookEndpoints,
+  useWebhookDeliveries
+} from "${activeFramework.pkg}";
+
+function WebhookDashboard() {
+  const [ticket, setTicket] = useState<string | null>(null);
+  
+  // Authenticate the session using the ticket
+  const { sessionLoading } = useWebhookAppSession(ticket);
+  
+  // Fetch endpoints and deliveries securely
+  const { endpoints } = useWebhookEndpoints();
+  const { deliveries } = useWebhookDeliveries();
+
+  const fetchTicket = async () => {
+    const res = await fetch("/api/tickets/webhooks", { method: "POST" });
+    const data = await res.json();
+    setTicket(data.ticket);
+  };
+
+  if (!ticket) {
+    return <button onClick={fetchTicket}>Open Webhooks</button>;
+  }
+
+  if (sessionLoading) return <div>Loading...</div>;
+
+  return (
+    <div className="flex gap-8 p-6">
+      <div className="w-1/2">
+        <h3>Your Endpoints</h3>
+        <ul>
+          {endpoints?.map(ep => (
+            <li key={ep.id}>{ep.url}</li>
+          ))}
+        </ul>
+      </div>
+      <div className="w-1/2">
+        <h3>Recent Deliveries</h3>
+        <ul>
+          {deliveries?.map(d => (
+            <li key={d.id}>
+              {d.successful ? "✅" : "❌"} {d.event_type}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <WebhookAppProvider appSlug="my-app">
+      <WebhookDashboard />
+    </WebhookAppProvider>
+  );
+}`
+        },
+        {
+          filename: 'App.tsx (Iframe)',
+          language: 'typescript',
+          code: `import { useEffect, useState } from "react";
+import { useDeployment } from "${activeFramework.pkg}";
+
+export default function WebhookDashboard() {
+  const { deployment } = useDeployment();
+  const [ticket, setTicket] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Call your backend endpoint to secure a session ticket
+    fetch("/api/tickets/webhooks", { method: "POST" })
+      .then(res => res.json())
+      .then(data => setTicket(data.ticket));
+  }, []);
+
+  if (!ticket || !deployment) {
+    return <div className="p-8">Loading webhook dashboard...</div>;
+  }
+
+  // Wacht hosts the full vanity UI directly on your dedicated backend host
+  const vanityUrl = \`\${deployment.backend_host}/vanity/webhook?ticket=\${ticket}\`;
+
+  return (
+    <div className="h-[800px] w-full border rounded-xl overflow-hidden shadow-sm">
+      <iframe
+        src={vanityUrl}
+        className="w-full h-full border-0"
+        title="Webhook App UI"
+      />
+    </div>
+  );
+}`
+        }
+      ];
+    } else if (activeExample === 'api-keys') {
+      usage = [
+        {
+          filename: 'server.ts',
+          language: 'typescript',
+          code: `import { sessions } from "@wacht/backend";
+
+// Create a secure endpoint that generates a ticket for the current user/tenant
+export async function POST() {
+  const { ticket } = await sessions.createSessionTicket({
+    ticket_type: 'api_auth_access',
+    api_auth_app_slug: 'my-api'
+  });
+  return Response.json({ ticket });
+}`
+        },
+        {
+          filename: 'App.tsx (Hooks)',
+          language: 'typescript',
+          code: `import { useState } from "react";
+import { 
+  ApiAuthProvider, 
+  useApiAuthAppSession,
+  useApiAuthTokens 
+} from "${activeFramework.pkg}";
+
+function ApiKeysManager() {
+  const [ticket, setTicket] = useState<string | null>(null);
+  
+  // Authenticate the session using the ticket
+  const { sessionLoading } = useApiAuthAppSession(ticket);
+  
+  // Manage API keys securely
+  const { tokens, createToken, isCreating } = useApiAuthTokens();
+
+  const fetchTicket = async () => {
+    const res = await fetch("/api/tickets/api-keys", { method: "POST" });
+    const data = await res.json();
+    setTicket(data.ticket);
+  };
+
+  const handleCreate = async () => {
+    const req = await createToken({ name: "New API Key" });
+    if (req.secret) {
+      alert("New Key Generated: " + req.secret);
+    }
+  };
+
+  if (!ticket) {
+    return <button onClick={fetchTicket}>Manage API Keys</button>;
+  }
+
+  if (sessionLoading) return <div>Loading...</div>;
+
+  return (
+    <div className="flex gap-8 p-6">
+      <div className="w-1/2">
+        <div className="flex justify-between items-center mb-4">
+          <h3>Your Keys</h3>
+          <button onClick={handleCreate} disabled={isCreating}>
+            {isCreating ? "Creating..." : "Create New"}
+          </button>
+        </div>
+        <ul>
+          {tokens?.map(t => (
+            <li key={t.id} className="flex justify-between">
+              <span>{t.name}</span>
+              <span className="text-gray-500 font-mono">{t.key_prefix}...</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="w-1/2">
+        <h3>Analytics Overview</h3>
+        <p className="text-sm text-gray-500">
+          Request volume and latency metrics will appear here once your keys are active.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ApiAuthProvider appSlug="my-api">
+      <ApiKeysManager />
+    </ApiAuthProvider>
+  );
+}`
+        },
+        {
+          filename: 'App.tsx (Iframe)',
+          language: 'typescript',
+          code: `import { useEffect, useState } from "react";
+import { useDeployment } from "${activeFramework.pkg}";
+
+export default function ApiKeysPage() {
+  const { deployment } = useDeployment();
+  const [ticket, setTicket] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Call your backend endpoint to secure a session ticket
+    fetch("/api/tickets/api-keys", { method: "POST" })
+      .then(res => res.json())
+      .then(data => setTicket(data.ticket));
+  }, []);
+
+  if (!ticket || !deployment) {
+    return <div className="p-8" > Loading API Keys manager...</div>;
+  }
+
+  // Wacht hosts the full vanity UI directly on your dedicated backend host
+  const vanityUrl = \`\${deployment.backend_host}/vanity/api-auth?ticket=\${ticket}\`;
+
+  return (
+    <div className="h-[800px] w-full border rounded-xl overflow-hidden shadow-sm">
+      <iframe
+        src={vanityUrl}
+        className="w-full h-full border-0"
+        title="API Keys Manager"
+      />
+    </div>
+  );
+}`
+        }
+      ];
     } else {
       // Auth Example
       usage = `// App.tsx
@@ -147,60 +390,72 @@ export default function App() {
 
   // Backend Examples
   else {
-    setup = activeFramework.id === 'rust'
-      ? `let client = wacht::Client::new(dotenv!("WACHT_SECRET_KEY"));`
-      : `const wacht = new Wacht(process.env.WACHT_SECRET_KEY);`;
+    if (activeFramework.id === 'rust') {
+      setup = `// main.rs
+use wacht::WachtClient;
 
-    if (activeExample === 'webhooks') {
-      usage = activeFramework.id === 'rust'
-        ? `#[post("/webhook")]
-async fn handle_webhook(req: Request, client: Data<Client>) -> Response {
-    let event = client.webhooks.construct_event(payload, sig, secret)?;
-    match event.type_ {
-        "user.created" => { /* ... */ }
-        _ => { /* ... */ }
-    }
-}`
-        : `app.post('/webhook', (req, res) => {
-  const event = wacht.webhooks.constructEvent(req.body, sig, secret);
-  switch (event.type) {
-    case 'user.created':
-      // ...
-      break;
-  }
-});`;
-    } else if (activeExample === 'management') {
-      usage = activeFramework.id === 'rust'
-        ? `// Create a new user organization
-let org = client.organizations().create(CreateOrganization {
-    name: "Acme Corp",
-    slug: "acme",
-}).await?;
-
-// Add a user to the organization
-client.organizations().add_member(&org.id, "user_123", "admin").await?;`
-        : `// Create a new user organization
-const org = await wacht.organizations.create({
-  name: 'Acme Corp',
-  slug: 'acme',
-});
-
-// Add a user to the organization
-await wacht.organizations.addMember(org.id, 'user_123', 'admin');`;
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize the Wacht client using environment variables
+    // Requires WACHT_API_KEY and WACHT_PUBLISHABLE_KEY
+    let client = WachtClient::from_env().await?;
+    
+    // Pass this client to your app state or dependency injection
+    Ok(())
+}`;
     } else {
-      // Verify Token (Default)
-      usage = activeFramework.id === 'rust'
-        ? `// middleware.rs
-let token = req.headers().get("Authorization")?;
-let session = client.verify_token(token).await?;
+      setup = `// src/index.ts
+import { initClient } from "@wacht/backend";
 
-println!("Authenticated user: {}", session.user_id);`
-        : `// middleware.ts
-const token = req.headers.authorization?.split(' ')[1];
-const session = await wacht.verifyToken(token);
-
-console.log(\`Authenticated user: \${session.userId}\`);`;
+// Initialize the global Wacht client
+// Make sure process.env.WACHT_API_KEY is set
+initClient({
+  apiKey: process.env.WACHT_API_KEY!
+});`;
     }
+
+    // Verify Token (Default for backend)
+    usage = activeFramework.id === 'rust'
+      ? `// middleware.rs
+use axum::{routing::get, Router, Json};
+use wacht::middleware::{AuthLayer, RequireAuth};
+use serde_json::json;
+
+// This handler requires a valid Wacht Bearer token
+async fn get_protected_data(auth: RequireAuth) -> Json<serde_json::Value> {
+    Json(json!({
+        "message": "Access granted",
+        "user_id": auth.user_id,
+        "session_id": auth.session_id
+    }))
+}
+
+// Attach the AuthLayer to your router
+pub fn app_router() -> Router {
+    Router::new()
+        .route("/protected", get(get_protected_data))
+        .layer(AuthLayer::new())
+}`
+      : `// middleware.ts
+import { getAuth } from "@wacht/backend";
+import type { Request, Response, NextFunction } from "express";
+
+export async function requireAuth(req: Request, res: Response, next: NextFunction) {
+  try {
+    // getAuth automatically extracts the Bearer token and verifies it
+    const { userId } = await getAuth(req);
+    
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    // Attach the verified user ID to the request for handlers
+    req.user = userId;
+    next();
+  } catch (err) {
+    res.status(401).json({ error: "Invalid token" });
+  }
+}`;
   }
 
   return { installCmd, setup, usage };

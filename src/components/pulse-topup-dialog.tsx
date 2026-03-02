@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 import {
     Dialog,
     DialogContent,
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useBuyPulse } from "@/lib/api/hooks/use-billing";
 import { BoltIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
 import { Spinner } from "./ui/spinner";
+import { toast } from "sonner";
 
 interface PulseTopUpDialogProps {
     open: boolean;
@@ -42,6 +44,15 @@ export function PulseTopUpDialog({ open, onClose }: PulseTopUpDialogProps) {
             }
         } catch (error) {
             console.error("Failed to initiate Pulse purchase:", error);
+            if (axios.isAxiosError(error)) {
+                const message =
+                    (typeof error.response?.data?.message === "string" && error.response?.data?.message) ||
+                    (typeof error.response?.data?.error === "string" && error.response?.data?.error) ||
+                    "Failed to initiate Pulse purchase";
+                toast.error(message);
+            } else {
+                toast.error("Failed to initiate Pulse purchase");
+            }
         }
     };
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useParams } from "react-router";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { apiClient } from "@/lib/api/client";
 import { Heading, Subheading } from "@/components/ui/heading";
@@ -10,6 +11,7 @@ import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/20/solid";
 import { toast } from "sonner";
 import SavePopup from "@/components/save-popup";
 import { InlineLoader } from "@/components/ui/loading-screen";
+import { useBillingAccount } from "@/lib/api/hooks/use-billing";
 
 interface AISettingsResponse {
     gemini_api_key_set: boolean;
@@ -43,7 +45,15 @@ async function updateAISettings(
 
 export default function AISettingsPage() {
     const { selectedDeployment } = useProjects();
+    const { projectId, deploymentId } = useParams();
     const queryClient = useQueryClient();
+    const { data: billingAccount } = useBillingAccount();
+    const currentPlan = billingAccount?.subscription?.plan_name?.toLowerCase();
+    const isGrowthPlan = currentPlan === "growth";
+    const subscriptionPath =
+        projectId && deploymentId
+            ? `/project/${projectId}/deployment/${deploymentId}/billing/subscription`
+            : "../billing/subscription";
 
     const [geminiKey, setGeminiKey] = useState("");
     const [openaiKey, setOpenaiKey] = useState("");
@@ -73,6 +83,11 @@ export default function AISettingsPage() {
     });
 
     const handleSave = () => {
+        if (!isGrowthPlan) {
+            toast.error("AI agent usage requires Growth plan");
+            return;
+        }
+
         const updates: UpdateAISettingsRequest = {};
         if (geminiKey.trim()) updates.gemini_api_key = geminiKey.trim();
         if (openaiKey.trim()) updates.openai_api_key = openaiKey.trim();
@@ -112,9 +127,17 @@ export default function AISettingsPage() {
                 Configure your own API keys to bypass platform usage billing for AI agents.
                 When you provide your own keys, you won't be billed for AI usage on our platform.
             </Text>
+            {!isGrowthPlan && (
+                <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+                    AI agent usage is available on Growth plan.{" "}
+                    <Link to={subscriptionPath} className="underline font-medium">
+                        Manage subscription
+                    </Link>
+                </div>
+            )}
 
             <SavePopup
-                isDirty={isDirty}
+                isDirty={isDirty && isGrowthPlan}
                 isSaving={updateMutation.isPending}
                 onSave={handleSave}
                 onCancel={handleCancel}
@@ -148,6 +171,7 @@ export default function AISettingsPage() {
                             value={geminiKey}
                             onChange={(e) => setGeminiKey(e.target.value)}
                             autoComplete="new-password"
+                            disabled={!isGrowthPlan}
                         />
                     </div>
                 </section>

@@ -127,23 +127,38 @@ function AlertBlock({
     );
 }
 
-function CodeEditor({
-    code,
-    filename,
-    language = "typescript",
-}: {
+export interface CodeFile {
     code: string;
     filename: string;
     language?: string;
-}) {
+}
+
+interface CodeEditorProps {
+    code?: string;
+    filename?: string;
+    language?: string;
+    files?: CodeFile[];
+}
+
+function CodeEditor({ code, filename, language = "typescript", files }: CodeEditorProps) {
     const [copied, setCopied] = useState(false);
     const { actualTheme } = useTheme();
     const isDark = actualTheme === "dark";
-    const lineCount = code.split("\n").length;
+
+    const displayFiles = useMemo(() => {
+        if (files && files.length > 0) return files;
+        if (code) return [{ code, filename: filename || 'code', language }];
+        return [];
+    }, [files, code, filename, language]);
+
+    const [activeIndex, setActiveIndex] = useState(0);
+    const activeFile = displayFiles[activeIndex] || { code: "", filename: "", language: "typescript" };
+
+    const lineCount = activeFile.code.split("\n").length;
     const height = Math.min(Math.max(lineCount * 22, 100), 500);
 
     const handleCopy = () => {
-        navigator.clipboard.writeText(code);
+        navigator.clipboard.writeText(activeFile.code);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
@@ -157,21 +172,39 @@ function CodeEditor({
         >
             <div
                 className={cn(
-                    "flex items-center justify-between px-3 py-2.5 border-b",
+                    "flex items-center justify-between border-b",
+                    displayFiles.length > 1 ? "pr-3 pt-2" : "px-3 py-2.5",
                     isDark
                         ? "bg-[#252526] border-white/3"
                         : "bg-zinc-100 border-zinc-200",
                 )}
             >
-                <div className="flex items-center gap-2">
-                    <span
-                        className={cn(
-                            "text-[11px] font-medium tracking-tight",
-                            isDark ? "text-zinc-400" : "text-zinc-600",
-                        )}
-                    >
-                        {filename}
-                    </span>
+                <div className={cn("flex items-center no-scrollbar overflow-x-auto", displayFiles.length > 1 ? "gap-1 px-2" : "gap-2")}>
+                    {displayFiles.length > 1 ? (
+                        displayFiles.map((f, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => setActiveIndex(idx)}
+                                className={cn(
+                                    "px-3 py-[6px] text-[11px] font-medium tracking-tight whitespace-nowrap border-b-[2px] transition-colors relative top-[1px]",
+                                    activeIndex === idx
+                                        ? (isDark ? "border-primary text-zinc-100" : "border-primary text-primary")
+                                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border/50"
+                                )}
+                            >
+                                {f.filename}
+                            </button>
+                        ))
+                    ) : (
+                        <span
+                            className={cn(
+                                "text-[11px] font-medium tracking-tight",
+                                isDark ? "text-zinc-400" : "text-zinc-600",
+                            )}
+                        >
+                            {activeFile.filename}
+                        </span>
+                    )}
                 </div>
                 <div className="flex items-center">
                     <Button
@@ -196,8 +229,8 @@ function CodeEditor({
             <div className="relative">
                 <Editor
                     height={`${height}px`}
-                    language={language}
-                    value={code}
+                    language={activeFile.language}
+                    value={activeFile.code}
                     theme={isDark ? "vs-dark" : "light"}
                     options={{
                         readOnly: true,
@@ -228,6 +261,7 @@ export default function GettingStartedPage() {
     const { deploymentSettings } = useCurrentDeployemnt();
     const publishableKey =
         deploymentSettings?.publishable_key || "pk_... (loading)";
+    const secretKey = "sk_test_...";
 
     const [frameworkCategory, setFrameworkCategory] = useState<
         "frontend" | "backend"
@@ -239,39 +273,39 @@ export default function GettingStartedPage() {
         () =>
             frameworkCategory === "frontend"
                 ? [
-                      {
-                          id: "react-router",
-                          name: "React Router",
-                          icon: IconBrandReact,
-                          pkg: "@wacht/react-router",
-                      },
-                      {
-                          id: "nextjs",
-                          name: "Next.js",
-                          icon: IconBrandNextjs,
-                          pkg: "@wacht/nextjs",
-                      },
-                      {
-                          id: "tanstack",
-                          name: "TanStack",
-                          icon: IconBrandTypescript,
-                          pkg: "@wacht/tanstack-router",
-                      },
-                  ]
+                    {
+                        id: "react-router",
+                        name: "React Router",
+                        icon: IconBrandReact,
+                        pkg: "@wacht/react-router",
+                    },
+                    {
+                        id: "nextjs",
+                        name: "Next.js",
+                        icon: IconBrandNextjs,
+                        pkg: "@wacht/nextjs",
+                    },
+                    {
+                        id: "tanstack",
+                        name: "TanStack",
+                        icon: IconBrandTypescript,
+                        pkg: "@wacht/tanstack-router",
+                    },
+                ]
                 : [
-                      {
-                          id: "rust",
-                          name: "Rust",
-                          icon: IconBrandRust,
-                          pkg: "wacht",
-                      },
-                      {
-                          id: "nodejs",
-                          name: "Node.js",
-                          icon: IconBrandNodejs,
-                          pkg: "@wacht/node-sdk",
-                      },
-                  ],
+                    {
+                        id: "rust",
+                        name: "Rust",
+                        icon: IconBrandRust,
+                        pkg: "wacht",
+                    },
+                    {
+                        id: "nodejs",
+                        name: "Node.js",
+                        icon: IconBrandNodejs,
+                        pkg: "@wacht/node-sdk",
+                    },
+                ],
         [frameworkCategory],
     );
 
@@ -285,7 +319,7 @@ export default function GettingStartedPage() {
 
         if (
             frameworkCategory === "frontend" &&
-            !["auth", "tenancy", "notifications"].includes(activeExample)
+            !["auth", "tenancy", "notifications", "api-keys", "webhooks"].includes(activeExample)
         ) {
             setActiveExample("auth");
         } else if (
@@ -330,17 +364,17 @@ export default function GettingStartedPage() {
                                         <SelectItem value="notifications">
                                             Notifications
                                         </SelectItem>
+                                        <SelectItem value="api-keys">
+                                            API Keys
+                                        </SelectItem>
+                                        <SelectItem value="webhooks">
+                                            Webhooks
+                                        </SelectItem>
                                     </>
                                 ) : (
                                     <>
                                         <SelectItem value="verification">
                                             Verify Token
-                                        </SelectItem>
-                                        <SelectItem value="management">
-                                            User Management
-                                        </SelectItem>
-                                        <SelectItem value="webhooks">
-                                            Webhooks
                                         </SelectItem>
                                     </>
                                 )}
@@ -429,14 +463,19 @@ export default function GettingStartedPage() {
                                 <code className="px-1 py-0 bg-muted/50 rounded text-[11px]">
                                     .env
                                 </code>{" "}
-                                file in your project root and add your
-                                publishable key.
+                                file in your project root and add your{" "}
+                                {frameworkCategory === "frontend" ? "publishable" : "secret"}{" "}
+                                key.
                             </p>
                         </div>
                         <CodeEditor
                             filename=".env"
                             language="ini"
-                            code={`${framework === "nextjs" ? "NEXT_PUBLIC_WACHT_PUBLISHABLE_KEY" : "VITE_WACHT_PUBLISHABLE_KEY"}=${publishableKey}`}
+                            code={
+                                frameworkCategory === "frontend"
+                                    ? `${framework === "nextjs" ? "NEXT_PUBLIC_WACHT_PUBLISHABLE_KEY" : "VITE_WACHT_PUBLISHABLE_KEY"}=${publishableKey}`
+                                    : `WACHT_PUBLISHABLE_KEY=${publishableKey}\nWACHT_API_KEY=${secretKey}`
+                            }
                         />
                     </div>
                 </StepWrapper>
@@ -445,14 +484,12 @@ export default function GettingStartedPage() {
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-10">
                         <div className="space-y-2">
                             <h3 className="text-lg tracking-tight">
-                                Initialize the Provider
+                                Initialize the Client
                             </h3>
                             <p className="text-[13px] leading-relaxed text-muted-foreground">
-                                Wrap your application with the{" "}
-                                <code className="px-1 py-0 bg-muted/50 rounded text-[11px]">
-                                    DeploymentProvider
-                                </code>{" "}
-                                to provide auth context.
+                                {frameworkCategory === "frontend"
+                                    ? "Wrap your application with the DeploymentProvider to provide auth context."
+                                    : "Initialize the Wacht client in your backend application."}
                             </p>
                             {framework === "nextjs" &&
                                 activeExample === "auth" && (
@@ -465,9 +502,16 @@ export default function GettingStartedPage() {
                         </div>
                         <CodeEditor
                             filename={
-                                activeFramework.id === "nextjs"
-                                    ? "app/layout.tsx"
-                                    : "main.tsx"
+                                frameworkCategory === "frontend"
+                                    ? activeFramework.id === "nextjs"
+                                        ? "app/layout.tsx"
+                                        : "main.tsx"
+                                    : activeFramework.id === "rust"
+                                        ? "main.rs"
+                                        : "src/index.ts"
+                            }
+                            language={
+                                activeFramework.id === "rust" ? "rust" : "typescript"
                             }
                             code={code.setup}
                         />
@@ -481,53 +525,60 @@ export default function GettingStartedPage() {
                                 {activeExample === "auth"
                                     ? "Add Authentication UI"
                                     : activeExample === "tenancy"
-                                      ? "Access Tenant Data"
-                                      : activeExample === "notifications"
-                                        ? "Add Notification UI"
-                                        : activeExample === "verification"
-                                          ? "Verify Session"
-                                          : activeExample === "management"
-                                            ? "Manage Resources"
-                                            : "Handle Events"}
+                                        ? "Access Tenant Data"
+                                        : activeExample === "notifications"
+                                            ? "Add Notification UI"
+                                            : activeExample === "api-keys"
+                                                ? "Manage API Keys"
+                                                : activeExample === "webhooks" && frameworkCategory === "frontend"
+                                                    ? "Monitor Webhooks"
+                                                    : activeExample === "verification"
+                                                        ? "Verify Session"
+                                                        : "Handle Events"}
                             </h3>
                             <p className="text-[13px] leading-relaxed text-muted-foreground">
                                 {activeExample === "auth"
                                     ? "Protect your routes using the SignedIn and SignedOut components to control access."
                                     : activeExample === "tenancy"
-                                      ? "Access organization and tenant context anywhere in your application."
-                                      : activeExample === "notifications"
-                                        ? "Display a notification bell with unread badge and dropdown management."
-                                        : activeExample === "verification"
-                                          ? "Verify incoming requests and retrieve session details in your API."
-                                          : activeExample === "management"
-                                            ? "Programmatically manage organizations, users, and other resources."
-                                            : "Securely handle asynchronous events from Wacht using webhooks."}
+                                        ? "Access organization and tenant context anywhere in your application."
+                                        : activeExample === "notifications"
+                                            ? "Display a notification bell with unread badge and dropdown management."
+                                            : activeExample === "api-keys"
+                                                ? "Empower users to generate and revoke API keys with a ready-made UI."
+                                                : activeExample === "webhooks" && frameworkCategory === "frontend"
+                                                    ? "View webhook integrations, deliveries, and analytics directly in your app."
+                                                    : activeExample === "verification"
+                                                        ? "Verify incoming requests and retrieve session details in your API."
+                                                        : "Securely handle asynchronous events from Wacht using webhooks."}
                             </p>
                         </div>
-                        <CodeEditor
-                            filename={
-                                activeExample === "notifications"
-                                    ? "navbar.tsx"
-                                    : activeExample === "tenancy"
-                                      ? "profile.tsx"
-                                      : activeExample === "verification"
-                                        ? activeFramework.id === "rust"
-                                            ? "middleware.rs"
-                                            : "middleware.ts"
-                                        : activeExample === "management"
-                                          ? activeFramework.id === "rust"
-                                              ? "service.rs"
-                                              : "service.ts"
-                                          : activeExample === "webhooks"
-                                            ? activeFramework.id === "rust"
-                                                ? "webhook.rs"
-                                                : "webhook.ts"
-                                            : activeFramework.id === "nextjs"
-                                              ? "page.tsx"
-                                              : "App.tsx"
-                            }
-                            code={code.usage}
-                        />
+                        {Array.isArray(code.usage) ? (
+                            <CodeEditor files={code.usage} />
+                        ) : (
+                            <CodeEditor
+                                filename={
+                                    activeExample === "notifications"
+                                        ? "navbar.tsx"
+                                        : activeExample === "tenancy"
+                                            ? "profile.tsx"
+                                            : activeExample === "api-keys"
+                                                ? "api-keys.tsx"
+                                                : activeExample === "webhooks" && frameworkCategory === "frontend"
+                                                    ? "webhooks.tsx"
+                                                    : activeExample === "verification"
+                                                        ? activeFramework.id === "rust"
+                                                            ? "middleware.rs"
+                                                            : "middleware.ts"
+                                                        : activeFramework.id === "nextjs"
+                                                            ? "page.tsx"
+                                                            : "App.tsx"
+                                }
+                                language={
+                                    activeFramework.id === "rust" ? "rust" : "typescript"
+                                }
+                                code={code.usage as string}
+                            />
+                        )}
                     </div>
                 </StepWrapper>
             </div>

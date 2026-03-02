@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { apiClient } from "../../lib/api/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePostHog } from "@posthog/react";
+import { Link, useParams } from "react-router";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
@@ -22,6 +23,7 @@ import {
 	CheckIcon,
 	UserGroupIcon,
 	CircleStackIcon,
+	ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from 'sonner';
 
@@ -32,6 +34,7 @@ import { useAgentKnowledgeBases, useKnowledgeBases } from "../../lib/api/hooks/u
 import { useAgentMcpServers, useMcpServers } from "../../lib/api/hooks/use-mcp-servers";
 import { useAgentSubAgents, useAttachSubAgent, useDetachSubAgent } from "../../lib/api/hooks/use-sub-agents";
 import { useProjects } from "../../lib/api/hooks/use-projects";
+import { useBillingAccount } from "../../lib/api/hooks/use-billing";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
 interface CreateAgentDialogProps {
@@ -97,7 +100,27 @@ export function CreateAgentDialog({
 	const createAgentMutation = useCreateAgent();
 	const updateAgentMutation = useUpdateAgent();
 	const { selectedDeployment } = useProjects();
+	const { projectId, deploymentId } = useParams();
+	const { data: billingAccount } = useBillingAccount();
+	const { data: aiSettings } = useQuery({
+		queryKey: ["ai-settings-summary", selectedDeployment?.id],
+		queryFn: async () => {
+			const { data } = await apiClient.get<{ gemini_api_key_set: boolean }>(
+				`/deployments/${selectedDeployment!.id}/ai/settings`,
+			);
+			return data;
+		},
+		enabled: !!selectedDeployment?.id,
+	});
 	const queryClient = useQueryClient();
+	const currentPlan = billingAccount?.subscription?.plan_name?.toLowerCase();
+	const isGrowthPlan = currentPlan === "growth";
+	const isPulseUsagePaused = !!billingAccount?.pulse_usage_disabled;
+	const hasCustomGeminiKey = !!aiSettings?.gemini_api_key_set;
+	const subscriptionPath =
+		projectId && deploymentId
+			? `/project/${projectId}/deployment/${deploymentId}/billing/subscription`
+			: "../billing/subscription";
 
 	// Fetch available resources
 	const { data: toolsData } = useTools({ limit: 100 });
@@ -433,6 +456,28 @@ export function CreateAgentDialog({
 				</DialogHeader>
 
 				<form onSubmit={handleSubmit} className="flex-1 overflow-hidden flex flex-col">
+					{!isGrowthPlan && (
+						<div className="mx-6 mt-1 mb-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+							<ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0" />
+							<span>
+								AI agent usage is available on Growth plan. You can still create and configure agents.{" "}
+								<Link to={subscriptionPath} className="underline font-medium">
+									Manage subscription
+								</Link>
+							</span>
+						</div>
+					)}
+					{isPulseUsagePaused && !hasCustomGeminiKey && (
+						<div className="mx-6 mt-1 mb-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+							<ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0" />
+							<span>
+								AI usage is paused until prepaid balance is recharged. You can still create and configure agents.{" "}
+								<Link to={subscriptionPath} className="underline font-medium">
+									Manage subscription
+								</Link>
+							</span>
+						</div>
+					)}
 					<Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
 						<div className="px-6">
 							<TabsList className="grid w-full grid-cols-4">

@@ -63,6 +63,14 @@ export interface BillingAccountWithSubscription {
   currency: string;
   locale: string;
   pulse_balance_cents: number;
+  pulse_usage_disabled?: boolean;
+  checkout_flow_state?: string;
+  last_checkout_session_id?: string;
+  last_checkout_session_created_at?: string;
+  last_payment_succeeded_at?: string;
+  last_subscription_activated_at?: string;
+  last_billing_webhook_event?: string;
+  checkout_flow_error?: string;
   created_at?: string;
   updated_at?: string;
   subscription?: Subscription;
@@ -89,6 +97,32 @@ export interface CheckoutResponse {
 
 export interface PortalResponse {
   portal_url: string;
+}
+
+export interface BillingInvoice {
+  id: string;
+  created_at?: string;
+  updated_at?: string;
+  billing_account_id: string;
+  subscription_id?: string | null;
+  provider_payment_id: string;
+  provider_customer_id?: string | null;
+  amount_due_cents: number;
+  amount_paid_cents: number;
+  currency: string;
+  status: string;
+  invoice_pdf_url?: string | null;
+  hosted_invoice_url?: string | null;
+  invoice_number?: string | null;
+  due_date?: string | null;
+  paid_at?: string | null;
+  period_start?: string | null;
+  period_end?: string | null;
+  metadata?: Record<string, unknown> | null;
+}
+
+export interface BillingInvoicesResponse {
+  items: BillingInvoice[];
 }
 
 // Get billing account (uses auth context - no user ID needed)
@@ -150,7 +184,7 @@ export function useInvoices(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["invoices"],
     queryFn: async () => {
-      const response = await apiClient.get("/billing/invoices");
+      const response = await apiClient.get<BillingInvoicesResponse>("/billing/invoices");
       return response.data;
     },
     enabled: options?.enabled ?? true,

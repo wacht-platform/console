@@ -21,7 +21,11 @@ import {
 } from "@/components/ui/fieldset";
 import { SwitchField } from "@/components/ui/switch";
 import { Heading } from "@/components/ui/heading";
-import { Cog6ToothIcon, NoSymbolIcon } from "@heroicons/react/24/outline";
+import {
+    Cog6ToothIcon,
+    NoSymbolIcon,
+    ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
 import type { DeploymentAuthSettings } from "@/types/deployment";
 import {
     useAuthSettingsStore,
@@ -1745,6 +1749,14 @@ export default function SchemaFactorsPage() {
                                     }
                                 />
                             </SwitchField>
+                            {settings.auth_factors_enabled?.phone_otp && (
+                                <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+                                    <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0" />
+                                    <span>
+                                        Phone OTP is enabled. SMS delivery requires prepaid recharge before it can work.
+                                    </span>
+                                </div>
+                            )}
 
                             <SwitchField>
                                 <Label>Passkeys</Label>
