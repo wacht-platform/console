@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useParams } from "react-router";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -28,6 +29,7 @@ import {
   useOAuthGrants,
   useRevokeOAuthGrant,
   useRotateOAuthClientSecret,
+  useUpdateOAuthClient,
 } from "@/lib/api/hooks/use-oauth-management";
 
 function formatClientAuthMethodLabel(method: string): string {
@@ -51,16 +53,13 @@ function formatGrantTypeLabel(grantType: string): string {
 }
 
 export default function OAuthClientDetailsPage() {
-  const navigate = useNavigate();
-  const { slug, clientId, projectId, deploymentId } = useParams();
+  const { slug, clientId } = useParams();
   const oauthAppSlug = slug || "";
   const oauthClientId = clientId || "";
-  const appDetailsPath =
-    projectId && deploymentId
-      ? `/project/${projectId}/deployment/${deploymentId}/oauth/${oauthAppSlug}`
-      : "..";
   const [activeTab, setActiveTab] = useState("configuration");
   const [rotatedSecret, setRotatedSecret] = useState<string | null>(null);
+  const [isEditRedirectUrisOpen, setIsEditRedirectUrisOpen] = useState(false);
+  const [redirectUrisDraft, setRedirectUrisDraft] = useState("");
 
   const { data: oauthApps = [], isLoading: oauthAppsLoading } = useOAuthApps();
   const { data: oauthClients = [], isLoading: oauthClientsLoading } = useOAuthClients(oauthAppSlug);
@@ -70,6 +69,7 @@ export default function OAuthClientDetailsPage() {
   );
   const revokeGrant = useRevokeOAuthGrant(oauthAppSlug, oauthClientId);
   const rotateSecret = useRotateOAuthClientSecret(oauthAppSlug, oauthClientId);
+  const updateOAuthClient = useUpdateOAuthClient(oauthAppSlug, oauthClientId);
 
   const oauthApp = useMemo(
     () => oauthApps.find((app) => app.slug === oauthAppSlug),
@@ -98,6 +98,27 @@ export default function OAuthClientDetailsPage() {
     }
   };
 
+  const handleOpenEditRedirectUris = () => {
+    if (!oauthClient) return;
+    setRedirectUrisDraft(oauthClient.redirect_uris.join("\n"));
+    setIsEditRedirectUrisOpen(true);
+  };
+
+  const handleSaveRedirectUris = async () => {
+    const redirectUris = redirectUrisDraft
+      .split("\n")
+      .map((value) => value.trim())
+      .filter(Boolean);
+    const deduped = [...new Set(redirectUris)];
+
+    try {
+      await updateOAuthClient.mutateAsync({ redirect_uris: deduped });
+      setIsEditRedirectUrisOpen(false);
+    } catch {
+      // handled by hook
+    }
+  };
+
   if (oauthAppsLoading) {
     return <InlineLoader />;
   }
@@ -121,21 +142,14 @@ export default function OAuthClientDetailsPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-xl border bg-gradient-to-b from-zinc-50 to-white p-4 dark:from-zinc-950 dark:to-zinc-900">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-zinc-500">OAuth Client</p>
-            <h1 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
-              {oauthClient.client_id}
-            </h1>
-            <p className="mt-1 text-xs text-zinc-500">
-              {oauthApp.name} ({oauthApp.slug})
-            </p>
-          </div>
-          <Button type="button" variant="outline" onClick={() => navigate(appDetailsPath)}>
-            Back To App
-          </Button>
-        </div>
+      <section>
+        <p className="text-xs uppercase tracking-wide text-zinc-500">OAuth Client</p>
+        <h1 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
+          {oauthClient.client_id}
+        </h1>
+        <p className="mt-1 text-xs text-zinc-500">
+          {oauthApp.name} ({oauthApp.slug})
+        </p>
       </section>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -166,28 +180,29 @@ export default function OAuthClientDetailsPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border p-4">
+          <div>
             <div className="mb-3 flex items-center justify-between gap-3">
               <p className="text-xs uppercase tracking-wide text-zinc-500">Redirect URIs</p>
+              <Button type="button" variant="outline" size="sm" onClick={handleOpenEditRedirectUris}>
+                Edit
+              </Button>
             </div>
-            <div className="space-y-2">
+            <div className="divide-y rounded-md border">
               {oauthClient.redirect_uris.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No redirect URIs configured.</p>
+                <p className="p-3 text-sm text-muted-foreground">No redirect URIs configured.</p>
               ) : (
                 oauthClient.redirect_uris.map((uri) => (
-                  <div key={uri} className="rounded-lg border bg-zinc-50/60 p-3 dark:bg-zinc-900/40">
-                    <div className="flex items-start justify-between gap-3">
-                      <p className="font-mono text-xs break-all text-zinc-800 dark:text-zinc-100">{uri}</p>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 px-2 text-xs"
-                        onClick={() => copy("Redirect URI", uri)}
-                      >
-                        Copy
-                      </Button>
-                    </div>
+                  <div key={uri} className="flex items-start justify-between gap-3 p-3">
+                    <p className="font-mono text-xs break-all text-zinc-800 dark:text-zinc-100">{uri}</p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs"
+                      onClick={() => copy("Redirect URI", uri)}
+                    >
+                      Copy
+                    </Button>
                   </div>
                 ))
               )}
@@ -320,6 +335,35 @@ export default function OAuthClientDetailsPage() {
               Copy Secret
             </Button>
             <Button onClick={() => setRotatedSecret(null)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditRedirectUrisOpen} onOpenChange={setIsEditRedirectUrisOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Redirect URIs</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">One URI per line.</p>
+            <Textarea
+              value={redirectUrisDraft}
+              onChange={(e) => setRedirectUrisDraft(e.target.value)}
+              rows={8}
+              placeholder="https://app.example.com/callback"
+            />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setIsEditRedirectUrisOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSaveRedirectUris}
+              disabled={updateOAuthClient.isPending}
+            >
+              {updateOAuthClient.isPending ? "Saving..." : "Save"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -211,10 +211,7 @@ function CreateOAuthClientDialog({
     const [clientAuthMethod, setClientAuthMethod] = useState(
         "client_secret_basic",
     );
-    const [grantTypes, setGrantTypes] = useState<string[]>([
-        "authorization_code",
-        "refresh_token",
-    ]);
+    const [allowRefreshToken, setAllowRefreshToken] = useState(true);
     const [redirectUris, setRedirectUris] = useState("");
     const [tokenSigningAlg, setTokenSigningAlg] = useState("");
     const [keyMaterialMode, setKeyMaterialMode] = useState<
@@ -226,7 +223,7 @@ function CreateOAuthClientDialog({
 
     const handleClose = () => {
         setClientAuthMethod("client_secret_basic");
-        setGrantTypes(["authorization_code", "refresh_token"]);
+        setAllowRefreshToken(true);
         setRedirectUris("");
         setTokenSigningAlg("");
         setKeyMaterialMode("jwks_uri");
@@ -237,11 +234,6 @@ function CreateOAuthClientDialog({
     };
 
     const handleCreate = async () => {
-        if (grantTypes.length === 0) {
-            toast.error("At least one grant type is required");
-            return;
-        }
-
         const request: {
             client_auth_method: string;
             grant_types: string[];
@@ -252,7 +244,9 @@ function CreateOAuthClientDialog({
             public_key_pem?: string;
         } = {
             client_auth_method: clientAuthMethod,
-            grant_types: grantTypes,
+            grant_types: allowRefreshToken
+                ? ["authorization_code", "refresh_token"]
+                : ["authorization_code"],
             redirect_uris: splitCsv(redirectUris),
         };
 
@@ -350,11 +344,31 @@ function CreateOAuthClientDialog({
                         <p className="mb-2 text-sm text-muted-foreground">
                             Grant Types
                         </p>
-                        <PillInput
-                            values={grantTypes}
-                            onChange={setGrantTypes}
-                            placeholder="Type grant and press Enter"
-                        />
+                        <div className="space-y-2 rounded-md border p-3">
+                            <div className="flex items-center justify-between gap-3">
+                                <div>
+                                    <p className="text-sm">
+                                        Authorization Code
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        Required
+                                    </p>
+                                </div>
+                                <Switch checked disabled />
+                            </div>
+                            <div className="flex items-center justify-between gap-3">
+                                <div>
+                                    <p className="text-sm">Refresh Token</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        Optional
+                                    </p>
+                                </div>
+                                <Switch
+                                    checked={allowRefreshToken}
+                                    onCheckedChange={setAllowRefreshToken}
+                                />
+                            </div>
+                        </div>
                     </div>
                     <div>
                         <p className="mb-2 text-sm text-muted-foreground">
@@ -1023,7 +1037,7 @@ export default function OAuthAppDetailsPage() {
 
                     <TabsContent value="runtime" className="mt-4">
                         <div className="space-y-6">
-                            <div className="rounded-xl border bg-gradient-to-b from-zinc-50 to-white p-4 dark:from-zinc-950 dark:to-zinc-900">
+                            <section className="space-y-4">
                                 <div className="flex flex-wrap items-center justify-between gap-3">
                                     <div>
                                         <p className="text-xs uppercase tracking-wide text-zinc-500">
@@ -1080,10 +1094,10 @@ export default function OAuthAppDetailsPage() {
                                         </p>
                                     </div>
                                 </div>
-                            </div>
+                            </section>
 
                             {isProductionDeployment ? (
-                                <div className="rounded-xl border border-emerald-200/60 bg-emerald-50/60 p-4 dark:border-emerald-900/50 dark:bg-emerald-950/20">
+                                <section className="space-y-4">
                                     <div className="flex flex-wrap items-center justify-between gap-3">
                                         <div>
                                             <p className="text-xs uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
@@ -1140,10 +1154,10 @@ export default function OAuthAppDetailsPage() {
                                                 : "Domain is not verified yet."}
                                         </p>
                                     ) : null}
-                                </div>
+                                </section>
                             ) : null}
 
-                            <div className="rounded-xl border p-4">
+                            <section>
                                 <p className="text-xs uppercase tracking-wide text-zinc-500">
                                     OAuth Endpoints
                                 </p>
@@ -1178,9 +1192,9 @@ export default function OAuthAppDetailsPage() {
                                         </div>
                                     ))}
                                 </div>
-                            </div>
+                            </section>
 
-                            <div className="rounded-xl border p-4">
+                            <section>
                                 <p className="text-xs uppercase tracking-wide text-zinc-500">
                                     Discovery
                                 </p>
@@ -1215,7 +1229,7 @@ export default function OAuthAppDetailsPage() {
                                         </div>
                                     ))}
                                 </div>
-                            </div>
+                            </section>
                         </div>
                     </TabsContent>
 
