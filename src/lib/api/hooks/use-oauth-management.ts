@@ -7,6 +7,7 @@ import type {
   CreateOAuthClientRequest,
   OAuthApp,
   OAuthClient,
+  OAuthDomainVerificationResponse,
   OAuthGrant,
   RotateOAuthClientSecretResponse,
   SetOAuthScopeMappingRequest,
@@ -72,6 +73,16 @@ async function updateOAuthApp(
     request,
   );
   return getNestedRecord(response.data) as unknown as OAuthApp;
+}
+
+async function verifyOAuthAppDomain(
+  deploymentId: string,
+  oauthAppSlug: string,
+): Promise<OAuthDomainVerificationResponse> {
+  const response = await apiClient.post(
+    `/deployments/${deploymentId}/oauth/apps/${oauthAppSlug}/verify-domain`,
+  );
+  return getNestedRecord(response.data) as unknown as OAuthDomainVerificationResponse;
 }
 
 async function updateOAuthScope(
@@ -245,6 +256,18 @@ export function useUpdateOAuthApp(oauthAppSlug?: string) {
     onError: (error: unknown) => {
       const message = error instanceof Error ? error.message : "Failed to update OAuth app";
       toast.error(message);
+    },
+  });
+}
+
+export function useVerifyOAuthAppDomain(oauthAppSlug?: string) {
+  const { selectedDeployment } = useProjects();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!selectedDeployment?.id) throw new Error("No deployment selected");
+      if (!oauthAppSlug) throw new Error("OAuth app not selected");
+      return verifyOAuthAppDomain(selectedDeployment.id.toString(), oauthAppSlug);
     },
   });
 }

@@ -54,7 +54,7 @@ const EmailTemplateEditor = lazyImport(
 const AISettingsPage = lazyImport(() => import("./pages/setup/ai-settings"));
 const OAuthAppsIndexPage = lazyImport(() => import("./pages/oauth/apps"));
 const OAuthAppDetailsPage = lazyImport(() => import("./pages/oauth/[slug]"));
-const OAuthAppGrantsPage = lazyImport(() => import("./pages/oauth/[slug]-grants"));
+const OAuthClientDetailsPage = lazyImport(() => import("./pages/oauth/[slug]-client"));
 const SMSPage = lazyImport(() => import("./pages/sms"));
 const ApplicationSettingsPage = lazyImport(() => import("./pages/settings"));
 const ProjectsPage = lazyImport(() => import("./pages/projects"));
@@ -527,12 +527,16 @@ export const router = createBrowserRouter([
                         ),
                     },
                     {
-                        path: ":slug/grants",
+                        path: ":slug/clients/:clientId",
                         element: (
                             <Suspense fallback={<SimpleFallback />}>
-                                <OAuthAppGrantsPage />
+                                <OAuthClientDetailsPage />
                             </Suspense>
                         ),
+                    },
+                    {
+                        path: ":slug/grants",
+                        element: <Navigate to=".." replace />,
                     },
                 ],
             },

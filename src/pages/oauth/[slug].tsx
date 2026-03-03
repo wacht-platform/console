@@ -42,8 +42,10 @@ import {
     useOAuthClients,
     useUpdateOAuthApp,
     useUpdateOAuthScope,
+    useVerifyOAuthAppDomain,
 } from "@/lib/api/hooks/use-oauth-management";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
+import { useProjects } from "@/lib/api/hooks/use-projects";
 import type {
     JwksDocument,
     OAuthClient,
@@ -670,6 +672,8 @@ export default function OAuthAppDetailsPage() {
     const { data: oauthApps = [], isLoading: oauthAppsLoading } =
         useOAuthApps();
     const { deploymentSettings } = useCurrentDeployemnt();
+    const { selectedDeployment } = useProjects();
+    const verifyOAuthAppDomain = useVerifyOAuthAppDomain(oauthAppSlug);
     const { data: oauthClients = [], isLoading: oauthClientsLoading } =
         useOAuthClients(oauthAppSlug);
     const updateOAuthApp = useUpdateOAuthApp(oauthAppSlug);
@@ -867,7 +871,39 @@ export default function OAuthAppDetailsPage() {
     const introspectionEndpoint = `${issuerUrl}/oauth/introspect`;
     const registrationEndpoint = `${issuerUrl}/oauth/register`;
     const metadataEndpoint = `${issuerUrl}/.well-known/oauth-authorization-server`;
-    const jwksEndpoint = `${issuerUrl}/.well-known/jwks.json`;
+    const connectorMapTarget = "oauth.wacht.services";
+    const runtimeEndpoints = [
+        { label: "Authorization", value: authorizationEndpoint },
+        { label: "Token", value: tokenEndpoint },
+        { label: "Revocation", value: revocationEndpoint },
+        { label: "Introspection", value: introspectionEndpoint },
+        { label: "Dynamic Registration", value: registrationEndpoint },
+    ];
+    const discoveryEndpoints = [
+        { label: "OAuth Metadata", value: metadataEndpoint },
+    ];
+    const isProductionDeployment = selectedDeployment?.mode === "production";
+    const [domainVerified, setDomainVerified] = useState<boolean | null>(null);
+
+    const handleCheckDomain = async () => {
+        try {
+            const result = await verifyOAuthAppDomain.mutateAsync();
+            setDomainVerified(result.verified);
+            if (result.verified) {
+                toast.success("Domain verified");
+            } else {
+                toast.error(
+                    "Domain not verified yet. Ensure your CNAME points to oauth.wacht.services.",
+                );
+            }
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Failed to check domain";
+            toast.error(message);
+        }
+    };
 
     return (
         <>
@@ -955,7 +991,7 @@ export default function OAuthAppDetailsPage() {
                                             className="cursor-pointer"
                                             onClick={() =>
                                                 navigate(
-                                                    `grants?client=${client.id}`,
+                                                    `clients/${client.id}`,
                                                 )
                                             }
                                         >
@@ -987,24 +1023,94 @@ export default function OAuthAppDetailsPage() {
 
                     <TabsContent value="runtime" className="mt-4">
                         <div className="space-y-6">
-                            <div className="space-y-3">
-                                <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-                                    Domain
-                                </p>
-                                {[
-                                    {
-                                        label: "Custom Domain (FQDN)",
-                                        value: oauthApp.fqdn,
-                                    },
-                                    { label: "Issuer URL", value: issuerUrl },
-                                ].map((item) => (
-                                    <div
-                                        key={item.label}
-                                        className="flex flex-col gap-1"
-                                    >
+                            <div className="rounded-xl border bg-gradient-to-b from-zinc-50 to-white p-4 dark:from-zinc-950 dark:to-zinc-900">
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <div>
+                                        <p className="text-xs uppercase tracking-wide text-zinc-500">
+                                            Runtime Profile
+                                        </p>
+                                        <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
+                                            OAuth Runtime
+                                        </h3>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                copyRuntimeValue(
+                                                    "OAuth Domain",
+                                                    oauthApp.fqdn,
+                                                )
+                                            }
+                                        >
+                                            Copy Domain
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                copyRuntimeValue(
+                                                    "Issuer URL",
+                                                    issuerUrl,
+                                                )
+                                            }
+                                        >
+                                            Copy Issuer
+                                        </Button>
+                                    </div>
+                                </div>
+                                <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                                    <div className="rounded-lg border bg-background p-3">
+                                        <p className="text-xs text-zinc-500">
+                                            Runtime Domain (FQDN)
+                                        </p>
+                                        <p className="mt-1 font-mono text-xs break-all text-zinc-800 dark:text-zinc-100">
+                                            {oauthApp.fqdn}
+                                        </p>
+                                    </div>
+                                    <div className="rounded-lg border bg-background p-3">
+                                        <p className="text-xs text-zinc-500">
+                                            Issuer
+                                        </p>
+                                        <p className="mt-1 font-mono text-xs break-all text-zinc-800 dark:text-zinc-100">
+                                            {issuerUrl}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {isProductionDeployment ? (
+                                <div className="rounded-xl border border-emerald-200/60 bg-emerald-50/60 p-4 dark:border-emerald-900/50 dark:bg-emerald-950/20">
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <div>
+                                            <p className="text-xs uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+                                                Domain Verification
+                                            </p>
+                                            <p className="text-sm text-emerald-900 dark:text-emerald-100">
+                                                Map your connector domain with a
+                                                CNAME record and verify DNS.
+                                            </p>
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            onClick={handleCheckDomain}
+                                            disabled={
+                                                verifyOAuthAppDomain.isPending
+                                            }
+                                        >
+                                            {verifyOAuthAppDomain.isPending
+                                                ? "Checking..."
+                                                : "Check Domain"}
+                                        </Button>
+                                    </div>
+                                    <div className="mt-4 rounded-lg border bg-background p-3">
                                         <div className="flex items-center justify-between gap-3">
-                                            <p className="text-xs text-muted-foreground">
-                                                {item.label}
+                                            <p className="text-xs text-zinc-500">
+                                                Map Connector Domain To
                                             </p>
                                             <Button
                                                 type="button"
@@ -1013,55 +1119,48 @@ export default function OAuthAppDetailsPage() {
                                                 className="h-6 px-2 text-xs"
                                                 onClick={() =>
                                                     copyRuntimeValue(
-                                                        item.label,
-                                                        item.value,
+                                                        "Connector Map Target",
+                                                        connectorMapTarget,
                                                     )
                                                 }
                                             >
                                                 Copy
                                             </Button>
                                         </div>
-                                        <div className="rounded-md bg-zinc-50 px-3 py-2 text-xs break-all text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">
-                                            {item.value}
-                                        </div>
+                                        <p className="mt-1 font-mono text-xs break-all text-zinc-800 dark:text-zinc-100">
+                                            {connectorMapTarget}
+                                        </p>
                                     </div>
-                                ))}
-                            </div>
+                                    {domainVerified !== null ? (
+                                        <p
+                                            className={`mt-3 text-xs ${domainVerified ? "text-emerald-700 dark:text-emerald-300" : "text-amber-700 dark:text-amber-300"}`}
+                                        >
+                                            {domainVerified
+                                                ? "Domain is verified."
+                                                : "Domain is not verified yet."}
+                                        </p>
+                                    ) : null}
+                                </div>
+                            ) : null}
 
-                            <div className="space-y-3">
-                                <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                            <div className="rounded-xl border p-4">
+                                <p className="text-xs uppercase tracking-wide text-zinc-500">
                                     OAuth Endpoints
                                 </p>
-                                {[
-                                    {
-                                        label: "Authorization Endpoint",
-                                        value: authorizationEndpoint,
-                                    },
-                                    {
-                                        label: "Token Endpoint",
-                                        value: tokenEndpoint,
-                                    },
-                                    {
-                                        label: "Revocation Endpoint",
-                                        value: revocationEndpoint,
-                                    },
-                                    {
-                                        label: "Introspection Endpoint",
-                                        value: introspectionEndpoint,
-                                    },
-                                    {
-                                        label: "Dynamic Registration Endpoint",
-                                        value: registrationEndpoint,
-                                    },
-                                ].map((item) => (
-                                    <div
-                                        key={item.label}
-                                        className="flex flex-col gap-1"
-                                    >
-                                        <div className="flex items-center justify-between gap-3">
-                                            <p className="text-xs text-muted-foreground">
-                                                {item.label}
-                                            </p>
+                                <div className="mt-3 space-y-2">
+                                    {runtimeEndpoints.map((item) => (
+                                        <div
+                                            key={item.label}
+                                            className="flex items-start justify-between gap-3 rounded-lg border bg-zinc-50/60 p-3 dark:bg-zinc-900/40"
+                                        >
+                                            <div className="min-w-0">
+                                                <p className="text-xs text-zinc-500">
+                                                    {item.label}
+                                                </p>
+                                                <p className="mt-1 font-mono text-xs break-all text-zinc-800 dark:text-zinc-100">
+                                                    {item.value}
+                                                </p>
+                                            </div>
                                             <Button
                                                 type="button"
                                                 variant="ghost"
@@ -1077,35 +1176,28 @@ export default function OAuthAppDetailsPage() {
                                                 Copy
                                             </Button>
                                         </div>
-                                        <div className="rounded-md bg-zinc-50 px-3 py-2 text-xs break-all text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">
-                                            {item.value}
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
 
-                            <div className="space-y-3">
-                                <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                            <div className="rounded-xl border p-4">
+                                <p className="text-xs uppercase tracking-wide text-zinc-500">
                                     Discovery
                                 </p>
-                                {[
-                                    {
-                                        label: "OAuth Metadata Endpoint",
-                                        value: metadataEndpoint,
-                                    },
-                                    {
-                                        label: "JWKS Endpoint",
-                                        value: jwksEndpoint,
-                                    },
-                                ].map((item) => (
-                                    <div
-                                        key={item.label}
-                                        className="flex flex-col gap-1"
-                                    >
-                                        <div className="flex items-center justify-between gap-3">
-                                            <p className="text-xs text-muted-foreground">
-                                                {item.label}
-                                            </p>
+                                <div className="mt-3 space-y-2">
+                                    {discoveryEndpoints.map((item) => (
+                                        <div
+                                            key={item.label}
+                                            className="flex items-start justify-between gap-3 rounded-lg border bg-zinc-50/60 p-3 dark:bg-zinc-900/40"
+                                        >
+                                            <div className="min-w-0">
+                                                <p className="text-xs text-zinc-500">
+                                                    {item.label}
+                                                </p>
+                                                <p className="mt-1 font-mono text-xs break-all text-zinc-800 dark:text-zinc-100">
+                                                    {item.value}
+                                                </p>
+                                            </div>
                                             <Button
                                                 type="button"
                                                 variant="ghost"
@@ -1121,11 +1213,8 @@ export default function OAuthAppDetailsPage() {
                                                 Copy
                                             </Button>
                                         </div>
-                                        <div className="rounded-md bg-zinc-50 px-3 py-2 text-xs break-all text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">
-                                            {item.value}
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </TabsContent>

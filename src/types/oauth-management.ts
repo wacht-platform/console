@@ -23,6 +23,12 @@ export interface OAuthApp {
   updated_at: string;
 }
 
+export interface OAuthDomainVerificationResponse {
+  domain: string;
+  cname_target: string;
+  verified: boolean;
+}
+
 export interface CreateOAuthAppRequest {
   slug: string;
   name: string;
