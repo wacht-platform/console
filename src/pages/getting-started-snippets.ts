@@ -1,6 +1,5 @@
-
 export interface SnippetParams {
-  frameworkCategory: 'frontend' | 'backend';
+  frameworkCategory: "frontend" | "backend";
   activeFramework: { id: string; pkg: string; name: string };
   activeExample: string;
   framework: string;
@@ -11,19 +10,22 @@ export const getCodeSnippets = ({
   activeFramework,
   activeExample,
 }: SnippetParams) => {
-  const installCmd = frameworkCategory === 'frontend'
-    ? `npm install ${activeFramework.pkg}`
-    : (activeFramework.id === 'rust' ? 'cargo add wacht' : `npm install ${activeFramework.pkg}`);
+  const installCmd =
+    frameworkCategory === "frontend"
+      ? `npm install ${activeFramework.pkg}`
+      : activeFramework.id === "rust"
+        ? "cargo add wacht"
+        : `npm install ${activeFramework.pkg}`;
 
-  let setup = '';
-  let usage: string | { filename: string, language: string, code: string }[] = '';
+  let setup = "";
+  let usage: string | { filename: string; language: string; code: string }[] =
+    "";
 
   // Frontend Examples
-  if (frameworkCategory === 'frontend') {
-    if (activeFramework.id === 'nextjs') {
+  if (frameworkCategory === "frontend") {
+    if (activeFramework.id === "nextjs") {
       setup = `// app/layout.tsx
 import { DeploymentProvider } from "@wacht/nextjs";
-import "@wacht/nextjs/styles.css";
 
 export default function RootLayout({ children }) {
   return (
@@ -49,12 +51,12 @@ createRoot(document.getElementById("root")!).render(
 );`;
     }
 
-    if (activeExample === 'notifications') {
+    if (activeExample === "notifications") {
       usage = `// components/navbar.tsx
-import { 
-  NotificationBell, 
-  SignedIn, 
-  UserButton 
+import {
+  NotificationBell,
+  SignedIn,
+  UserButton
 } from "${activeFramework.pkg}";
 
 export default function Navbar() {
@@ -70,12 +72,12 @@ export default function Navbar() {
     </nav>
   );
 }`;
-    } else if (activeExample === 'tenancy') {
+    } else if (activeExample === "tenancy") {
       usage = `// components/header.tsx
-import { 
-  OrganizationSwitcher, 
+import {
+  OrganizationSwitcher,
   useOrganization,
-  useUser 
+  useUser
 } from "${activeFramework.pkg}";
 
 export default function Header() {
@@ -87,14 +89,14 @@ export default function Header() {
       <div className="flex items-center gap-4">
         {/* Helper component to switch between organizations */}
         <OrganizationSwitcher />
-        
+
         {organization && (
           <span className="text-sm text-muted-foreground">
             {organization.name}
           </span>
         )}
       </div>
-      
+
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium">
           {user?.first_name} {user?.last_name}
@@ -103,11 +105,11 @@ export default function Header() {
     </header>
   );
 }`;
-    } else if (activeExample === 'webhooks') {
+    } else if (activeExample === "webhooks") {
       usage = [
         {
-          filename: 'server.ts',
-          language: 'typescript',
+          filename: "server.ts",
+          language: "typescript",
           code: `import { sessions } from "@wacht/backend";
 
 // Create a secure endpoint that generates a ticket for the current user/tenant
@@ -117,14 +119,14 @@ export async function POST() {
     webhook_app_slug: 'my-app'
   });
   return Response.json({ ticket });
-}`
+}`,
         },
         {
-          filename: 'App.tsx (Hooks)',
-          language: 'typescript',
+          filename: "App.tsx (Hooks)",
+          language: "typescript",
           code: `import { useState } from "react";
-import { 
-  WebhookAppProvider, 
+import {
+  WebhookAppProvider,
   useWebhookAppSession,
   useWebhookEndpoints,
   useWebhookDeliveries
@@ -132,10 +134,10 @@ import {
 
 function WebhookDashboard() {
   const [ticket, setTicket] = useState<string | null>(null);
-  
+
   // Authenticate the session using the ticket
   const { sessionLoading } = useWebhookAppSession(ticket);
-  
+
   // Fetch endpoints and deliveries securely
   const { endpoints } = useWebhookEndpoints();
   const { deliveries } = useWebhookDeliveries();
@@ -182,11 +184,11 @@ export default function App() {
       <WebhookDashboard />
     </WebhookAppProvider>
   );
-}`
+}`,
         },
         {
-          filename: 'App.tsx (Iframe)',
-          language: 'typescript',
+          filename: "App.tsx (Iframe)",
+          language: "typescript",
           code: `import { useEffect, useState } from "react";
 import { useDeployment } from "${activeFramework.pkg}";
 
@@ -217,14 +219,14 @@ export default function WebhookDashboard() {
       />
     </div>
   );
-}`
-        }
+}`,
+        },
       ];
-    } else if (activeExample === 'api-keys') {
+    } else if (activeExample === "api-keys") {
       usage = [
         {
-          filename: 'server.ts',
-          language: 'typescript',
+          filename: "server.ts",
+          language: "typescript",
           code: `import { sessions } from "@wacht/backend";
 
 // Create a secure endpoint that generates a ticket for the current user/tenant
@@ -234,24 +236,24 @@ export async function POST() {
     api_auth_app_slug: 'my-api'
   });
   return Response.json({ ticket });
-}`
+}`,
         },
         {
-          filename: 'App.tsx (Hooks)',
-          language: 'typescript',
+          filename: "App.tsx (Hooks)",
+          language: "typescript",
           code: `import { useState } from "react";
-import { 
-  ApiAuthProvider, 
+import {
+  ApiAuthProvider,
   useApiAuthAppSession,
-  useApiAuthTokens 
+  useApiAuthTokens
 } from "${activeFramework.pkg}";
 
 function ApiKeysManager() {
   const [ticket, setTicket] = useState<string | null>(null);
-  
+
   // Authenticate the session using the ticket
   const { sessionLoading } = useApiAuthAppSession(ticket);
-  
+
   // Manage API keys securely
   const { tokens, createToken, isCreating } = useApiAuthTokens();
 
@@ -308,11 +310,11 @@ export default function App() {
       <ApiKeysManager />
     </ApiAuthProvider>
   );
-}`
+}`,
         },
         {
-          filename: 'App.tsx (Iframe)',
-          language: 'typescript',
+          filename: "App.tsx (Iframe)",
+          language: "typescript",
           code: `import { useEffect, useState } from "react";
 import { useDeployment } from "${activeFramework.pkg}";
 
@@ -343,17 +345,17 @@ export default function ApiKeysPage() {
       />
     </div>
   );
-}`
-        }
+}`,
+        },
       ];
     } else {
       // Auth Example
       usage = `// App.tsx
-import { 
-  DeploymentInitialized, 
-  DeploymentInitializing, 
-  SignedIn, 
-  SignedOut, 
+import {
+  DeploymentInitialized,
+  DeploymentInitializing,
+  SignedIn,
+  SignedOut,
   NavigateToSignIn,
   UserButton
 } from "${activeFramework.pkg}";
@@ -390,7 +392,7 @@ export default function App() {
 
   // Backend Examples
   else {
-    if (activeFramework.id === 'rust') {
+    if (activeFramework.id === "rust") {
       setup = `// main.rs
 use wacht::WachtClient;
 
@@ -399,7 +401,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize the Wacht client using environment variables
     // Requires WACHT_API_KEY and WACHT_PUBLISHABLE_KEY
     let client = WachtClient::from_env().await?;
-    
+
     // Pass this client to your app state or dependency injection
     Ok(())
 }`;
@@ -415,8 +417,9 @@ initClient({
     }
 
     // Verify Token (Default for backend)
-    usage = activeFramework.id === 'rust'
-      ? `// middleware.rs
+    usage =
+      activeFramework.id === "rust"
+        ? `// middleware.rs
 use axum::{routing::get, Router, Json};
 use wacht::middleware::{AuthLayer, RequireAuth};
 use serde_json::json;
@@ -436,7 +439,7 @@ pub fn app_router() -> Router {
         .route("/protected", get(get_protected_data))
         .layer(AuthLayer::new())
 }`
-      : `// middleware.ts
+        : `// middleware.ts
 import { getAuth } from "@wacht/backend";
 import type { Request, Response, NextFunction } from "express";
 
@@ -444,11 +447,11 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   try {
     // getAuth automatically extracts the Bearer token and verifies it
     const { userId } = await getAuth(req);
-    
+
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-    
+
     // Attach the verified user ID to the request for handlers
     req.user = userId;
     next();
