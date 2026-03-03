@@ -668,6 +668,7 @@ export default function OAuthAppDetailsPage() {
     const [isCreateClientOpen, setIsCreateClientOpen] = useState(false);
     const [createdClient, setCreatedClient] = useState<OAuthClient>();
     const [clientSearch, setClientSearch] = useState("");
+    const [domainVerified, setDomainVerified] = useState<boolean | null>(null);
 
     const { data: oauthApps = [], isLoading: oauthAppsLoading } =
         useOAuthApps();
@@ -883,7 +884,6 @@ export default function OAuthAppDetailsPage() {
         { label: "OAuth Metadata", value: metadataEndpoint },
     ];
     const isProductionDeployment = selectedDeployment?.mode === "production";
-    const [domainVerified, setDomainVerified] = useState<boolean | null>(null);
 
     const handleCheckDomain = async () => {
         try {
