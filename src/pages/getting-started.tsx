@@ -10,7 +10,6 @@ import {
   IconBrandRust,
   IconBrandNodejs,
   IconBrandTypescript,
-  IconInfoCircle,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useMemo } from "react";
@@ -100,28 +99,6 @@ function PackageManagerSwitcher({ command }: { command: string }) {
       <div className="p-3 text-[12px]">
         <span className="select-none text-muted-foreground/50">$</span>{" "}
         <span className="text-primary">{getCommand()}</span>
-      </div>
-    </div>
-  );
-}
-
-function AlertBlock({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="my-3 space-y-1.5 rounded-lg border border-border/70 bg-muted/30 p-3">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <IconInfoCircle className="h-3.5 w-3.5" />
-        <span className="text-[11px] font-medium uppercase tracking-wider">
-          {title}
-        </span>
-      </div>
-      <div className="text-[12px] leading-relaxed text-muted-foreground/90">
-        {children}
       </div>
     </div>
   );
@@ -289,39 +266,39 @@ export default function GettingStartedPage() {
     () =>
       frameworkCategory === "frontend"
         ? [
-            {
-              id: "react-router",
-              name: "React Router",
-              icon: IconBrandReact,
-              pkg: "@wacht/react-router",
-            },
-            {
-              id: "nextjs",
-              name: "Next.js",
-              icon: IconBrandNextjs,
-              pkg: "@wacht/nextjs",
-            },
-            {
-              id: "tanstack",
-              name: "TanStack",
-              icon: IconBrandTypescript,
-              pkg: "@wacht/tanstack-router",
-            },
-          ]
+          {
+            id: "react-router",
+            name: "React Router",
+            icon: IconBrandReact,
+            pkg: "@wacht/react-router",
+          },
+          {
+            id: "nextjs",
+            name: "Next.js",
+            icon: IconBrandNextjs,
+            pkg: "@wacht/nextjs",
+          },
+          {
+            id: "tanstack",
+            name: "TanStack",
+            icon: IconBrandTypescript,
+            pkg: "@wacht/tanstack-router",
+          },
+        ]
         : [
-            {
-              id: "rust",
-              name: "Rust",
-              icon: IconBrandRust,
-              pkg: "wacht",
-            },
-            {
-              id: "nodejs",
-              name: "Node.js",
-              icon: IconBrandNodejs,
-              pkg: "@wacht/node-sdk",
-            },
-          ],
+          {
+            id: "rust",
+            name: "Rust",
+            icon: IconBrandRust,
+            pkg: "wacht",
+          },
+          {
+            id: "nodejs",
+            name: "Node.js",
+            icon: IconBrandNodejs,
+            pkg: "@wacht/node-sdk",
+          },
+        ],
     [frameworkCategory],
   );
 
@@ -517,7 +494,7 @@ export default function GettingStartedPage() {
                       : activeExample === "api-keys"
                         ? "Manage API Keys"
                         : activeExample === "webhooks" &&
-                            frameworkCategory === "frontend"
+                          frameworkCategory === "frontend"
                           ? "Monitor Webhooks"
                           : activeExample === "verification"
                             ? "Verify Session"
@@ -533,7 +510,7 @@ export default function GettingStartedPage() {
                       : activeExample === "api-keys"
                         ? "Empower users to generate and revoke API keys with a ready-made UI."
                         : activeExample === "webhooks" &&
-                            frameworkCategory === "frontend"
+                          frameworkCategory === "frontend"
                           ? "View webhook integrations, deliveries, and analytics directly in your app."
                           : activeExample === "verification"
                             ? "Verify incoming requests and retrieve session details in your API."
@@ -552,7 +529,7 @@ export default function GettingStartedPage() {
                       : activeExample === "api-keys"
                         ? "api-keys.tsx"
                         : activeExample === "webhooks" &&
-                            frameworkCategory === "frontend"
+                          frameworkCategory === "frontend"
                           ? "webhooks.tsx"
                           : activeExample === "verification"
                             ? activeFramework.id === "rust"
