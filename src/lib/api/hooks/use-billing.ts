@@ -86,10 +86,11 @@ export interface CreateCheckoutRequest {
 }
 
 export interface CheckoutResponse {
-  checkout_id: string;
-  type: string;
-  checkout_url: string;
-  state: string;
+  requires_checkout?: boolean;
+  checkout_id?: string;
+  checkout_url?: string;
+  type?: string;
+  state?: string;
   embed?: boolean;
   created_at?: number;
   expires_at?: number;
@@ -198,7 +199,14 @@ export function useChangePlan() {
 
   return useMutation({
     mutationFn: async (newPlanName: string) => {
-      await apiClient.post("/billing/change-plan", { plan_name: newPlanName });
+      const { data } = await apiClient.post<CheckoutResponse>(
+        "/billing/change-plan",
+        {
+          plan_name: newPlanName,
+          return_url: window.location.href,
+        },
+      );
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["billing"] });
