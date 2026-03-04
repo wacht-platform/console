@@ -2,7 +2,9 @@
   <a href="https://wacht.dev" style="text-decoration:none;">Wacht Console</a>
 </h1>
 
-<p align="center">Administrative control plane for configuring and operating Wacht deployments.</p>
+<p align="center">
+  The control plane UI for operating identity, access, and API security in Wacht.
+</p>
 
 <p align="center">
   <a href="https://wacht.dev">Website</a> |
@@ -10,41 +12,54 @@
   <a href="https://github.com/wacht-platform/console/issues">Issues</a>
 </p>
 
-## Overview
+## What This Product Is
 
-Wacht Console is the interface used by platform teams to manage authentication, B2B access, API auth, webhooks, agents, and billing for each deployment.
+Wacht Console is where teams run identity for their products.
 
-Core areas in this app:
+Instead of stitching together separate tools, Console gives one place to operate:
 
-- Project and deployment lifecycle
-- Authentication factors and social sign-in configuration
-- Organizations, workspaces, roles, and permission catalogs
-- API auth apps, API keys, and gateway audit views
-- Webhook apps, endpoints, deliveries, and replay tooling
-- Agent configuration and operational controls
-- Billing, plan usage, and subscription state
+- authentication methods and sign-in behavior
+- B2B access models (organizations, workspaces, roles, permissions)
+- API auth clients, keys, grants, and gateway controls
+- webhook apps, endpoints, and delivery operations
+- deployment-level settings, policies, and usage visibility
 
-## Repository layout
+## Who Uses It
 
-- `src/pages/` - route-level screens
-- `src/components/` - domain components (users, orgs, workspaces, api-keys, webhooks, agents)
-- `src/lib/api/` - API client modules used by UI screens
-- `src/lib/store/` - client state containers
-- `src/hooks/` - feature hooks
-- `src/contexts/` - app-level providers
+- Product teams building auth into customer-facing apps
+- Platform teams running multi-tenant environments
+- Security and operations teams that need strong policy and audit controls
 
-## Local development
+## Typical Platform Workflow
 
-Install and start the development server:
+1. Create a project and deployment.
+2. Configure auth factors and social/OIDC providers.
+3. Define org/workspace roles and permission catalog.
+4. Register API auth clients and enforce gateway policy.
+5. Monitor usage, webhooks, and operational health.
+
+## How Console Fits In Wacht
+
+- `console` is the operator experience
+- `platform-api` provides control-plane and runtime backend capabilities
+- `frontend-api` powers end-user authentication flows in applications
+
+## Contributor Notes (Minimal Repo Pointers)
+
+- `src/pages/` route-level product surfaces
+- `src/components/` domain UI building blocks
+- `src/lib/api/` API hooks and clients
+
+## Quickstart
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-Default local URL: `http://localhost:5173`
+Local URL: `http://localhost:5173`
 
-Build and preview:
+Build:
 
 ```bash
 pnpm build
@@ -56,16 +71,6 @@ Lint:
 ```bash
 pnpm lint
 ```
-
-## Environment
-
-Create `.env` in this directory:
-
-```bash
-VITE_API_URL=http://localhost:3000
-```
-
-Use your deployed API host in non-local environments.
 
 ## Support
 
