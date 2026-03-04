@@ -55,6 +55,27 @@ interface ProviderSettingsDialogProps {
 
 const DialogDescription = DialogDescriptionBase;
 
+const DEFAULT_SCOPES_BY_PROVIDER: Record<SocialConnectionProvider, string[]> = {
+  [SocialConnectionProvider.GithubOauth]: ["read:user", "user:email"],
+  [SocialConnectionProvider.GitlabOauth]: ["read_user"],
+  [SocialConnectionProvider.GoogleOauth]: ["openid", "email", "profile"],
+  [SocialConnectionProvider.MicrosoftOauth]: [
+    "openid",
+    "email",
+    "profile",
+    "https://graph.microsoft.com/User.Read",
+  ],
+  [SocialConnectionProvider.LinkedinOauth]: ["openid", "profile", "email"],
+  [SocialConnectionProvider.DiscordOauth]: ["identify", "email"],
+};
+
+function getDefaultScopesForProvider(provider?: SocialConnectionProvider): string[] {
+  if (!provider) {
+    return [];
+  }
+  return [...(DEFAULT_SCOPES_BY_PROVIDER[provider] ?? [])];
+}
+
 function ProviderSettingsDialog({
   open,
   onClose,
@@ -85,11 +106,12 @@ function ProviderSettingsDialog({
 
   useEffect(() => {
     if (open) {
+      const defaultScopes = getDefaultScopesForProvider(provider);
       setClientId("");
       setClientSecret("");
       setRedirectUri("");
       setCurrentScope("");
-      setAddedScopes([]);
+      setAddedScopes(defaultScopes);
       setClientIdError(null);
       setClientSecretError(null);
       setRedirectUriError(null);
@@ -104,10 +126,13 @@ function ProviderSettingsDialog({
         setClientId(connection.credentials.client_id);
         setClientSecret(connection.credentials.client_secret);
         setRedirectUri(connection.credentials.redirect_uri);
-        setAddedScopes(connection.credentials.scopes ?? []);
+        const configuredScopes = connection.credentials.scopes ?? [];
+        setAddedScopes(
+          configuredScopes.length > 0 ? configuredScopes : defaultScopes,
+        );
       }
     }
-  }, [open, connection]);
+  }, [open, connection, provider]);
 
   const handleAddScope = () => {
     const scopeToAdd = currentScope.trim();
@@ -172,11 +197,13 @@ function ProviderSettingsDialog({
 
     let credentialsPayload: OauthCredentials | null = null;
     if (useCustomCredentials) {
+      const scopes =
+        addedScopes.length > 0 ? addedScopes : getDefaultScopesForProvider(provider);
       credentialsPayload = {
         client_id: clientId.trim(),
         client_secret: clientSecret,
         redirect_uri: redirectUri.trim(),
-        scopes: addedScopes,
+        scopes,
       };
     }
 
