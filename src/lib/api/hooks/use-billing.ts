@@ -131,9 +131,21 @@ export function useBillingAccount() {
   return useQuery({
     queryKey: ["billing"],
     queryFn: async () => {
-      const { data } =
-        await apiClient.get<BillingAccountWithSubscription | null>(`/billing`);
-      return data;
+      const { data } = await apiClient.get<
+        BillingAccountWithSubscription | null | Record<string, never>
+      >(`/billing`);
+
+      // Backend serializes Option::None as {} due flattened success response.
+      if (
+        data &&
+        typeof data === "object" &&
+        !Array.isArray(data) &&
+        Object.keys(data).length === 0
+      ) {
+        return null;
+      }
+
+      return data as BillingAccountWithSubscription | null;
     },
   });
 }
