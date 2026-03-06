@@ -1,6 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "radix-mira",
+  "style": "radix-maia",
   "rsc": false,
   "tsx": true,
   "tailwind": {
@@ -10,7 +10,8 @@
     "cssVariables": true,
     "prefix": ""
   },
-  "iconLibrary": "tabler",
+  "iconLibrary": "remixicon",
+  "rtl": false,
   "aliases": {
     "components": "@/components",
     "utils": "@/lib/utils",
@@ -18,5 +19,7 @@
     "lib": "@/lib",
     "hooks": "@/hooks"
   },
+  "menuColor": "inverted",
+  "menuAccent": "subtle",
   "registries": {}
 }
