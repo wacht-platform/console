@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
+import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
 import {
     FingerPrintIcon,
     UserPlusIcon,
@@ -20,6 +21,13 @@ import {
 import { EmptyState } from "@/components/ui/empty-state";
 import { SkeletonTableRows } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    ChartContainer,
+    ChartTooltip,
+    ChartTooltipContent,
+    type ChartConfig,
+} from "@/components/ui/chart";
 import {
     Select,
     SelectContent,
@@ -92,12 +100,14 @@ export default function OverviewPage() {
         currentRange.to,
         !!selectedDeployment?.id,
     );
+    const resolvedStats = stats;
+    const resolvedStatsLoading = statsLoading;
 
     // Extract recent signups/signins from stats response
-    const recentSignupsData = stats?.recent_signups || [];
-    const recentSigninsData = stats?.recent_signins || [];
-    const signupsLoading = statsLoading;
-    const signinsLoading = statsLoading;
+    const recentSignupsData = resolvedStats?.recent_signups || [];
+    const recentSigninsData = resolvedStats?.recent_signins || [];
+    const signupsLoading = resolvedStatsLoading;
+    const signinsLoading = resolvedStatsLoading;
 
     // Map analytics stats to section cards data
     const sectionCardsData = [
@@ -105,29 +115,59 @@ export default function OverviewPage() {
             title: "Unique Sign Ins",
             value: statsLoading
                 ? "..."
-                : stats?.unique_signins?.toString() || "0",
-            change: statsLoading ? 0 : stats?.unique_signins_change || 0,
+                : resolvedStats?.unique_signins?.toString() || "0",
+            change: resolvedStatsLoading
+                ? 0
+                : resolvedStats?.unique_signins_change || 0,
         },
         {
             title: "New Sign Ups",
-            value: statsLoading ? "..." : stats?.signups?.toString() || "0",
-            change: statsLoading ? 0 : stats?.signups_change || 0,
+            value: resolvedStatsLoading
+                ? "..."
+                : resolvedStats?.signups?.toString() || "0",
+            change: resolvedStatsLoading
+                ? 0
+                : resolvedStats?.signups_change || 0,
         },
         {
             title: "New Organizations",
-            value: statsLoading
+            value: resolvedStatsLoading
                 ? "..."
-                : stats?.organizations_created?.toString() || "0",
-            change: statsLoading ? 0 : stats?.organizations_created_change || 0,
+                : resolvedStats?.organizations_created?.toString() || "0",
+            change: resolvedStatsLoading
+                ? 0
+                : resolvedStats?.organizations_created_change || 0,
         },
         {
             title: "New Workspaces",
-            value: statsLoading
+            value: resolvedStatsLoading
                 ? "..."
-                : stats?.workspaces_created?.toString() || "0",
-            change: statsLoading ? 0 : stats?.workspaces_created_change || 0,
+                : resolvedStats?.workspaces_created?.toString() || "0",
+            change: resolvedStatsLoading
+                ? 0
+                : resolvedStats?.workspaces_created_change || 0,
         },
     ];
+
+    const dailyChartConfig = {
+        signins: {
+            label: "Sign-ins",
+            color: "var(--chart-1)",
+        },
+        signups: {
+            label: "Sign-ups",
+            color: "var(--chart-2)",
+        },
+    } satisfies ChartConfig;
+
+    const dailyMetrics = (resolvedStats?.daily_metrics || []).map((metric) => {
+        const date = new Date(`${metric.day}T00:00:00Z`);
+        const hasValidDate = !Number.isNaN(date.getTime());
+        return {
+            ...metric,
+            label: hasValidDate ? format(date, "MMM dd") : metric.day,
+        };
+    });
 
     return (
         <div className="space-y-6">
@@ -137,7 +177,7 @@ export default function OverviewPage() {
                         {getGreeting()}, {userName}
                     </Heading>
                     <p className="text-sm text-muted-foreground">
-                      See how your app is performing.
+                        See how your app is performing.
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -161,20 +201,81 @@ export default function OverviewPage() {
                 </div>
             </div>
 
-            <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                    <RectangleStackIcon className="size-4 text-muted-foreground" />
-                    <h2 className="text-sm uppercase tracking-[0.14em] text-muted-foreground">
-                        Key Metrics
-                    </h2>
-                </div>
-                <SectionCards data={sectionCardsData} />
-            </div>
+            <SectionCards data={sectionCardsData} />
 
-            <div className="h-px w-full bg-border/70" />
+            <Card className="border-border/80">
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-base">7 days Trend</CardTitle>
+                    <div className="mt-1 flex items-center gap-4 text-xs text-muted-foreground">
+                        <div className="inline-flex items-center gap-1.5">
+                            <span
+                                className="inline-block h-2.5 w-2.5 rounded-full"
+                                style={{ backgroundColor: "var(--chart-1)" }}
+                            />
+                            <span>Sign-ins</span>
+                        </div>
+                        <div className="inline-flex items-center gap-1.5">
+                            <span
+                                className="inline-block h-2.5 w-2.5 rounded-full"
+                                style={{ backgroundColor: "var(--chart-2)" }}
+                            />
+                            <span>Sign-ups</span>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    {resolvedStatsLoading ? (
+                        <div className="h-[280px] animate-pulse rounded-md bg-muted/50" />
+                    ) : dailyMetrics.length > 0 ? (
+                        <ChartContainer
+                            config={dailyChartConfig}
+                            className="h-[280px] w-full"
+                        >
+                            <LineChart data={dailyMetrics}>
+                                <CartesianGrid vertical={false} />
+                                <XAxis
+                                    dataKey="label"
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickMargin={8}
+                                    minTickGap={16}
+                                />
+                                <ChartTooltip
+                                    cursor={false}
+                                    content={
+                                        <ChartTooltipContent indicator="dot" />
+                                    }
+                                />
+                                <Line
+                                    dataKey="signins"
+                                    type="monotone"
+                                    stroke="var(--color-signins)"
+                                    strokeWidth={2}
+                                    dot={false}
+                                />
+                                <Line
+                                    dataKey="signups"
+                                    type="monotone"
+                                    stroke="var(--color-signups)"
+                                    strokeWidth={2}
+                                    dot={false}
+                                />
+                            </LineChart>
+                        </ChartContainer>
+                    ) : (
+                        <EmptyState
+                            icon={<RectangleStackIcon className="h-12 w-12" />}
+                            title="No daily metrics"
+                            description="Daily sign-in and sign-up counts will appear here once activity is available."
+                        />
+                    )}
+                </CardContent>
+            </Card>
 
             <div>
-                <h2 className="mb-3 text-base text-foreground">Recent Activity</h2>
+                <h2 className="mb-3 text-base text-foreground">
+                    Recent Activity
+                </h2>
                 <Tabs
                     defaultValue="signups"
                     className="w-full flex-col justify-start gap-4"
@@ -204,7 +305,9 @@ export default function OverviewPage() {
                         <ActivityTable
                             loading={signinsLoading}
                             rows={recentSigninsData}
-                            emptyIcon={<ArrowRightOnRectangleIcon className="h-12 w-12" />}
+                            emptyIcon={
+                                <ArrowRightOnRectangleIcon className="h-12 w-12" />
+                            }
                             emptyTitle="No sign-ins yet"
                             emptyDescription="User sign-in activity will be displayed here once users start authenticating."
                         />
@@ -275,10 +378,7 @@ function ActivityTable({
                         ))
                     ) : (
                         <TableRow>
-                            <TableCell
-                                colSpan={4}
-                                className="p-0"
-                            >
+                            <TableCell colSpan={4} className="p-0">
                                 <EmptyState
                                     icon={emptyIcon}
                                     title={emptyTitle}

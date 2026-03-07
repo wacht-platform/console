@@ -11,8 +11,15 @@ export interface AnalyticsStatsResponse {
   signups_change?: number;
   organizations_created_change?: number;
   workspaces_created_change?: number;
+  daily_metrics: DailyAuthMetric[];
   recent_signups: RecentSignup[];
   recent_signins: RecentSignup[];
+}
+
+export interface DailyAuthMetric {
+  day: string;
+  signins: number;
+  signups: number;
 }
 
 export interface RecentSignup {
