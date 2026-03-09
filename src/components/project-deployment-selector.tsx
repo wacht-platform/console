@@ -10,9 +10,9 @@ import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { capitalize } from '@/lib/capitalize';
 import { ProjectWithDeployments } from "@/types/project";
 import { Deployment } from "@/types/deployment";
+import { capitalize } from '@/lib/capitalize';
 
 interface ProjectDeploymentSelectorProps {
   projects?: ProjectWithDeployments[];
@@ -67,6 +67,14 @@ export function ProjectDeploymentSelector({
     onDeploymentSelect(deployment);
   };
 
+  const deploymentLabel = (projectName: string, deployment: Deployment) => {
+    const appName = (deployment.name || projectName || "App").trim();
+    const env = deployment.mode === "production" ? "Production" : "Staging";
+    return `${appName} (${env})`;
+  };
+  const selectedLabel = (deployment: Deployment) =>
+    (deployment.name || "").trim() || capitalize(deployment.mode);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -89,7 +97,9 @@ export function ProjectDeploymentSelector({
               </span>
               <span className="mx-1.5 text-zinc-400 dark:text-zinc-600">/</span>
               <span className="text-zinc-600 dark:text-zinc-400">
-                {selectedDeployment ? (selectedDeployment.name || capitalize(selectedDeployment.mode)) : "..."}
+                {selectedDeployment && selectedProject
+                  ? selectedLabel(selectedDeployment)
+                  : "..."}
               </span>
             </div>
           </div>
@@ -142,7 +152,7 @@ export function ProjectDeploymentSelector({
                         deployment.mode === 'production' ? 'bg-green-500' : 'bg-yellow-500'
                       )} />
                       <span className="truncate text-zinc-600 dark:text-zinc-400">
-                        {deployment.name || capitalize(deployment.mode)}
+                        {deploymentLabel(project.name, deployment)}
                       </span>
                     </DropdownMenuItem>
                   ))}
