@@ -9,7 +9,6 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { ProjectWithDeployments } from "@/types/project";
 import { Deployment } from "@/types/deployment";
-import { capitalize } from '@/lib/capitalize';
 
 interface DeploymentSwitcherProps {
     project?: ProjectWithDeployments;
@@ -33,13 +32,21 @@ export function DeploymentSwitcher({
     if (!project) return null;
 
     const hasProduction = project.deployments.some(d => d.mode === 'production');
+    const environmentLabel = (deployment: Deployment) =>
+        deployment.mode === "production" ? "Production" : "Staging";
+    const selectedLabel = () => project.name;
+    const deploymentLabel = (deployment: Deployment) => {
+        const appName = (deployment.name || project.name || "App").trim();
+        const env = environmentLabel(deployment);
+        return `${appName} (${env})`;
+    };
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 outline-none focus-visible:ring-2 focus-visible:ring-zinc-400">
                     <span className="text-zinc-600 dark:text-zinc-400 truncate max-w-[150px]">
-                        {selectedDeployment ? (selectedDeployment.name || capitalize(selectedDeployment.mode)) : "Select Deployment"}
+                        {selectedDeployment ? selectedLabel() : "Select Deployment"}
                     </span>
                 </button>
             </DropdownMenuTrigger>
@@ -56,7 +63,7 @@ export function DeploymentSwitcher({
                             deployment.mode === 'production' ? 'bg-green-500' : 'bg-yellow-500'
                         )} />
                         <span className="truncate">
-                            {deployment.name || capitalize(deployment.mode)}
+                            {deploymentLabel(deployment)}
                         </span>
                     </DropdownMenuItem>
                 ))}

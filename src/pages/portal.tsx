@@ -52,11 +52,11 @@ export default function PortalPage() {
   const [afterLogoClickUrl, setAfterLogoClickUrl] = useState("");
   const [afterCreateOrganizationUrl, setAfterCreateOrganizationUrl] =
     useState("");
-  const [primaryColor, setPrimaryColor] = useState("#1E40AF");
-  const [backgroundColor, setBackgroundColor] = useState("#F3F4F6");
-  const [darkModePrimaryColor, setDarkModePrimaryColor] = useState("#FFFFFF");
+  const [primaryColor, setPrimaryColor] = useState("oklch(0.205 0 0)");
+  const [backgroundColor, setBackgroundColor] = useState("oklch(1 0 0)");
+  const [darkModePrimaryColor, setDarkModePrimaryColor] = useState("oklch(0.87 0 0)");
   const [darkModeBackgroundColor, setDarkModeBackgroundColor] =
-    useState("#1F2937");
+    useState("oklch(0.145 0 0)");
   const [defaultUserProfileImageUrl, setDefaultUserProfileImageUrl] =
     useState("");
   const [
@@ -119,14 +119,26 @@ export default function PortalPage() {
     return (color: string): string | undefined => {
       if (!color) return "Color is required";
 
-      // Check if it's a valid hex color
-      const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-      if (!hexColorRegex.test(color)) {
-        return "Please enter a valid hex color (e.g., #1E40AF)";
+      const cssColorRegex =
+        /^(#([A-Fa-f0-9]{3,8})|rgba?\([^)]*\)|hsla?\([^)]*\)|oklch\([^)]*\)|oklab\([^)]*\)|lch\([^)]*\)|lab\([^)]*\)|transparent|currentColor)$/i;
+      if (!cssColorRegex.test(color.trim())) {
+        return "Please enter a valid CSS color";
       }
       return undefined;
     };
   }, []);
+
+  const isValidHexColor = (hex: string) => {
+    return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(hex);
+  };
+
+  const getColorPickerValue = (value?: string) => {
+    if (value && isValidHexColor(value)) {
+      return value;
+    }
+
+    return "#000000";
+  };
 
   const validateField = useMemo(() => {
     return (
@@ -264,15 +276,17 @@ export default function PortalPage() {
       setAfterCreateOrganizationUrl(
         settings.after_create_organization_redirect_url || ""
       );
-      setPrimaryColor(settings.light_mode_settings?.primary_color || "#1E40AF");
+      setPrimaryColor(
+        settings.light_mode_settings?.primary_color || "oklch(0.205 0 0)"
+      );
       setBackgroundColor(
-        settings.light_mode_settings?.background_color || "#F3F4F6"
+        settings.light_mode_settings?.background_color || "oklch(1 0 0)"
       );
       setDarkModePrimaryColor(
-        settings.dark_mode_settings?.primary_color || "#FFFFFF"
+        settings.dark_mode_settings?.primary_color || "oklch(0.87 0 0)"
       );
       setDarkModeBackgroundColor(
-        settings.dark_mode_settings?.background_color || "#1F2937"
+        settings.dark_mode_settings?.background_color || "oklch(0.145 0 0)"
       );
       setDefaultUserProfileImageUrl(
         settings.default_user_profile_image_url || ""
@@ -588,10 +602,22 @@ export default function PortalPage() {
         light_mode_settings: {
           primary_color: primaryColor,
           background_color: backgroundColor,
+          text_color:
+            deploymentSettings?.ui_settings?.light_mode_settings?.text_color ||
+            "#1E293B",
+          token_overrides:
+            deploymentSettings?.ui_settings?.light_mode_settings
+              ?.token_overrides,
         },
         dark_mode_settings: {
           primary_color: darkModePrimaryColor,
           background_color: darkModeBackgroundColor,
+          text_color:
+            deploymentSettings?.ui_settings?.dark_mode_settings?.text_color ||
+            "#F5F5F5",
+          token_overrides:
+            deploymentSettings?.ui_settings?.dark_mode_settings
+              ?.token_overrides,
         },
       };
 
@@ -619,15 +645,17 @@ export default function PortalPage() {
       setAfterCreateOrganizationUrl(
         settings.after_create_organization_redirect_url || ""
       );
-      setPrimaryColor(settings.light_mode_settings?.primary_color || "#1E40AF");
+      setPrimaryColor(
+        settings.light_mode_settings?.primary_color || "oklch(0.205 0 0)"
+      );
       setBackgroundColor(
-        settings.light_mode_settings?.background_color || "#F3F4F6"
+        settings.light_mode_settings?.background_color || "oklch(1 0 0)"
       );
       setDarkModePrimaryColor(
-        settings.dark_mode_settings?.primary_color || "#FFFFFF"
+        settings.dark_mode_settings?.primary_color || "oklch(0.87 0 0)"
       );
       setDarkModeBackgroundColor(
-        settings.dark_mode_settings?.background_color || "#1F2937"
+        settings.dark_mode_settings?.background_color || "oklch(0.145 0 0)"
       );
       setDefaultUserProfileImageUrl(
         settings.default_user_profile_image_url || ""
@@ -1325,7 +1353,7 @@ export default function PortalPage() {
               <input
                 ref={primaryColorInputRef}
                 type="color"
-                value={primaryColor}
+                value={getColorPickerValue(primaryColor)}
                 onChange={(e) =>
                   updateField(setPrimaryColor, e.target.value, "primaryColor")
                 }
@@ -1364,7 +1392,7 @@ export default function PortalPage() {
               <input
                 ref={darkModePrimaryColorInputRef}
                 type="color"
-                value={darkModePrimaryColor}
+                value={getColorPickerValue(darkModePrimaryColor)}
                 onChange={(e) =>
                   updateField(
                     setDarkModePrimaryColor,
@@ -1409,7 +1437,7 @@ export default function PortalPage() {
               <input
                 ref={backgroundColorInputRef}
                 type="color"
-                value={backgroundColor}
+                value={getColorPickerValue(backgroundColor)}
                 onChange={(e) =>
                   updateField(
                     setBackgroundColor,
@@ -1452,7 +1480,7 @@ export default function PortalPage() {
               <input
                 ref={darkModeBackgroundColorInputRef}
                 type="color"
-                value={darkModeBackgroundColor}
+                value={getColorPickerValue(darkModeBackgroundColor)}
                 onChange={(e) =>
                   updateField(
                     setDarkModeBackgroundColor,
