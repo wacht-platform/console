@@ -18,9 +18,9 @@ interface SiteHeaderProps {
 
 export function SiteHeader({
     onCreateProject,
-    onCreateStaging: _onCreateStaging,
+    onCreateStaging,
     onCreateProduction,
-    canCreateStaging: _canCreateStaging,
+    canCreateStaging,
     canCreateProduction,
 }: SiteHeaderProps) {
     const { projects, isLoading } = useProjects();
@@ -53,7 +53,9 @@ export function SiteHeader({
                         project={selectedProject || undefined}
                         selectedDeployment={selectedDeployment || undefined}
                         onDeploymentSelect={(d) => setSelectedDeployment(d)}
+                        onCreateStaging={onCreateStaging}
                         onCreateProduction={onCreateProduction}
+                        canCreateStaging={canCreateStaging}
                         canCreateProduction={canCreateProduction}
                     />
                     <DynamicBreadcrumbs />

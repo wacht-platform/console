@@ -5,7 +5,9 @@ import { AppLoading } from "./ui/loading-screen";
 import { CreateProjectDialog } from "./create-project-dialog";
 import { BillingSetupDialog } from "./billing-setup-dialog";
 import { CreateProductionDeploymentDialog } from "./create-production-deployment-dialog";
+import { CreateStagingDeploymentDialog } from "./create-staging-deployment-dialog";
 import { setNavigationFunction } from "@/lib/store/project";
+import { useCreateStagingDeployment } from "@/lib/api/hooks/use-projects";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -33,6 +35,8 @@ export function ApplicationLayout() {
     const [isBillingSetupDialogOpen, setIsBillingSetupDialogOpen] =
         useState(false);
     const [isCreateProductionDialogOpen, setIsCreateProductionDialogOpen] =
+        useState(false);
+    const [isCreateStagingDialogOpen, setIsCreateStagingDialogOpen] =
         useState(false);
     const [isPendingBillingDialogOpen, setIsPendingBillingDialogOpen] =
         useState(false);
@@ -66,6 +70,8 @@ export function ApplicationLayout() {
         initializeFromUrl,
         setSelectedDeployment,
     } = useProjects();
+    const { createStagingDeployment, isLoading: isCreatingStagingDeployment } =
+        useCreateStagingDeployment();
 
     useEffect(() => {
         if (params.projectId && params.deploymentId && projects) {
@@ -185,6 +191,24 @@ export function ApplicationLayout() {
         );
     };
 
+    const handleStagingDeploymentCreated = (deployment: Deployment) => {
+        setSelectedDeployment(deployment, false);
+        navigate(`/project/${selectedProject?.id}/deployment/${deployment.id}`);
+    };
+
+    const handleCreateStagingDeployment = async (authMethods: string[]) => {
+        if (!selectedProject) {
+            return;
+        }
+
+        const deployment = await createStagingDeployment({
+            projectId: selectedProject.id,
+            authMethods,
+        });
+
+        handleStagingDeploymentCreated(deployment);
+    };
+
     return (
         <SidebarProvider
             style={
@@ -202,12 +226,12 @@ export function ApplicationLayout() {
                         guardAction(() => setIsCreateProjectDialogOpen(true))
                     }
                     onCreateStaging={() =>
-                        guardAction(() => console.log("Create Staging"))
+                        guardAction(() => setIsCreateStagingDialogOpen(true))
                     }
                     onCreateProduction={() =>
                         guardAction(() => setIsCreateProductionDialogOpen(true))
                     }
-                    canCreateStaging={true}
+                    canCreateStaging={!!selectedProject}
                     canCreateProduction={!!selectedProject}
                 />
                 <div className="flex flex-1 flex-col overflow-y-auto">
@@ -339,6 +363,12 @@ export function ApplicationLayout() {
                     onCreated={handleProductionDeploymentCreated}
                 />
             )}
+            <CreateStagingDeploymentDialog
+                open={isCreateStagingDialogOpen}
+                onOpenChange={setIsCreateStagingDialogOpen}
+                onCreateStagingDeployment={handleCreateStagingDeployment}
+                isLoading={isCreatingStagingDeployment}
+            />
 
             <Dialog
                 open={isPendingBillingDialogOpen}

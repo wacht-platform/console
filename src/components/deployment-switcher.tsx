@@ -15,7 +15,9 @@ interface DeploymentSwitcherProps {
     project?: ProjectWithDeployments;
     selectedDeployment?: Deployment;
     onDeploymentSelect: (deployment: Deployment) => void;
+    onCreateStaging: () => void;
     onCreateProduction: () => void;
+    canCreateStaging: boolean;
     canCreateProduction: boolean;
 }
 
@@ -23,7 +25,9 @@ export function DeploymentSwitcher({
     project,
     selectedDeployment,
     onDeploymentSelect,
+    onCreateStaging,
     onCreateProduction,
+    canCreateStaging,
     canCreateProduction,
 }: DeploymentSwitcherProps) {
     if (!project) return null;
@@ -57,14 +61,21 @@ export function DeploymentSwitcher({
                     </DropdownMenuItem>
                 ))}
 
-                {/* Only show 'Add Production' if it doesn't exist */}
-                {!hasProduction && canCreateProduction && (
+                {(canCreateStaging || (!hasProduction && canCreateProduction)) && (
                     <>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onSelect={onCreateProduction} className="gap-2 cursor-pointer">
-                            <PlusIcon className="h-4 w-4" />
-                            <span>Add Production</span>
-                        </DropdownMenuItem>
+                        {canCreateStaging && (
+                            <DropdownMenuItem onSelect={onCreateStaging} className="gap-2 cursor-pointer">
+                                <PlusIcon className="h-4 w-4" />
+                                <span>Add Staging</span>
+                            </DropdownMenuItem>
+                        )}
+                        {!hasProduction && canCreateProduction && (
+                            <DropdownMenuItem onSelect={onCreateProduction} className="gap-2 cursor-pointer">
+                                <PlusIcon className="h-4 w-4" />
+                                <span>Add Production</span>
+                            </DropdownMenuItem>
+                        )}
                     </>
                 )}
             </DropdownMenuContent>
