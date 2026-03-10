@@ -52,7 +52,7 @@ importers:
         version: 4.0.0
       '@hugeicons/react':
         specifier: ^1.1.5
-        version: 1.1.5(react@19.2.4)
+        version: 1.1.6(react@19.2.4)
       '@monaco-editor/react':
         specifier: ^4.7.0
         version: 4.7.0(monaco-editor@0.55.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -126,8 +126,8 @@ importers:
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@wacht/react-router':
-        specifier: 1.0.0-beta.0
-        version: 1.0.0-beta.0(@wacht/jsx@1.0.0-beta.4(@wacht/types@1.0.0-beta.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.59.0))(@wacht/types@1.0.0-beta.3)(react-dom@19.2.4(react@19.2.4))(react-router@7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(rollup@4.59.0)
+        specifier: 1.0.0-beta.1
+        version: 1.0.0-beta.1(@wacht/jsx@1.0.0-beta.6(@wacht/types@1.0.0-beta.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.59.0))(@wacht/types@1.0.0-beta.3)(react-dom@19.2.4(react@19.2.4))(react-router@7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(rollup@4.59.0)
       '@xyflow/react':
         specifier: ^12.6.4
         version: 12.10.1(@types/react@19.2.14)(immer@10.2.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -731,8 +731,8 @@ packages:
   '@hugeicons/core-free-icons@4.0.0':
     resolution: {integrity: sha512-bzfbKumv3ke3ajbe2MyXi9i0I/cdsZ6n/mO9EfIPNSL++pHLqs7nSGRIVUtjF4xrrEyVkfhxssv4Jek8DPA6gA==}
 
-  '@hugeicons/react@1.1.5':
-    resolution: {integrity: sha512-JX/iDz3oO7hWdVqbjwFwRrAjHk8h2vI+mBkNzp4JcXG3t4idoupfjon73nLOA7cr27m0M8hrRC1Q2h6nEBGKVA==}
+  '@hugeicons/react@1.1.6':
+    resolution: {integrity: sha512-c2LhXJMAW5wN1pC/smBXG0YPqUON6ceR/ZdXHCjEI9KvB+hjtqYjmzIxok5hAQOeXGz0WtORgCQMzqewFKAZwg==}
     peerDependencies:
       react: '>=16.0.0'
 
@@ -2458,15 +2458,15 @@ packages:
     resolution: {integrity: sha512-eF+2Q8GvHcC3CdVtLPDqwxJaFW5kPWsYgJ5QQwcRAxgi670I1gF9Kh7Jo5taGLMDEMIwtabZlhbGmu6CfWuOYA==}
     engines: {node: '>=16.0.0'}
 
-  '@wacht/jsx@1.0.0-beta.4':
-    resolution: {integrity: sha512-GFMtvqPfrVLmWJfcnOfgLkwnRhgC758Gkc5CXfdMPDgMgLBJIhcEwjhZPK3B0giJCPGU+QFowp2cIwTdao/5HA==}
+  '@wacht/jsx@1.0.0-beta.6':
+    resolution: {integrity: sha512-rTxeaec09jbr5JzjLHZ1QvXZQRuju69FKST/HzTewBZx9MTpD9YiPQ7QpyQf3OpQHMEVe0d5Wflo89QaSlnR8Q==}
     peerDependencies:
       '@wacht/types': ^1.0.0-beta.0
       react: '>=19.0.0'
       react-dom: '>=19.0.0'
 
-  '@wacht/react-router@1.0.0-beta.0':
-    resolution: {integrity: sha512-VQWyRV9aeFNAXFLbDVqTvDfFS7FEV0RvcDyZ4c6MOreK680esGj2zqpgC5cfm7t20OxA3Av9jSWMhLdGGFtuww==}
+  '@wacht/react-router@1.0.0-beta.1':
+    resolution: {integrity: sha512-vtBGJ5lwRmHuzL4nc5lY8PG4wl4JgSkWxs0o0r650flZnpshAJVYgX22ulEcHH3g4bL/BMwkWHwLa6nDiRN1uA==}
     peerDependencies:
       '@wacht/jsx': '*'
       '@wacht/types': '*'
@@ -3269,8 +3269,8 @@ packages:
   hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
 
-  hono@4.12.5:
-    resolution: {integrity: sha512-3qq+FUBtlTHhtYxbxheZgY8NIFnkkC/MR8u5TTsr7YZ3wixryQ3cCwn3iZbg8p8B88iDBBAYSfZDS75t8MN7Vg==}
+  hono@4.12.7:
+    resolution: {integrity: sha512-jq9l1DM0zVIvsm3lv9Nw9nlJnMNPOcAtsbsgiUhWcFzPE99Gvo6yRTlszSLLYacMeQ6quHD6hMfId8crVHvexw==}
     engines: {node: '>=16.9.0'}
 
   http-errors@2.0.1:
@@ -5147,9 +5147,9 @@ snapshots:
     dependencies:
       react: 19.2.4
 
-  '@hono/node-server@1.19.11(hono@4.12.5)':
+  '@hono/node-server@1.19.11(hono@4.12.7)':
     dependencies:
-      hono: 4.12.5
+      hono: 4.12.7
 
   '@hookform/resolvers@5.2.2(react-hook-form@7.71.2(react@19.2.4))':
     dependencies:
@@ -5158,7 +5158,7 @@ snapshots:
 
   '@hugeicons/core-free-icons@4.0.0': {}
 
-  '@hugeicons/react@1.1.5(react@19.2.4)':
+  '@hugeicons/react@1.1.6(react@19.2.4)':
     dependencies:
       react: 19.2.4
 
@@ -5222,7 +5222,7 @@ snapshots:
 
   '@modelcontextprotocol/sdk@1.27.1(zod@3.25.76)':
     dependencies:
-      '@hono/node-server': 1.19.11(hono@4.12.5)
+      '@hono/node-server': 1.19.11(hono@4.12.7)
       ajv: 8.18.0
       ajv-formats: 3.0.1(ajv@8.18.0)
       content-type: 1.0.5
@@ -5232,7 +5232,7 @@ snapshots:
       eventsource-parser: 3.0.6
       express: 5.2.1
       express-rate-limit: 8.3.1(express@5.2.1)
-      hono: 4.12.5
+      hono: 4.12.7
       jose: 6.2.1
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
@@ -6903,7 +6903,7 @@ snapshots:
     dependencies:
       jose: 4.15.9
 
-  '@wacht/jsx@1.0.0-beta.4(@wacht/types@1.0.0-beta.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.59.0)':
+  '@wacht/jsx@1.0.0-beta.6(@wacht/types@1.0.0-beta.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.59.0)':
     dependencies:
       '@wacht/types': 1.0.0-beta.3
       lucide-react: 0.474.0(react@19.2.4)
@@ -6917,10 +6917,10 @@ snapshots:
     transitivePeerDependencies:
       - rollup
 
-  '@wacht/react-router@1.0.0-beta.0(@wacht/jsx@1.0.0-beta.4(@wacht/types@1.0.0-beta.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.59.0))(@wacht/types@1.0.0-beta.3)(react-dom@19.2.4(react@19.2.4))(react-router@7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(rollup@4.59.0)':
+  '@wacht/react-router@1.0.0-beta.1(@wacht/jsx@1.0.0-beta.6(@wacht/types@1.0.0-beta.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.59.0))(@wacht/types@1.0.0-beta.3)(react-dom@19.2.4(react@19.2.4))(react-router@7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(rollup@4.59.0)':
     dependencies:
       '@wacht/backend': 1.0.0-beta.0
-      '@wacht/jsx': 1.0.0-beta.4(@wacht/types@1.0.0-beta.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.59.0)
+      '@wacht/jsx': 1.0.0-beta.6(@wacht/types@1.0.0-beta.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.59.0)
       '@wacht/types': 1.0.0-beta.3
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
@@ -7744,7 +7744,7 @@ snapshots:
     dependencies:
       react-is: 16.13.1
 
-  hono@4.12.5: {}
+  hono@4.12.7: {}
 
   http-errors@2.0.1:
     dependencies:
