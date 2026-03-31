@@ -1,4 +1,8 @@
-export type AiToolType = "api" | "knowledge_base" | "platform_event" | "platform_function";
+export type AiToolType =
+  | "api"
+  | "knowledge_base"
+  | "platform_event"
+  | "code_runner";
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
@@ -8,6 +12,9 @@ export interface SchemaField {
   field_type: string;
   required: boolean;
   description?: string;
+  items_type?: string;
+  items_schema?: SchemaField;
+  properties?: SchemaField[];
 }
 
 export interface AuthorizationConfiguration {
@@ -45,16 +52,27 @@ export interface PlatformEventToolConfiguration {
   event_data?: Record<string, unknown>;
 }
 
-export interface PlatformFunctionToolConfiguration {
-  type: "PlatformFunction";
-  function_name: string;
-  function_description?: string;
-  input_schema?: SchemaField[];
-  output_schema?: SchemaField[];
-  is_overridable: boolean;
+export interface CodeRunnerEnvVariable {
+  name: string;
+  value: string;
 }
 
-export type AiToolConfiguration = ApiToolConfiguration | KnowledgeBaseToolConfiguration | PlatformEventToolConfiguration | PlatformFunctionToolConfiguration;
+export interface CodeRunnerToolConfiguration {
+  type: "CodeRunner";
+  runtime: "python";
+  code: string;
+  input_schema?: SchemaField[];
+  output_schema?: SchemaField[];
+  timeout_seconds?: number;
+  allow_network: boolean;
+  env_variables?: CodeRunnerEnvVariable[];
+}
+
+export type AiToolConfiguration =
+  | ApiToolConfiguration
+  | KnowledgeBaseToolConfiguration
+  | PlatformEventToolConfiguration
+  | CodeRunnerToolConfiguration;
 
 export interface AiTool {
   id: string;
@@ -64,6 +82,7 @@ export interface AiTool {
   description?: string;
   tool_type: AiToolType;
   deployment_id: string;
+  requires_user_approval: boolean;
   configuration: AiToolConfiguration;
 }
 
@@ -74,6 +93,7 @@ export interface ToolFormData {
   name: string;
   description: string;
   type: AiToolType;
+  requires_user_approval: boolean;
   configuration: AiToolConfiguration;
 }
 
@@ -81,6 +101,7 @@ export interface CreateToolRequest {
   name: string;
   description?: string;
   tool_type: AiToolType;
+  requires_user_approval: boolean;
   configuration: AiToolConfiguration;
 }
 
@@ -88,5 +109,6 @@ export interface UpdateToolRequest {
   name?: string;
   description?: string;
   tool_type?: AiToolType;
+  requires_user_approval?: boolean;
   configuration?: AiToolConfiguration;
 }

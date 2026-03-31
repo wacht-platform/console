@@ -115,6 +115,10 @@ export function ApplicationLayout() {
         location.pathname.endsWith("/auth");
     const isLLMRoute = location.pathname.includes("/llms/");
     const isBillingRoute = location.pathname.includes("/billing");
+    const llmsBasePath = `/project/${params.projectId}/deployment/${params.deploymentId}/llms`;
+    const llmsToolsPath = `${llmsBasePath}/tools`;
+    const llmsKnowledgeBasePath = `${llmsBasePath}/knowledge-base`;
+    const llmsMcpServersPath = `${llmsBasePath}/mcp-servers`;
 
     let currentTab = "";
     if (isUsersRoute) {
@@ -148,13 +152,17 @@ export function ApplicationLayout() {
                   ? "jwt-templates"
                   : "schema-factors";
     } else if (isLLMRoute) {
-        currentTab = location.pathname.includes("/tools")
-            ? "tools"
-            : location.pathname.includes("/knowledge-base")
-              ? "knowledge-base"
-              : location.pathname.includes("/mcp-servers")
-                ? "mcp-servers"
-                : "ai-agents";
+        currentTab =
+            location.pathname === llmsToolsPath ||
+            location.pathname.startsWith(`${llmsToolsPath}/`)
+                ? "tools"
+                : location.pathname === llmsKnowledgeBasePath ||
+                    location.pathname.startsWith(`${llmsKnowledgeBasePath}/`)
+                  ? "knowledge-base"
+                  : location.pathname === llmsMcpServersPath ||
+                      location.pathname.startsWith(`${llmsMcpServersPath}/`)
+                    ? "mcp-servers"
+                    : "ai-agents";
     } else if (isBillingRoute) {
         currentTab = location.pathname.includes("/billing/usage")
             ? "usage"
@@ -346,7 +354,6 @@ export function ApplicationLayout() {
                 </div>
             </SidebarInset>
 
-            {/* Dialogs */}
             <CreateProjectDialog
                 open={isCreateProjectDialogOpen}
                 onClose={() => setIsCreateProjectDialogOpen(false)}

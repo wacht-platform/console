@@ -43,9 +43,6 @@ export interface UpdateAgentRequest {
   description?: string;
   status?: string;
   configuration?: AgentConfiguration;
-  tool_ids?: string[];
-  knowledge_base_ids?: string[];
-  sub_agents?: string[];
   spawn_config?: SpawnConfig;
 }
 

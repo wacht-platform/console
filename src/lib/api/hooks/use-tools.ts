@@ -9,6 +9,7 @@ export interface CreateToolRequest {
   name: string;
   description?: string;
   tool_type: AiToolType;
+  requires_user_approval: boolean;
   configuration: AiToolConfiguration;
 }
 
@@ -16,6 +17,7 @@ export interface UpdateToolRequest {
   name?: string;
   description?: string;
   tool_type?: AiToolType;
+  requires_user_approval?: boolean;
   configuration?: AiToolConfiguration;
 }
 
@@ -83,6 +85,22 @@ async function deleteTool(deploymentId: string, toolId: string): Promise<void> {
   await apiClient.delete(`/deployments/${deploymentId}/ai/tools/${toolId}`);
 }
 
+async function attachToolToAgent(
+  deploymentId: string,
+  agentId: string,
+  toolId: string,
+): Promise<void> {
+  await apiClient.post(`/deployments/${deploymentId}/ai/agents/${agentId}/tools/${toolId}`);
+}
+
+async function detachToolFromAgent(
+  deploymentId: string,
+  agentId: string,
+  toolId: string,
+): Promise<void> {
+  await apiClient.delete(`/deployments/${deploymentId}/ai/agents/${agentId}/tools/${toolId}`);
+}
+
 export function useTools(params: GetToolsParams = {}) {
   const { selectedDeployment } = useProjects();
 
@@ -97,13 +115,13 @@ export function useTools(params: GetToolsParams = {}) {
   });
 }
 
-export function useTool(toolId: string) {
+export function useTool(toolId: string, enabled = true) {
   const { selectedDeployment } = useProjects();
 
   return useQuery({
     queryKey: ["tool", selectedDeployment?.id, toolId],
     queryFn: () => fetchTool(selectedDeployment!.id, toolId),
-    enabled: !!selectedDeployment?.id && !!toolId,
+    enabled: enabled && !!selectedDeployment?.id && !!toolId,
   });
 }
 
@@ -178,6 +196,50 @@ export function useDeleteTool() {
     },
     onError: () => {
       toast.error("Failed to delete tool. Please try again.");
+    },
+  });
+}
+
+export function useAttachTool(agentId: string) {
+  const { selectedDeployment } = useProjects();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (toolId: string) =>
+      attachToolToAgent(selectedDeployment!.id, agentId, toolId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["agent-tools", selectedDeployment?.id, agentId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["agent-details", selectedDeployment?.id, agentId],
+      });
+      toast.success("Tool attached");
+    },
+    onError: () => {
+      toast.error("Failed to attach tool");
+    },
+  });
+}
+
+export function useDetachTool(agentId: string) {
+  const { selectedDeployment } = useProjects();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (toolId: string) =>
+      detachToolFromAgent(selectedDeployment!.id, agentId, toolId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["agent-tools", selectedDeployment?.id, agentId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["agent-details", selectedDeployment?.id, agentId],
+      });
+      toast.success("Tool detached");
+    },
+    onError: () => {
+      toast.error("Failed to detach tool");
     },
   });
 }

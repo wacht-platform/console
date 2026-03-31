@@ -74,11 +74,31 @@ const CreateAgentsPage = lazyImport(
     () => import("./pages/ai-agents/create-agents"),
 );
 const ToolsPage = lazyImport(() => import("./pages/ai-agents/tools"));
+const ToolEditorPage = lazyImport(() => import("./pages/ai-agents/tool-editor"));
 const KnowledgeBasePage = lazyImport(
     () => import("./pages/ai-agents/knowledge-base"),
 );
 const AgentDetailsPage = lazyImport(
     () => import("./pages/ai-agents/agent-details"),
+);
+const AgentLayoutPage = lazyImport(
+    () => import("./pages/ai-agents/agent-layout"),
+);
+const AgentToolsPage = lazyImport(() => import("./pages/ai-agents/agent-tools"));
+const AgentKnowledgeBasesPage = lazyImport(
+    () => import("./pages/ai-agents/agent-knowledge-bases"),
+);
+const AgentMcpServersPage = lazyImport(
+    () => import("./pages/ai-agents/agent-mcp-servers"),
+);
+const AgentSubAgentsPage = lazyImport(
+    () => import("./pages/ai-agents/agent-sub-agents"),
+);
+const AgentIntegrationsPage = lazyImport(
+    () => import("./pages/ai-agents/agent-integrations"),
+);
+const AgentDebugPage = lazyImport(
+    () => import("./pages/ai-agents/agent-debug"),
 );
 const ConfigureMCPPage = lazyImport(
     () => import("./pages/ai-agents/configure-mcp"),
@@ -336,17 +356,96 @@ export const router = createBrowserRouter([
                         path: "ai-agents/:agentId",
                         element: (
                             <Suspense fallback={<SimpleFallback />}>
-                                <AgentDetailsPage />
+                                <AgentLayoutPage />
                             </Suspense>
                         ),
+                        children: [
+                            {
+                                index: true,
+                                element: (
+                                    <Suspense fallback={<SimpleFallback />}>
+                                        <AgentDetailsPage />
+                                    </Suspense>
+                                ),
+                            },
+                            {
+                                path: "integrations",
+                                element: (
+                                    <Suspense fallback={<SimpleFallback />}>
+                                        <AgentIntegrationsPage />
+                                    </Suspense>
+                                ),
+                            },
+                            {
+                                path: "tools",
+                                element: (
+                                    <Suspense fallback={<SimpleFallback />}>
+                                        <AgentToolsPage />
+                                    </Suspense>
+                                ),
+                            },
+                            {
+                                path: "knowledge-bases",
+                                element: (
+                                    <Suspense fallback={<SimpleFallback />}>
+                                        <AgentKnowledgeBasesPage />
+                                    </Suspense>
+                                ),
+                            },
+                            {
+                                path: "mcp-servers",
+                                element: (
+                                    <Suspense fallback={<SimpleFallback />}>
+                                        <AgentMcpServersPage />
+                                    </Suspense>
+                                ),
+                            },
+                            {
+                                path: "sub-agents",
+                                element: (
+                                    <Suspense fallback={<SimpleFallback />}>
+                                        <AgentSubAgentsPage />
+                                    </Suspense>
+                                ),
+                            },
+                            {
+                                path: "debug",
+                                element: (
+                                    <Suspense fallback={<SimpleFallback />}>
+                                        <AgentDebugPage />
+                                    </Suspense>
+                                ),
+                            },
+                        ],
                     },
                     {
                         path: "tools",
-                        element: (
-                            <Suspense fallback={<SimpleFallback />}>
-                                <ToolsPage />
-                            </Suspense>
-                        ),
+                        children: [
+                            {
+                                index: true,
+                                element: (
+                                    <Suspense fallback={<SimpleFallback />}>
+                                        <ToolsPage />
+                                    </Suspense>
+                                ),
+                            },
+                            {
+                                path: "new",
+                                element: (
+                                    <Suspense fallback={<SimpleFallback />}>
+                                        <ToolEditorPage />
+                                    </Suspense>
+                                ),
+                            },
+                            {
+                                path: ":toolId/edit",
+                                element: (
+                                    <Suspense fallback={<SimpleFallback />}>
+                                        <ToolEditorPage />
+                                    </Suspense>
+                                ),
+                            },
+                        ],
                     },
                     {
                         path: "knowledge-base",

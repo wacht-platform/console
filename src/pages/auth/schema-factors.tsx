@@ -34,7 +34,7 @@ import {
 import { useSaveAuthSettings } from "@/lib/api/hooks/use-save-auth-settings";
 
 const Description = ({ children }: { children: React.ReactNode }) => (
-    <BaseDescription className="text-muted-foreground max-w-[90%]">
+    <BaseDescription className="text-muted-foreground">
         {children}
     </BaseDescription>
 );
@@ -1753,7 +1753,9 @@ export default function SchemaFactorsPage() {
                                 <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
                                     <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0" />
                                     <span>
-                                        Phone OTP is enabled. SMS delivery requires prepaid recharge before it can work.
+                                        Phone OTP is enabled. SMS delivery
+                                        requires prepaid recharge before it can
+                                        work.
                                     </span>
                                 </div>
                             )}

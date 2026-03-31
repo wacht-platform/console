@@ -1,25 +1,23 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import {
 	WrenchScrewdriverIcon,
 	MagnifyingGlassIcon,
-	PencilIcon,
 	TrashIcon,
+	EllipsisHorizontalIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
 import { ConfirmationDialog } from "../../components/modals/confirmation-dialog";
-import { CreateToolDialog } from "../../components/ai-agents/create-tool-dialog";
 import { InlineLoader } from "../../components/ui/loading-screen";
 import { useTools, useDeleteTool } from "../../lib/api/hooks/use-tools";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
 import type { AiTool } from "@/types/ai-tool";
 
 const getTypeBadge = (type: string) => {
@@ -30,16 +28,15 @@ const getTypeBadge = (type: string) => {
 			return "Knowledge Base";
 		case "platform_event":
 			return "Platform Event";
-		case "platform_function":
-			return "Platform Function";
+		case "code_runner":
+			return "Code Runner";
 		default:
 			return "Unknown";
 	}
 };
 
 export default function ToolsPage() {
-	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-	const [editingTool, setEditingTool] = useState<AiTool | null>(null);
+	const navigate = useNavigate();
 	const [searchTerm, setSearchTerm] = useState("");
 	const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 	const [toolToDelete, setToolToDelete] = useState<AiTool | null>(null);
@@ -52,13 +49,11 @@ export default function ToolsPage() {
 	const deleteToolMutation = useDeleteTool();
 
 	const handleCreateTool = () => {
-		setEditingTool(null);
-		setIsCreateDialogOpen(true);
+		navigate("new");
 	};
 
 	const handleEditTool = (tool: AiTool) => {
-		setEditingTool(tool);
-		setIsCreateDialogOpen(true);
+		navigate(`${tool.id}/edit`, { state: { tool } });
 	};
 
 	const handleDeleteTool = (tool: AiTool) => {
@@ -80,10 +75,10 @@ export default function ToolsPage() {
 
 	return (
 		<div>
-			<div className="flex items-center justify-between mb-6">
-				<div>
-					<h1 className="text-xl font-normal tracking-tight">Tools</h1>
-					<p className="text-sm text-muted-foreground">
+			<div className="mb-5 flex items-end justify-between gap-4">
+				<div className="space-y-1">
+					<h1 className="text-lg font-medium tracking-tight">Tools</h1>
+					<p className="text-[13px] text-muted-foreground">
 						Manage tools that can be used by AI agents
 					</p>
 				</div>
@@ -95,13 +90,13 @@ export default function ToolsPage() {
 			</div>
 
 			{!isLoading && !error && tools.length > 0 && (
-				<div className="relative mb-6">
+				<div className="relative mb-5">
 					<MagnifyingGlassIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
 					<Input
 						placeholder="Search tools..."
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
-						className="pl-9"
+						className="h-9 pl-9"
 					/>
 				</div>
 			)}
@@ -128,64 +123,66 @@ export default function ToolsPage() {
 					</div>
 				</div>
 			) : (
-				<Table>
-					<TableHeader>
-						<TableRow>
-							<TableHead>Name</TableHead>
-							<TableHead>Description</TableHead>
-							<TableHead>Type</TableHead>
-							<TableHead className="w-[150px]">Actions</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{tools.map((tool) => (
-							<TableRow key={tool.id}>
-								<TableCell>
-									<div className="flex items-center gap-3">
-										<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-											<WrenchScrewdriverIcon className="h-4 w-4" />
-										</div>
-										<span className="font-medium">{tool.name}</span>
-									</div>
-								</TableCell>
-								<TableCell className="text-muted-foreground max-w-sm truncate" title={tool.description || ""}>
-									{tool.description}
-								</TableCell>
-								<TableCell>
-									<Badge variant="secondary">
+				<div className="space-y-1.5">
+					{tools.map((tool) => (
+						<div
+							key={tool.id}
+							role="button"
+							tabIndex={0}
+							onClick={() => handleEditTool(tool)}
+							onKeyDown={(e) => {
+								if (e.key === "Enter" || e.key === " ") {
+									e.preventDefault();
+									handleEditTool(tool);
+								}
+							}}
+							className="group flex items-start gap-3 rounded-lg border border-border/60 bg-background px-3.5 py-2.5 text-left transition-colors hover:border-border hover:bg-muted/20"
+						>
+							<div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+								<WrenchScrewdriverIcon className="h-3.5 w-3.5" />
+							</div>
+							<div className="min-w-0 flex-1 space-y-0.5">
+								<div className="flex items-center gap-2.5">
+									<span className="truncate text-[14px] font-medium leading-5">{tool.name}</span>
+									<Badge variant="secondary" className="h-5 rounded-md px-1.5 text-[11px] font-medium">
 										{getTypeBadge(tool.tool_type)}
 									</Badge>
-								</TableCell>
-								<TableCell>
-									<div className="flex gap-2">
-										<Button variant="ghost" size="icon" onClick={() => handleEditTool(tool)}>
-											<PencilIcon className="h-4 w-4" />
-										</Button>
-										<Button
-											variant="ghost"
-											size="icon"
-											onClick={() => handleDeleteTool(tool)}
-											disabled={deleteToolMutation.isPending}
-										>
-											<TrashIcon className="h-4 w-4" />
-										</Button>
-									</div>
-								</TableCell>
-							</TableRow>
-						))}
-					</TableBody>
-				</Table>
+								</div>
+								<p
+									className="line-clamp-1 text-[13px] leading-5 text-muted-foreground"
+									title={tool.description || ""}
+								>
+									{tool.description || "No description"}
+								</p>
+							</div>
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<Button
+										variant="ghost"
+										size="icon"
+										className="mt-0.5 h-7 w-7 shrink-0 text-muted-foreground"
+										onClick={(e) => e.stopPropagation()}
+									>
+										<EllipsisHorizontalIcon className="h-4 w-4" />
+									</Button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent align="end">
+									<DropdownMenuItem
+										variant="destructive"
+										onSelect={(e) => {
+											e.stopPropagation();
+											handleDeleteTool(tool);
+										}}
+									>
+										<TrashIcon className="mr-2 h-4 w-4" />
+										Delete tool
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
+						</div>
+					))}
+				</div>
 			)}
-
-			<CreateToolDialog
-				open={isCreateDialogOpen}
-				onClose={() => {
-					setIsCreateDialogOpen(false);
-					setEditingTool(null);
-				}}
-				tool={editingTool || undefined}
-			/>
-
 			<ConfirmationDialog
 				isOpen={confirmDeleteOpen}
 				onClose={() => {

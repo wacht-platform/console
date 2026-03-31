@@ -167,6 +167,26 @@ async function uploadDocument(
   return data;
 }
 
+async function attachKnowledgeBaseToAgent(
+  deploymentId: string,
+  agentId: string,
+  knowledgeBaseId: string,
+): Promise<void> {
+  await apiClient.post(
+    `/deployments/${deploymentId}/ai/agents/${agentId}/knowledge-bases/${knowledgeBaseId}`,
+  );
+}
+
+async function detachKnowledgeBaseFromAgent(
+  deploymentId: string,
+  agentId: string,
+  knowledgeBaseId: string,
+): Promise<void> {
+  await apiClient.delete(
+    `/deployments/${deploymentId}/ai/agents/${agentId}/knowledge-bases/${knowledgeBaseId}`,
+  );
+}
+
 export function useKnowledgeBases(params?: {
   limit?: number;
   offset?: number;
@@ -343,6 +363,58 @@ export function useUploadDocument(knowledgeBaseId: string) {
     },
     onError: () => {
       toast.error("Failed to upload document. Please try again.");
+    },
+  });
+}
+
+export function useAttachKnowledgeBase(agentId: string) {
+  const { selectedDeployment } = useProjects();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (knowledgeBaseId: string) =>
+      attachKnowledgeBaseToAgent(
+        selectedDeployment!.id,
+        agentId,
+        knowledgeBaseId,
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["agent-knowledge-bases", selectedDeployment?.id, agentId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["agent-details", selectedDeployment?.id, agentId],
+      });
+      toast.success("Knowledge base attached");
+    },
+    onError: () => {
+      toast.error("Failed to attach knowledge base");
+    },
+  });
+}
+
+export function useDetachKnowledgeBase(agentId: string) {
+  const { selectedDeployment } = useProjects();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (knowledgeBaseId: string) =>
+      detachKnowledgeBaseFromAgent(
+        selectedDeployment!.id,
+        agentId,
+        knowledgeBaseId,
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["agent-knowledge-bases", selectedDeployment?.id, agentId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["agent-details", selectedDeployment?.id, agentId],
+      });
+      toast.success("Knowledge base detached");
+    },
+    onError: () => {
+      toast.error("Failed to detach knowledge base");
     },
   });
 }

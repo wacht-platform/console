@@ -279,89 +279,11 @@ export function CreateAgentDialog({
 					agentId: agent.id,
 					agent: agentData,
 				});
-
-				const currentMcpIds = new Set(attachedMcpServers.map((server) => String(server.id)));
-				const desiredMcpIds = new Set(formData.mcpServerIds);
-				const mcpToDetach = [...currentMcpIds].filter((id) => !desiredMcpIds.has(id));
-				const mcpToAttach = [...desiredMcpIds].filter((id) => !currentMcpIds.has(id));
-				for (const mcpServerId of mcpToDetach) {
-					await apiClient.delete(
-						`/deployments/${selectedDeployment!.id}/ai/agents/${agent.id}/mcp-servers/${mcpServerId}`,
-					);
-				}
-				for (const mcpServerId of mcpToAttach) {
-					await apiClient.post(
-						`/deployments/${selectedDeployment!.id}/ai/agents/${agent.id}/mcp-servers/${mcpServerId}`,
-					);
-				}
-
-				const currentToolIds = new Set(attachedAgentTools.map((tool) => String(tool.id)));
-				const desiredToolIds = new Set(formData.toolIds);
-				const toolsToDetach = [...currentToolIds].filter((id) => !desiredToolIds.has(id));
-				const toolsToAttach = [...desiredToolIds].filter((id) => !currentToolIds.has(id));
-				for (const toolId of toolsToDetach) {
-					await apiClient.delete(
-						`/deployments/${selectedDeployment!.id}/ai/agents/${agent.id}/tools/${toolId}`,
-					);
-				}
-				for (const toolId of toolsToAttach) {
-					await apiClient.post(
-						`/deployments/${selectedDeployment!.id}/ai/agents/${agent.id}/tools/${toolId}`,
-					);
-				}
-
-				const currentKbIds = new Set(attachedAgentKnowledgeBases.map((kb) => String(kb.id)));
-				const desiredKbIds = new Set(formData.knowledgeBaseIds);
-				const kbsToDetach = [...currentKbIds].filter((id) => !desiredKbIds.has(id));
-				const kbsToAttach = [...desiredKbIds].filter((id) => !currentKbIds.has(id));
-				for (const kbId of kbsToDetach) {
-					await apiClient.delete(
-						`/deployments/${selectedDeployment!.id}/ai/agents/${agent.id}/knowledge-bases/${kbId}`,
-					);
-				}
-				for (const kbId of kbsToAttach) {
-					await apiClient.post(
-						`/deployments/${selectedDeployment!.id}/ai/agents/${agent.id}/knowledge-bases/${kbId}`,
-					);
-				}
-
-				const currentSubAgentIds = new Set(attachedSubAgents.map((a) => String(a.id)));
-				const desiredSubAgentIds = new Set(formData.subAgentIds);
-				const subAgentsToDetach = [...currentSubAgentIds].filter((id) => !desiredSubAgentIds.has(id));
-				const subAgentsToAttach = [...desiredSubAgentIds].filter((id) => !currentSubAgentIds.has(id));
-				for (const subAgentId of subAgentsToDetach) {
-					await detachSubAgentMutation.mutateAsync({
-						agentId: agent.id,
-						subAgentId,
-					});
-				}
-				for (const subAgentId of subAgentsToAttach) {
-					await attachSubAgentMutation.mutateAsync({
-						agentId: agent.id,
-						subAgentId,
-					});
-				}
-
-				await queryClient.invalidateQueries({
-					queryKey: ["agent-mcp-servers", selectedDeployment?.id, agent.id],
-				});
-				await queryClient.refetchQueries({
-					queryKey: ["agent-mcp-servers", selectedDeployment?.id, agent.id],
-				});
 				await queryClient.invalidateQueries({
 					queryKey: ["agent-details", selectedDeployment?.id, agent.id],
 				});
 				await queryClient.invalidateQueries({
-					queryKey: ["agent-tools", selectedDeployment?.id, agent.id],
-				});
-				await queryClient.invalidateQueries({
-					queryKey: ["agent-knowledge-bases", selectedDeployment?.id, agent.id],
-				});
-				await queryClient.invalidateQueries({
 					queryKey: ["agents", selectedDeployment?.id],
-				});
-				await queryClient.invalidateQueries({
-					queryKey: ["agent-sub-agents", selectedDeployment?.id, agent.id],
 				});
 				toast.success("Agent updated successfully");
 			} else {
@@ -443,6 +365,32 @@ export function CreateAgentDialog({
 		setFormData({ ...formData, [fieldName]: newIds });
 	};
 
+	const detailsContent = (
+		<div className="space-y-4">
+			<div className="space-y-2">
+				<Label>Agent Name <span className="text-destructive">*</span></Label>
+				<Input
+					required
+					placeholder="e.g. Customer Support Bot"
+					value={formData.name}
+					onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+				/>
+				{errors.name && <p className="text-sm text-destructive mt-1">{errors.name}</p>}
+			</div>
+
+			<div className="space-y-2">
+				<Label>Description</Label>
+				<Textarea
+					placeholder="Describe the agent's purpose and personality..."
+					value={formData.description}
+					onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+					rows={6}
+				/>
+				{errors.description && <p className="text-sm text-destructive mt-1">{errors.description}</p>}
+			</div>
+		</div>
+	);
+
 	return (
 		<Dialog open={open} onOpenChange={(val) => !val && onClose()}>
 			<DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col p-0 gap-0">
@@ -478,42 +426,25 @@ export function CreateAgentDialog({
 							</span>
 						</div>
 					)}
-					<Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-						<div className="px-6">
-							<TabsList className="grid w-full grid-cols-4">
-								<TabsTrigger value="details">Details</TabsTrigger>
-								<TabsTrigger value="capabilities">Capabilities</TabsTrigger>
-								<TabsTrigger value="mcp">MCP Servers</TabsTrigger>
-								<TabsTrigger value="subAgents">Agent Swarm</TabsTrigger>
-							</TabsList>
-						</div>
-
+					{isEditing ? (
 						<div className="flex-1 overflow-y-auto p-6">
-							<TabsContent value="details" className="mt-0 space-y-6">
-								<div className="space-y-4">
-									<div className="space-y-2">
-										<Label>Agent Name <span className="text-destructive">*</span></Label>
-										<Input
-											required
-											placeholder="e.g. Customer Support Bot"
-											value={formData.name}
-											onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-										/>
-										{errors.name && <p className="text-sm text-destructive mt-1">{errors.name}</p>}
-									</div>
+							{detailsContent}
+						</div>
+					) : (
+						<Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+							<div className="px-6">
+								<TabsList className="grid w-full grid-cols-4">
+									<TabsTrigger value="details">Details</TabsTrigger>
+									<TabsTrigger value="capabilities">Capabilities</TabsTrigger>
+									<TabsTrigger value="mcp">MCP Servers</TabsTrigger>
+									<TabsTrigger value="subAgents">Agent Swarm</TabsTrigger>
+								</TabsList>
+							</div>
 
-									<div className="space-y-2">
-										<Label>Description</Label>
-										<Textarea
-											placeholder="Describe the agent's purpose and personality..."
-											value={formData.description}
-											onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-											rows={6}
-										/>
-										{errors.description && <p className="text-sm text-destructive mt-1">{errors.description}</p>}
-									</div>
-								</div>
-							</TabsContent>
+							<div className="flex-1 overflow-y-auto p-6">
+								<TabsContent value="details" className="mt-0 space-y-6">
+									{detailsContent}
+								</TabsContent>
 
 							<TabsContent value="mcp" className="mt-0 space-y-4">
 								<div className="flex items-center justify-between">
@@ -654,7 +585,7 @@ export function CreateAgentDialog({
 								</div>
 							</TabsContent>
 
-							<TabsContent value="subAgents" className="mt-0 space-y-8">
+								<TabsContent value="subAgents" className="mt-0 space-y-8">
 								{/* Sub-Agents Selection */}
 								<div className="space-y-3">
 									<div className="flex items-center justify-between">
@@ -795,24 +726,25 @@ export function CreateAgentDialog({
 										</div>
 									</div>
 								</div>
-							</TabsContent>
-						</div>
-
-						<div className="flex items-center justify-end gap-3 p-4 border-t bg-muted/40 shrink-0">
-							<Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
-								Cancel
-							</Button>
-							<Button
-								type="submit"
-								disabled={isSubmitting || !formData.name.trim()}
-							>
-								{isSubmitting
-									? (isEditing ? "Updating..." : "Creating...")
-									: (isEditing ? "Update Agent" : "Create Agent")
-								}
-							</Button>
+								</TabsContent>
 						</div>
 					</Tabs>
+					)}
+
+					<div className="flex items-center justify-end gap-3 border-t bg-muted/40 p-4 shrink-0">
+						<Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
+							Cancel
+						</Button>
+						<Button
+							type="submit"
+							disabled={isSubmitting || !formData.name.trim()}
+						>
+							{isSubmitting
+								? (isEditing ? "Updating..." : "Creating...")
+								: (isEditing ? "Update Agent" : "Create Agent")
+							}
+						</Button>
+					</div>
 				</form>
 			</DialogContent>
 		</Dialog>

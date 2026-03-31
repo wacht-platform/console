@@ -29,6 +29,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const isAuthRoute = /\/auth(?:\/|$)/.test(pathname);
     const isOAuthRoute = /\/oauth(?:\/|$)/.test(pathname);
     const isProductionDeployment = selectedDeployment?.mode === "production";
+    const isAgentsPlatformRoute = /\/llms(?:\/|$)/.test(pathname);
 
     const navManagement = [
         {
@@ -110,7 +111,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             title: "Agents Platform",
             url: "llms/ai-agents",
             icon: IconRobot,
-            isActive: pathname.includes("llms"),
+            isActive: isAgentsPlatformRoute,
         },
     ];
 

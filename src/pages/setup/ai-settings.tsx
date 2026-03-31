@@ -1,63 +1,90 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useParams } from "react-router";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { apiClient } from "@/lib/api/client";
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { Divider } from "@/components/ui/divider";
 import { Input } from "@/components/ui/input";
+import { Description, Field, Label } from "@/components/ui/fieldset";
+import { Switch } from "@/components/ui/switch";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/20/solid";
 import { toast } from "sonner";
 import SavePopup from "@/components/save-popup";
 import { InlineLoader } from "@/components/ui/loading-screen";
-import { useBillingAccount } from "@/lib/api/hooks/use-billing";
 
 interface AISettingsResponse {
     gemini_api_key_set: boolean;
     openai_api_key_set: boolean;
     anthropic_api_key_set: boolean;
+    storage: AIStorageSettingsResponse;
 }
 
 interface UpdateAISettingsRequest {
     gemini_api_key?: string;
     openai_api_key?: string;
     anthropic_api_key?: string;
+    storage?: UpdateAIStorageSettingsRequest;
 }
 
-async function fetchAISettings(deploymentId: string): Promise<AISettingsResponse> {
+type AIStorageProvider = "s3";
+
+interface AIStorageSettingsResponse {
+    provider: AIStorageProvider;
+    bucket: string | null;
+    region: string | null;
+    endpoint: string | null;
+    root_prefix: string | null;
+    force_path_style: boolean;
+    access_key_id_set: boolean;
+    secret_access_key_set: boolean;
+}
+
+interface UpdateAIStorageSettingsRequest {
+    provider?: AIStorageProvider;
+    bucket?: string;
+    region?: string;
+    endpoint?: string;
+    root_prefix?: string;
+    force_path_style?: boolean;
+    access_key_id?: string;
+    secret_access_key?: string;
+}
+
+async function fetchAISettings(
+    deploymentId: string,
+): Promise<AISettingsResponse> {
     const { data } = await apiClient.get<AISettingsResponse>(
-        `/deployments/${deploymentId}/ai/settings`
+        `/deployments/${deploymentId}/ai/settings`,
     );
     return data;
 }
 
 async function updateAISettings(
     deploymentId: string,
-    settings: UpdateAISettingsRequest
+    settings: UpdateAISettingsRequest,
 ): Promise<AISettingsResponse> {
     const { data } = await apiClient.put<AISettingsResponse>(
         `/deployments/${deploymentId}/ai/settings`,
-        settings
+        settings,
     );
     return data;
 }
 
 export default function AISettingsPage() {
     const { selectedDeployment } = useProjects();
-    const { projectId, deploymentId } = useParams();
     const queryClient = useQueryClient();
-    const { data: billingAccount } = useBillingAccount();
-    const currentPlan = billingAccount?.subscription?.plan_name?.toLowerCase();
-    const isGrowthPlan = currentPlan === "growth";
-    const subscriptionPath =
-        projectId && deploymentId
-            ? `/project/${projectId}/deployment/${deploymentId}/billing/subscription`
-            : "../billing/subscription";
 
     const [geminiKey, setGeminiKey] = useState("");
     const [openaiKey, setOpenaiKey] = useState("");
     const [anthropicKey, setAnthropicKey] = useState("");
+    const [storageBucket, setStorageBucket] = useState("");
+    const [storageRegion, setStorageRegion] = useState("");
+    const [storageEndpoint, setStorageEndpoint] = useState("");
+    const [storageRootPrefix, setStorageRootPrefix] = useState("");
+    const [storageAccessKeyId, setStorageAccessKeyId] = useState("");
+    const [storageSecretAccessKey, setStorageSecretAccessKey] = useState("");
+    const [forcePathStyle, setForcePathStyle] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
 
     const { data: settings, isLoading } = useQuery({
@@ -69,13 +96,20 @@ export default function AISettingsPage() {
     const updateMutation = useMutation({
         mutationFn: (updates: UpdateAISettingsRequest) =>
             updateAISettings(selectedDeployment!.id, updates),
-        onSuccess: () => {
+        onSuccess: (updatedSettings) => {
             queryClient.invalidateQueries({ queryKey: ["ai-settings"] });
             toast.success("AI settings updated successfully");
             setIsDirty(false);
             setGeminiKey("");
             setOpenaiKey("");
             setAnthropicKey("");
+            setStorageBucket("");
+            setStorageRegion("");
+            setStorageEndpoint("");
+            setStorageRootPrefix("");
+            setStorageAccessKeyId("");
+            setStorageSecretAccessKey("");
+            setForcePathStyle(updatedSettings.storage.force_path_style);
         },
         onError: (error: Error) => {
             toast.error(`Failed to update settings: ${error.message}`);
@@ -83,18 +117,94 @@ export default function AISettingsPage() {
     });
 
     const handleSave = () => {
-        if (!isGrowthPlan) {
-            toast.error("AI agent usage requires Growth plan");
-            return;
-        }
-
         const updates: UpdateAISettingsRequest = {};
         if (geminiKey.trim()) updates.gemini_api_key = geminiKey.trim();
         if (openaiKey.trim()) updates.openai_api_key = openaiKey.trim();
-        if (anthropicKey.trim()) updates.anthropic_api_key = anthropicKey.trim();
+        if (anthropicKey.trim())
+            updates.anthropic_api_key = anthropicKey.trim();
+
+        const currentStorage = settings?.storage;
+        const trimmedBucket = storageBucket.trim();
+        const trimmedRegion = storageRegion.trim();
+        const trimmedEndpoint = storageEndpoint.trim();
+        const trimmedRootPrefix = storageRootPrefix.trim();
+        const trimmedAccessKeyId = storageAccessKeyId.trim();
+        const trimmedSecretAccessKey = storageSecretAccessKey.trim();
+
+        const storageChanged =
+            forcePathStyle !== (currentStorage?.force_path_style ?? false) ||
+            Boolean(
+                trimmedBucket ||
+                    trimmedRegion ||
+                    trimmedEndpoint ||
+                    trimmedRootPrefix ||
+                    trimmedAccessKeyId ||
+                    trimmedSecretAccessKey,
+            );
+
+        if (storageChanged) {
+            const resolvedBucket = trimmedBucket || currentStorage?.bucket || "";
+            const resolvedEndpoint = trimmedEndpoint || currentStorage?.endpoint || "";
+            const hasAccessKeyId = Boolean(
+                trimmedAccessKeyId || currentStorage?.access_key_id_set,
+            );
+            const hasSecretAccessKey = Boolean(
+                trimmedSecretAccessKey || currentStorage?.secret_access_key_set,
+            );
+
+            if (!resolvedBucket) {
+                toast.error("Customer S3 storage requires a bucket");
+                return;
+            }
+
+            if (!resolvedEndpoint) {
+                toast.error("Customer S3 storage requires an endpoint");
+                return;
+            }
+
+            try {
+                const parsed = new URL(resolvedEndpoint);
+                if (
+                    parsed.protocol !== "http:" &&
+                    parsed.protocol !== "https:"
+                ) {
+                    throw new Error("invalid protocol");
+                }
+            } catch {
+                toast.error("Storage endpoint must be a valid http or https URL");
+                return;
+            }
+
+            if (!hasAccessKeyId) {
+                toast.error("Customer S3 storage requires an access key ID");
+                return;
+            }
+
+            if (!hasSecretAccessKey) {
+                toast.error("Customer S3 storage requires a secret access key");
+                return;
+            }
+
+            const storageUpdates: UpdateAIStorageSettingsRequest = {};
+            storageUpdates.provider = "s3";
+            if (forcePathStyle !== (currentStorage?.force_path_style ?? false)) {
+                storageUpdates.force_path_style = forcePathStyle;
+            }
+            if (trimmedBucket) storageUpdates.bucket = trimmedBucket;
+            if (trimmedRegion) storageUpdates.region = trimmedRegion;
+            if (trimmedEndpoint) storageUpdates.endpoint = trimmedEndpoint;
+            if (trimmedRootPrefix) storageUpdates.root_prefix = trimmedRootPrefix;
+            if (trimmedAccessKeyId) {
+                storageUpdates.access_key_id = trimmedAccessKeyId;
+            }
+            if (trimmedSecretAccessKey) {
+                storageUpdates.secret_access_key = trimmedSecretAccessKey;
+            }
+            updates.storage = storageUpdates;
+        }
 
         if (Object.keys(updates).length === 0) {
-            toast.error("Please enter at least one API key to save");
+            toast.error("Please make at least one change before saving");
             return;
         }
 
@@ -105,16 +215,54 @@ export default function AISettingsPage() {
         setGeminiKey("");
         setOpenaiKey("");
         setAnthropicKey("");
+        setStorageBucket("");
+        setStorageRegion("");
+        setStorageEndpoint("");
+        setStorageRootPrefix("");
+        setStorageAccessKeyId("");
+        setStorageSecretAccessKey("");
+        setForcePathStyle(settings?.storage.force_path_style ?? false);
         setIsDirty(false);
     };
 
     useEffect(() => {
-        if (geminiKey.trim() || openaiKey.trim() || anthropicKey.trim()) {
-            setIsDirty(true);
-        } else {
-            setIsDirty(false);
+        if (!settings) {
+            return;
         }
-    }, [geminiKey, openaiKey, anthropicKey]);
+
+        setForcePathStyle(settings.storage.force_path_style);
+    }, [settings]);
+
+    useEffect(() => {
+        const currentStorage = settings?.storage;
+        const hasApiKeyChanges = Boolean(
+            geminiKey.trim() || openaiKey.trim() || anthropicKey.trim(),
+        );
+        const hasStorageChanges =
+            forcePathStyle !== (currentStorage?.force_path_style ?? false) ||
+            Boolean(
+                storageBucket.trim() ||
+                    storageRegion.trim() ||
+                    storageEndpoint.trim() ||
+                    storageRootPrefix.trim() ||
+                    storageAccessKeyId.trim() ||
+                    storageSecretAccessKey.trim(),
+            );
+
+        setIsDirty(hasApiKeyChanges || hasStorageChanges);
+    }, [
+        settings,
+        geminiKey,
+        openaiKey,
+        anthropicKey,
+        storageBucket,
+        storageRegion,
+        storageEndpoint,
+        storageRootPrefix,
+        storageAccessKeyId,
+        storageSecretAccessKey,
+        forcePathStyle,
+    ]);
 
     if (isLoading) {
         return <InlineLoader />;
@@ -124,20 +272,13 @@ export default function AISettingsPage() {
         <div>
             <Heading>AI Settings</Heading>
             <Text className="mt-2 text-zinc-500">
-                Configure your own API keys to bypass platform usage billing for AI agents.
-                When you provide your own keys, you won't be billed for AI usage on our platform.
+                Configure your own API keys to bypass platform usage billing for
+                AI agents. When you provide your own keys, you won't be billed
+                for AI usage on our platform.
             </Text>
-            {!isGrowthPlan && (
-                <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
-                    AI agent usage is available on Growth plan.{" "}
-                    <Link to={subscriptionPath} className="underline font-medium">
-                        Manage subscription
-                    </Link>
-                </div>
-            )}
 
             <SavePopup
-                isDirty={isDirty && isGrowthPlan}
+                isDirty={isDirty}
                 isSaving={updateMutation.isPending}
                 onSave={handleSave}
                 onCancel={handleCancel}
@@ -149,9 +290,14 @@ export default function AISettingsPage() {
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <Subheading>Google Gemini</Subheading>
-                            <StatusBadge isSet={settings?.gemini_api_key_set ?? false} />
+                            <StatusBadge
+                                isSet={settings?.gemini_api_key_set ?? false}
+                            />
                         </div>
-                        <Text>Powers your AI agent's core reasoning and response generation.</Text>
+                        <Text>
+                            Powers your AI agent's core reasoning and response
+                            generation.
+                        </Text>
                         <Text className="text-xs">
                             Get your key from the{" "}
                             <a
@@ -167,12 +313,173 @@ export default function AISettingsPage() {
                     <div className="space-y-1">
                         <Input
                             type="password"
-                            placeholder={settings?.gemini_api_key_set ? "••••••••••••••••" : "Enter Gemini API Key"}
+                            placeholder={
+                                settings?.gemini_api_key_set
+                                    ? "••••••••••••••••"
+                                    : "Enter Gemini API Key"
+                            }
                             value={geminiKey}
                             onChange={(e) => setGeminiKey(e.target.value)}
                             autoComplete="new-password"
-                            disabled={!isGrowthPlan}
                         />
+                    </div>
+                </section>
+
+                <Divider soft />
+
+                <section className="space-y-4">
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <Subheading>Storage</Subheading>
+                            <StorageProviderBadge
+                                provider={settings?.storage.provider ?? "s3"}
+                            />
+                        </div>
+                        <Text>
+                            Configure the customer-managed S3 bucket used for
+                            durable AI workspace data.
+                        </Text>
+                    </div>
+
+                    <div className="grid gap-0 lg:grid-cols-2">
+                        <div className="border-b border-zinc-200 pb-6 dark:border-zinc-800 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-8">
+                            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                Connection
+                            </div>
+                            <div className="mt-1 text-xs text-zinc-500">
+                                Use the bucket and endpoint exactly as your S3
+                                provider expects them.
+                            </div>
+                            <div className="mt-4 space-y-4">
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <Field>
+                                        <Label>Bucket</Label>
+                                        <Input
+                                            placeholder={
+                                                settings?.storage.bucket ??
+                                                "customer-ai-storage"
+                                            }
+                                            value={storageBucket}
+                                            onChange={(e) =>
+                                                setStorageBucket(e.target.value)
+                                            }
+                                        />
+                                    </Field>
+
+                                    <Field>
+                                        <Label>Region</Label>
+                                        <Input
+                                            placeholder={
+                                                settings?.storage.region ??
+                                                "Optional, for example us-east-1"
+                                            }
+                                            value={storageRegion}
+                                            onChange={(e) =>
+                                                setStorageRegion(e.target.value)
+                                            }
+                                        />
+                                    </Field>
+                                </div>
+
+                                <Field>
+                                    <Label>Endpoint</Label>
+                                    <Input
+                                        placeholder={
+                                            settings?.storage.endpoint ??
+                                            "https://s3.amazonaws.com"
+                                        }
+                                        value={storageEndpoint}
+                                        onChange={(e) =>
+                                            setStorageEndpoint(e.target.value)
+                                        }
+                                    />
+                                    <Description>
+                                        Full `http` or `https` URL for the S3
+                                        endpoint.
+                                    </Description>
+                                </Field>
+
+                                <Field>
+                                    <Label>Root prefix</Label>
+                                    <Input
+                                        placeholder={
+                                            settings?.storage.root_prefix ??
+                                            "Optional, for example wacht"
+                                        }
+                                        value={storageRootPrefix}
+                                        onChange={(e) =>
+                                            setStorageRootPrefix(e.target.value)
+                                        }
+                                    />
+                                    <Description>
+                                        Optional folder prefix under the bucket.
+                                    </Description>
+                                </Field>
+                            </div>
+                        </div>
+
+                        <div className="pt-6 lg:pl-8 lg:pt-0">
+                            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                Credentials
+                            </div>
+                            <div className="mt-1 text-xs text-zinc-500">
+                                Leave a credential field blank to keep the currently
+                                saved value.
+                            </div>
+                            <div className="mt-4 space-y-4">
+                                <Field>
+                                    <Label>Access key ID</Label>
+                                    <Input
+                                        type="password"
+                                        autoComplete="new-password"
+                                        placeholder={
+                                            settings?.storage.access_key_id_set
+                                                ? "••••••••••••••••"
+                                                : "Enter access key ID"
+                                        }
+                                        value={storageAccessKeyId}
+                                        onChange={(e) =>
+                                            setStorageAccessKeyId(e.target.value)
+                                        }
+                                    />
+                                </Field>
+
+                                <Field>
+                                    <Label>Secret access key</Label>
+                                    <Input
+                                        type="password"
+                                        autoComplete="new-password"
+                                        placeholder={
+                                            settings?.storage.secret_access_key_set
+                                                ? "••••••••••••••••"
+                                                : "Enter secret access key"
+                                        }
+                                        value={storageSecretAccessKey}
+                                        onChange={(e) =>
+                                            setStorageSecretAccessKey(e.target.value)
+                                        }
+                                    />
+                                </Field>
+
+                                <div className="border-t border-zinc-200 pt-4 dark:border-zinc-800">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <div className="space-y-1">
+                                            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                                Force path-style requests
+                                            </div>
+                                            <div className="text-xs text-zinc-500">
+                                                Enable this for providers that expect
+                                                path-style bucket addressing.
+                                            </div>
+                                        </div>
+                                        <Switch
+                                            checked={forcePathStyle}
+                                            onCheckedChange={setForcePathStyle}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -183,7 +490,9 @@ export default function AISettingsPage() {
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <Subheading>OpenAI</Subheading>
-                            <StatusBadge isSet={settings?.openai_api_key_set ?? false} />
+                            <StatusBadge
+                                isSet={settings?.openai_api_key_set ?? false}
+                            />
                         </div>
                         <Text>Support for OpenAI models is coming soon.</Text>
                     </div>
@@ -205,7 +514,9 @@ export default function AISettingsPage() {
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <Subheading>Anthropic</Subheading>
-                            <StatusBadge isSet={settings?.anthropic_api_key_set ?? false} />
+                            <StatusBadge
+                                isSet={settings?.anthropic_api_key_set ?? false}
+                            />
                         </div>
                         <Text>Support for Claude models is coming soon.</Text>
                     </div>
@@ -237,6 +548,14 @@ function StatusBadge({ isSet }: { isSet: boolean }) {
         <div className="flex items-center gap-1 text-zinc-400 text-xs font-medium">
             <XCircleIcon className="h-3.5 w-3.5" />
             <span>Not set</span>
+        </div>
+    );
+}
+
+function StorageProviderBadge({ provider }: { provider: AIStorageProvider }) {
+    return (
+        <div className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
+            {provider === "s3" ? "Customer S3" : "Customer S3"}
         </div>
     );
 }
