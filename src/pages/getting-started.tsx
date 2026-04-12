@@ -1,7 +1,7 @@
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
-import Editor from "@monaco-editor/react";
+import { CodeEditor as SharedCodeEditor, type CodeLanguage } from "@/components/code-editor";
 import {
   IconCopy,
   IconCheck,
@@ -22,7 +22,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getCodeSnippets } from "./getting-started-snippets";
-import { useTheme } from "@/lib/providers/theme";
 
 function StepWrapper({
   number,
@@ -124,9 +123,6 @@ function CodeEditor({
   files,
 }: CodeEditorProps) {
   const [copied, setCopied] = useState(false);
-  const { actualTheme } = useTheme();
-  const isDark = actualTheme === "dark";
-
   const displayFiles = useMemo(() => {
     if (files && files.length > 0) return files;
     if (code) return [{ code, filename: filename || "code", language }];
@@ -152,17 +148,14 @@ function CodeEditor({
   return (
     <div
       className={cn(
-        "flex flex-col rounded-lg border border-border/30 overflow-hidden shadow-sm group",
-        isDark ? "bg-[#1e1e1e]" : "bg-white",
+        "flex flex-col rounded-lg border border-border/30 overflow-hidden shadow-sm group bg-background",
       )}
     >
       <div
         className={cn(
           "flex items-center justify-between border-b",
           displayFiles.length > 1 ? "pr-3 pt-2" : "px-3 py-2.5",
-          isDark
-            ? "bg-[#252526] border-white/3"
-            : "bg-zinc-100 border-zinc-200",
+          "bg-muted/30 border-border/70",
         )}
       >
         <div
@@ -179,9 +172,7 @@ function CodeEditor({
                 className={cn(
                   "px-3 py-[6px] text-[11px] font-medium tracking-tight whitespace-nowrap border-b-[2px] transition-colors relative top-[1px]",
                   activeIndex === idx
-                    ? isDark
-                      ? "border-primary text-zinc-100"
-                      : "border-primary text-primary"
+                    ? "border-primary text-primary"
                     : "border-transparent text-muted-foreground hover:text-foreground hover:border-border/50",
                 )}
               >
@@ -191,8 +182,7 @@ function CodeEditor({
           ) : (
             <span
               className={cn(
-                "text-[11px] font-medium tracking-tight",
-                isDark ? "text-zinc-400" : "text-zinc-600",
+                "text-[11px] font-medium tracking-tight text-muted-foreground",
               )}
             >
               {activeFile.filename}
@@ -205,9 +195,7 @@ function CodeEditor({
             size="icon"
             className={cn(
               "h-5 w-5 transition-all flex-shrink-0",
-              isDark
-                ? "text-zinc-500 hover:text-zinc-300"
-                : "text-zinc-400 hover:text-zinc-600",
+              "text-muted-foreground hover:text-foreground",
             )}
             onClick={handleCopy}
           >
@@ -220,30 +208,11 @@ function CodeEditor({
         </div>
       </div>
       <div className="relative">
-        <Editor
-          height={`${height}px`}
-          language={activeFile.language}
+        <SharedCodeEditor
           value={activeFile.code}
-          theme={isDark ? "vs-dark" : "light"}
-          options={{
-            readOnly: true,
-            minimap: { enabled: false },
-            scrollBeyondLastLine: false,
-            fontSize: 12,
-            lineNumbers: "off",
-            renderLineHighlight: "none",
-            fontFamily:
-              "'JetBrains Mono', 'Menlo', 'Monaco', 'Courier New', monospace",
-            padding: { top: 0, bottom: 0 },
-            scrollbar: { vertical: "hidden", horizontal: "hidden" },
-            wordWrap: "on",
-            folding: false,
-            overviewRulerBorder: false,
-            hideCursorInOverviewRuler: true,
-            matchBrackets: "never",
-            renderWhitespace: "none",
-            glyphMargin: false,
-          }}
+          language={((activeFile.language === "ini" ? "text" : activeFile.language) || "typescript") as CodeLanguage}
+          readOnly
+          minHeight={height}
         />
       </div>
     </div>

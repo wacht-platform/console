@@ -129,13 +129,6 @@ export function useAgent(agentId: string) {
 
 // Extended agent type with attached features
 export interface AgentWithFeatures extends Agent {
-  integrations: Array<{
-    id: string;
-    name: string;
-    integration_type: string;
-    config: Record<string, unknown>;
-    webhook_url: string;
-  }>;
   tools: Array<{
     id: string;
     name: string;

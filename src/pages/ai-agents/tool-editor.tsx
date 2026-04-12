@@ -28,7 +28,7 @@ export default function ToolEditorPage() {
             <div className="flex items-start justify-between gap-6 pt-2">
                 <div className="space-y-2">
                     <div className="space-y-1">
-                        <h1 className="text-2xl font-normal tracking-tight">
+                        <h1 className="text-lg font-normal tracking-tight">
                             {isEditing
                                 ? `Editing ${tool?.name ?? "tool"}`
                                 : "Creating tool"}

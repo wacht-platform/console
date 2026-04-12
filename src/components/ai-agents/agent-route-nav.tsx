@@ -1,9 +1,8 @@
 import { Link, useLocation, useParams } from "react-router";
 import {
   BookOpenIcon,
-  CodeBracketIcon,
   CommandLineIcon,
-  LinkIcon,
+  QueueListIcon,
   Squares2X2Icon,
   UserGroupIcon,
   WrenchScrewdriverIcon,
@@ -13,10 +12,9 @@ import { buildAgentResourcePath } from "./agent-routes";
 
 const items = [
   { key: "overview", label: "Overview", icon: Squares2X2Icon, suffix: "" },
-  { key: "integrations", label: "Integrations", icon: LinkIcon, suffix: "/integrations" },
+  { key: "skills", label: "Skills", icon: QueueListIcon, suffix: "/skills" },
   { key: "tools", label: "Tools", icon: WrenchScrewdriverIcon, suffix: "/tools" },
   { key: "knowledge-bases", label: "Knowledge Bases", icon: BookOpenIcon, suffix: "/knowledge-bases" },
-  { key: "mcp-servers", label: "MCP Servers", icon: CodeBracketIcon, suffix: "/mcp-servers" },
   { key: "sub-agents", label: "Sub-Agents", icon: UserGroupIcon, suffix: "/sub-agents" },
   { key: "debug", label: "Debug", icon: CommandLineIcon, suffix: "/debug" },
 ] as const;

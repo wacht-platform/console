@@ -27,16 +27,6 @@ async function fetchMcpServers(
   return data;
 }
 
-async function fetchAgentMcpServers(
-  deploymentId: string,
-  agentId: string,
-): Promise<McpServer[]> {
-  const { data } = await apiClient.get<{ data: McpServer[] }>(
-    `/deployments/${deploymentId}/ai/agents/${agentId}/mcp-servers`,
-  );
-  return data.data;
-}
-
 async function createMcpServer(
   deploymentId: string,
   payload: CreateMcpServerRequest,
@@ -78,26 +68,6 @@ async function deleteMcpServer(
   await apiClient.delete(`/deployments/${deploymentId}/ai/mcp-servers/${mcpServerId}`);
 }
 
-async function attachMcpServerToAgent(
-  deploymentId: string,
-  agentId: string,
-  mcpServerId: string,
-): Promise<void> {
-  await apiClient.post(
-    `/deployments/${deploymentId}/ai/agents/${agentId}/mcp-servers/${mcpServerId}`,
-  );
-}
-
-async function detachMcpServerFromAgent(
-  deploymentId: string,
-  agentId: string,
-  mcpServerId: string,
-): Promise<void> {
-  await apiClient.delete(
-    `/deployments/${deploymentId}/ai/agents/${agentId}/mcp-servers/${mcpServerId}`,
-  );
-}
-
 export function useMcpServers(params: GetMcpServersParams = {}) {
   const { selectedDeployment } = useProjects();
 
@@ -109,16 +79,6 @@ export function useMcpServers(params: GetMcpServersParams = {}) {
       mcpServers: response.data,
       hasMore: response.has_more,
     }),
-  });
-}
-
-export function useAgentMcpServers(agentId: string) {
-  const { selectedDeployment } = useProjects();
-
-  return useQuery({
-    queryKey: ["agent-mcp-servers", selectedDeployment?.id, agentId],
-    queryFn: () => fetchAgentMcpServers(selectedDeployment!.id, agentId),
-    enabled: !!selectedDeployment?.id && !!agentId,
   });
 }
 
@@ -179,49 +139,10 @@ export function useDeleteMcpServer() {
       queryClient.invalidateQueries({
         queryKey: ["mcp-servers", selectedDeployment!.id],
       });
-      queryClient.invalidateQueries({ queryKey: ["agent-mcp-servers"] });
       toast.success("MCP server deleted");
     },
     onError: () => {
       toast.error("Failed to delete MCP server");
-    },
-  });
-}
-
-export function useAttachMcpServer(agentId: string) {
-  const { selectedDeployment } = useProjects();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (mcpServerId: string) =>
-      attachMcpServerToAgent(selectedDeployment!.id, agentId, mcpServerId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["agent-mcp-servers", selectedDeployment!.id, agentId],
-      });
-      toast.success("MCP server attached");
-    },
-    onError: () => {
-      toast.error("Failed to attach MCP server");
-    },
-  });
-}
-
-export function useDetachMcpServer(agentId: string) {
-  const { selectedDeployment } = useProjects();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (mcpServerId: string) =>
-      detachMcpServerFromAgent(selectedDeployment!.id, agentId, mcpServerId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["agent-mcp-servers", selectedDeployment!.id, agentId],
-      });
-      toast.success("MCP server detached");
-    },
-    onError: () => {
-      toast.error("Failed to detach MCP server");
     },
   });
 }

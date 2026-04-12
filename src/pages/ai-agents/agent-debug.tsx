@@ -21,12 +21,11 @@ export default function AgentDebugPage() {
             const result = await generateTicketMutation.mutateAsync({
                 deployment_id: String(selectedDeployment.id),
                 agent_ids: [agent.id],
-                actor_ids: [actorId],
-                selected_actor_id: actorId,
+                actor_id: actorId,
                 selected_agent_id: agent.id,
                 expires_in: 60 * 60 * 12,
             });
-            const testUrl = `http://localhost:4080/vanity/agents?ticket=${result.ticket}`;
+            const testUrl = `${selectedDeployment.backend_host}/vanity/agents?ticket=${result.ticket}`;
             window.open(testUrl, "_blank");
         } catch (err) {
             console.error("Failed to generate ticket:", err);

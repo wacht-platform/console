@@ -10,8 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { useDarkMode } from "@/lib/hooks/use-dark-mode";
-import Editor from "@monaco-editor/react";
+import { CodeEditor } from "@/components/code-editor";
 
 interface WorkspaceMember {
 	id: string;
@@ -49,7 +48,6 @@ export function EditWorkspaceMemberDialog({
 }: EditWorkspaceMemberDialogProps) {
 	const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 	const [publicMetadata, setPublicMetadata] = useState<string>("");
-	const isDarkMode = useDarkMode();
 
 	const updateMember = useUpdateWorkspaceMember();
 
@@ -185,30 +183,11 @@ export function EditWorkspaceMemberDialog({
 
 								<div className="space-y-3">
 									<div className="rounded-lg overflow-hidden bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800">
-										<Editor
-											height="120px"
-											defaultLanguage="json"
+										<CodeEditor
+											language="json"
+											minHeight={120}
 											value={publicMetadata}
 											onChange={(value) => setPublicMetadata(value || "{}")}
-											theme={isDarkMode ? "vs-dark" : "vs"}
-											options={{
-												readOnly: false,
-												minimap: { enabled: false },
-												fontSize: 13,
-												scrollBeyondLastLine: false,
-												automaticLayout: true,
-												formatOnPaste: true,
-												formatOnType: true,
-												wordWrap: "on",
-												lineNumbers: "off",
-												folding: false,
-												autoIndent: "full",
-												padding: { top: 8, bottom: 8 },
-												scrollbar: {
-													vertical: "auto",
-													horizontal: "hidden",
-												},
-											}}
 										/>
 									</div>
 									<p className="text-xs text-gray-500 dark:text-gray-400">

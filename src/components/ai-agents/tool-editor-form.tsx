@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
-import Editor from "@monaco-editor/react";
+import { CodeEditor } from "@/components/code-editor";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
@@ -14,7 +14,6 @@ import {
 import { Switch } from "../ui/switch";
 import { Label } from "../ui/label";
 import { useCreateTool, useUpdateTool } from "../../lib/api/hooks/use-tools";
-import { useTheme } from "@/lib/providers/theme";
 import type {
     AiTool,
     AiToolType,
@@ -462,12 +461,8 @@ export function ToolEditorForm({
     className,
     formId = "tool-editor-form",
 }: ToolEditorFormProps) {
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const createToolMutation = useCreateTool();
     const updateToolMutation = useUpdateTool();
-    const { actualTheme } = useTheme();
-    const isDark = actualTheme === "dark";
-
     const [formData, setFormData] = useState<ToolFormData>({
         name: "",
         description: "",
@@ -644,8 +639,6 @@ export function ToolEditorForm({
         setValidationErrors(errors);
         if (errors.length > 0) return;
 
-        setIsSubmitting(true);
-
         try {
             const configuration = serializeToolConfiguration(
                 formData.configuration,
@@ -681,8 +674,6 @@ export function ToolEditorForm({
         } catch (error) {
             console.error("Failed to save tool:", error);
             toast.error(`Failed to ${isEditing ? "update" : "create"} tool`);
-        } finally {
-            setIsSubmitting(false);
         }
     };
 
@@ -1122,37 +1113,20 @@ export function ToolEditorForm({
                             title="Python code"
                             description="Define run(input) or async def run(input). Return JSON matching the output schema."
                         >
-                            <div className="overflow-hidden rounded-xl border border-border/70 bg-background">
-                                <Editor
-                                    height="360px"
-                                    language="python"
-                                    value={runnerConfig.code}
-                                    theme={isDark ? "vs-dark" : "light"}
-                                    onChange={(value) =>
-                                        setFormData({
-                                            ...formData,
-                                            configuration: {
-                                                ...runnerConfig,
-                                                code: value || "",
-                                            },
-                                        })
-                                    }
-                                    options={{
-                                        minimap: { enabled: false },
-                                        scrollBeyondLastLine: false,
-                                        fontSize: 13,
-                                        fontFamily:
-                                            "'JetBrains Mono', 'Menlo', 'Monaco', 'Courier New', monospace",
-                                        wordWrap: "on",
-                                        automaticLayout: true,
-                                        padding: { top: 16, bottom: 16 },
-                                        tabSize: 4,
-                                        insertSpaces: true,
-                                        renderLineHighlight: "gutter",
-                                        overviewRulerBorder: false,
-                                    }}
-                                />
-                            </div>
+                            <CodeEditor
+                                value={runnerConfig.code}
+                                language="python"
+                                minHeight={360}
+                                onChange={(value) =>
+                                    setFormData({
+                                        ...formData,
+                                        configuration: {
+                                            ...runnerConfig,
+                                            code: value || "",
+                                        },
+                                    })
+                                }
+                            />
                             <p className="text-xs leading-5 text-muted-foreground">
                                 If your code returns structured output, define it in
                                 <span className="font-medium text-foreground"> Output Parameters</span>.

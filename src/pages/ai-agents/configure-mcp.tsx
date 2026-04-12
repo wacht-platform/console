@@ -74,8 +74,9 @@ export default function ConfigureMCPPage() {
                 <div>
                     <Heading>MCP Servers</Heading>
                     <p className="text-sm text-muted-foreground">
-                        Define reusable MCP servers at deployment level and
-                        attach them to agents.
+                        Define reusable MCP servers at deployment level. These
+                        servers are available across sessions in this
+                        deployment.
                     </p>
                 </div>
                 <Button onClick={handleCreate}>
@@ -157,8 +158,8 @@ export default function ConfigureMCPPage() {
                 <div className="rounded-md border p-8 text-center">
                     <h3 className="text-sm font-medium">No MCP servers</h3>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Create your first MCP server to start attaching it to
-                        agents.
+                        Create your first MCP server to make it available in
+                        this deployment.
                     </p>
                     <Button className="mt-4" onClick={handleCreate}>
                         <PlusIcon className="mr-2 h-4 w-4" />
@@ -183,7 +184,7 @@ export default function ConfigureMCPPage() {
                 title="Delete MCP Server"
                 message={
                     deletingMcpServer
-                        ? `Delete "${deletingMcpServer.name}"? This removes it from all agents.`
+                        ? `Delete "${deletingMcpServer.name}"? This removes it from this deployment.`
                         : ""
                 }
                 confirmText="Delete"

@@ -1,9 +1,9 @@
 import { useParams, useNavigate } from "react-router";
 import { useState, useEffect, useRef } from "react";
+import type { EditorView } from "@codemirror/view";
 import { Input } from "@/components/ui/input";
 import { Heading } from "@/components/ui/heading";
 import { Switch, SwitchField } from "@/components/ui/switch";
-import { useDarkMode } from "@/lib/hooks/use-dark-mode";
 import {
   Field,
   FieldGroup,
@@ -11,7 +11,7 @@ import {
   Description,
 } from "@/components/ui/fieldset";
 import { DeploymentJWTTemplate } from "@/types/deployment";
-import Editor from "@monaco-editor/react";
+import { CodeEditor } from "@/components/code-editor";
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import { Textarea } from "@/components/ui/textarea";
 import { useProjects } from "@/lib/api/hooks/use-projects";
@@ -26,7 +26,6 @@ export default function JWTTemplateCreateUpdatePage() {
   const { templateId } = useParams();
   const { selectedDeployment } = useProjects();
   const navigate = useNavigate();
-  const isDarkMode = useDarkMode();
   const {
     createJWTTemplate,
     isCreatingJWTTemplate,
@@ -49,10 +48,10 @@ export default function JWTTemplateCreateUpdatePage() {
   const [isCustomSigningKey, setIsCustomSigningKey] = useState(false);
   const [signingAlgorithm, setSigningAlgorithm] = useState("HS256");
   const [secretKey, setSecretKey] = useState("");
+  const editorRef = useRef<EditorView | null>(null);
   const isEditMode = !!templateId;
   const [validationError, setValidationError] = useState<string | null>(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
-  const editorRef = useRef<any>(null);
 
   useEffect(() => {
     if (templateId && jwtTemplates) {
@@ -145,22 +144,14 @@ export default function JWTTemplateCreateUpdatePage() {
   const insertVariable = (variable: string) => {
     if (!editorRef.current) return;
 
-    const editor = editorRef.current;
-    const position = editor.getPosition();
-    const range = {
-      startLineNumber: position.lineNumber,
-      startColumn: position.column,
-      endLineNumber: position.lineNumber,
-      endColumn: position.column
-    };
-
-    editor.executeEdits("insert-variable", [{
-      range: range,
-      text: `{{${variable}}}`,
-      forceMoveMarkers: true
-    }]);
-
-    editor.focus();
+    const view = editorRef.current;
+    const text = `{{${variable}}}`;
+    const selection = view.state.selection.main;
+    view.dispatch({
+      changes: { from: selection.from, to: selection.to, insert: text },
+      selection: { anchor: selection.from + text.length },
+    });
+    view.focus();
   };
 
   const handleClaimsChange = (value: string | undefined) => {
@@ -534,29 +525,15 @@ export default function JWTTemplateCreateUpdatePage() {
                   <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100">JWT Claims</h3>
                   <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">Define the payload data to include in your JWT tokens</p>
                 </div>
-                <div className="border border-gray-200 dark:border-zinc-700 rounded-lg overflow-hidden">
-                  <Editor
-                    height="400px"
-                    defaultLanguage="json"
-                    value={claims}
-                    onChange={handleClaimsChange}
-                    onMount={(editor) => {
-                      editorRef.current = editor;
-                    }}
-                    theme={isDarkMode ? "vs-dark" : "vs"}
-                    options={{
-                      minimap: { enabled: false },
-                      fontSize: 14,
-                      scrollBeyondLastLine: false,
-                      automaticLayout: true,
-                      formatOnPaste: true,
-                      formatOnType: true,
-                      lineNumbers: "on",
-                      renderLineHighlight: "all",
-                      padding: { top: 16, bottom: 16 },
-                    }}
-                  />
-                </div>
+                <CodeEditor
+                  language="json"
+                  minHeight={400}
+                  value={claims}
+                  onChange={(value) => handleClaimsChange(value || "")}
+                  onCreateEditor={(view) => {
+                    editorRef.current = view;
+                  }}
+                />
               </div>
 
               <div className="lg:col-span-4 space-y-4">

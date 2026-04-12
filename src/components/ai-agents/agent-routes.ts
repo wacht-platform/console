@@ -10,7 +10,13 @@ export function buildAgentBasePath(params: AgentRouteParams): string {
 
 export function buildAgentResourcePath(
   params: AgentRouteParams,
-  suffix: "" | "/tools" | "/knowledge-bases" | "/mcp-servers" | "/sub-agents",
+  suffix:
+    | ""
+    | "/skills"
+    | "/tools"
+    | "/knowledge-bases"
+    | "/sub-agents"
+    | "/debug",
 ): string {
   return `${buildAgentBasePath(params)}${suffix}`;
 }

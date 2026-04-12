@@ -7,7 +7,6 @@ import {
     useDeleteWorkspace,
     useUpdateWorkspace,
 } from "@/lib/api/hooks/use-workspace-mutations";
-import { useDarkMode } from "@/lib/hooks/use-dark-mode";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 import { Button } from "@/components/ui/button";
 import { Input, InputGroup } from "@/components/ui/input";
@@ -23,7 +22,7 @@ import {
     TableHead,
     TableCell,
 } from "@/components/ui/table";
-import Editor from "@monaco-editor/react";
+import { CodeEditor } from "@/components/code-editor";
 import { DeleteConfirmationDialog } from "@/components/organizations/DeleteConfirmationDialog";
 import { EditWorkspaceDialog } from "@/components/workspaces/EditWorkspaceDialog";
 import { CreateWorkspaceRoleDialog } from "@/components/workspaces/CreateWorkspaceRoleDialog";
@@ -51,8 +50,7 @@ export default function WorkspaceDetailsPage() {
     const navigate = useNavigate();
     const { id } = useParams();
     const workspaceId = id;
-    const isDarkMode = useDarkMode();
-
+  
     // Tab state
     const [activeTab, setActiveTab] = useState("overview");
 
@@ -827,32 +825,14 @@ export default function WorkspaceDetailsPage() {
                                 </div>
                             </div>
                             <div className="border border-gray-200 dark:border-zinc-800 rounded-lg overflow-hidden">
-                                <Editor
-                                    height="200px"
+                                <CodeEditor
                                     language="json"
+                                    minHeight={200}
+                                    readOnly={!isEditingPublicMetadata}
                                     value={publicMetadata}
                                     onChange={(value) =>
                                         setPublicMetadata(value || "{}")
                                     }
-                                    theme={isDarkMode ? "vs-dark" : "vs"}
-                                    options={{
-                                        readOnly: !isEditingPublicMetadata,
-                                        minimap: { enabled: false },
-                                        fontSize: 13,
-                                        scrollBeyondLastLine: false,
-                                        automaticLayout: true,
-                                        formatOnPaste: true,
-                                        formatOnType: true,
-                                        wordWrap: "on",
-                                        lineNumbers: "off",
-                                        folding: false,
-                                        autoIndent: "full",
-                                        padding: { top: 8, bottom: 8 },
-                                        scrollbar: {
-                                            vertical: "auto",
-                                            horizontal: "hidden",
-                                        },
-                                    }}
                                 />
                             </div>
                         </div>
@@ -899,32 +879,14 @@ export default function WorkspaceDetailsPage() {
                                 </div>
                             </div>
                             <div className="border border-gray-200 dark:border-zinc-800 rounded-lg overflow-hidden">
-                                <Editor
-                                    height="200px"
+                                <CodeEditor
                                     language="json"
+                                    minHeight={200}
+                                    readOnly={!isEditingPrivateMetadata}
                                     value={privateMetadata}
                                     onChange={(value) =>
                                         setPrivateMetadata(value || "{}")
                                     }
-                                    theme={isDarkMode ? "vs-dark" : "vs"}
-                                    options={{
-                                        readOnly: !isEditingPrivateMetadata,
-                                        minimap: { enabled: false },
-                                        fontSize: 13,
-                                        scrollBeyondLastLine: false,
-                                        automaticLayout: true,
-                                        formatOnPaste: true,
-                                        formatOnType: true,
-                                        wordWrap: "on",
-                                        lineNumbers: "off",
-                                        folding: false,
-                                        autoIndent: "full",
-                                        padding: { top: 8, bottom: 8 },
-                                        scrollbar: {
-                                            vertical: "auto",
-                                            horizontal: "hidden",
-                                        },
-                                    }}
                                 />
                             </div>
                         </div>

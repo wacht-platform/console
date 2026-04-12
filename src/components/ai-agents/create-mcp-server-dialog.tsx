@@ -253,7 +253,8 @@ export function CreateMcpServerDialog({ open, onClose, mcpServer }: Props) {
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit MCP Server" : "Create MCP Server"}</DialogTitle>
           <DialogDescription>
-            Define reusable MCP servers and attach them to agents.
+            Define reusable MCP servers for this deployment. They are available
+            across sessions in the deployment.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>

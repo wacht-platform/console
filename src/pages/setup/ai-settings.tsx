@@ -6,6 +6,13 @@ import { Heading, Subheading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { Divider } from "@/components/ui/divider";
 import { Input } from "@/components/ui/input";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { Description, Field, Label } from "@/components/ui/fieldset";
 import { Switch } from "@/components/ui/switch";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/20/solid";
@@ -14,16 +21,28 @@ import SavePopup from "@/components/save-popup";
 import { InlineLoader } from "@/components/ui/loading-screen";
 
 interface AISettingsResponse {
+    strong_llm_provider: "gemini" | "openai" | "openrouter";
+    weak_llm_provider: "gemini" | "openai" | "openrouter";
     gemini_api_key_set: boolean;
+    openrouter_api_key_set: boolean;
+    openrouter_require_parameters: boolean;
     openai_api_key_set: boolean;
     anthropic_api_key_set: boolean;
+    strong_model: string | null;
+    weak_model: string | null;
     storage: AIStorageSettingsResponse;
 }
 
 interface UpdateAISettingsRequest {
+    strong_llm_provider?: "gemini" | "openai" | "openrouter";
+    weak_llm_provider?: "gemini" | "openai" | "openrouter";
     gemini_api_key?: string;
+    openrouter_api_key?: string;
+    openrouter_require_parameters?: boolean;
     openai_api_key?: string;
     anthropic_api_key?: string;
+    strong_model?: string;
+    weak_model?: string;
     storage?: UpdateAIStorageSettingsRequest;
 }
 
@@ -76,8 +95,15 @@ export default function AISettingsPage() {
     const queryClient = useQueryClient();
 
     const [geminiKey, setGeminiKey] = useState("");
+    const [openrouterKey, setOpenrouterKey] = useState("");
+    const [openrouterRequireParameters, setOpenrouterRequireParameters] =
+        useState(true);
+    const [strongLlmProvider, setStrongLlmProvider] = useState<"gemini" | "openai" | "openrouter">("gemini");
+    const [weakLlmProvider, setWeakLlmProvider] = useState<"gemini" | "openai" | "openrouter">("gemini");
     const [openaiKey, setOpenaiKey] = useState("");
     const [anthropicKey, setAnthropicKey] = useState("");
+    const [strongModel, setStrongModel] = useState("");
+    const [weakModel, setWeakModel] = useState("");
     const [storageBucket, setStorageBucket] = useState("");
     const [storageRegion, setStorageRegion] = useState("");
     const [storageEndpoint, setStorageEndpoint] = useState("");
@@ -101,8 +127,16 @@ export default function AISettingsPage() {
             toast.success("AI settings updated successfully");
             setIsDirty(false);
             setGeminiKey("");
+            setOpenrouterKey("");
+            setOpenrouterRequireParameters(
+                updatedSettings.openrouter_require_parameters,
+            );
+            setStrongLlmProvider(updatedSettings.strong_llm_provider);
+            setWeakLlmProvider(updatedSettings.weak_llm_provider);
             setOpenaiKey("");
             setAnthropicKey("");
+            setStrongModel(updatedSettings.strong_model ?? "");
+            setWeakModel(updatedSettings.weak_model ?? "");
             setStorageBucket("");
             setStorageRegion("");
             setStorageEndpoint("");
@@ -118,10 +152,28 @@ export default function AISettingsPage() {
 
     const handleSave = () => {
         const updates: UpdateAISettingsRequest = {};
+        if (strongLlmProvider !== settings?.strong_llm_provider) {
+            updates.strong_llm_provider = strongLlmProvider;
+        }
+        if (weakLlmProvider !== settings?.weak_llm_provider) {
+            updates.weak_llm_provider = weakLlmProvider;
+        }
         if (geminiKey.trim()) updates.gemini_api_key = geminiKey.trim();
+        if (openrouterKey.trim())
+            updates.openrouter_api_key = openrouterKey.trim();
+        if (
+            strongLlmProvider === "openrouter" &&
+            openrouterRequireParameters !==
+                (settings?.openrouter_require_parameters ?? false)
+        ) {
+            updates.openrouter_require_parameters =
+                openrouterRequireParameters;
+        }
         if (openaiKey.trim()) updates.openai_api_key = openaiKey.trim();
         if (anthropicKey.trim())
             updates.anthropic_api_key = anthropicKey.trim();
+        if (strongModel.trim()) updates.strong_model = strongModel.trim();
+        if (weakModel.trim()) updates.weak_model = weakModel.trim();
 
         const currentStorage = settings?.storage;
         const trimmedBucket = storageBucket.trim();
@@ -143,8 +195,10 @@ export default function AISettingsPage() {
             );
 
         if (storageChanged) {
-            const resolvedBucket = trimmedBucket || currentStorage?.bucket || "";
-            const resolvedEndpoint = trimmedEndpoint || currentStorage?.endpoint || "";
+            const resolvedBucket =
+                trimmedBucket || currentStorage?.bucket || "";
+            const resolvedEndpoint =
+                trimmedEndpoint || currentStorage?.endpoint || "";
             const hasAccessKeyId = Boolean(
                 trimmedAccessKeyId || currentStorage?.access_key_id_set,
             );
@@ -171,7 +225,9 @@ export default function AISettingsPage() {
                     throw new Error("invalid protocol");
                 }
             } catch {
-                toast.error("Storage endpoint must be a valid http or https URL");
+                toast.error(
+                    "Storage endpoint must be a valid http or https URL",
+                );
                 return;
             }
 
@@ -187,13 +243,16 @@ export default function AISettingsPage() {
 
             const storageUpdates: UpdateAIStorageSettingsRequest = {};
             storageUpdates.provider = "s3";
-            if (forcePathStyle !== (currentStorage?.force_path_style ?? false)) {
+            if (
+                forcePathStyle !== (currentStorage?.force_path_style ?? false)
+            ) {
                 storageUpdates.force_path_style = forcePathStyle;
             }
             if (trimmedBucket) storageUpdates.bucket = trimmedBucket;
             if (trimmedRegion) storageUpdates.region = trimmedRegion;
             if (trimmedEndpoint) storageUpdates.endpoint = trimmedEndpoint;
-            if (trimmedRootPrefix) storageUpdates.root_prefix = trimmedRootPrefix;
+            if (trimmedRootPrefix)
+                storageUpdates.root_prefix = trimmedRootPrefix;
             if (trimmedAccessKeyId) {
                 storageUpdates.access_key_id = trimmedAccessKeyId;
             }
@@ -213,8 +272,16 @@ export default function AISettingsPage() {
 
     const handleCancel = () => {
         setGeminiKey("");
+        setOpenrouterKey("");
+        setOpenrouterRequireParameters(
+            settings?.openrouter_require_parameters ?? true,
+        );
+        setStrongLlmProvider(settings?.strong_llm_provider ?? "gemini");
+        setWeakLlmProvider(settings?.weak_llm_provider ?? "gemini");
         setOpenaiKey("");
         setAnthropicKey("");
+        setStrongModel(settings?.strong_model ?? "");
+        setWeakModel(settings?.weak_model ?? "");
         setStorageBucket("");
         setStorageRegion("");
         setStorageEndpoint("");
@@ -231,12 +298,31 @@ export default function AISettingsPage() {
         }
 
         setForcePathStyle(settings.storage.force_path_style);
+        setStrongLlmProvider(settings.strong_llm_provider);
+        setWeakLlmProvider(settings.weak_llm_provider);
+        setOpenrouterRequireParameters(
+            settings.openrouter_require_parameters,
+        );
+        setStrongModel(settings.strong_model ?? "");
+        setWeakModel(settings.weak_model ?? "");
     }, [settings]);
 
     useEffect(() => {
         const currentStorage = settings?.storage;
         const hasApiKeyChanges = Boolean(
-            geminiKey.trim() || openaiKey.trim() || anthropicKey.trim(),
+            geminiKey.trim() ||
+                openrouterKey.trim() ||
+                (strongLlmProvider === "openrouter" &&
+                    openrouterRequireParameters !==
+                        (settings?.openrouter_require_parameters ?? true)) ||
+                strongLlmProvider !==
+                    (settings?.strong_llm_provider ?? "gemini") ||
+                weakLlmProvider !==
+                    (settings?.weak_llm_provider ?? "gemini") ||
+                openaiKey.trim() ||
+                anthropicKey.trim() ||
+                strongModel.trim() ||
+                weakModel.trim(),
         );
         const hasStorageChanges =
             forcePathStyle !== (currentStorage?.force_path_style ?? false) ||
@@ -253,8 +339,14 @@ export default function AISettingsPage() {
     }, [
         settings,
         geminiKey,
+        openrouterKey,
+        openrouterRequireParameters,
+        strongLlmProvider,
+        weakLlmProvider,
         openaiKey,
         anthropicKey,
+        strongModel,
+        weakModel,
         storageBucket,
         storageRegion,
         storageEndpoint,
@@ -285,48 +377,6 @@ export default function AISettingsPage() {
             />
 
             <div className="mt-8 space-y-10">
-                {/* Google Gemini */}
-                <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
-                    <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                            <Subheading>Google Gemini</Subheading>
-                            <StatusBadge
-                                isSet={settings?.gemini_api_key_set ?? false}
-                            />
-                        </div>
-                        <Text>
-                            Powers your AI agent's core reasoning and response
-                            generation.
-                        </Text>
-                        <Text className="text-xs">
-                            Get your key from the{" "}
-                            <a
-                                href="https://aistudio.google.com/apikey"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-500 hover:underline"
-                            >
-                                Google AI Studio
-                            </a>
-                        </Text>
-                    </div>
-                    <div className="space-y-1">
-                        <Input
-                            type="password"
-                            placeholder={
-                                settings?.gemini_api_key_set
-                                    ? "••••••••••••••••"
-                                    : "Enter Gemini API Key"
-                            }
-                            value={geminiKey}
-                            onChange={(e) => setGeminiKey(e.target.value)}
-                            autoComplete="new-password"
-                        />
-                    </div>
-                </section>
-
-                <Divider soft />
-
                 <section className="space-y-4">
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
@@ -423,8 +473,8 @@ export default function AISettingsPage() {
                                 Credentials
                             </div>
                             <div className="mt-1 text-xs text-zinc-500">
-                                Leave a credential field blank to keep the currently
-                                saved value.
+                                Leave a credential field blank to keep the
+                                currently saved value.
                             </div>
                             <div className="mt-4 space-y-4">
                                 <Field>
@@ -439,7 +489,9 @@ export default function AISettingsPage() {
                                         }
                                         value={storageAccessKeyId}
                                         onChange={(e) =>
-                                            setStorageAccessKeyId(e.target.value)
+                                            setStorageAccessKeyId(
+                                                e.target.value,
+                                            )
                                         }
                                     />
                                 </Field>
@@ -450,26 +502,30 @@ export default function AISettingsPage() {
                                         type="password"
                                         autoComplete="new-password"
                                         placeholder={
-                                            settings?.storage.secret_access_key_set
+                                            settings?.storage
+                                                .secret_access_key_set
                                                 ? "••••••••••••••••"
                                                 : "Enter secret access key"
                                         }
                                         value={storageSecretAccessKey}
                                         onChange={(e) =>
-                                            setStorageSecretAccessKey(e.target.value)
+                                            setStorageSecretAccessKey(
+                                                e.target.value,
+                                            )
                                         }
                                     />
                                 </Field>
 
-                                <div className="border-t border-zinc-200 pt-4 dark:border-zinc-800">
+                                <div className="border-zinc-200 pt-10 dark:border-zinc-800">
                                     <div className="flex items-center justify-between gap-4">
                                         <div className="space-y-1">
                                             <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                                                 Force path-style requests
                                             </div>
                                             <div className="text-xs text-zinc-500">
-                                                Enable this for providers that expect
-                                                path-style bucket addressing.
+                                                Enable this for providers that
+                                                expect path-style bucket
+                                                addressing.
                                             </div>
                                         </div>
                                         <Switch
@@ -485,8 +541,194 @@ export default function AISettingsPage() {
 
                 <Divider soft />
 
+                <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
+                    <div className="space-y-1">
+                        <Subheading>Model Selection</Subheading>
+                        <Text>
+                            Configure the deployment-wide strong and weak model
+                            strings used by the runtime and the provider used
+                            for model requests.
+                        </Text>
+                    </div>
+                    <div className="space-y-4">
+                        <Field>
+                            <Label>Strong provider</Label>
+                            <Select
+                                value={strongLlmProvider}
+                                onValueChange={(value) =>
+                                    setStrongLlmProvider(
+                                        value as
+                                            | "gemini"
+                                            | "openai"
+                                            | "openrouter",
+                                    )
+                                }
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select provider" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="gemini">
+                                        Gemini
+                                    </SelectItem>
+                                    <SelectItem value="openrouter">
+                                        OpenRouter
+                                    </SelectItem>
+                                    <SelectItem value="openai">
+                                        OpenAI
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </Field>
+                        <Field>
+                            <Label>Weak provider</Label>
+                            <Select
+                                value={weakLlmProvider}
+                                onValueChange={(value) =>
+                                    setWeakLlmProvider(
+                                        value as
+                                            | "gemini"
+                                            | "openai"
+                                            | "openrouter",
+                                    )
+                                }
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select provider" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="gemini">
+                                        Gemini
+                                    </SelectItem>
+                                    <SelectItem value="openrouter">
+                                        OpenRouter
+                                    </SelectItem>
+                                    <SelectItem value="openai">
+                                        OpenAI
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </Field>
+                        <Field>
+                            <Label>Strong model</Label>
+                            <Input
+                                placeholder={
+                                    settings?.strong_model ??
+                                    "provider/strong-model"
+                                }
+                                value={strongModel}
+                                onChange={(e) => setStrongModel(e.target.value)}
+                            />
+                        </Field>
+                        <Field>
+                            <Label>Weak model</Label>
+                            <Input
+                                placeholder={
+                                    settings?.weak_model ??
+                                    "provider/weak-model"
+                                }
+                                value={weakModel}
+                                onChange={(e) => setWeakModel(e.target.value)}
+                            />
+                        </Field>
+                    </div>
+                </section>
+
+                <Divider soft />
+
+                {/* Google Gemini */}
+                <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                            <Subheading>Google Gemini</Subheading>
+                            <StatusBadge
+                                isSet={settings?.gemini_api_key_set ?? false}
+                            />
+                        </div>
+                        <Text>
+                            Powers your AI agent's core reasoning and response
+                            generation.
+                        </Text>
+                        <Text className="text-xs">
+                            Get your key from the{" "}
+                            <a
+                                href="https://aistudio.google.com/apikey"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:underline"
+                            >
+                                Google AI Studio
+                            </a>
+                        </Text>
+                    </div>
+                    <div className="space-y-1">
+                        <Input
+                            type="password"
+                            placeholder={
+                                settings?.gemini_api_key_set
+                                    ? "••••••••••••••••"
+                                    : "Enter Gemini API Key"
+                            }
+                            value={geminiKey}
+                            onChange={(e) => setGeminiKey(e.target.value)}
+                            autoComplete="new-password"
+                        />
+                    </div>
+                </section>
+
+                <Divider soft />
+
+                <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                            <Subheading>OpenRouter</Subheading>
+                            <StatusBadge
+                                isSet={settings?.openrouter_api_key_set ?? false}
+                            />
+                        </div>
+                        <Text>
+                            Configure an OpenRouter API key for deployments that
+                            route model calls through OpenRouter.
+                        </Text>
+                    </div>
+                    <div className="space-y-4">
+                        <Field>
+                            <Label>API key</Label>
+                            <Input
+                                type="password"
+                                placeholder={
+                                    settings?.openrouter_api_key_set
+                                        ? "••••••••••••••••"
+                                        : "Enter OpenRouter API Key"
+                                }
+                                value={openrouterKey}
+                                onChange={(e) => setOpenrouterKey(e.target.value)}
+                                autoComplete="new-password"
+                            />
+                        </Field>
+                        {strongLlmProvider === "openrouter" && (
+                            <div className="flex items-center justify-between gap-4 rounded-lg border border-zinc-200 px-4 py-3 dark:border-zinc-800">
+                                <div className="space-y-1">
+                                    <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                        OpenRouter require parameters
+                                    </div>
+                                    <div className="text-xs text-zinc-500">
+                                        Require OpenRouter to route only to endpoints that explicitly support all requested parameters.
+                                    </div>
+                                </div>
+                                <Switch
+                                    checked={openrouterRequireParameters}
+                                    onCheckedChange={setOpenrouterRequireParameters}
+                                />
+                            </div>
+                        )}
+                    </div>
+                </section>
+
+                <Divider soft />
+
                 {/* OpenAI */}
-                <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start opacity-70">
+                <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <Subheading>OpenAI</Subheading>
@@ -494,15 +736,22 @@ export default function AISettingsPage() {
                                 isSet={settings?.openai_api_key_set ?? false}
                             />
                         </div>
-                        <Text>Support for OpenAI models is coming soon.</Text>
+                        <Text>
+                            Configure a direct OpenAI API key for deployments
+                            that call OpenAI models without a router.
+                        </Text>
                     </div>
                     <div className="space-y-1">
                         <Input
                             type="password"
-                            placeholder="Coming soon"
+                            placeholder={
+                                settings?.openai_api_key_set
+                                    ? "••••••••••••••••"
+                                    : "Enter OpenAI API Key"
+                            }
                             value={openaiKey}
                             onChange={(e) => setOpenaiKey(e.target.value)}
-                            disabled
+                            autoComplete="new-password"
                         />
                     </div>
                 </section>

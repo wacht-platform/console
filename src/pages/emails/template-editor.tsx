@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import type { EditorView } from "@codemirror/view";
 import { useParams, useNavigate } from "react-router";
 import { Heading } from "@/components/ui/heading";
 import { Input } from "@/components/ui/input";
@@ -9,9 +10,8 @@ import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 import { Spinner } from "@/components/ui/spinner";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { toast } from "sonner";
-import { useDarkMode } from "@/lib/hooks/use-dark-mode";
 import { getTemplateVariables } from "@/lib/email-template-variables";
-import Editor from "@monaco-editor/react";
+import { CodeEditor } from "@/components/code-editor";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CodeBracketIcon, EyeIcon } from "@heroicons/react/24/outline";
 import AdvancedEditor from "@/components/editor/advanced-editor";
@@ -21,10 +21,9 @@ export default function EmailTemplateEditor() {
   const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
   const joditRef = useRef<any>(null);
-  const monacoRef = useRef<any>(null);
+  const codeMirrorRef = useRef<EditorView | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("visual");
-  const isDarkMode = useDarkMode();
 
   const { emailTemplate, isLoading, error, updateTemplate } = useEmailTemplate(
     templateId!
@@ -93,22 +92,14 @@ export default function EmailTemplateEditor() {
       const jodit = joditRef.current;
       jodit.s.insertHTML(text);
     }
-    // Insert into Monaco Code Editor
-    else if (activeTab === "code" && monacoRef.current) {
-      const editor = monacoRef.current;
-      const position = editor.getPosition();
-      const range = {
-        startLineNumber: position.lineNumber,
-        startColumn: position.column,
-        endLineNumber: position.lineNumber,
-        endColumn: position.column
-      };
-      editor.executeEdits("insert-variable", [{
-        range: range,
-        text: text,
-        forceMoveMarkers: true
-      }]);
-      editor.focus();
+    else if (activeTab === "code" && codeMirrorRef.current) {
+      const view = codeMirrorRef.current;
+      const selection = view.state.selection.main;
+      view.dispatch({
+        changes: { from: selection.from, to: selection.to, insert: text },
+        selection: { anchor: selection.from + text.length },
+      });
+      view.focus();
     }
   };
 
@@ -260,30 +251,15 @@ export default function EmailTemplateEditor() {
                 </div>
               </TabsContent>
               <TabsContent value="code" className="mt-0">
-                <div className="border border-gray-200 dark:border-zinc-700 rounded-lg overflow-hidden">
-                  <Editor
-                    height="500px"
-                    defaultLanguage="html"
-                    value={formData.template_data}
-                    onChange={(value) => handleEditorChange(value || "")}
-                    onMount={(editor) => {
-                      monacoRef.current = editor;
-                    }}
-                    theme={isDarkMode ? "vs-dark" : "vs"}
-                    options={{
-                      minimap: { enabled: false },
-                      fontSize: 14,
-                      scrollBeyondLastLine: false,
-                      automaticLayout: true,
-                      formatOnPaste: true,
-                      formatOnType: true,
-                      lineNumbers: "on",
-                      renderLineHighlight: "all",
-                      padding: { top: 16, bottom: 16 },
-                      wordWrap: "on"
-                    }}
-                  />
-                </div>
+                <CodeEditor
+                  value={formData.template_data}
+                  language="html"
+                  minHeight={500}
+                  onChange={(value) => handleEditorChange(value || "")}
+                  onCreateEditor={(view) => {
+                    codeMirrorRef.current = view;
+                  }}
+                />
               </TabsContent>
             </Tabs>
           </div>

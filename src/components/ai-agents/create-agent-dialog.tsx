@@ -22,7 +22,6 @@ import {
 	BookOpenIcon,
 	CheckIcon,
 	UserGroupIcon,
-	CircleStackIcon,
 	ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from 'sonner';
@@ -31,8 +30,7 @@ import type { Agent } from "../../lib/api/hooks/use-agents";
 import { useCreateAgent, useUpdateAgent, useAgents } from "../../lib/api/hooks/use-agents";
 import { useAgentTools, useTools } from "../../lib/api/hooks/use-tools";
 import { useAgentKnowledgeBases, useKnowledgeBases } from "../../lib/api/hooks/use-knowledge-bases";
-import { useAgentMcpServers, useMcpServers } from "../../lib/api/hooks/use-mcp-servers";
-import { useAgentSubAgents, useAttachSubAgent, useDetachSubAgent } from "../../lib/api/hooks/use-sub-agents";
+import { useAttachSubAgent } from "../../lib/api/hooks/use-sub-agents";
 import { useProjects } from "../../lib/api/hooks/use-projects";
 import { useBillingAccount } from "../../lib/api/hooks/use-billing";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
@@ -56,7 +54,6 @@ interface AgentFormData {
 		allowFork?: boolean;
 		allowExec?: boolean;
 	};
-	mcpServerIds: string[];
 }
 
 interface FormErrors {
@@ -83,13 +80,10 @@ export function CreateAgentDialog({
 			allowFork: true,
 			allowExec: true,
 		},
-		mcpServerIds: [],
 	});
 
 	const [errors, setErrors] = useState<FormErrors>({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [isMcpSelectionInitialized, setIsMcpSelectionInitialized] = useState(false);
-	const [hasEditedMcpSelection, setHasEditedMcpSelection] = useState(false);
 	const [isCapabilitiesSelectionInitialized, setIsCapabilitiesSelectionInitialized] = useState(false);
 	const [hasEditedCapabilitiesSelection, setHasEditedCapabilitiesSelection] = useState(false);
 
@@ -105,7 +99,10 @@ export function CreateAgentDialog({
 	const { data: aiSettings } = useQuery({
 		queryKey: ["ai-settings-summary", selectedDeployment?.id],
 		queryFn: async () => {
-			const { data } = await apiClient.get<{ gemini_api_key_set: boolean }>(
+			const { data } = await apiClient.get<{
+				gemini_api_key_set: boolean;
+				openrouter_api_key_set: boolean;
+			}>(
 				`/deployments/${selectedDeployment!.id}/ai/settings`,
 			);
 			return data;
@@ -116,7 +113,8 @@ export function CreateAgentDialog({
 	const currentPlan = billingAccount?.subscription?.plan_name?.toLowerCase();
 	const isGrowthPlan = currentPlan === "growth";
 	const isPulseUsagePaused = !!billingAccount?.pulse_usage_disabled;
-	const hasCustomGeminiKey = !!aiSettings?.gemini_api_key_set;
+	const hasCustomGeminiKey =
+		!!aiSettings?.gemini_api_key_set || !!aiSettings?.openrouter_api_key_set;
 	const subscriptionPath =
 		projectId && deploymentId
 			? `/project/${projectId}/deployment/${deploymentId}/billing/subscription`
@@ -125,18 +123,12 @@ export function CreateAgentDialog({
 	// Fetch available resources
 	const { data: toolsData } = useTools({ limit: 100 });
 	const { data: knowledgeBasesData } = useKnowledgeBases({ limit: 100 });
-	const { data: mcpServersData } = useMcpServers({ limit: 200, offset: 0 });
-	const { data: attachedMcpServers = [], isFetched: isAttachedMcpFetched } = useAgentMcpServers(agent?.id || "");
 	const { data: attachedAgentTools = [] } = useAgentTools(agent?.id || "");
 	const { data: attachedAgentKnowledgeBases = [] } = useAgentKnowledgeBases(agent?.id || "");
-	const { data: attachedSubAgents = [] } = useAgentSubAgents(agent?.id || "");
 	const attachSubAgentMutation = useAttachSubAgent();
-	const detachSubAgentMutation = useDetachSubAgent();
 
 	const tools = toolsData?.tools || [];
 	const knowledgeBases = knowledgeBasesData?.data || [];
-	const mcpServers = mcpServersData?.mcpServers || [];
-
 	// Fetch all agents for sub-agent selection (exclude current agent when editing)
 	const { data: agentsData } = useAgents({ limit: 100 });
 	const availableAgents = (agentsData?.agents || []).filter(
@@ -147,8 +139,6 @@ export function CreateAgentDialog({
 	useEffect(() => {
 		if (open) {
 			setActiveTab("details");
-			setIsMcpSelectionInitialized(false);
-			setHasEditedMcpSelection(false);
 			setIsCapabilitiesSelectionInitialized(false);
 			setHasEditedCapabilitiesSelection(false);
 			if (agent) {
@@ -165,7 +155,6 @@ export function CreateAgentDialog({
 						allowFork: agent.spawn_config?.allow_fork ?? true,
 						allowExec: agent.spawn_config?.allow_exec ?? true,
 					},
-					mcpServerIds: [],
 				});
 			} else {
 				setFormData({
@@ -181,7 +170,6 @@ export function CreateAgentDialog({
 						allowFork: true,
 						allowExec: true,
 					},
-					mcpServerIds: [],
 				});
 			}
 			setErrors({});
@@ -209,25 +197,6 @@ export function CreateAgentDialog({
 		isCapabilitiesSelectionInitialized,
 		hasEditedCapabilitiesSelection,
 	]);
-
-	useEffect(() => {
-		if (!open || !agent || !isAttachedMcpFetched || isMcpSelectionInitialized || hasEditedMcpSelection) return;
-		const nextIds = attachedMcpServers.map((server) => String(server.id)).sort();
-		setFormData((prev) => {
-			const currentIds = [...prev.mcpServerIds].sort();
-			const isSame =
-				currentIds.length === nextIds.length &&
-				currentIds.every((id, index) => id === nextIds[index]);
-			if (isSame) {
-				return prev;
-			}
-			return {
-				...prev,
-				mcpServerIds: nextIds,
-			};
-		});
-		setIsMcpSelectionInitialized(true);
-	}, [open, agent, attachedMcpServers, isAttachedMcpFetched, isMcpSelectionInitialized, hasEditedMcpSelection]);
 
 	// Validation function
 	const validateForm = (): boolean => {
@@ -307,15 +276,6 @@ export function CreateAgentDialog({
 						subAgentId,
 					});
 				}
-				for (const mcpServerId of formData.mcpServerIds) {
-					await apiClient.post(
-						`/deployments/${selectedDeployment!.id}/ai/agents/${createdAgent.id}/mcp-servers/${mcpServerId}`,
-					);
-				}
-
-				await queryClient.invalidateQueries({
-					queryKey: ["agent-mcp-servers", selectedDeployment?.id, createdAgent.id],
-				});
 				await queryClient.invalidateQueries({
 					queryKey: ["agent-tools", selectedDeployment?.id, createdAgent.id],
 				});
@@ -333,7 +293,6 @@ export function CreateAgentDialog({
 					agent_name: formData.name.trim(),
 					tool_count: formData.toolIds.length,
 					knowledge_base_count: formData.knowledgeBaseIds.length,
-					mcp_server_count: formData.mcpServerIds.length,
 					sub_agent_count: formData.subAgentIds.length,
 				});
 				toast.success("Agent created successfully");
@@ -433,10 +392,9 @@ export function CreateAgentDialog({
 					) : (
 						<Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
 							<div className="px-6">
-								<TabsList className="grid w-full grid-cols-4">
+								<TabsList className="grid w-full grid-cols-3">
 									<TabsTrigger value="details">Details</TabsTrigger>
 									<TabsTrigger value="capabilities">Capabilities</TabsTrigger>
-									<TabsTrigger value="mcp">MCP Servers</TabsTrigger>
 									<TabsTrigger value="subAgents">Agent Swarm</TabsTrigger>
 								</TabsList>
 							</div>
@@ -445,59 +403,6 @@ export function CreateAgentDialog({
 								<TabsContent value="details" className="mt-0 space-y-6">
 									{detailsContent}
 								</TabsContent>
-
-							<TabsContent value="mcp" className="mt-0 space-y-4">
-								<div className="flex items-center justify-between">
-									<Label className="flex items-center gap-2 text-base">
-										<CircleStackIcon className="h-4 w-4 text-cyan-500" />
-										MCP Servers
-									</Label>
-									{formData.mcpServerIds.length > 0 && (
-										<Badge variant="secondary">{formData.mcpServerIds.length} selected</Badge>
-									)}
-								</div>
-								<p className="text-sm text-muted-foreground">
-									Attach reusable MCP servers to this agent.
-								</p>
-								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-									{mcpServers.length === 0 ? (
-										<div className="col-span-full text-sm text-muted-foreground py-2 italic text-center border border-dashed rounded-lg">
-											No MCP servers available
-										</div>
-									) : (
-										mcpServers.map((mcpServer) => (
-											<div
-												key={mcpServer.id}
-												onClick={() => {
-													const mcpServerId = String(mcpServer.id);
-													const newIds = formData.mcpServerIds.includes(mcpServerId)
-														? formData.mcpServerIds.filter((id) => id !== mcpServerId)
-														: [...formData.mcpServerIds, mcpServerId];
-													setHasEditedMcpSelection(true);
-													setFormData({ ...formData, mcpServerIds: newIds });
-												}}
-												className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all hover:bg-muted/50 ${
-													formData.mcpServerIds.includes(String(mcpServer.id))
-														? "border-primary bg-primary/5 hover:bg-primary/10"
-														: "border-border"
-												}`}
-											>
-												<div className={`mt-0.5 h-4 w-4 rounded flex items-center justify-center border ${
-													formData.mcpServerIds.includes(String(mcpServer.id))
-														? "bg-primary border-primary text-primary-foreground"
-														: "border-muted-foreground"
-												}`}>
-													{formData.mcpServerIds.includes(String(mcpServer.id)) && <CheckIcon className="h-3 w-3" />}
-												</div>
-												<div className="flex-1 min-w-0">
-													<div className="font-medium text-sm truncate">{mcpServer.name}</div>
-													<div className="text-xs text-muted-foreground truncate">{mcpServer.config.endpoint}</div>
-												</div>
-											</div>
-										))
-									)}
-								</div>
-							</TabsContent>
 
 							<TabsContent value="capabilities" className="mt-0 space-y-8">
 								{/* Tools Section */}

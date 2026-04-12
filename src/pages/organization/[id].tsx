@@ -4,7 +4,6 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { useOrganizationDetails } from "@/lib/api/hooks/use-organization-details";
 import { useOrganizationMembers } from "@/lib/api/hooks/use-organization-members";
-import { useDarkMode } from "@/lib/hooks/use-dark-mode";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 import {
   useUpdateOrganization,
@@ -21,7 +20,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import Editor from "@monaco-editor/react";
+import { CodeEditor } from "@/components/code-editor";
 import { CreateWorkspaceModal } from "@/components/workspaces/CreateWorkspaceModal";
 import { EditWorkspaceDialog } from "@/components/workspaces/EditWorkspaceDialog";
 import { EditOrganizationDialog } from "@/components/organizations/EditOrganizationDialog";
@@ -67,7 +66,6 @@ export default function OrganizationDetailsPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const organizationId = id;
-  const isDarkMode = useDarkMode();
   const { deploymentSettings } = useCurrentDeployemnt();
 
   // Tab state - needs to be declared before use
@@ -908,30 +906,12 @@ export default function OrganizationDetailsPage() {
               </div>
 
               <div className="rounded-lg overflow-hidden bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800">
-                <Editor
-                  height="120px"
-                  defaultLanguage="json"
+                <CodeEditor
+                  language="json"
+                  minHeight={120}
+                  readOnly={!isEditingPublicMetadata}
                   value={publicMetadata}
                   onChange={(value) => setPublicMetadata(value || "{}")}
-                  theme={isDarkMode ? "vs-dark" : "vs"}
-                  options={{
-                    readOnly: !isEditingPublicMetadata,
-                    minimap: { enabled: false },
-                    fontSize: 13,
-                    scrollBeyondLastLine: false,
-                    automaticLayout: true,
-                    formatOnPaste: true,
-                    formatOnType: true,
-                    wordWrap: "on",
-                    lineNumbers: "off",
-                    folding: false,
-                    autoIndent: "full",
-                    padding: { top: 8, bottom: 8 },
-                    scrollbar: {
-                      vertical: "auto",
-                      horizontal: "hidden",
-                    },
-                  }}
                 />
               </div>
             </div>
@@ -962,30 +942,12 @@ export default function OrganizationDetailsPage() {
               </div>
 
               <div className="rounded-lg overflow-hidden bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800">
-                <Editor
-                  height="120px"
-                  defaultLanguage="json"
+                <CodeEditor
+                  language="json"
+                  minHeight={120}
+                  readOnly={!isEditingPrivateMetadata}
                   value={privateMetadata}
                   onChange={(value) => setPrivateMetadata(value || "{}")}
-                  theme={isDarkMode ? "vs-dark" : "vs"}
-                  options={{
-                    readOnly: !isEditingPrivateMetadata,
-                    minimap: { enabled: false },
-                    fontSize: 13,
-                    scrollBeyondLastLine: false,
-                    automaticLayout: true,
-                    formatOnPaste: true,
-                    formatOnType: true,
-                    wordWrap: "on",
-                    lineNumbers: "off",
-                    folding: false,
-                    autoIndent: "full",
-                    padding: { top: 8, bottom: 8 },
-                    scrollbar: {
-                      vertical: "auto",
-                      horizontal: "hidden",
-                    },
-                  }}
                 />
               </div>
             </div>

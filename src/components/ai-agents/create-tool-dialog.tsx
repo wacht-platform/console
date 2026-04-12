@@ -33,7 +33,6 @@ export function CreateToolDialog({
                 <div className="flex-1 overflow-y-auto px-6 pb-6 pt-4">
                     <ToolEditorForm
                         tool={tool}
-                        onCancel={onClose}
                         onSaved={() => onClose()}
                     />
                 </div>

@@ -39,7 +39,10 @@ export default function CreateAgentsPage() {
 	const { data: aiSettings } = useQuery({
 		queryKey: ["ai-settings-summary", deploymentId],
 		queryFn: async () => {
-			const { data } = await apiClient.get<{ gemini_api_key_set: boolean }>(
+			const { data } = await apiClient.get<{
+				gemini_api_key_set: boolean;
+				openrouter_api_key_set: boolean;
+			}>(
 				`/deployments/${deploymentId}/ai/settings`,
 			);
 			return data;
@@ -50,7 +53,8 @@ export default function CreateAgentsPage() {
 	const currentPlan = billingAccount?.subscription?.plan_name?.toLowerCase();
 	const isGrowthPlan = currentPlan === "growth";
 	const isPulseUsagePaused = !!billingAccount?.pulse_usage_disabled;
-	const hasCustomGeminiKey = !!aiSettings?.gemini_api_key_set;
+	const hasCustomGeminiKey =
+		!!aiSettings?.gemini_api_key_set || !!aiSettings?.openrouter_api_key_set;
 	const subscriptionPath =
 		projectId && deploymentId
 			? `/project/${projectId}/deployment/${deploymentId}/billing/subscription`

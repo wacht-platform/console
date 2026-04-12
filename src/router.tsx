@@ -81,6 +81,9 @@ const KnowledgeBasePage = lazyImport(
 const AgentDetailsPage = lazyImport(
     () => import("./pages/ai-agents/agent-details"),
 );
+const AgentSkillsPage = lazyImport(
+    () => import("./pages/ai-agents/agent-skills"),
+);
 const AgentLayoutPage = lazyImport(
     () => import("./pages/ai-agents/agent-layout"),
 );
@@ -88,14 +91,8 @@ const AgentToolsPage = lazyImport(() => import("./pages/ai-agents/agent-tools"))
 const AgentKnowledgeBasesPage = lazyImport(
     () => import("./pages/ai-agents/agent-knowledge-bases"),
 );
-const AgentMcpServersPage = lazyImport(
-    () => import("./pages/ai-agents/agent-mcp-servers"),
-);
 const AgentSubAgentsPage = lazyImport(
     () => import("./pages/ai-agents/agent-sub-agents"),
-);
-const AgentIntegrationsPage = lazyImport(
-    () => import("./pages/ai-agents/agent-integrations"),
 );
 const AgentDebugPage = lazyImport(
     () => import("./pages/ai-agents/agent-debug"),
@@ -369,10 +366,10 @@ export const router = createBrowserRouter([
                                 ),
                             },
                             {
-                                path: "integrations",
+                                path: "skills",
                                 element: (
                                     <Suspense fallback={<SimpleFallback />}>
-                                        <AgentIntegrationsPage />
+                                        <AgentSkillsPage />
                                     </Suspense>
                                 ),
                             },
@@ -389,14 +386,6 @@ export const router = createBrowserRouter([
                                 element: (
                                     <Suspense fallback={<SimpleFallback />}>
                                         <AgentKnowledgeBasesPage />
-                                    </Suspense>
-                                ),
-                            },
-                            {
-                                path: "mcp-servers",
-                                element: (
-                                    <Suspense fallback={<SimpleFallback />}>
-                                        <AgentMcpServersPage />
                                     </Suspense>
                                 ),
                             },

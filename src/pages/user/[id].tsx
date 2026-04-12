@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useUserDetails } from "@/lib/api/hooks/use-user-details";
-import { useDarkMode } from "@/lib/hooks/use-dark-mode";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import type { UserEmailAddress, UserPhoneNumber } from "@/types/user";
@@ -41,7 +40,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
-import Editor from "@monaco-editor/react";
+import { CodeEditor } from "@/components/code-editor";
 import { SegmentManager } from "@/components/segments/SegmentManager";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
@@ -67,7 +66,6 @@ export default function UserDetailsPage() {
   const { id, projectId, deploymentId } = useParams();
   const userId = id || "";
   const navigate = useNavigate();
-  const isDarkMode = useDarkMode();
   const { selectedDeployment } = useProjects();
   const { data: user, isLoading, error } = useUserDetails(userId);
 
@@ -436,13 +434,12 @@ export default function UserDetailsPage() {
                     )}
                   </div>
                   <div className="rounded-lg overflow-hidden border border-zinc-100 dark:border-zinc-800 shadow-sm">
-                    <Editor
-                      height="180px"
-                      defaultLanguage="json"
+                    <CodeEditor
+                      language="json"
+                      minHeight={180}
+                      readOnly={!isEditingPublicMetadata}
                       value={publicMetadata}
                       onChange={(value) => setPublicMetadata(value || "{}")}
-                      theme={isDarkMode ? "vs-dark" : "vs"}
-                      options={{ readOnly: !isEditingPublicMetadata, minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false, automaticLayout: true, formatOnPaste: true, formatOnType: true, wordWrap: "on", lineNumbers: "off", folding: false, autoIndent: "full", padding: { top: 12, bottom: 12 } }}
                     />
                   </div>
                 </div>
@@ -459,13 +456,12 @@ export default function UserDetailsPage() {
                     )}
                   </div>
                   <div className="rounded-lg overflow-hidden border border-zinc-100 dark:border-zinc-800 shadow-sm">
-                    <Editor
-                      height="180px"
-                      defaultLanguage="json"
+                    <CodeEditor
+                      language="json"
+                      minHeight={180}
+                      readOnly={!isEditingPrivateMetadata}
                       value={privateMetadata}
                       onChange={(value) => setPrivateMetadata(value || "{}")}
-                      theme={isDarkMode ? "vs-dark" : "vs"}
-                      options={{ readOnly: !isEditingPrivateMetadata, minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false, automaticLayout: true, formatOnPaste: true, formatOnType: true, wordWrap: "on", lineNumbers: "off", folding: false, autoIndent: "full", padding: { top: 12, bottom: 12 } }}
                     />
                   </div>
                 </div>

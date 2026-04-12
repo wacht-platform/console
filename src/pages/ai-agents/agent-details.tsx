@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "react-router";
 import {
   BookOpenIcon,
-  CodeBracketIcon,
+  QueueListIcon,
   UserGroupIcon,
   WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
@@ -10,6 +10,14 @@ import { buildAgentResourcePath } from "@/components/ai-agents/agent-routes";
 import { useAgentById } from "@/lib/api/hooks/use-agents";
 
 const resourceCards = [
+  {
+    key: "skills",
+    title: "Skills",
+    description: "Browse default skills and manage agent-local skill bundles.",
+    icon: QueueListIcon,
+    suffix: "/skills",
+    countKey: null,
+  },
   {
     key: "tools",
     title: "Tools",
@@ -25,14 +33,6 @@ const resourceCards = [
     icon: BookOpenIcon,
     suffix: "/knowledge-bases",
     countKey: "knowledge_bases_count" as const,
-  },
-  {
-    key: "mcp-servers",
-    title: "MCP servers",
-    description: "Configure attached MCP servers for this agent.",
-    icon: CodeBracketIcon,
-    suffix: "/mcp-servers",
-    countKey: null,
   },
   {
     key: "sub-agents",
