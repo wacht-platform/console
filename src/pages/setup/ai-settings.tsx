@@ -309,6 +309,8 @@ export default function AISettingsPage() {
 
     useEffect(() => {
         const currentStorage = settings?.storage;
+        const normalizedStrongModel = strongModel.trim();
+        const normalizedWeakModel = weakModel.trim();
         const hasApiKeyChanges = Boolean(
             geminiKey.trim() ||
                 openrouterKey.trim() ||
@@ -321,8 +323,8 @@ export default function AISettingsPage() {
                     (settings?.weak_llm_provider ?? "gemini") ||
                 openaiKey.trim() ||
                 anthropicKey.trim() ||
-                strongModel.trim() ||
-                weakModel.trim(),
+                normalizedStrongModel !== (settings?.strong_model ?? "") ||
+                normalizedWeakModel !== (settings?.weak_model ?? ""),
         );
         const hasStorageChanges =
             forcePathStyle !== (currentStorage?.force_path_style ?? false) ||
