@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { Switch } from "@/components/ui/switch"
 import { useAgentById, useAgents, useUpdateAgent } from "@/lib/api/hooks/use-agents";
 import { useAgentSubAgents, useAttachSubAgent, useDetachSubAgent } from "@/lib/api/hooks/use-sub-agents";
 

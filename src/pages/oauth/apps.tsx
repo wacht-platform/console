@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Field, Label } from "@/components/ui/fieldset";
-import { SkeletonTableRows } from "@/components/ui/skeleton";
+import { SkeletonTableRows } from "@/components/ui/app-skeleton";
 import {
     Dialog,
     DialogContent,
@@ -27,7 +27,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/app-table";
 import { toast } from "sonner";
 import {
     useCreateOAuthApp,

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import type { SimpleComboboxOption } from "@/components/ui/simple-combobox";
 import { SimpleCombobox } from "@/components/ui/simple-combobox";
 import { XMarkIcon } from "@heroicons/react/20/solid";
-import { Spinner } from "@/components/ui/spinner";
+import { Spinner } from "@/components/ui/app-spinner";
 
 interface SegmentManagerProps {
   targetId: string;

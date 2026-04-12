@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
+import { Checkbox } from "@/components/ui/checkbox"
+import { CheckboxField } from "@/components/ui/app-checkbox";
 import { Label, Field } from "@/components/ui/fieldset";
 import {
 	CheckCircleIcon,
@@ -23,7 +24,7 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/app-table";
 import { Text } from "@/components/ui/text";
 import { Heading } from "@/components/ui/heading";
 import type {

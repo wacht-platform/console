@@ -4,7 +4,7 @@ import { MagnifyingGlassIcon, ScaleIcon } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SkeletonTableRows } from "@/components/ui/skeleton";
+import { SkeletonTableRows } from "@/components/ui/app-skeleton";
 import {
     Table,
     TableBody,
@@ -12,7 +12,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/app-table";
 import { useRateLimitSchemes } from "@/lib/api/hooks/use-rate-limit-schemes";
 
 export default function ApiKeyRateLimitSchemesPage() {

@@ -10,7 +10,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip
 import { Divider } from "@/components/ui/divider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+import { Switch } from "@/components/ui/switch"
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 
 import { InlineLoader } from "@/components/ui/loading-screen";

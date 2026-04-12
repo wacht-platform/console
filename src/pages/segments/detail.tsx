@@ -25,8 +25,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { SkeletonTableRows, Skeleton } from "@/components/ui/skeleton";
+} from "@/components/ui/app-table";
+import { Skeleton } from "@/components/ui/skeleton"
+import { SkeletonTableRows } from "@/components/ui/app-skeleton";
 import { useState, useEffect } from "react";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 import { AnalyzedEntity } from "@/types/segment";

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { EmailTemplate } from "@/types/deployment";
 import { useEmailTemplate } from "@/lib/api/hooks/use-email-templates";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
-import { Spinner } from "@/components/ui/spinner";
+import { Spinner } from "@/components/ui/app-spinner";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { toast } from "sonner";
 import { getTemplateVariables } from "@/lib/email-template-variables";

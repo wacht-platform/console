@@ -17,7 +17,7 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from "../../components/ui/table";
+} from "../../components/ui/app-table";
 import { Badge } from "../../components/ui/badge";
 import { InlineLoader } from "../../components/ui/loading-screen";
 import { EnhancedUploadDialog } from "../../components/ai-agents/enhanced-upload-dialog";

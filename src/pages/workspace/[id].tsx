@@ -22,7 +22,7 @@ import {
     TableRow,
     TableHead,
     TableCell,
-} from "@/components/ui/table";
+} from "@/components/ui/app-table";
 import { CodeEditor } from "@/components/code-editor";
 import { DeleteConfirmationDialog } from "@/components/organizations/DeleteConfirmationDialog";
 import { EditWorkspaceDialog } from "@/components/workspaces/EditWorkspaceDialog";

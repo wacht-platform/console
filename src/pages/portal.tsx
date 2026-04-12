@@ -10,8 +10,8 @@ import { Divider } from "@/components/ui/divider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
-import { Switch } from "@/components/ui/switch";
-import { Spinner } from "@/components/ui/spinner";
+import { Switch } from "@/components/ui/switch"
+import { Spinner } from "@/components/ui/app-spinner";
 import {
   useUpdateDeploymentDisplaySettings,
   DeploymentDisplaySettingsUpdates,

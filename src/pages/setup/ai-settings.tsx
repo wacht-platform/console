@@ -14,7 +14,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Description, Field, Label } from "@/components/ui/fieldset";
-import { Switch } from "@/components/ui/switch";
+import { Switch } from "@/components/ui/switch"
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/20/solid";
 import { toast } from "sonner";
 import SavePopup from "@/components/save-popup";

@@ -22,7 +22,7 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from "../../components/ui/table";
+} from "../../components/ui/app-table";
 
 export default function CreateAgentsPage() {
 	const navigate = useNavigate();

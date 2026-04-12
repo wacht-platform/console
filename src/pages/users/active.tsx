@@ -13,14 +13,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/app-table";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useDeploymentUsers } from "@/lib/api/hooks/use-deployment-users";
 import { useState } from "react";
 import { format } from "date-fns";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { CreateUserModal } from "@/components/users/CreateUserModal";
-import { SkeletonTableRows } from "@/components/ui/skeleton";
+import { SkeletonTableRows } from "@/components/ui/app-skeleton";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];

@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useBuyPulse } from "@/lib/api/hooks/use-billing";
 import { BoltIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
-import { Spinner } from "./ui/spinner";
+import { Spinner } from "./ui/app-spinner";
 import { toast } from "sonner";
 
 interface PulseTopUpDialogProps {

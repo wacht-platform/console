@@ -3,7 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import type { EditorView } from "@codemirror/view";
 import { Input } from "@/components/ui/input";
 import { Heading } from "@/components/ui/heading";
-import { Switch, SwitchField } from "@/components/ui/switch";
+import { Switch } from "@/components/ui/switch"
+import { SwitchField } from "@/components/ui/app-switch";
 import {
   Field,
   FieldGroup,
@@ -18,7 +19,7 @@ import { useProjects } from "@/lib/api/hooks/use-projects";
 import { useDeploymentJWTTemplates } from "@/lib/api/hooks/use-deployment-jwt-templates";
 import { Button } from "@/components/ui/button";
 import { TrashIcon, DocumentDuplicateIcon, KeyIcon, ClockIcon, CpuChipIcon } from "@heroicons/react/24/outline";
-import { Spinner } from "@/components/ui/spinner";
+import { Spinner } from "@/components/ui/app-spinner";
 import { toast } from 'sonner';
 import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
 

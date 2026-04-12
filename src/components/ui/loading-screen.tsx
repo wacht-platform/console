@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import { Spinner } from "./spinner";
-import { SkeletonTable, SkeletonList, SkeletonCard, Skeleton } from "./skeleton";
+import { Spinner } from "./app-spinner";
+import { Skeleton } from "./skeleton";
+import { SkeletonTable, SkeletonList, SkeletonCard } from "./app-skeleton";
 
 interface LoadingScreenProps {
 	type?: "page" | "table" | "list" | "card" | "inline";
@@ -151,20 +152,19 @@ export function AppLoading() {
 			exit={{ opacity: 0 }}
 			className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white dark:bg-neutral-950"
 		>
-			<div className="relative flex flex-col items-center gap-8">
-				{/* Branded Pulse Animation */}
-				<div className="relative h-16 w-16">
+			<div className="relative flex flex-col items-center gap-6">
+				<div className="relative h-20 w-20">
 					<motion.div
 						animate={{
-							scale: [1, 1.2, 1],
-							opacity: [0.3, 0.1, 0.3],
+							scale: [1, 1.16, 1],
+							opacity: [0.22, 0.08, 0.22],
 						}}
 						transition={{
 							duration: 2,
 							repeat: Infinity,
 							ease: "easeInOut",
 						}}
-						className="absolute inset-0 rounded-2xl bg-blue-500 blur-xl"
+						className="absolute inset-0 rounded-3xl bg-blue-500/60 blur-2xl"
 					/>
 					<motion.div
 						animate={{
@@ -175,39 +175,21 @@ export function AppLoading() {
 							repeat: Infinity,
 							ease: "easeInOut",
 						}}
-						className="relative flex h-full w-full items-center justify-center rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-2xl shadow-blue-500/10"
+						className="relative flex h-full w-full items-center justify-center rounded-3xl border border-neutral-200 bg-white shadow-2xl shadow-blue-500/10 dark:border-neutral-700 dark:bg-neutral-800"
 					>
-						<div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 p-1.5">
-							<svg
-								viewBox="0 0 24 24"
-								fill="none"
-								xmlns="http://www.w3.org/2000/svg"
-								className="h-full w-full text-white"
-							>
-								<path
-									d="M12 4L4 8L12 12L20 8L12 4Z"
-									stroke="currentColor"
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-								/>
-								<path
-									d="M4 12L12 16L20 12"
-									stroke="currentColor"
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-								/>
-								<path
-									d="M4 16L12 20L20 16"
-									stroke="currentColor"
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-								/>
-							</svg>
-						</div>
+						<img
+							src="/favicon.ico"
+							alt="Wacht"
+							className="h-10 w-10 rounded-xl object-contain"
+						/>
 					</motion.div>
+				</div>
+				<div className="h-1.5 w-16 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800">
+					<motion.div
+						animate={{ x: ["-120%", "220%"] }}
+						transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+						className="h-full w-8 rounded-full bg-blue-600 dark:bg-blue-400"
+					/>
 				</div>
 			</div>
 		</motion.div>

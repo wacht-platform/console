@@ -17,9 +17,9 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/app-table";
 import { EmptyState } from "@/components/ui/empty-state";
-import { SkeletonTableRows } from "@/components/ui/skeleton";
+import { SkeletonTableRows } from "@/components/ui/app-skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {

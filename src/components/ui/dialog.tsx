@@ -1,9 +1,9 @@
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "radix-ui"
-import { IconX } from "@tabler/icons-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { IconX } from "@tabler/icons-react"
 
 function Dialog({
   ...props
@@ -72,7 +72,8 @@ function DialogContent({
               className="absolute top-4 right-4"
               size="icon-sm"
             >
-              <IconX />
+              <IconX
+              />
               <span className="sr-only">Close</span>
             </Button>
           </DialogPrimitive.Close>
@@ -126,7 +127,10 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("font-heading text-base leading-none font-medium", className)}
+      className={cn(
+        "font-heading text-base leading-none font-medium",
+        className
+      )}
       {...props}
     />
   )
@@ -148,14 +152,6 @@ function DialogDescription({
   )
 }
 
-function DialogBody({ className, ...props }: React.ComponentProps<"div">) {
-  return <div className={cn("py-4", className)} {...props} />
-}
-
-function DialogActions({ className, ...props }: React.ComponentProps<"div">) {
-  return <DialogFooter className={className} {...props} />
-}
-
 export {
   Dialog,
   DialogClose,
@@ -167,6 +163,4 @@ export {
   DialogPortal,
   DialogTitle,
   DialogTrigger,
-  DialogBody,
-  DialogActions,
 }

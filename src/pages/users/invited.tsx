@@ -12,7 +12,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/app-table";
 import { useDeploymentInvitedUsers } from "@/lib/api/hooks/use-deployment-users";
 import { useState } from "react";
 import { format } from "date-fns";
@@ -20,7 +20,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { InviteUserModal } from "@/components/users/InviteUserModal";
 import { useDeleteInvitation } from "@/lib/api/hooks/use-deployment-user-mutations";
 import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
-import { SkeletonTableRows } from "@/components/ui/skeleton";
+import { SkeletonTableRows } from "@/components/ui/app-skeleton";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];

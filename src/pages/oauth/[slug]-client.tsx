@@ -21,8 +21,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { SkeletonTableRows } from "@/components/ui/skeleton";
+} from "@/components/ui/app-table";
+import { SkeletonTableRows } from "@/components/ui/app-skeleton";
 import {
   useOAuthApps,
   useOAuthClients,

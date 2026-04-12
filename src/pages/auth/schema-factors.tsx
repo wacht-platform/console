@@ -19,7 +19,7 @@ import {
     FieldGroup,
     Label,
 } from "@/components/ui/fieldset";
-import { SwitchField } from "@/components/ui/switch";
+import { SwitchField } from "@/components/ui/app-switch";
 import { Heading } from "@/components/ui/heading";
 import {
     Cog6ToothIcon,
@@ -1042,7 +1042,7 @@ function FirstFactorDialog({ open, onClose }: DialogProps) {
                         users when they sign in.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-2 pt-2">
+                <div className="space-y-4 pt-2">
                     {availableOptions.length === 0 ? (
                         <div className="py-8 text-center">
                             <NoSymbolIcon className="mx-auto h-6 w-6 text-zinc-400 mb-2" />
@@ -1062,9 +1062,6 @@ function FirstFactorDialog({ open, onClose }: DialogProps) {
                                     key={option.value}
                                     className={cn(
                                         "flex items-center justify-between rounded-lg cursor-pointer transition-colors",
-                                        isSelected
-                                            ? "bg-zinc-100 dark:bg-zinc-800"
-                                            : "hover:bg-zinc-50 dark:hover:bg-zinc-800/50",
                                     )}
                                 >
                                     <div>
@@ -1152,9 +1149,6 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
                                 key={policy.id}
                                 className={cn(
                                     "flex items-center justify-between rounded-lg cursor-pointer transition-colors",
-                                    isSelected
-                                        ? "bg-zinc-100 dark:bg-zinc-800"
-                                        : "hover:bg-zinc-50 dark:hover:bg-zinc-800/50",
                                 )}
                             >
                                 <div>

@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Field, Label } from "@/components/ui/fieldset";
-import { Switch } from "@/components/ui/switch";
+import { Switch } from "@/components/ui/switch"
 import { countries } from "@/lib/constants/countries";
 import { SimpleCombobox } from "@/components/ui/simple-combobox";
 

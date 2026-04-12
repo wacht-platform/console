@@ -1,4 +1,4 @@
-import { Switch } from "@/components/ui/switch";
+import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { Heading, Subheading } from "@/components/ui/heading";

@@ -21,20 +21,11 @@ function Checkbox({
         data-slot="checkbox-indicator"
         className="grid place-content-center text-current transition-none [&>svg]:size-3.5"
       >
-        <IconCheck />
+        <IconCheck
+        />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   )
 }
 
-function CheckboxField({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="checkbox-field"
-      className={cn("flex flex-row items-start space-x-3 space-y-0", className)}
-      {...props}
-    />
-  )
-}
-
-export { Checkbox, CheckboxField }
+export { Checkbox }

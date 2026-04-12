@@ -20,7 +20,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Spinner } from "@/components/ui/spinner";
+import { Spinner } from "@/components/ui/app-spinner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "sonner";
 import {

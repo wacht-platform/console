@@ -38,8 +38,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Switch } from "@/components/ui/switch";
+} from "@/components/ui/app-table";
+import { Switch } from "@/components/ui/switch"
 import { CodeEditor } from "@/components/code-editor";
 import { SegmentManager } from "@/components/segments/SegmentManager";
 import { EmptyState } from "@/components/ui/empty-state";

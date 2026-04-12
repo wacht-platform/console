@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, Label } from "@/components/ui/fieldset";
 import { PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { Spinner } from "@/components/ui/spinner";
+import { Spinner } from "@/components/ui/app-spinner";
 import { useUploadImage } from "@/lib/api/hooks/use-upload-image";
 import { toast } from 'sonner';
 

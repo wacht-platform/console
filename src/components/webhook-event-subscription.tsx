@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button";
 import { ChevronDownIcon, ChevronUpIcon, FunnelIcon } from "@heroicons/react/24/outline";
 import { WebhookFilterBuilder } from "./webhook-filter-builder";

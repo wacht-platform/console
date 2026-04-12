@@ -1,11 +1,11 @@
 import { createBrowserRouter } from "react-router";
 import { ApplicationLayout } from "@/components/application-layout";
 import { Suspense } from "react";
-import { InlineLoader } from "@/components/ui/loading-screen";
+import { AppLoading } from "@/components/ui/loading-screen";
 import { lazyImport } from "@/lib/lazy-import";
 import { Navigate } from "react-router";
 
-const SimpleFallback = () => <InlineLoader />;
+const SimpleFallback = () => <AppLoading />;
 
 const OverviewPage = lazyImport(() => import("./pages/overview"));
 const GettingStartedPage = lazyImport(() => import("./pages/getting-started"));

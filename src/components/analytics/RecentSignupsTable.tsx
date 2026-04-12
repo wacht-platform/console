@@ -7,7 +7,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../ui/table";
+} from "../ui/app-table";
 import { format } from "date-fns";
 import type { RecentSignup } from "@/lib/api/hooks/use-analytics";
 

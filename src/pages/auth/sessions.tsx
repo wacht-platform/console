@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { Switch } from "@/components/ui/switch"
 import {
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";

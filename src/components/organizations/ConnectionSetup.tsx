@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Textarea } from "@/components/ui/textarea";
-import { Spinner } from "@/components/ui/spinner";
+import { Spinner } from "@/components/ui/app-spinner";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";

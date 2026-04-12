@@ -6,6 +6,7 @@
 @import "@fontsource-variable/nunito-sans";
 @import "@fontsource-variable/outfit";
 @import "@fontsource-variable/inter";
+@import "@fontsource-variable/dm-sans";
 
 @custom-variant dark (&:where(.dark, .dark *));
 

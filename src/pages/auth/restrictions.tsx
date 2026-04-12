@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { Divider } from "@/components/ui/divider";
 import { Heading, Subheading } from "@/components/ui/heading";
-import { Switch } from "@/components/ui/switch";
+import { Switch } from "@/components/ui/switch"
 import { Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
 import { TrashIcon } from "@heroicons/react/24/outline";

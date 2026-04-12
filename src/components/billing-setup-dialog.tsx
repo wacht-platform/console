@@ -20,7 +20,7 @@ import {
   ArrowRightIcon,
 } from "@heroicons/react/24/outline";
 import { InformationCircleIcon } from "@heroicons/react/24/solid";
-import { Spinner } from "@/components/ui/spinner";
+import { Spinner } from "@/components/ui/app-spinner";
 import clsx from "clsx";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";

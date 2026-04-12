@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogD
 import { useState } from "react";
 import { Field, Label } from "@/components/ui/fieldset";
 import { Button } from "./ui/button";
-import { Spinner } from "@/components/ui/spinner";
+import { Spinner } from "@/components/ui/app-spinner";
 import {
 	EnvelopeIcon,
 	DevicePhoneMobileIcon,

@@ -8,13 +8,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/app-table";
 import { Input } from "@/components/ui/input";
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import { useSegments } from "@/lib/api/hooks/use-segments";
 import { CreateSegmentModal } from "@/components/segments/CreateSegmentModal";
 import { Segment } from "@/types/segment";
-import { SkeletonTableRows } from "@/components/ui/skeleton";
+import { SkeletonTableRows } from "@/components/ui/app-skeleton";
 import { format } from "date-fns";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";

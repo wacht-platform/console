@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback } from "react";
 import { Divider } from "@/components/ui/divider";
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { Switch } from "@/components/ui/switch"
 import { Strong, Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
-import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
+import { Checkbox } from "@/components/ui/checkbox"
+import { CheckboxField } from "@/components/ui/app-checkbox";
 import { Label } from "@/components/ui/fieldset";
 import { Radio, RadioField, RadioGroup } from "@/components/ui/radio";
 import { toast } from "sonner";

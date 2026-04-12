@@ -3,7 +3,8 @@ import { Heading } from "@/components/ui/heading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
+import { Checkbox } from "@/components/ui/checkbox"
+import { CheckboxField } from "@/components/ui/app-checkbox";
 import { Field, Label } from "@/components/ui/fieldset";
 import {
   Dialog,

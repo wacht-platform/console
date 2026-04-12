@@ -19,7 +19,7 @@ import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/app-table";
 import { CodeEditor } from "@/components/code-editor";
 import { CreateWorkspaceModal } from "@/components/workspaces/CreateWorkspaceModal";
 import { EditWorkspaceDialog } from "@/components/workspaces/EditWorkspaceDialog";

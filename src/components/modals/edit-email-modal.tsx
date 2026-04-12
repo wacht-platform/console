@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Field, Label } from "@/components/ui/fieldset";
-import { Switch } from "@/components/ui/switch";
+import { Switch } from "@/components/ui/switch"
 
 interface EmailData {
   id: string;

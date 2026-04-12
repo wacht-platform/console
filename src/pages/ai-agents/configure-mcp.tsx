@@ -9,7 +9,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/app-table";
 import { Input } from "@/components/ui/input";
 import { InputGroup } from "@/components/ui/input-group";
 import { InlineLoader } from "@/components/ui/loading-screen";
