@@ -254,7 +254,14 @@ export interface PulseTransaction {
   id: string;
   billing_account_id: string;
   amount_pulse_cents: number;
-  transaction_type: "purchase" | "usage_sms" | "usage_ai" | "refund" | "adjustment";
+  transaction_type:
+    | "purchase"
+    | "usage_sms"
+    | "usage_web_search"
+    | "usage_url_content"
+    | "refund"
+    | "adjustment"
+    | string;
   reference_id?: string;
   created_at: string;
 }

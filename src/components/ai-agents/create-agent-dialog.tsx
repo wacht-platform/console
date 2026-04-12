@@ -110,8 +110,6 @@ export function CreateAgentDialog({
 		enabled: !!selectedDeployment?.id,
 	});
 	const queryClient = useQueryClient();
-	const currentPlan = billingAccount?.subscription?.plan_name?.toLowerCase();
-	const isGrowthPlan = currentPlan === "growth";
 	const isPulseUsagePaused = !!billingAccount?.pulse_usage_disabled;
 	const hasCustomGeminiKey =
 		!!aiSettings?.gemini_api_key_set || !!aiSettings?.openrouter_api_key_set;
@@ -363,17 +361,6 @@ export function CreateAgentDialog({
 				</DialogHeader>
 
 				<form onSubmit={handleSubmit} className="flex-1 overflow-hidden flex flex-col">
-					{!isGrowthPlan && (
-						<div className="mx-6 mt-1 mb-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
-							<ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0" />
-							<span>
-								AI agent usage is available on Growth plan. You can still create and configure agents.{" "}
-								<Link to={subscriptionPath} className="underline font-medium">
-									Manage subscription
-								</Link>
-							</span>
-						</div>
-					)}
 					{isPulseUsagePaused && !hasCustomGeminiKey && (
 						<div className="mx-6 mt-1 mb-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
 							<ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0" />
