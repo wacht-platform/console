@@ -98,7 +98,7 @@ export function CreateProjectDialog({
 	};
 
 	return (
-		<Dialog open={open} onClose={onClose}>
+		<Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
 			<DialogContent className="sm:max-w-4xl p-0 overflow-hidden border-none bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl shadow-2xl">
 				<div className="relative">
 					{/* Decorative background gradients */}

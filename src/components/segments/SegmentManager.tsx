@@ -6,8 +6,8 @@ import {
 } from "@/lib/api/hooks/use-segments";
 import { Segment, SegmentType } from "@/types/segment";
 import { Badge } from "@/components/ui/badge";
-import type { ComboboxOption } from "@/components/ui/combobox";
-import { Combobox } from "@/components/ui/combobox";
+import type { SimpleComboboxOption } from "@/components/ui/simple-combobox";
+import { SimpleCombobox } from "@/components/ui/simple-combobox";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -32,7 +32,7 @@ export function SegmentManager({
       ?.filter((s) => s.type === targetType)
       .filter((s) => !currentSegments.some((cs) => cs.id === s.id)) || [];
 
-  const segmentOptions: ComboboxOption<Segment>[] = availableSegments.map((segment) => ({
+  const segmentOptions: SimpleComboboxOption<Segment>[] = availableSegments.map((segment) => ({
     value: segment,
     label: segment.name,
   }));
@@ -77,7 +77,7 @@ export function SegmentManager({
           <Spinner size="sm" />
         </div>
       ) : (
-        <Combobox
+        <SimpleCombobox
           options={segmentOptions}
           value={selectedSegment}
           onChange={handleAssign}

@@ -11,7 +11,7 @@ import {
 import { Field, Label } from "@/components/ui/fieldset";
 import { Switch } from "@/components/ui/switch";
 import { countries } from "@/lib/constants/countries";
-import { Combobox } from "@/components/ui/combobox";
+import { SimpleCombobox } from "@/components/ui/simple-combobox";
 
 interface AddPhoneModalProps {
   isOpen: boolean;
@@ -92,11 +92,11 @@ export function AddPhoneModal({
               <Label>Phone Number</Label>
               <div className="flex gap-2">
                 <div className="w-32">
-                  <Combobox
+                  <SimpleCombobox
                     options={countryOptions}
                     value={selectedCountry}
                     onChange={setSelectedCountry}
-                    renderItem={(option) => (
+                    renderItem={(option: { value: typeof selectedCountry; label: string; keywords?: string[] }) => (
                       <div className="flex items-center gap-2">
                         <span>{option.value.flag}</span>
                         <span className="text-muted-foreground">{option.value.dialCode}</span>

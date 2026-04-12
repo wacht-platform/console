@@ -305,7 +305,7 @@ export function BillingSetupDialog({
   const isFormValid = formData.legal_name && formData.billing_email;
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="sm:max-w-5xl w-[95vw] p-0 overflow-hidden border-none bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl shadow-2xl">
         <AnimatePresence mode="wait">
           {isPolling ? (

@@ -5,22 +5,20 @@ function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="skeleton"
-      className={cn("bg-accent animate-pulse rounded-md", className)}
+      className={cn("animate-pulse rounded-xl bg-muted", className)}
       {...props}
     />
   )
 }
 
-export { Skeleton }
-
-export function SkeletonTableRows({
+function SkeletonTableRows({
   rows,
   columns,
   withAvatar = false,
 }: {
-  rows: number;
-  columns: number;
-  withAvatar?: boolean;
+  rows: number
+  columns: number
+  withAvatar?: boolean
 }) {
   return (
     <>
@@ -41,10 +39,10 @@ export function SkeletonTableRows({
         </tr>
       ))}
     </>
-  );
+  )
 }
 
-export function SkeletonTable({ rows = 5, columns = 4 }: { rows?: number; columns?: number }) {
+function SkeletonTable({ rows = 5, columns = 4 }: { rows?: number; columns?: number }) {
   return (
     <div className="w-full overflow-auto">
       <table className="w-full caption-bottom text-sm">
@@ -53,10 +51,10 @@ export function SkeletonTable({ rows = 5, columns = 4 }: { rows?: number; column
         </tbody>
       </table>
     </div>
-  );
+  )
 }
 
-export function SkeletonList({ items = 5 }: { items?: number }) {
+function SkeletonList({ items = 5 }: { items?: number }) {
   return (
     <div className="space-y-4">
       {Array.from({ length: items }).map((_, i) => (
@@ -65,10 +63,10 @@ export function SkeletonList({ items = 5 }: { items?: number }) {
         </div>
       ))}
     </div>
-  );
+  )
 }
 
-export function SkeletonCard() {
+function SkeletonCard() {
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
       <div className="space-y-3">
@@ -81,12 +79,12 @@ export function SkeletonCard() {
         <Skeleton className="h-9 w-20" />
       </div>
     </div>
-  );
+  )
 }
 
-export function SkeletonProjectCard() {
+function SkeletonProjectCard() {
   return (
-    <Card className="flex flex-col h-full bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 overflow-hidden">
+    <Card className="flex h-full flex-col overflow-hidden border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
       <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-4">
         <Skeleton className="h-10 w-10 rounded-lg" />
         <div className="flex-1 space-y-2">
@@ -95,16 +93,24 @@ export function SkeletonProjectCard() {
         </div>
       </CardHeader>
       <CardContent className="flex-1 p-6 pt-0">
-        <div className="flex flex-wrap gap-2 mt-2">
+        <div className="mt-2 flex flex-wrap gap-2">
           <Skeleton className="h-5 w-20 rounded-full" />
           <Skeleton className="h-5 w-20 rounded-full" />
         </div>
       </CardContent>
-      <CardFooter className="px-6 py-4 bg-zinc-50/50 dark:bg-zinc-800/30 border-t border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
+      <CardFooter className="flex items-center justify-between border-t border-zinc-100 bg-zinc-50/50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-800/30">
         <Skeleton className="h-3 w-24" />
         <Skeleton className="h-4 w-4 rounded-full" />
       </CardFooter>
     </Card>
-  );
+  )
 }
 
+export {
+  Skeleton,
+  SkeletonTableRows,
+  SkeletonTable,
+  SkeletonList,
+  SkeletonCard,
+  SkeletonProjectCard,
+}

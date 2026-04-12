@@ -245,7 +245,7 @@ export default function ProjectsPage() {
 
       <Dialog
         open={pendingBillingDialogOpen}
-        onClose={() => setPendingBillingDialogOpen(false)}
+        onOpenChange={(isOpen) => !isOpen && setPendingBillingDialogOpen(false)}
       >
         <DialogContent>
           <DialogHeader>

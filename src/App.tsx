@@ -16,6 +16,7 @@ import { apiClient } from "./lib/api/client";
 import { Toaster } from "sonner";
 import { useTheme } from "./lib/providers/theme";
 import { usePostHog } from "@posthog/react";
+import { TooltipProvider } from "./components/ui/tooltip";
 
 function SignedInRoutes() {
   const { getToken, session, loading } = useSession();
@@ -129,7 +130,9 @@ function AppContent() {
 function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <TooltipProvider>
+        <AppContent />
+      </TooltipProvider>
     </ThemeProvider>
   );
 }

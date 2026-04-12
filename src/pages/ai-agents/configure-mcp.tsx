@@ -10,7 +10,8 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Input, InputGroup } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
+import { InputGroup } from "@/components/ui/input-group";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { CreateMcpServerDialog } from "@/components/ai-agents/create-mcp-server-dialog";
 import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";

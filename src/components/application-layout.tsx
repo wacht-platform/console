@@ -379,7 +379,7 @@ export function ApplicationLayout() {
 
             <Dialog
                 open={isPendingBillingDialogOpen}
-                onClose={() => setIsPendingBillingDialogOpen(false)}
+                onOpenChange={(isOpen) => !isOpen && setIsPendingBillingDialogOpen(false)}
             >
                 <DialogContent>
                     <DialogHeader>

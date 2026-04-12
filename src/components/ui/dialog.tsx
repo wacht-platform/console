@@ -1,77 +1,14 @@
 import * as React from "react"
-import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { XIcon } from "lucide-react"
+import { Dialog as DialogPrimitive } from "radix-ui"
+import { IconX } from "@tabler/icons-react"
 
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
 function Dialog({
-  open,
-  onClose,
-  onOpenChange,
-  children,
-  size, // Ignored for now, handled by shadcn fixed max-width
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Root> & {
-  onClose?: (open: boolean) => void
-  size?: string // Legacy prop support
-}) {
-  // Compatibility: handle onClose for Headless UI style usage
-  const handleOpenChange = (newOpen: boolean) => {
-    if (onOpenChange) {
-      onOpenChange(newOpen)
-    }
-    if (onClose) {
-      onClose(newOpen)
-    }
-  }
-
-  // If we have direct children that are not Trigger/Content, we assume legacy mode
-  // and wrap them in Content automatically if needed, or expects children to include Content
-  // But legacy usage was: <Dialog open={...}> <DialogPanel>...</DialogPanel> </Dialog>
-  // Actually Headless UI usage was:
-  // <Dialog open={isOpen} onClose={setIsOpen}>
-  //   <DialogPanel>
-  //     <DialogTitle>...</DialogTitle>
-  //     ...
-  //   </DialogPanel>
-  // </Dialog>
-
-  // Shadcn usage:
-  // <Dialog>
-  //   <DialogTrigger />
-  //   <DialogContent />
-  // </Dialog>
-
-  // Hybrid approach:
-  // If `open` is provided, we use controlled mode.
-  // We need to render the Root.
-  // If children contains text or divs directly, we might need to be careful.
-  // Legacy `Dialog` component in console-frontend renders `Dialog` -> `DialogBackdrop` -> `DialogPanel`.
-  // We will simply render Root here. The children are responsible for rendering Content.
-  // BUT: Legacy children usage often includes the Panel directly.
-  // In Shadcn, content must be inside `DialogContent`.
-
-  // Let's modify the legacy usages to use the new structure, OR
-  // Adapting this component to auto-wrap is hard because DialogContent renders a Portal.
-
-  // STRATEGY: We will keep standard Shadcn exports.
-  // AND we will add a "CompatDialog" wrapper that behaves like the old one if needed, 
-  // OR simpler: We assume refactoring of usages is required (as per plan).
-  // BUT the instruction was to "refactor usages".
-
-  // However, to make the migration easier, let's keep the standard exports cleanly 
-  // and handle the "open/onClose" bridging in the Root.
-
-  return (
-    <DialogPrimitive.Root
-      open={open}
-      onOpenChange={handleOpenChange}
-      data-slot="dialog"
-      {...props}
-    >
-      {children}
-    </DialogPrimitive.Root>
-  )
+}: React.ComponentProps<typeof DialogPrimitive.Root>) {
+  return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
 function DialogTrigger({
@@ -100,7 +37,7 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80",
+        "fixed inset-0 isolate z-50 bg-black/80 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
         className
       )}
       {...props}
@@ -117,24 +54,27 @@ function DialogContent({
   showCloseButton?: boolean
 }) {
   return (
-    <DialogPortal data-slot="dialog-portal">
+    <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 outline-none sm:max-w-lg",
+          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-6 rounded-4xl bg-popover p-6 text-sm text-popover-foreground ring-1 ring-foreground/5 duration-100 outline-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
           className
         )}
         {...props}
       >
         {children}
         {showCloseButton && (
-          <DialogPrimitive.Close
-            data-slot="dialog-close"
-            className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 z-50 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-          >
-            <XIcon />
-            <span className="sr-only">Close</span>
+          <DialogPrimitive.Close data-slot="dialog-close" asChild>
+            <Button
+              variant="ghost"
+              className="absolute top-4 right-4"
+              size="icon-sm"
+            >
+              <IconX />
+              <span className="sr-only">Close</span>
+            </Button>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Content>
@@ -146,13 +86,20 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-2 text-center sm:text-left", className)}
+      className={cn("flex flex-col gap-2", className)}
       {...props}
     />
   )
 }
 
-function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
+function DialogFooter({
+  className,
+  showCloseButton = false,
+  children,
+  ...props
+}: React.ComponentProps<"div"> & {
+  showCloseButton?: boolean
+}) {
   return (
     <div
       data-slot="dialog-footer"
@@ -161,7 +108,14 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
         className
       )}
       {...props}
-    />
+    >
+      {children}
+      {showCloseButton && (
+        <DialogPrimitive.Close asChild>
+          <Button variant="outline">Close</Button>
+        </DialogPrimitive.Close>
+      )}
+    </div>
   )
 }
 
@@ -172,7 +126,7 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("text-lg leading-none font-normal", className)}
+      className={cn("font-heading text-base leading-none font-medium", className)}
       {...props}
     />
   )
@@ -185,13 +139,15 @@ function DialogDescription({
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn(
+        "text-sm text-muted-foreground *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-foreground",
+        className
+      )}
       {...props}
     />
   )
 }
 
-// Compatibility Components for Legacy Usage
 function DialogBody({ className, ...props }: React.ComponentProps<"div">) {
   return <div className={cn("py-4", className)} {...props} />
 }
@@ -207,11 +163,10 @@ export {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
   DialogOverlay,
   DialogPortal,
+  DialogTitle,
   DialogTrigger,
-  // Compat exports
   DialogBody,
   DialogActions,
 }

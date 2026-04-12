@@ -9,7 +9,8 @@ import {
 } from "@/lib/api/hooks/use-workspace-mutations";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 import { Button } from "@/components/ui/button";
-import { Input, InputGroup } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
+import { InputGroup } from "@/components/ui/input-group";
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
