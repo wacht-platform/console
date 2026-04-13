@@ -18,14 +18,6 @@ export interface Agent {
   tools_count: number;
   knowledge_bases_count: number;
   sub_agents?: Array<string | number>;
-  spawn_config?: SpawnConfig;
-}
-
-export interface SpawnConfig {
-  max_parallel_children?: number;
-  default_timeout_secs?: number;
-  allow_fork?: boolean;
-  allow_exec?: boolean;
 }
 
 export interface CreateAgentRequest {
@@ -34,8 +26,7 @@ export interface CreateAgentRequest {
   configuration?: AgentConfiguration;
   tool_ids?: string[];
   knowledge_base_ids?: string[];
-  sub_agents?: string[];
-  spawn_config?: SpawnConfig;
+  sub_agents?: number[];
 }
 
 export interface UpdateAgentRequest {
@@ -43,7 +34,7 @@ export interface UpdateAgentRequest {
   description?: string;
   status?: string;
   configuration?: AgentConfiguration;
-  spawn_config?: SpawnConfig;
+  sub_agents?: number[];
 }
 
 interface GetAgentsParams {

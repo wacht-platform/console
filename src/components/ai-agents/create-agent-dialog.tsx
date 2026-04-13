@@ -15,10 +15,8 @@ import {
 	DialogTitle,
 } from "../ui/dialog";
 import { Badge } from "../ui/badge";
-import { Switch } from "../ui/switch";
 import {
 	WrenchScrewdriverIcon,
-	FireIcon,
 	BookOpenIcon,
 	CheckIcon,
 	UserGroupIcon,
@@ -48,12 +46,6 @@ interface AgentFormData {
 	knowledgeBaseIds: string[];
 	integrationIds: string[];
 	subAgentIds: string[];
-	spawnConfig: {
-		maxParallelChildren?: number;
-		defaultTimeoutSecs?: number;
-		allowFork?: boolean;
-		allowExec?: boolean;
-	};
 }
 
 interface FormErrors {
@@ -74,12 +66,6 @@ export function CreateAgentDialog({
 		knowledgeBaseIds: [],
 		integrationIds: [],
 		subAgentIds: [],
-		spawnConfig: {
-			maxParallelChildren: 10,
-			defaultTimeoutSecs: 300,
-			allowFork: true,
-			allowExec: true,
-		},
 	});
 
 	const [errors, setErrors] = useState<FormErrors>({});
@@ -147,12 +133,6 @@ export function CreateAgentDialog({
 					knowledgeBaseIds: [],
 					integrationIds: (agent.configuration?.integration_ids as string[]) || [],
 					subAgentIds: (agent.sub_agents || []).map((id) => String(id)),
-					spawnConfig: {
-						maxParallelChildren: agent.spawn_config?.max_parallel_children ?? 10,
-						defaultTimeoutSecs: agent.spawn_config?.default_timeout_secs ?? 300,
-						allowFork: agent.spawn_config?.allow_fork ?? true,
-						allowExec: agent.spawn_config?.allow_exec ?? true,
-					},
 				});
 			} else {
 				setFormData({
@@ -162,12 +142,6 @@ export function CreateAgentDialog({
 					knowledgeBaseIds: [],
 					integrationIds: [],
 					subAgentIds: [],
-					spawnConfig: {
-						maxParallelChildren: 10,
-						defaultTimeoutSecs: 300,
-						allowFork: true,
-						allowExec: true,
-					},
 				});
 			}
 			setErrors({});
@@ -233,12 +207,7 @@ export function CreateAgentDialog({
 					integration_ids: formData.integrationIds,
 					quick_questions: [],
 				},
-				spawn_config: {
-					max_parallel_children: formData.spawnConfig.maxParallelChildren,
-					default_timeout_secs: formData.spawnConfig.defaultTimeoutSecs,
-					allow_fork: formData.spawnConfig.allowFork,
-					allow_exec: formData.spawnConfig.allowExec,
-				},
+				sub_agents: formData.subAgentIds.map((id) => Number(id)),
 			};
 
 			if (isEditing && agent) {
@@ -382,7 +351,7 @@ export function CreateAgentDialog({
 								<TabsList className="grid w-full grid-cols-3">
 									<TabsTrigger value="details">Details</TabsTrigger>
 									<TabsTrigger value="capabilities">Capabilities</TabsTrigger>
-									<TabsTrigger value="subAgents">Agent Swarm</TabsTrigger>
+									<TabsTrigger value="subAgents">Sub-Agents</TabsTrigger>
 								</TabsList>
 							</div>
 
@@ -490,7 +459,7 @@ export function CreateAgentDialog({
 										)}
 									</div>
 									<p className="text-sm text-muted-foreground">
-										Select agents that this agent can spawn during execution. These will be available as child agents for delegation.
+										Select the agents this agent can delegate work to during execution. They will be available as sub-agents for delegation.
 									</p>
 									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 										{availableAgents.length === 0 ? (
@@ -532,93 +501,7 @@ export function CreateAgentDialog({
 									</div>
 								</div>
 
-								{/* Spawn Configuration */}
-								<div className="space-y-4">
-									<div className="flex items-center gap-2">
-										<FireIcon className="h-4 w-4 text-orange-500" />
-										<Label className="text-base">Spawn Configuration</Label>
-									</div>
-									<p className="text-sm text-muted-foreground">
-										Configure how this agent can spawn child agents.
-									</p>
-
-									<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-										<div className="space-y-2">
-											<Label>Max Parallel Children</Label>
-											<Input
-												type="number"
-												min="1"
-												max="50"
-												value={formData.spawnConfig.maxParallelChildren ?? 10}
-												onChange={(e) => setFormData({
-													...formData,
-													spawnConfig: {
-														...formData.spawnConfig,
-														maxParallelChildren: parseInt(e.target.value) || 10
-													}
-												})}
-												className="w-full"
-											/>
-											<p className="text-xs text-muted-foreground">
-												Maximum number of child agents running simultaneously
-											</p>
-										</div>
-
-										<div className="space-y-2">
-											<Label>Default Timeout (seconds)</Label>
-											<Input
-												type="number"
-												min="10"
-												max="3600"
-												value={formData.spawnConfig.defaultTimeoutSecs ?? 300}
-												onChange={(e) => setFormData({
-													...formData,
-													spawnConfig: {
-														...formData.spawnConfig,
-														defaultTimeoutSecs: parseInt(e.target.value) || 300
-													}
-												})}
-												className="w-full"
-											/>
-											<p className="text-xs text-muted-foreground">
-												Default timeout for spawned child agents
-											</p>
-										</div>
-									</div>
-
-									<div className="space-y-3 pt-2">
-										<div className="flex items-center justify-between">
-											<Label htmlFor="allowFork">Allow Fork (spawn copy of self)</Label>
-											<Switch
-												id="allowFork"
-												checked={formData.spawnConfig.allowFork ?? true}
-												onCheckedChange={(checked) => setFormData({
-													...formData,
-													spawnConfig: {
-														...formData.spawnConfig,
-														allowFork: checked
-													}
-												})}
-											/>
-										</div>
-
-										<div className="flex items-center justify-between">
-											<Label htmlFor="allowExec">Allow Exec (spawn different agents)</Label>
-											<Switch
-												id="allowExec"
-												checked={formData.spawnConfig.allowExec ?? true}
-												onCheckedChange={(checked) => setFormData({
-													...formData,
-													spawnConfig: {
-														...formData.spawnConfig,
-														allowExec: checked
-													}
-												})}
-											/>
-										</div>
-									</div>
-								</div>
-								</TabsContent>
+							</TabsContent>
 						</div>
 					</Tabs>
 					)}
