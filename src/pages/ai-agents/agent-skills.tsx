@@ -28,7 +28,7 @@ import {
     type SkillTreeEntry,
     useAgentSkillFile,
     useAgentSkillTree,
-    useDeleteAgentSkillPath,
+    useDeleteAgentSkill,
     useImportAgentSkillBundle,
 } from "@/lib/api/hooks/use-agent-skills";
 
@@ -58,7 +58,7 @@ interface SkillTreeNodeProps {
     selectedPath: string | null;
     onToggle: (path: string) => void;
     onSelect: (entry: SkillTreeEntry) => void;
-    onDelete: (path: string) => void;
+    onDelete: (skillSlug: string) => void;
 }
 
 function SkillTreeNode({
@@ -117,6 +117,9 @@ function SkillTreeNode({
                 const isDirectory = entry.kind === "directory";
                 const isExpanded = isDirectory && expandedPaths.has(entry.path);
                 const isSelected = selectedPath === entry.path;
+                const isTopLevelAgentSkill =
+                    scope === "agent" && depth === 0 && isDirectory;
+                const skillSlug = entry.path.replace(/^\/+/, "");
 
                 return (
                     <div key={entry.path}>
@@ -165,14 +168,14 @@ function SkillTreeNode({
                                 </button>
                             )}
 
-                            {scope === "agent" ? (
+                            {isTopLevelAgentSkill ? (
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     className="absolute right-1 top-1/2 h-7 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100"
                                     onClick={(event) => {
                                         event.stopPropagation();
-                                        onDelete(entry.path);
+                                        onDelete(skillSlug);
                                     }}
                                 >
                                     <TrashIcon className="h-4 w-4" />
@@ -208,7 +211,7 @@ export default function AgentSkillsPage() {
         null,
     );
     const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
-    const [deletePath, setDeletePath] = useState<string | null>(null);
+    const [deleteSkillSlug, setDeleteSkillSlug] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [pendingImportFile, setPendingImportFile] = useState<File | null>(
         null,
@@ -217,7 +220,7 @@ export default function AgentSkillsPage() {
     const [importScope, setImportScope] = useState<SkillScope>("agent");
 
     const importMutation = useImportAgentSkillBundle(agentId || "");
-    const deleteMutation = useDeleteAgentSkillPath(agentId || "");
+    const deleteMutation = useDeleteAgentSkill(agentId || "");
 
     const fileQuery = useAgentSkillFile(
         agentId || "",
@@ -379,7 +382,7 @@ export default function AgentSkillsPage() {
                             selectedPath={selectedEntry?.path || null}
                             onToggle={toggleExpandedPath}
                             onSelect={setSelectedEntry}
-                            onDelete={setDeletePath}
+                            onDelete={setDeleteSkillSlug}
                         />
                     </div>
                 </div>
@@ -448,16 +451,33 @@ export default function AgentSkillsPage() {
             </div>
 
             <ConfirmationDialog
-                isOpen={!!deletePath}
-                onClose={() => setDeletePath(null)}
+                isOpen={!!deleteSkillSlug}
+                onClose={() => setDeleteSkillSlug(null)}
                 onConfirm={async () => {
-                    if (!deletePath) return;
-                    await deleteMutation.mutateAsync(deletePath);
-                    setDeletePath(null);
-                    setSelectedEntry(null);
+                    if (!deleteSkillSlug) return;
+                    await deleteMutation.mutateAsync(deleteSkillSlug);
+                    setDeleteSkillSlug(null);
+                    if (
+                        selectedEntry?.path === `/${deleteSkillSlug}` ||
+                        selectedEntry?.path.startsWith(`/${deleteSkillSlug}/`)
+                    ) {
+                        setSelectedEntry(null);
+                    }
+                    setExpandedPaths((prev) => {
+                        const next = new Set<string>();
+                        for (const value of prev) {
+                            if (
+                                value !== `/${deleteSkillSlug}` &&
+                                !value.startsWith(`/${deleteSkillSlug}/`)
+                            ) {
+                                next.add(value);
+                            }
+                        }
+                        return next;
+                    });
                 }}
-                title="Delete Skill Path"
-                message={`Delete "${deletePath}" from agent skill storage? This action cannot be undone.`}
+                title="Delete Skill"
+                message={`Delete the "${deleteSkillSlug}" skill bundle? This action cannot be undone.`}
                 confirmText="Delete"
                 isDestructive
                 isLoading={deleteMutation.isPending}

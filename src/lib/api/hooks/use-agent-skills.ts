@@ -70,14 +70,14 @@ async function importSkillBundle(
   return data;
 }
 
-async function deleteSkillPath(
+async function deleteAgentSkill(
   deploymentId: string,
   agentId: string,
-  path: string,
+  skillSlug: string,
 ): Promise<void> {
-  await apiClient.delete(`/deployments/${deploymentId}/ai/agents/${agentId}/skills`, {
-    params: { path },
-  });
+  await apiClient.delete(
+    `/deployments/${deploymentId}/ai/agents/${agentId}/skills/${encodeURIComponent(skillSlug)}`,
+  );
 }
 
 export function useAgentSkillTree(agentId: string, scope: SkillScope, path: string) {
@@ -119,12 +119,13 @@ export function useImportAgentSkillBundle(agentId: string) {
   });
 }
 
-export function useDeleteAgentSkillPath(agentId: string) {
+export function useDeleteAgentSkill(agentId: string) {
   const { selectedDeployment } = useProjects();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (path: string) => deleteSkillPath(selectedDeployment!.id, agentId, path),
+    mutationFn: (skillSlug: string) =>
+      deleteAgentSkill(selectedDeployment!.id, agentId, skillSlug),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["agent-skill-tree", selectedDeployment?.id, agentId],
@@ -132,10 +133,10 @@ export function useDeleteAgentSkillPath(agentId: string) {
       queryClient.invalidateQueries({
         queryKey: ["agent-skill-file", selectedDeployment?.id, agentId],
       });
-      toast.success("Skill path deleted");
+      toast.success("Skill deleted");
     },
     onError: (error: unknown) => {
-      toast.error(error instanceof Error ? error.message : "Failed to delete skill path");
+      toast.error(error instanceof Error ? error.message : "Failed to delete skill");
     },
   });
 }
