@@ -33,7 +33,7 @@ function StepWrapper({
   return (
     <section className="rounded-2xl border border-border/70 bg-card/70 p-5 md:p-6">
       <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-7 w-7 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-[11px] text-primary">
+        <div className="flex h-7 w-7 items-center justify-center rounded-full border border-border/70 bg-muted/50 text-[11px] text-foreground">
           {number}
         </div>
         <div className="h-px flex-1 bg-border/60" />
@@ -97,7 +97,7 @@ function PackageManagerSwitcher({ command }: { command: string }) {
       </div>
       <div className="p-3 text-[12px]">
         <span className="select-none text-muted-foreground/50">$</span>{" "}
-        <span className="text-primary">{getCommand()}</span>
+        <span className="text-foreground">{getCommand()}</span>
       </div>
     </div>
   );
@@ -172,7 +172,7 @@ function CodeEditor({
                 className={cn(
                   "px-3 py-[6px] text-[11px] font-medium tracking-tight whitespace-nowrap border-b-[2px] transition-colors relative top-[1px]",
                   activeIndex === idx
-                    ? "border-primary text-primary"
+                    ? "border-foreground/70 text-foreground"
                     : "border-transparent text-muted-foreground hover:text-foreground hover:border-border/50",
                 )}
               >
@@ -213,6 +213,7 @@ function CodeEditor({
           language={((activeFile.language === "ini" ? "text" : activeFile.language) || "typescript") as CodeLanguage}
           readOnly
           minHeight={height}
+          chrome="flush"
         />
       </div>
     </div>
@@ -344,7 +345,7 @@ export default function GettingStartedPage() {
               className={cn(
                 "rounded-md px-3.5 py-1 text-[12px] transition-all",
                 frameworkCategory === "frontend"
-                  ? "bg-primary/10 text-primary"
+                  ? "bg-muted text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -355,7 +356,7 @@ export default function GettingStartedPage() {
               className={cn(
                 "rounded-md px-3.5 py-1 text-[12px] transition-all",
                 frameworkCategory === "backend"
-                  ? "bg-primary/10 text-primary"
+                  ? "bg-muted text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -370,7 +371,7 @@ export default function GettingStartedPage() {
                 className={cn(
                   "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 transition-all",
                   activeFramework.id === f.id
-                    ? "border-primary/30 bg-primary/10 text-primary"
+                    ? "border-border bg-muted text-foreground shadow-sm"
                     : "border-border/60 bg-background text-muted-foreground hover:text-foreground",
                 )}
               >

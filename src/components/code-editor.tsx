@@ -107,6 +107,7 @@ interface CodeEditorProps {
   readOnly?: boolean;
   minHeight?: number;
   onCreateEditor?: (view: EditorView) => void;
+  chrome?: "default" | "flush";
 }
 
 export function CodeEditor({
@@ -118,13 +119,20 @@ export function CodeEditor({
   readOnly = false,
   minHeight = 320,
   onCreateEditor,
+  chrome = "default",
 }: CodeEditorProps) {
   const { actualTheme } = useTheme();
   const resolvedLanguage = language || detectCodeLanguage(path || "", mimeType);
   const extensions = useMemo(() => extensionsForLanguage(resolvedLanguage), [resolvedLanguage]);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border/70 bg-background">
+    <div
+      className={
+        chrome === "flush"
+          ? "overflow-hidden bg-background"
+          : "overflow-hidden rounded-xl border border-border/70 bg-background"
+      }
+    >
       <CodeMirror
         value={value}
         onChange={onChange}
