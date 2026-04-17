@@ -14,7 +14,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Description, Field, Label } from "@/components/ui/fieldset";
-import { Switch } from "@/components/ui/switch"
+import { Switch } from "@/components/ui/switch";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/20/solid";
 import { toast } from "sonner";
 import SavePopup from "@/components/save-popup";
@@ -98,8 +98,12 @@ export default function AISettingsPage() {
     const [openrouterKey, setOpenrouterKey] = useState("");
     const [openrouterRequireParameters, setOpenrouterRequireParameters] =
         useState(true);
-    const [strongLlmProvider, setStrongLlmProvider] = useState<"gemini" | "openai" | "openrouter">("gemini");
-    const [weakLlmProvider, setWeakLlmProvider] = useState<"gemini" | "openai" | "openrouter">("gemini");
+    const [strongLlmProvider, setStrongLlmProvider] = useState<
+        "gemini" | "openai" | "openrouter"
+    >("gemini");
+    const [weakLlmProvider, setWeakLlmProvider] = useState<
+        "gemini" | "openai" | "openrouter"
+    >("gemini");
     const [openaiKey, setOpenaiKey] = useState("");
     const [anthropicKey, setAnthropicKey] = useState("");
     const [strongModel, setStrongModel] = useState("");
@@ -166,8 +170,7 @@ export default function AISettingsPage() {
             openrouterRequireParameters !==
                 (settings?.openrouter_require_parameters ?? false)
         ) {
-            updates.openrouter_require_parameters =
-                openrouterRequireParameters;
+            updates.openrouter_require_parameters = openrouterRequireParameters;
         }
         if (openaiKey.trim()) updates.openai_api_key = openaiKey.trim();
         if (anthropicKey.trim())
@@ -187,11 +190,11 @@ export default function AISettingsPage() {
             forcePathStyle !== (currentStorage?.force_path_style ?? false) ||
             Boolean(
                 trimmedBucket ||
-                    trimmedRegion ||
-                    trimmedEndpoint ||
-                    trimmedRootPrefix ||
-                    trimmedAccessKeyId ||
-                    trimmedSecretAccessKey,
+                trimmedRegion ||
+                trimmedEndpoint ||
+                trimmedRootPrefix ||
+                trimmedAccessKeyId ||
+                trimmedSecretAccessKey,
             );
 
         if (storageChanged) {
@@ -300,9 +303,7 @@ export default function AISettingsPage() {
         setForcePathStyle(settings.storage.force_path_style);
         setStrongLlmProvider(settings.strong_llm_provider);
         setWeakLlmProvider(settings.weak_llm_provider);
-        setOpenrouterRequireParameters(
-            settings.openrouter_require_parameters,
-        );
+        setOpenrouterRequireParameters(settings.openrouter_require_parameters);
         setStrongModel(settings.strong_model ?? "");
         setWeakModel(settings.weak_model ?? "");
     }, [settings]);
@@ -313,28 +314,26 @@ export default function AISettingsPage() {
         const normalizedWeakModel = weakModel.trim();
         const hasApiKeyChanges = Boolean(
             geminiKey.trim() ||
-                openrouterKey.trim() ||
-                (strongLlmProvider === "openrouter" &&
-                    openrouterRequireParameters !==
-                        (settings?.openrouter_require_parameters ?? true)) ||
-                strongLlmProvider !==
-                    (settings?.strong_llm_provider ?? "gemini") ||
-                weakLlmProvider !==
-                    (settings?.weak_llm_provider ?? "gemini") ||
-                openaiKey.trim() ||
-                anthropicKey.trim() ||
-                normalizedStrongModel !== (settings?.strong_model ?? "") ||
-                normalizedWeakModel !== (settings?.weak_model ?? ""),
+            openrouterKey.trim() ||
+            (strongLlmProvider === "openrouter" &&
+                openrouterRequireParameters !==
+                    (settings?.openrouter_require_parameters ?? true)) ||
+            strongLlmProvider !== (settings?.strong_llm_provider ?? "gemini") ||
+            weakLlmProvider !== (settings?.weak_llm_provider ?? "gemini") ||
+            openaiKey.trim() ||
+            anthropicKey.trim() ||
+            normalizedStrongModel !== (settings?.strong_model ?? "") ||
+            normalizedWeakModel !== (settings?.weak_model ?? ""),
         );
         const hasStorageChanges =
             forcePathStyle !== (currentStorage?.force_path_style ?? false) ||
             Boolean(
                 storageBucket.trim() ||
-                    storageRegion.trim() ||
-                    storageEndpoint.trim() ||
-                    storageRootPrefix.trim() ||
-                    storageAccessKeyId.trim() ||
-                    storageSecretAccessKey.trim(),
+                storageRegion.trim() ||
+                storageEndpoint.trim() ||
+                storageRootPrefix.trim() ||
+                storageAccessKeyId.trim() ||
+                storageSecretAccessKey.trim(),
             );
 
         setIsDirty(hasApiKeyChanges || hasStorageChanges);
@@ -685,7 +684,9 @@ export default function AISettingsPage() {
                         <div className="flex items-center gap-2">
                             <Subheading>OpenRouter</Subheading>
                             <StatusBadge
-                                isSet={settings?.openrouter_api_key_set ?? false}
+                                isSet={
+                                    settings?.openrouter_api_key_set ?? false
+                                }
                             />
                         </div>
                         <Text>
@@ -704,7 +705,9 @@ export default function AISettingsPage() {
                                         : "Enter OpenRouter API Key"
                                 }
                                 value={openrouterKey}
-                                onChange={(e) => setOpenrouterKey(e.target.value)}
+                                onChange={(e) =>
+                                    setOpenrouterKey(e.target.value)
+                                }
                                 autoComplete="new-password"
                             />
                         </Field>
@@ -715,12 +718,16 @@ export default function AISettingsPage() {
                                         OpenRouter require parameters
                                     </div>
                                     <div className="text-xs text-zinc-500">
-                                        Require OpenRouter to route only to endpoints that explicitly support all requested parameters.
+                                        Require OpenRouter to route only to
+                                        endpoints that explicitly support all
+                                        requested parameters.
                                     </div>
                                 </div>
                                 <Switch
                                     checked={openrouterRequireParameters}
-                                    onCheckedChange={setOpenrouterRequireParameters}
+                                    onCheckedChange={
+                                        setOpenrouterRequireParameters
+                                    }
                                 />
                             </div>
                         )}
@@ -743,7 +750,8 @@ export default function AISettingsPage() {
                             that call OpenAI models without a router.
                         </Text>
                     </div>
-                    <div className="space-y-1">
+                    <Field>
+                        <Label>API key</Label>
                         <Input
                             type="password"
                             placeholder={
@@ -755,7 +763,7 @@ export default function AISettingsPage() {
                             onChange={(e) => setOpenaiKey(e.target.value)}
                             autoComplete="new-password"
                         />
-                    </div>
+                    </Field>
                 </section>
 
                 <Divider soft />
