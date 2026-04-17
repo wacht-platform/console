@@ -25,7 +25,7 @@ export default function AgentDebugPage() {
                 selected_agent_id: agent.id,
                 expires_in: 60 * 60 * 12,
             });
-            const testUrl = `${selectedDeployment.backend_host}/vanity/agents?ticket=${result.ticket}`;
+            const testUrl = `https://${selectedDeployment.backend_host}/vanity/agents?ticket=${result.ticket}`;
             window.open(testUrl, "_blank");
         } catch (err) {
             console.error("Failed to generate ticket:", err);
