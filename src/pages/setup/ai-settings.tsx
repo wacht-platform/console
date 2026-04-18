@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { apiClient } from "@/lib/api/client";
@@ -15,14 +15,17 @@ import {
 } from "@/components/ui/select";
 import { Description, Field, Label } from "@/components/ui/fieldset";
 import { Switch } from "@/components/ui/switch";
-import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/20/solid";
+import { CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon } from "@heroicons/react/20/solid";
 import { toast } from "sonner";
 import SavePopup from "@/components/save-popup";
 import { InlineLoader } from "@/components/ui/loading-screen";
 
+type LlmProvider = "gemini" | "openai" | "openrouter";
+type AIStorageProvider = "s3";
+
 interface AISettingsResponse {
-    strong_llm_provider: "gemini" | "openai" | "openrouter";
-    weak_llm_provider: "gemini" | "openai" | "openrouter";
+    strong_llm_provider: LlmProvider;
+    weak_llm_provider: LlmProvider;
     gemini_api_key_set: boolean;
     openrouter_api_key_set: boolean;
     openrouter_require_parameters: boolean;
@@ -34,8 +37,8 @@ interface AISettingsResponse {
 }
 
 interface UpdateAISettingsRequest {
-    strong_llm_provider?: "gemini" | "openai" | "openrouter";
-    weak_llm_provider?: "gemini" | "openai" | "openrouter";
+    strong_llm_provider?: LlmProvider;
+    weak_llm_provider?: LlmProvider;
     gemini_api_key?: string;
     openrouter_api_key?: string;
     openrouter_require_parameters?: boolean;
@@ -45,8 +48,6 @@ interface UpdateAISettingsRequest {
     weak_model?: string;
     storage?: UpdateAIStorageSettingsRequest;
 }
-
-type AIStorageProvider = "s3";
 
 interface AIStorageSettingsResponse {
     provider: AIStorageProvider;
@@ -70,9 +71,23 @@ interface UpdateAIStorageSettingsRequest {
     secret_access_key?: string;
 }
 
-async function fetchAISettings(
-    deploymentId: string,
-): Promise<AISettingsResponse> {
+function extractErrorMessage(error: unknown): string {
+    if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as {
+            response?: { data?: { errors?: Array<{ message: string }> } };
+        };
+        const msg = axiosError.response?.data?.errors?.[0]?.message;
+        if (msg) return msg;
+    }
+    if (error instanceof Error) return error.message;
+    return "An unexpected error occurred";
+}
+
+function providerLabel(provider: LlmProvider): string {
+    return { gemini: "Gemini", openai: "OpenAI", openrouter: "OpenRouter" }[provider];
+}
+
+async function fetchAISettings(deploymentId: string): Promise<AISettingsResponse> {
     const { data } = await apiClient.get<AISettingsResponse>(
         `/deployments/${deploymentId}/ai/settings`,
     );
@@ -96,14 +111,9 @@ export default function AISettingsPage() {
 
     const [geminiKey, setGeminiKey] = useState("");
     const [openrouterKey, setOpenrouterKey] = useState("");
-    const [openrouterRequireParameters, setOpenrouterRequireParameters] =
-        useState(true);
-    const [strongLlmProvider, setStrongLlmProvider] = useState<
-        "gemini" | "openai" | "openrouter"
-    >("gemini");
-    const [weakLlmProvider, setWeakLlmProvider] = useState<
-        "gemini" | "openai" | "openrouter"
-    >("gemini");
+    const [openrouterRequireParameters, setOpenrouterRequireParameters] = useState(true);
+    const [strongLlmProvider, setStrongLlmProvider] = useState<LlmProvider>("gemini");
+    const [weakLlmProvider, setWeakLlmProvider] = useState<LlmProvider>("gemini");
     const [openaiKey, setOpenaiKey] = useState("");
     const [anthropicKey, setAnthropicKey] = useState("");
     const [strongModel, setStrongModel] = useState("");
@@ -132,9 +142,7 @@ export default function AISettingsPage() {
             setIsDirty(false);
             setGeminiKey("");
             setOpenrouterKey("");
-            setOpenrouterRequireParameters(
-                updatedSettings.openrouter_require_parameters,
-            );
+            setOpenrouterRequireParameters(updatedSettings.openrouter_require_parameters);
             setStrongLlmProvider(updatedSettings.strong_llm_provider);
             setWeakLlmProvider(updatedSettings.weak_llm_provider);
             setOpenaiKey("");
@@ -149,12 +157,54 @@ export default function AISettingsPage() {
             setStorageSecretAccessKey("");
             setForcePathStyle(updatedSettings.storage.force_path_style);
         },
-        onError: (error: Error) => {
-            toast.error(`Failed to update settings: ${error.message}`);
+        onError: (error: unknown) => {
+            toast.error(extractErrorMessage(error));
         },
     });
 
+    // Compute whether the selected provider has a key available (saved or newly entered)
+    const providerKeyAvailable = useMemo(() => {
+        const hasKey = (provider: LlmProvider): boolean => {
+            switch (provider) {
+                case "gemini":
+                    return settings?.gemini_api_key_set || Boolean(geminiKey.trim());
+                case "openai":
+                    return settings?.openai_api_key_set || Boolean(openaiKey.trim());
+                case "openrouter":
+                    return settings?.openrouter_api_key_set || Boolean(openrouterKey.trim());
+            }
+        };
+        return {
+            strong: hasKey(strongLlmProvider),
+            weak: hasKey(weakLlmProvider),
+        };
+    }, [settings, strongLlmProvider, weakLlmProvider, geminiKey, openaiKey, openrouterKey]);
+
+    // Warn if OpenRouter is strong provider and require_parameters is being turned off
+    const openrouterStrongWithoutRequireParams =
+        strongLlmProvider === "openrouter" && !openrouterRequireParameters;
+
     const handleSave = () => {
+        // Client-side provider/key consistency check (mirrors backend validation)
+        if (!providerKeyAvailable.strong) {
+            toast.error(
+                `Strong provider is set to ${providerLabel(strongLlmProvider)} but no ${providerLabel(strongLlmProvider)} API key is configured`,
+            );
+            return;
+        }
+        if (!providerKeyAvailable.weak) {
+            toast.error(
+                `Weak provider is set to ${providerLabel(weakLlmProvider)} but no ${providerLabel(weakLlmProvider)} API key is configured`,
+            );
+            return;
+        }
+        if (openrouterStrongWithoutRequireParams) {
+            toast.error(
+                "OpenRouter is selected as the strong model provider but 'require parameters' is disabled. Enable it to ensure JSON schema output works correctly.",
+            );
+            return;
+        }
+
         const updates: UpdateAISettingsRequest = {};
         if (strongLlmProvider !== settings?.strong_llm_provider) {
             updates.strong_llm_provider = strongLlmProvider;
@@ -163,20 +213,16 @@ export default function AISettingsPage() {
             updates.weak_llm_provider = weakLlmProvider;
         }
         if (geminiKey.trim()) updates.gemini_api_key = geminiKey.trim();
-        if (openrouterKey.trim())
-            updates.openrouter_api_key = openrouterKey.trim();
-        if (
-            strongLlmProvider === "openrouter" &&
-            openrouterRequireParameters !==
-                (settings?.openrouter_require_parameters ?? false)
-        ) {
+        if (openrouterKey.trim()) updates.openrouter_api_key = openrouterKey.trim();
+        if (openrouterRequireParameters !== (settings?.openrouter_require_parameters ?? true)) {
             updates.openrouter_require_parameters = openrouterRequireParameters;
         }
         if (openaiKey.trim()) updates.openai_api_key = openaiKey.trim();
-        if (anthropicKey.trim())
-            updates.anthropic_api_key = anthropicKey.trim();
-        if (strongModel.trim()) updates.strong_model = strongModel.trim();
-        if (weakModel.trim()) updates.weak_model = weakModel.trim();
+        if (anthropicKey.trim()) updates.anthropic_api_key = anthropicKey.trim();
+        if (strongModel.trim() !== (settings?.strong_model ?? ""))
+            updates.strong_model = strongModel.trim() || undefined;
+        if (weakModel.trim() !== (settings?.weak_model ?? ""))
+            updates.weak_model = weakModel.trim() || undefined;
 
         const currentStorage = settings?.storage;
         const trimmedBucket = storageBucket.trim();
@@ -190,21 +236,17 @@ export default function AISettingsPage() {
             forcePathStyle !== (currentStorage?.force_path_style ?? false) ||
             Boolean(
                 trimmedBucket ||
-                trimmedRegion ||
-                trimmedEndpoint ||
-                trimmedRootPrefix ||
-                trimmedAccessKeyId ||
-                trimmedSecretAccessKey,
+                    trimmedRegion ||
+                    trimmedEndpoint ||
+                    trimmedRootPrefix ||
+                    trimmedAccessKeyId ||
+                    trimmedSecretAccessKey,
             );
 
         if (storageChanged) {
-            const resolvedBucket =
-                trimmedBucket || currentStorage?.bucket || "";
-            const resolvedEndpoint =
-                trimmedEndpoint || currentStorage?.endpoint || "";
-            const hasAccessKeyId = Boolean(
-                trimmedAccessKeyId || currentStorage?.access_key_id_set,
-            );
+            const resolvedBucket = trimmedBucket || currentStorage?.bucket || "";
+            const resolvedEndpoint = trimmedEndpoint || currentStorage?.endpoint || "";
+            const hasAccessKeyId = Boolean(trimmedAccessKeyId || currentStorage?.access_key_id_set);
             const hasSecretAccessKey = Boolean(
                 trimmedSecretAccessKey || currentStorage?.secret_access_key_set,
             );
@@ -213,55 +255,38 @@ export default function AISettingsPage() {
                 toast.error("Customer S3 storage requires a bucket");
                 return;
             }
-
             if (!resolvedEndpoint) {
                 toast.error("Customer S3 storage requires an endpoint");
                 return;
             }
-
             try {
                 const parsed = new URL(resolvedEndpoint);
-                if (
-                    parsed.protocol !== "http:" &&
-                    parsed.protocol !== "https:"
-                ) {
+                if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
                     throw new Error("invalid protocol");
                 }
             } catch {
-                toast.error(
-                    "Storage endpoint must be a valid http or https URL",
-                );
+                toast.error("Storage endpoint must be a valid http or https URL");
                 return;
             }
-
             if (!hasAccessKeyId) {
                 toast.error("Customer S3 storage requires an access key ID");
                 return;
             }
-
             if (!hasSecretAccessKey) {
                 toast.error("Customer S3 storage requires a secret access key");
                 return;
             }
 
-            const storageUpdates: UpdateAIStorageSettingsRequest = {};
-            storageUpdates.provider = "s3";
-            if (
-                forcePathStyle !== (currentStorage?.force_path_style ?? false)
-            ) {
+            const storageUpdates: UpdateAIStorageSettingsRequest = { provider: "s3" };
+            if (forcePathStyle !== (currentStorage?.force_path_style ?? false)) {
                 storageUpdates.force_path_style = forcePathStyle;
             }
             if (trimmedBucket) storageUpdates.bucket = trimmedBucket;
             if (trimmedRegion) storageUpdates.region = trimmedRegion;
             if (trimmedEndpoint) storageUpdates.endpoint = trimmedEndpoint;
-            if (trimmedRootPrefix)
-                storageUpdates.root_prefix = trimmedRootPrefix;
-            if (trimmedAccessKeyId) {
-                storageUpdates.access_key_id = trimmedAccessKeyId;
-            }
-            if (trimmedSecretAccessKey) {
-                storageUpdates.secret_access_key = trimmedSecretAccessKey;
-            }
+            if (trimmedRootPrefix) storageUpdates.root_prefix = trimmedRootPrefix;
+            if (trimmedAccessKeyId) storageUpdates.access_key_id = trimmedAccessKeyId;
+            if (trimmedSecretAccessKey) storageUpdates.secret_access_key = trimmedSecretAccessKey;
             updates.storage = storageUpdates;
         }
 
@@ -276,9 +301,7 @@ export default function AISettingsPage() {
     const handleCancel = () => {
         setGeminiKey("");
         setOpenrouterKey("");
-        setOpenrouterRequireParameters(
-            settings?.openrouter_require_parameters ?? true,
-        );
+        setOpenrouterRequireParameters(settings?.openrouter_require_parameters ?? true);
         setStrongLlmProvider(settings?.strong_llm_provider ?? "gemini");
         setWeakLlmProvider(settings?.weak_llm_provider ?? "gemini");
         setOpenaiKey("");
@@ -296,10 +319,7 @@ export default function AISettingsPage() {
     };
 
     useEffect(() => {
-        if (!settings) {
-            return;
-        }
-
+        if (!settings) return;
         setForcePathStyle(settings.storage.force_path_style);
         setStrongLlmProvider(settings.strong_llm_provider);
         setWeakLlmProvider(settings.weak_llm_provider);
@@ -310,32 +330,27 @@ export default function AISettingsPage() {
 
     useEffect(() => {
         const currentStorage = settings?.storage;
-        const normalizedStrongModel = strongModel.trim();
-        const normalizedWeakModel = weakModel.trim();
         const hasApiKeyChanges = Boolean(
             geminiKey.trim() ||
-            openrouterKey.trim() ||
-            (strongLlmProvider === "openrouter" &&
-                openrouterRequireParameters !==
-                    (settings?.openrouter_require_parameters ?? true)) ||
-            strongLlmProvider !== (settings?.strong_llm_provider ?? "gemini") ||
-            weakLlmProvider !== (settings?.weak_llm_provider ?? "gemini") ||
-            openaiKey.trim() ||
-            anthropicKey.trim() ||
-            normalizedStrongModel !== (settings?.strong_model ?? "") ||
-            normalizedWeakModel !== (settings?.weak_model ?? ""),
+                openrouterKey.trim() ||
+                openrouterRequireParameters !== (settings?.openrouter_require_parameters ?? true) ||
+                strongLlmProvider !== (settings?.strong_llm_provider ?? "gemini") ||
+                weakLlmProvider !== (settings?.weak_llm_provider ?? "gemini") ||
+                openaiKey.trim() ||
+                anthropicKey.trim() ||
+                strongModel.trim() !== (settings?.strong_model ?? "") ||
+                weakModel.trim() !== (settings?.weak_model ?? ""),
         );
         const hasStorageChanges =
             forcePathStyle !== (currentStorage?.force_path_style ?? false) ||
             Boolean(
                 storageBucket.trim() ||
-                storageRegion.trim() ||
-                storageEndpoint.trim() ||
-                storageRootPrefix.trim() ||
-                storageAccessKeyId.trim() ||
-                storageSecretAccessKey.trim(),
+                    storageRegion.trim() ||
+                    storageEndpoint.trim() ||
+                    storageRootPrefix.trim() ||
+                    storageAccessKeyId.trim() ||
+                    storageSecretAccessKey.trim(),
             );
-
         setIsDirty(hasApiKeyChanges || hasStorageChanges);
     }, [
         settings,
@@ -357,17 +372,14 @@ export default function AISettingsPage() {
         forcePathStyle,
     ]);
 
-    if (isLoading) {
-        return <InlineLoader />;
-    }
+    if (isLoading) return <InlineLoader />;
 
     return (
         <div>
             <Heading>AI Settings</Heading>
             <Text className="mt-2 text-zinc-500">
-                Configure your own API keys to bypass platform usage billing for
-                AI agents. When you provide your own keys, you won't be billed
-                for AI usage on our platform.
+                Configure your own API keys to bypass platform usage billing for AI agents. When
+                you provide your own keys, you won't be billed for AI usage on our platform.
             </Text>
 
             <SavePopup
@@ -378,17 +390,21 @@ export default function AISettingsPage() {
             />
 
             <div className="mt-8 space-y-10">
+                {/* Storage */}
                 <section className="space-y-4">
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
                             <Subheading>Storage</Subheading>
                             <StorageProviderBadge
                                 provider={settings?.storage.provider ?? "s3"}
+                                configured={Boolean(
+                                    settings?.storage.bucket && settings?.storage.endpoint,
+                                )}
                             />
                         </div>
                         <Text>
-                            Configure the customer-managed S3 bucket used for
-                            durable AI workspace data.
+                            Configure the customer-managed S3 bucket used for durable AI workspace
+                            data.
                         </Text>
                     </div>
 
@@ -398,8 +414,8 @@ export default function AISettingsPage() {
                                 Connection
                             </div>
                             <div className="mt-1 text-xs text-zinc-500">
-                                Use the bucket and endpoint exactly as your S3
-                                provider expects them.
+                                Use the bucket and endpoint exactly as your S3 provider expects
+                                them.
                             </div>
                             <div className="mt-4 space-y-4">
                                 <div className="grid gap-4 sm:grid-cols-2">
@@ -407,16 +423,12 @@ export default function AISettingsPage() {
                                         <Label>Bucket</Label>
                                         <Input
                                             placeholder={
-                                                settings?.storage.bucket ??
-                                                "customer-ai-storage"
+                                                settings?.storage.bucket ?? "customer-ai-storage"
                                             }
                                             value={storageBucket}
-                                            onChange={(e) =>
-                                                setStorageBucket(e.target.value)
-                                            }
+                                            onChange={(e) => setStorageBucket(e.target.value)}
                                         />
                                     </Field>
-
                                     <Field>
                                         <Label>Region</Label>
                                         <Input
@@ -425,31 +437,23 @@ export default function AISettingsPage() {
                                                 "Optional, for example us-east-1"
                                             }
                                             value={storageRegion}
-                                            onChange={(e) =>
-                                                setStorageRegion(e.target.value)
-                                            }
+                                            onChange={(e) => setStorageRegion(e.target.value)}
                                         />
                                     </Field>
                                 </div>
-
                                 <Field>
                                     <Label>Endpoint</Label>
                                     <Input
                                         placeholder={
-                                            settings?.storage.endpoint ??
-                                            "https://s3.amazonaws.com"
+                                            settings?.storage.endpoint ?? "https://s3.amazonaws.com"
                                         }
                                         value={storageEndpoint}
-                                        onChange={(e) =>
-                                            setStorageEndpoint(e.target.value)
-                                        }
+                                        onChange={(e) => setStorageEndpoint(e.target.value)}
                                     />
                                     <Description>
-                                        Full `http` or `https` URL for the S3
-                                        endpoint.
+                                        Full `http` or `https` URL for the S3 endpoint.
                                     </Description>
                                 </Field>
-
                                 <Field>
                                     <Label>Root prefix</Label>
                                     <Input
@@ -458,9 +462,7 @@ export default function AISettingsPage() {
                                             "Optional, for example wacht"
                                         }
                                         value={storageRootPrefix}
-                                        onChange={(e) =>
-                                            setStorageRootPrefix(e.target.value)
-                                        }
+                                        onChange={(e) => setStorageRootPrefix(e.target.value)}
                                     />
                                     <Description>
                                         Optional folder prefix under the bucket.
@@ -474,8 +476,7 @@ export default function AISettingsPage() {
                                 Credentials
                             </div>
                             <div className="mt-1 text-xs text-zinc-500">
-                                Leave a credential field blank to keep the
-                                currently saved value.
+                                Leave a credential field blank to keep the currently saved value.
                             </div>
                             <div className="mt-4 space-y-4">
                                 <Field>
@@ -489,34 +490,25 @@ export default function AISettingsPage() {
                                                 : "Enter access key ID"
                                         }
                                         value={storageAccessKeyId}
-                                        onChange={(e) =>
-                                            setStorageAccessKeyId(
-                                                e.target.value,
-                                            )
-                                        }
+                                        onChange={(e) => setStorageAccessKeyId(e.target.value)}
                                     />
                                 </Field>
-
                                 <Field>
                                     <Label>Secret access key</Label>
                                     <Input
                                         type="password"
                                         autoComplete="new-password"
                                         placeholder={
-                                            settings?.storage
-                                                .secret_access_key_set
+                                            settings?.storage.secret_access_key_set
                                                 ? "••••••••••••••••"
                                                 : "Enter secret access key"
                                         }
                                         value={storageSecretAccessKey}
                                         onChange={(e) =>
-                                            setStorageSecretAccessKey(
-                                                e.target.value,
-                                            )
+                                            setStorageSecretAccessKey(e.target.value)
                                         }
                                     />
                                 </Field>
-
                                 <div className="border-zinc-200 pt-10 dark:border-zinc-800">
                                     <div className="flex items-center justify-between gap-4">
                                         <div className="space-y-1">
@@ -524,9 +516,8 @@ export default function AISettingsPage() {
                                                 Force path-style requests
                                             </div>
                                             <div className="text-xs text-zinc-500">
-                                                Enable this for providers that
-                                                expect path-style bucket
-                                                addressing.
+                                                Enable this for providers that expect path-style
+                                                bucket addressing.
                                             </div>
                                         </div>
                                         <Switch
@@ -542,42 +533,81 @@ export default function AISettingsPage() {
 
                 <Divider soft />
 
+                {/* Model selection */}
                 <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
                     <div className="space-y-1">
                         <Subheading>Model Selection</Subheading>
                         <Text>
-                            Configure the deployment-wide strong and weak model
-                            strings used by the runtime and the provider used
-                            for model requests.
+                            Configure the deployment-wide strong and weak model strings used by
+                            the runtime and the provider used for model requests.
+                        </Text>
+                        <Text className="text-xs text-zinc-500 mt-1">
+                            The <strong>strong model</strong> handles structured JSON schema
+                            output. The <strong>weak model</strong> handles tool calls and
+                            lightweight tasks.
                         </Text>
                     </div>
                     <div className="space-y-4">
+                        {/* Provider/key warnings */}
+                        {(!providerKeyAvailable.strong || !providerKeyAvailable.weak) && (
+                            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950">
+                                <div className="flex items-start gap-2">
+                                    <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                                    <div className="space-y-1 text-xs text-amber-800 dark:text-amber-300">
+                                        {!providerKeyAvailable.strong && (
+                                            <p>
+                                                Strong provider ({providerLabel(strongLlmProvider)})
+                                                has no API key — agents requiring structured output
+                                                will fail.
+                                            </p>
+                                        )}
+                                        {!providerKeyAvailable.weak &&
+                                            weakLlmProvider !== strongLlmProvider && (
+                                                <p>
+                                                    Weak provider ({providerLabel(weakLlmProvider)})
+                                                    has no API key — agents requiring tool calls will
+                                                    fail.
+                                                </p>
+                                            )}
+                                        {!providerKeyAvailable.weak &&
+                                            weakLlmProvider === strongLlmProvider && (
+                                                <p>
+                                                    {providerLabel(strongLlmProvider)} has no API key
+                                                    — configure the key below before saving.
+                                                </p>
+                                            )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* OpenRouter + require_parameters warning */}
+                        {openrouterStrongWithoutRequireParams && (
+                            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950">
+                                <div className="flex items-start gap-2">
+                                    <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                                    <p className="text-xs text-amber-800 dark:text-amber-300">
+                                        OpenRouter is the strong provider but 'require parameters'
+                                        is disabled — JSON schema output may route to models that
+                                        don't support it.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
                         <Field>
                             <Label>Strong provider</Label>
                             <Select
                                 value={strongLlmProvider}
-                                onValueChange={(value) =>
-                                    setStrongLlmProvider(
-                                        value as
-                                            | "gemini"
-                                            | "openai"
-                                            | "openrouter",
-                                    )
-                                }
+                                onValueChange={(v) => setStrongLlmProvider(v as LlmProvider)}
                             >
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Select provider" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="gemini">
-                                        Gemini
-                                    </SelectItem>
-                                    <SelectItem value="openrouter">
-                                        OpenRouter
-                                    </SelectItem>
-                                    <SelectItem value="openai">
-                                        OpenAI
-                                    </SelectItem>
+                                    <SelectItem value="gemini">Gemini</SelectItem>
+                                    <SelectItem value="openrouter">OpenRouter</SelectItem>
+                                    <SelectItem value="openai">OpenAI</SelectItem>
                                 </SelectContent>
                             </Select>
                         </Field>
@@ -585,52 +615,37 @@ export default function AISettingsPage() {
                             <Label>Weak provider</Label>
                             <Select
                                 value={weakLlmProvider}
-                                onValueChange={(value) =>
-                                    setWeakLlmProvider(
-                                        value as
-                                            | "gemini"
-                                            | "openai"
-                                            | "openrouter",
-                                    )
-                                }
+                                onValueChange={(v) => setWeakLlmProvider(v as LlmProvider)}
                             >
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Select provider" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="gemini">
-                                        Gemini
-                                    </SelectItem>
-                                    <SelectItem value="openrouter">
-                                        OpenRouter
-                                    </SelectItem>
-                                    <SelectItem value="openai">
-                                        OpenAI
-                                    </SelectItem>
+                                    <SelectItem value="gemini">Gemini</SelectItem>
+                                    <SelectItem value="openrouter">OpenRouter</SelectItem>
+                                    <SelectItem value="openai">OpenAI</SelectItem>
                                 </SelectContent>
                             </Select>
                         </Field>
                         <Field>
                             <Label>Strong model</Label>
                             <Input
-                                placeholder={
-                                    settings?.strong_model ??
-                                    "provider/strong-model"
-                                }
+                                placeholder={settings?.strong_model ?? "provider/strong-model"}
                                 value={strongModel}
                                 onChange={(e) => setStrongModel(e.target.value)}
                             />
+                            <Description>
+                                Must support JSON schema structured output.
+                            </Description>
                         </Field>
                         <Field>
                             <Label>Weak model</Label>
                             <Input
-                                placeholder={
-                                    settings?.weak_model ??
-                                    "provider/weak-model"
-                                }
+                                placeholder={settings?.weak_model ?? "provider/weak-model"}
                                 value={weakModel}
                                 onChange={(e) => setWeakModel(e.target.value)}
                             />
+                            <Description>Must support tool/function calling.</Description>
                         </Field>
                     </div>
                 </section>
@@ -642,13 +657,10 @@ export default function AISettingsPage() {
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <Subheading>Google Gemini</Subheading>
-                            <StatusBadge
-                                isSet={settings?.gemini_api_key_set ?? false}
-                            />
+                            <StatusBadge isSet={settings?.gemini_api_key_set ?? false} />
                         </div>
                         <Text>
-                            Powers your AI agent's core reasoning and response
-                            generation.
+                            Powers your AI agent's core reasoning and response generation.
                         </Text>
                         <Text className="text-xs">
                             Get your key from the{" "}
@@ -679,19 +691,16 @@ export default function AISettingsPage() {
 
                 <Divider soft />
 
+                {/* OpenRouter */}
                 <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <Subheading>OpenRouter</Subheading>
-                            <StatusBadge
-                                isSet={
-                                    settings?.openrouter_api_key_set ?? false
-                                }
-                            />
+                            <StatusBadge isSet={settings?.openrouter_api_key_set ?? false} />
                         </div>
                         <Text>
-                            Configure an OpenRouter API key for deployments that
-                            route model calls through OpenRouter.
+                            Configure an OpenRouter API key for deployments that route model
+                            calls through OpenRouter.
                         </Text>
                     </div>
                     <div className="space-y-4">
@@ -705,32 +714,26 @@ export default function AISettingsPage() {
                                         : "Enter OpenRouter API Key"
                                 }
                                 value={openrouterKey}
-                                onChange={(e) =>
-                                    setOpenrouterKey(e.target.value)
-                                }
+                                onChange={(e) => setOpenrouterKey(e.target.value)}
                                 autoComplete="new-password"
                             />
                         </Field>
-                        {strongLlmProvider === "openrouter" && (
-                            <div className="flex items-center justify-between gap-4 rounded-lg border border-zinc-200 px-4 py-3 dark:border-zinc-800">
-                                <div className="space-y-1">
-                                    <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                                        OpenRouter require parameters
-                                    </div>
-                                    <div className="text-xs text-zinc-500">
-                                        Require OpenRouter to route only to
-                                        endpoints that explicitly support all
-                                        requested parameters.
-                                    </div>
+                        <div className="flex items-center justify-between gap-4 rounded-lg border border-zinc-200 px-4 py-3 dark:border-zinc-800">
+                            <div className="space-y-1">
+                                <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                    Require parameters
                                 </div>
-                                <Switch
-                                    checked={openrouterRequireParameters}
-                                    onCheckedChange={
-                                        setOpenrouterRequireParameters
-                                    }
-                                />
+                                <div className="text-xs text-zinc-500">
+                                    Only route to endpoints that explicitly support all requested
+                                    parameters. Required when OpenRouter is the strong model
+                                    provider.
+                                </div>
                             </div>
-                        )}
+                            <Switch
+                                checked={openrouterRequireParameters}
+                                onCheckedChange={setOpenrouterRequireParameters}
+                            />
+                        </div>
                     </div>
                 </section>
 
@@ -741,13 +744,11 @@ export default function AISettingsPage() {
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <Subheading>OpenAI</Subheading>
-                            <StatusBadge
-                                isSet={settings?.openai_api_key_set ?? false}
-                            />
+                            <StatusBadge isSet={settings?.openai_api_key_set ?? false} />
                         </div>
                         <Text>
-                            Configure a direct OpenAI API key for deployments
-                            that call OpenAI models without a router.
+                            Configure a direct OpenAI API key for deployments that call OpenAI
+                            models without a router.
                         </Text>
                     </div>
                     <Field>
@@ -773,9 +774,7 @@ export default function AISettingsPage() {
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <Subheading>Anthropic</Subheading>
-                            <StatusBadge
-                                isSet={settings?.anthropic_api_key_set ?? false}
-                            />
+                            <StatusBadge isSet={settings?.anthropic_api_key_set ?? false} />
                         </div>
                         <Text>Support for Claude models is coming soon.</Text>
                     </div>
@@ -811,7 +810,20 @@ function StatusBadge({ isSet }: { isSet: boolean }) {
     );
 }
 
-function StorageProviderBadge({ provider }: { provider: AIStorageProvider }) {
+function StorageProviderBadge({
+    provider,
+    configured,
+}: {
+    provider: AIStorageProvider;
+    configured: boolean;
+}) {
+    if (!configured) {
+        return (
+            <div className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                Not configured
+            </div>
+        );
+    }
     return (
         <div className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
             {provider === "s3" ? "Customer S3" : "Customer S3"}
