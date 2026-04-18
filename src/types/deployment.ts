@@ -322,12 +322,15 @@ export interface DeploymentWorkspaceRole {
 	id: string;
 	name: string;
 	permissions: string[];
+	workspace_id?: string | null;
+	organization_id?: string | null;
 }
 
 export interface DeploymentOrganizationRole {
 	id: string;
 	name: string;
 	permissions: string[];
+	organization_id?: string | null;
 }
 
 export interface DeploymentPermissionCatalogEntry {

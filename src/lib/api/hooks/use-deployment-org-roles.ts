@@ -8,20 +8,24 @@ interface Role {
     description: string;
 }
 
-const fetchDeploymentOrgRoles = async (deploymentId: string): Promise<Role[]> => {
-    const response = await apiClient.get(`/deployments/${deploymentId}/organizations/roles`);
+const fetchDeploymentOrgRoles = async (
+    deploymentId: string,
+    organizationId: string,
+): Promise<Role[]> => {
+    const path = `/deployments/${deploymentId}/organizations/${organizationId}/roles`;
+    const response = await apiClient.get(path);
     return response.data.data;
 };
 
-export const useDeploymentOrgRoles = () => {
+export const useDeploymentOrgRoles = (organizationId?: string) => {
     const { selectedDeployment } = useProjects();
     if (!selectedDeployment) {
         throw new Error("Deployment ID is required");
     }
 
     return useQuery<Role[], Error>({
-        queryKey: ["deploymentOrgRoles", selectedDeployment!.id],
-        queryFn: () => fetchDeploymentOrgRoles(selectedDeployment!.id),
-        enabled: !!selectedDeployment?.id,
+        queryKey: ["deploymentOrgRoles", selectedDeployment?.id, organizationId],
+        queryFn: () => fetchDeploymentOrgRoles(selectedDeployment!.id, organizationId!),
+        enabled: !!selectedDeployment?.id && !!organizationId,
     });
-}; 
+};

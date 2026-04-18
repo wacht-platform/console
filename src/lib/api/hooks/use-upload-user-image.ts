@@ -3,7 +3,8 @@ import { apiClient } from "../client";
 import { useProjects } from "./use-projects";
 
 interface UploadResponse {
-  url: string;
+  profile_picture_url?: string;
+  profile_image_url?: string;
 }
 
 async function uploadUserProfileImage(
@@ -12,19 +13,14 @@ async function uploadUserProfileImage(
   file: File
 ): Promise<string> {
   const formData = new FormData();
-  formData.append("image", file);
+  formData.append("profile_image", file);
 
-  const response = await apiClient.post<UploadResponse>(
-    `/deployments/${deploymentId}/users/${userId}/upload-profile-image`,
-    formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    }
+  const response = await apiClient.patch<UploadResponse>(
+    `/deployments/${deploymentId}/users/${userId}`,
+    formData
   );
 
-  return response.data.url;
+  return response.data.profile_picture_url ?? response.data.profile_image_url ?? "";
 }
 
 export function useUploadUserImage(userId: string) {

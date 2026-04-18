@@ -8,17 +8,21 @@ interface Role {
     description: string;
 }
 
-const fetchDeploymentWorkspaceRoles = async (deploymentId: string): Promise<Role[]> => {
-    const response = await apiClient.get(`/deployments/${deploymentId}/workspaces/roles`);
+const fetchDeploymentWorkspaceRoles = async (
+    deploymentId: string,
+    workspaceId: string,
+): Promise<Role[]> => {
+    const path = `/deployments/${deploymentId}/workspaces/${workspaceId}/roles`;
+    const response = await apiClient.get(path);
     return response.data.data;
 };
 
-export const useDeploymentWorkspaceRoles = () => {
+export const useDeploymentWorkspaceRoles = (workspaceId?: string) => {
     const { selectedDeployment } = useProjects();
 
     return useQuery<Role[], Error>({
-        queryKey: ["deploymentWorkspaceRoles", selectedDeployment!.id],
-        queryFn: () => fetchDeploymentWorkspaceRoles(selectedDeployment!.id),
-        enabled: !!selectedDeployment?.id,
+        queryKey: ["deploymentWorkspaceRoles", selectedDeployment?.id, workspaceId],
+        queryFn: () => fetchDeploymentWorkspaceRoles(selectedDeployment!.id, workspaceId!),
+        enabled: !!selectedDeployment?.id && !!workspaceId,
     });
-}; 
+};

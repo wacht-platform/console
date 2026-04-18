@@ -57,11 +57,15 @@ export default function ManageWorkspacesPage() {
   const { deploymentSettings, isLoading: isLoadingSettings } =
     useCurrentDeployemnt();
   const updateB2bSettings = useUpdateDeploymentB2bSettings();
+  const roleScopeWorkspaceId =
+    deploymentSettings?.b2b_settings?.default_workspace_member_role?.workspace_id ??
+    deploymentSettings?.b2b_settings?.default_workspace_creator_role?.workspace_id ??
+    undefined;
   const {
     data: workspaceRoles,
     isLoading: isLoadingRoles,
     error: rolesError,
-  } = useDeploymentWorkspaceRoles();
+  } = useDeploymentWorkspaceRoles(roleScopeWorkspaceId);
 
   const [settingsState, setSettingsState] =
     useState<WorkspaceSettingsState>(initialSettingsState);
@@ -387,7 +391,7 @@ export default function ManageWorkspacesPage() {
                           value
                         )
                       }
-                      disabled={isLoadingRoles || !!rolesError}
+                      disabled={isLoadingRoles || !!rolesError || !roleScopeWorkspaceId}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder={isLoadingRoles ? "Loading roles..." : "Select a role"} />
@@ -425,7 +429,7 @@ export default function ManageWorkspacesPage() {
                           value
                         )
                       }
-                      disabled={isLoadingRoles || !!rolesError}
+                      disabled={isLoadingRoles || !!rolesError || !roleScopeWorkspaceId}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder={isLoadingRoles ? "Loading role..." : "Select a role"} />
