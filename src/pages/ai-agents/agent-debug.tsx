@@ -28,7 +28,7 @@ export default function AgentDebugPage() {
     };
 
     return (
-        <div className="space-y-3">
+        <div className="space-y-3 flex justify-between">
             <div className="space-y-1">
                 <h2 className="text-[14px] font-medium tracking-tight">
                     Test agent
@@ -40,7 +40,11 @@ export default function AgentDebugPage() {
 
             <Button
                 className="h-9 px-3 text-[12px]"
-                disabled={generateTicketMutation.isPending || !selectedDeployment || !agent}
+                disabled={
+                    generateTicketMutation.isPending ||
+                    !selectedDeployment ||
+                    !agent
+                }
                 onClick={handleTestAgent}
             >
                 {generateTicketMutation.isPending ? "Opening..." : "Test agent"}
