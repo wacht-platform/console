@@ -4,7 +4,6 @@ import { apiClient } from '@/lib/api/client';
 interface GenerateTicketRequest {
     deployment_id: string;
     agent_ids: string[];
-    actor_id: string;
     selected_agent_id?: string;
     expires_in?: number;
 }
@@ -20,7 +19,6 @@ export function useGenerateAgentTicket() {
             const response = await apiClient.post(`/deployments/${req.deployment_id}/session/tickets`, {
                 ticket_type: "agent_access",
                 agent_ids: req.agent_ids,
-                actor_id: req.actor_id,
                 selected_agent_id: req.selected_agent_id,
                 expires_in: req.expires_in,
             });
