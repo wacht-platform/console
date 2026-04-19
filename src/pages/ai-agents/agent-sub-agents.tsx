@@ -48,7 +48,6 @@ export default function AgentSubAgentsPage() {
                         </div>
                         <p className="mt-1 text-[13px] leading-5 text-muted-foreground">
                             Select which agents this agent can delegate work to
-                            acting as a coordinator.
                         </p>
                         <div className="mt-3 text-[12px] text-muted-foreground">
                             {attachedCount} sub-agent

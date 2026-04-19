@@ -477,6 +477,7 @@ export default function CatalogEditorPage() {
                         <div className="space-y-2">
                             <Label>Slug</Label>
                             <Input
+                                className="px-3"
                                 placeholder="user-events"
                                 value={slug}
                                 onChange={(e) => setSlug(e.target.value)}
@@ -491,6 +492,7 @@ export default function CatalogEditorPage() {
                         <div className="space-y-2">
                             <Label>Name</Label>
                             <Input
+                                className="px-3"
                                 placeholder="User Lifecycle Events"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
@@ -501,6 +503,7 @@ export default function CatalogEditorPage() {
                     <div className="space-y-2">
                         <Label>Description</Label>
                         <Input
+                            className="px-3"
                             placeholder="Describe what this catalog is for..."
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
@@ -531,39 +534,37 @@ export default function CatalogEditorPage() {
                         </Button>
                     </div>
 
-                    <div className="space-y-1">
+                    <div className="divide-y">
                         {events.map((event) => (
                             <Collapsible
                                 key={event.id}
                                 open={event.isExpanded}
-                                onOpenChange={() =>
-                                    toggleEventExpanded(event.id)
-                                }
+                                onOpenChange={() => toggleEventExpanded(event.id)}
                             >
-                                <CollapsibleTrigger className="flex items-center justify-between w-full py-3 px-2 -mx-2 rounded-md hover:bg-muted/50 transition-colors">
+                                <CollapsibleTrigger className="flex items-center justify-between w-full py-3 hover:bg-muted/30 -mx-3 px-3 rounded transition-colors">
                                     <div className="flex items-center gap-3 min-w-0">
                                         <ChevronDownIcon
                                             className={`h-4 w-4 text-muted-foreground transition-transform shrink-0 ${event.isExpanded ? "rotate-180" : ""}`}
                                         />
-                                        <div className="min-w-0">
-                                            <p className="text-sm font-medium truncate">
-                                                {event.name.trim() ||
-                                                    "Untitled Event"}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground truncate">
-                                                {event.group.trim()
-                                                    ? `Group: ${event.group}`
-                                                    : event.description.trim() ||
-                                                      "No description"}
-                                            </p>
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <span className="text-sm font-medium truncate">
+                                                {event.name.trim() || "Untitled Event"}
+                                            </span>
+                                            {event.group.trim() && (
+                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 shrink-0">
+                                                    {event.group.trim()}
+                                                </span>
+                                            )}
+                                            {!event.isExpanded && event.description.trim() && (
+                                                <span className="text-xs text-muted-foreground truncate hidden md:block">
+                                                    — {event.description.trim()}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3 shrink-0">
+                                    <div className="flex items-center gap-2 shrink-0 ml-4">
                                         <span className="text-xs text-muted-foreground tabular-nums">
-                                            {event.fields.length} field
-                                            {event.fields.length !== 1
-                                                ? "s"
-                                                : ""}
+                                            {event.fields.length} field{event.fields.length !== 1 ? "s" : ""}
                                         </span>
                                         <Button
                                             type="button"
@@ -580,45 +581,42 @@ export default function CatalogEditorPage() {
                                         </Button>
                                     </div>
                                 </CollapsibleTrigger>
+
                                 <CollapsibleContent>
-                                    <div className="pb-4 pt-2 space-y-4">
+                                    <div className="pb-5 pt-3 space-y-4">
                                         {/* Event Info */}
-                                        <div className="grid gap-4 lg:grid-cols-3">
-                                            <div className="space-y-2">
-                                                <Label>Event Name</Label>
-                                                <Input
-                                                    value={event.name}
-                                                    onChange={(e) =>
-                                                        updateEvent(event.id, {
-                                                            name: e.target
-                                                                .value,
-                                                        })
-                                                    }
-                                                    placeholder="user.created"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label>Group</Label>
-                                                <Input
-                                                    value={event.group}
-                                                    onChange={(e) =>
-                                                        updateEvent(event.id, {
-                                                            group: e.target
-                                                                .value,
-                                                        })
-                                                    }
-                                                    placeholder="user"
-                                                />
+                                        <div className="space-y-3">
+                                            <div className="flex gap-3">
+                                                <div className="flex-1 space-y-2">
+                                                    <Label>Event Name</Label>
+                                                    <Input
+                                                        className="px-3"
+                                                        value={event.name}
+                                                        onChange={(e) =>
+                                                            updateEvent(event.id, { name: e.target.value })
+                                                        }
+                                                        placeholder="user.created"
+                                                    />
+                                                </div>
+                                                <div className="w-40 space-y-2 shrink-0">
+                                                    <Label>Group</Label>
+                                                    <Input
+                                                        className="px-3"
+                                                        value={event.group}
+                                                        onChange={(e) =>
+                                                            updateEvent(event.id, { group: e.target.value })
+                                                        }
+                                                        placeholder="user"
+                                                    />
+                                                </div>
                                             </div>
                                             <div className="space-y-2">
                                                 <Label>Description</Label>
                                                 <Input
+                                                    className="px-3"
                                                     value={event.description}
                                                     onChange={(e) =>
-                                                        updateEvent(event.id, {
-                                                            description:
-                                                                e.target.value,
-                                                        })
+                                                        updateEvent(event.id, { description: e.target.value })
                                                     }
                                                     placeholder="Emitted when a user is created"
                                                 />
@@ -628,210 +626,96 @@ export default function CatalogEditorPage() {
                                         {/* Schema Fields */}
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-between">
-                                                <Label className="text-sm">
-                                                    Schema Fields
-                                                </Label>
+                                                <Label className="text-sm">Schema Fields</Label>
                                                 <Button
                                                     type="button"
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() =>
-                                                        addField(event.id)
-                                                    }
+                                                    onClick={() => addField(event.id)}
                                                 >
-                                                    <PlusIcon className="mr-1 h-3 w-3" />{" "}
-                                                    Add Field
+                                                    <PlusIcon className="mr-1 h-3 w-3" /> Add Field
                                                 </Button>
                                             </div>
 
-                                            <div className="border rounded-lg overflow-hidden">
-                                                <table className="w-full text-sm">
-                                                    <thead>
-                                                        <tr className="bg-muted/50 border-b">
-                                                            <th className="text-left py-2 px-3 font-medium text-muted-foreground">
-                                                                Field Name
-                                                            </th>
-                                                            <th className="text-left py-2 px-3 font-medium text-muted-foreground w-28">
-                                                                Type
-                                                            </th>
-                                                            <th className="text-left py-2 px-3 font-medium text-muted-foreground">
-                                                                Description
-                                                            </th>
-                                                            <th className="text-left py-2 px-3 font-medium text-muted-foreground">
-                                                                Example
-                                                            </th>
-                                                            <th className="text-center py-2 px-3 font-medium text-muted-foreground w-16">
-                                                                Req
-                                                            </th>
-                                                            <th className="w-10"></th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {event.fields.map(
-                                                            (field) => (
-                                                                <tr
-                                                                    key={
-                                                                        field.id
-                                                                    }
-                                                                    className="border-b last:border-b-0"
-                                                                >
-                                                                    <td className="py-2 px-3">
-                                                                        <Input
-                                                                            className="h-8 text-sm border-0 bg-transparent shadow-none focus-visible:ring-0 px-0"
-                                                                            value={
-                                                                                field.name
-                                                                            }
-                                                                            onChange={(
-                                                                                e,
-                                                                            ) =>
-                                                                                updateField(
-                                                                                    event.id,
-                                                                                    field.id,
-                                                                                    {
-                                                                                        name: e
-                                                                                            .target
-                                                                                            .value,
-                                                                                    },
-                                                                                )
-                                                                            }
-                                                                            placeholder="field_name"
-                                                                        />
-                                                                    </td>
-                                                                    <td className="py-2 px-3">
-                                                                        <Select
-                                                                            value={
-                                                                                field.type
-                                                                            }
-                                                                            onValueChange={(
-                                                                                value: SchemaFieldType,
-                                                                            ) =>
-                                                                                updateField(
-                                                                                    event.id,
-                                                                                    field.id,
-                                                                                    {
-                                                                                        type: value,
-                                                                                    },
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            <SelectTrigger className="h-8 text-sm border-0 bg-transparent shadow-none">
-                                                                                <SelectValue />
-                                                                            </SelectTrigger>
-                                                                            <SelectContent>
-                                                                                {FIELD_TYPES.map(
-                                                                                    (
-                                                                                        item,
-                                                                                    ) => (
-                                                                                        <SelectItem
-                                                                                            key={
-                                                                                                item.value
-                                                                                            }
-                                                                                            value={
-                                                                                                item.value
-                                                                                            }
-                                                                                        >
-                                                                                            {
-                                                                                                item.label
-                                                                                            }
-                                                                                        </SelectItem>
-                                                                                    ),
-                                                                                )}
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                                    </td>
-                                                                    <td className="py-2 px-3">
-                                                                        <Input
-                                                                            className="h-8 text-sm border-0 bg-transparent shadow-none focus-visible:ring-0 px-0"
-                                                                            value={
-                                                                                field.description
-                                                                            }
-                                                                            onChange={(
-                                                                                e,
-                                                                            ) =>
-                                                                                updateField(
-                                                                                    event.id,
-                                                                                    field.id,
-                                                                                    {
-                                                                                        description:
-                                                                                            e
-                                                                                                .target
-                                                                                                .value,
-                                                                                    },
-                                                                                )
-                                                                            }
-                                                                            placeholder="Description..."
-                                                                        />
-                                                                    </td>
-                                                                    <td className="py-2 px-3">
-                                                                        <Input
-                                                                            className="h-8 text-sm border-0 bg-transparent shadow-none focus-visible:ring-0 px-0 font-mono text-xs"
-                                                                            value={
-                                                                                field.example
-                                                                            }
-                                                                            onChange={(
-                                                                                e,
-                                                                            ) =>
-                                                                                updateField(
-                                                                                    event.id,
-                                                                                    field.id,
-                                                                                    {
-                                                                                        example:
-                                                                                            e
-                                                                                                .target
-                                                                                                .value,
-                                                                                    },
-                                                                                )
-                                                                            }
-                                                                            placeholder="example"
-                                                                        />
-                                                                    </td>
-                                                                    <td className="py-2 px-3 text-center">
-                                                                        <Checkbox
-                                                                            checked={
-                                                                                field.required
-                                                                            }
-                                                                            onCheckedChange={(
-                                                                                checked,
-                                                                            ) =>
-                                                                                updateField(
-                                                                                    event.id,
-                                                                                    field.id,
-                                                                                    {
-                                                                                        required:
-                                                                                            checked ===
-                                                                                            true,
-                                                                                    },
-                                                                                )
-                                                                            }
-                                                                        />
-                                                                    </td>
-                                                                    <td className="py-2 px-2">
-                                                                        <Button
-                                                                            type="button"
-                                                                            variant="ghost"
-                                                                            size="icon"
-                                                                            className="h-7 w-7"
-                                                                            onClick={() =>
-                                                                                removeField(
-                                                                                    event.id,
-                                                                                    field.id,
-                                                                                )
-                                                                            }
-                                                                            disabled={
-                                                                                event
-                                                                                    .fields
-                                                                                    .length ===
-                                                                                1
-                                                                            }
-                                                                        >
-                                                                            <TrashIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                                                                        </Button>
-                                                                    </td>
-                                                                </tr>
-                                                            ),
-                                                        )}
-                                                    </tbody>
-                                                </table>
+                                            {/* Column headers */}
+                                            <div className="grid grid-cols-[1fr_120px_1fr_1fr_64px_36px] gap-x-2 px-1">
+                                                <span className="text-xs font-medium text-muted-foreground">Field Name</span>
+                                                <span className="text-xs font-medium text-muted-foreground">Type</span>
+                                                <span className="text-xs font-medium text-muted-foreground">Description</span>
+                                                <span className="text-xs font-medium text-muted-foreground">Example</span>
+                                                <span className="text-xs font-medium text-muted-foreground text-center">Required</span>
+                                                <span />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                {event.fields.map((field) => (
+                                                    <div
+                                                        key={field.id}
+                                                        className="grid grid-cols-[1fr_120px_1fr_1fr_64px_36px] gap-x-2 items-center"
+                                                    >
+                                                        <Input
+                                                            className="h-8 text-sm px-3"
+                                                            value={field.name}
+                                                            onChange={(e) =>
+                                                                updateField(event.id, field.id, { name: e.target.value })
+                                                            }
+                                                            placeholder="field_name"
+                                                        />
+                                                        <Select
+                                                            value={field.type}
+                                                            onValueChange={(value: SchemaFieldType) =>
+                                                                updateField(event.id, field.id, { type: value })
+                                                            }
+                                                        >
+                                                            <SelectTrigger className="h-8 text-sm pl-3">
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {FIELD_TYPES.map((item) => (
+                                                                    <SelectItem key={item.value} value={item.value}>
+                                                                        {item.label}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <Input
+                                                            className="h-8 text-sm px-3"
+                                                            value={field.description}
+                                                            onChange={(e) =>
+                                                                updateField(event.id, field.id, { description: e.target.value })
+                                                            }
+                                                            placeholder="Description"
+                                                        />
+                                                        <Input
+                                                            className="h-8 text-sm font-mono text-xs px-3"
+                                                            value={field.example}
+                                                            onChange={(e) =>
+                                                                updateField(event.id, field.id, { example: e.target.value })
+                                                            }
+                                                            placeholder="example"
+                                                        />
+                                                        <div className="flex justify-center">
+                                                            <Checkbox
+                                                                checked={field.required}
+                                                                onCheckedChange={(checked) =>
+                                                                    updateField(event.id, field.id, {
+                                                                        required: checked === true,
+                                                                    })
+                                                                }
+                                                            />
+                                                        </div>
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-7 w-7"
+                                                            onClick={() => removeField(event.id, field.id)}
+                                                            disabled={event.fields.length === 1}
+                                                        >
+                                                            <TrashIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                                                        </Button>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
                                     </div>
