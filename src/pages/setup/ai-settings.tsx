@@ -15,13 +15,21 @@ import {
 } from "@/components/ui/select";
 import { Description, Field, Label } from "@/components/ui/fieldset";
 import { Switch } from "@/components/ui/switch";
-import { CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon } from "@heroicons/react/20/solid";
+import {
+    CheckCircleIcon,
+    XCircleIcon,
+    ExclamationTriangleIcon,
+} from "@heroicons/react/20/solid";
 import { toast } from "sonner";
 import SavePopup from "@/components/save-popup";
 import { InlineLoader } from "@/components/ui/loading-screen";
 
 type LlmProvider = "gemini" | "openai" | "openrouter";
+type EmbeddingProvider = "gemini" | "openai" | "openrouter";
+type EmbeddingDimension = 1536 | 768;
 type AIStorageProvider = "s3";
+
+const SUPPORTED_EMBEDDING_DIMENSIONS: EmbeddingDimension[] = [1536, 768];
 
 interface AISettingsResponse {
     strong_llm_provider: LlmProvider;
@@ -33,6 +41,9 @@ interface AISettingsResponse {
     anthropic_api_key_set: boolean;
     strong_model: string | null;
     weak_model: string | null;
+    embedding_provider: EmbeddingProvider;
+    embedding_model: string;
+    embedding_dimension: EmbeddingDimension;
     storage: AIStorageSettingsResponse;
 }
 
@@ -46,6 +57,9 @@ interface UpdateAISettingsRequest {
     anthropic_api_key?: string;
     strong_model?: string;
     weak_model?: string;
+    embedding_provider?: EmbeddingProvider;
+    embedding_model?: string;
+    embedding_dimension?: EmbeddingDimension;
     storage?: UpdateAIStorageSettingsRequest;
 }
 
@@ -87,6 +101,14 @@ function providerLabel(provider: LlmProvider): string {
     return { gemini: "Gemini", openai: "OpenAI", openrouter: "OpenRouter" }[provider];
 }
 
+function defaultEmbeddingModelFor(provider: EmbeddingProvider): string {
+    return {
+        gemini: "gemini-embedding-2-preview",
+        openai: "text-embedding-3-small",
+        openrouter: "openai/text-embedding-3-small",
+    }[provider];
+}
+
 async function fetchAISettings(deploymentId: string): Promise<AISettingsResponse> {
     const { data } = await apiClient.get<AISettingsResponse>(
         `/deployments/${deploymentId}/ai/settings`,
@@ -118,6 +140,9 @@ export default function AISettingsPage() {
     const [anthropicKey, setAnthropicKey] = useState("");
     const [strongModel, setStrongModel] = useState("");
     const [weakModel, setWeakModel] = useState("");
+    const [embeddingProvider, setEmbeddingProvider] = useState<EmbeddingProvider>("gemini");
+    const [embeddingModel, setEmbeddingModel] = useState("");
+    const [embeddingDimension, setEmbeddingDimension] = useState<EmbeddingDimension>(1536);
     const [storageBucket, setStorageBucket] = useState("");
     const [storageRegion, setStorageRegion] = useState("");
     const [storageEndpoint, setStorageEndpoint] = useState("");
@@ -132,6 +157,7 @@ export default function AISettingsPage() {
         queryFn: () => fetchAISettings(selectedDeployment!.id),
         enabled: !!selectedDeployment,
     });
+
 
     const updateMutation = useMutation({
         mutationFn: (updates: UpdateAISettingsRequest) =>
@@ -149,6 +175,9 @@ export default function AISettingsPage() {
             setAnthropicKey("");
             setStrongModel(updatedSettings.strong_model ?? "");
             setWeakModel(updatedSettings.weak_model ?? "");
+            setEmbeddingProvider(updatedSettings.embedding_provider);
+            setEmbeddingModel(updatedSettings.embedding_model);
+            setEmbeddingDimension(updatedSettings.embedding_dimension);
             setStorageBucket("");
             setStorageRegion("");
             setStorageEndpoint("");
@@ -223,6 +252,22 @@ export default function AISettingsPage() {
             updates.strong_model = strongModel.trim() || undefined;
         if (weakModel.trim() !== (settings?.weak_model ?? ""))
             updates.weak_model = weakModel.trim() || undefined;
+
+        const trimmedEmbeddingModel = embeddingModel.trim();
+        const embeddingProviderChanged = embeddingProvider !== settings?.embedding_provider;
+        const embeddingModelChanged = trimmedEmbeddingModel !== (settings?.embedding_model ?? "");
+        if (embeddingProviderChanged || embeddingModelChanged) {
+            if (!trimmedEmbeddingModel) {
+                toast.error("Embedding model cannot be empty");
+                return;
+            }
+            // Backend requires provider and model to be sent together when either changes.
+            updates.embedding_provider = embeddingProvider;
+            updates.embedding_model = trimmedEmbeddingModel;
+        }
+        if (embeddingDimension !== settings?.embedding_dimension) {
+            updates.embedding_dimension = embeddingDimension;
+        }
 
         const currentStorage = settings?.storage;
         const trimmedBucket = storageBucket.trim();
@@ -308,6 +353,9 @@ export default function AISettingsPage() {
         setAnthropicKey("");
         setStrongModel(settings?.strong_model ?? "");
         setWeakModel(settings?.weak_model ?? "");
+        setEmbeddingProvider(settings?.embedding_provider ?? "gemini");
+        setEmbeddingModel(settings?.embedding_model ?? "");
+        setEmbeddingDimension(settings?.embedding_dimension ?? 1536);
         setStorageBucket("");
         setStorageRegion("");
         setStorageEndpoint("");
@@ -326,6 +374,9 @@ export default function AISettingsPage() {
         setOpenrouterRequireParameters(settings.openrouter_require_parameters);
         setStrongModel(settings.strong_model ?? "");
         setWeakModel(settings.weak_model ?? "");
+        setEmbeddingProvider(settings.embedding_provider);
+        setEmbeddingModel(settings.embedding_model);
+        setEmbeddingDimension(settings.embedding_dimension);
     }, [settings]);
 
     useEffect(() => {
@@ -339,7 +390,10 @@ export default function AISettingsPage() {
                 openaiKey.trim() ||
                 anthropicKey.trim() ||
                 strongModel.trim() !== (settings?.strong_model ?? "") ||
-                weakModel.trim() !== (settings?.weak_model ?? ""),
+                weakModel.trim() !== (settings?.weak_model ?? "") ||
+                embeddingProvider !== (settings?.embedding_provider ?? "gemini") ||
+                embeddingModel.trim() !== (settings?.embedding_model ?? "") ||
+                embeddingDimension !== (settings?.embedding_dimension ?? 1536),
         );
         const hasStorageChanges =
             forcePathStyle !== (currentStorage?.force_path_style ?? false) ||
@@ -363,6 +417,9 @@ export default function AISettingsPage() {
         anthropicKey,
         strongModel,
         weakModel,
+        embeddingProvider,
+        embeddingModel,
+        embeddingDimension,
         storageBucket,
         storageRegion,
         storageEndpoint,
@@ -376,10 +433,10 @@ export default function AISettingsPage() {
 
     return (
         <div>
-            <Heading>AI Settings</Heading>
+            <Heading>Configuration</Heading>
             <Text className="mt-2 text-zinc-500">
-                Configure your own API keys to bypass platform usage billing for AI agents. When
-                you provide your own keys, you won't be billed for AI usage on our platform.
+                Bring your own LLM, embedding, and storage credentials. Keys set here bypass
+                platform billing.
             </Text>
 
             <SavePopup
@@ -403,8 +460,7 @@ export default function AISettingsPage() {
                             />
                         </div>
                         <Text>
-                            Configure the customer-managed S3 bucket used for durable AI workspace
-                            data.
+                            S3-compatible bucket for workspaces, uploads, and vector tables.
                         </Text>
                     </div>
 
@@ -414,8 +470,7 @@ export default function AISettingsPage() {
                                 Connection
                             </div>
                             <div className="mt-1 text-xs text-zinc-500">
-                                Use the bucket and endpoint exactly as your S3 provider expects
-                                them.
+                                Must match your provider exactly. Region mismatches fail silently.
                             </div>
                             <div className="mt-4 space-y-4">
                                 <div className="grid gap-4 sm:grid-cols-2">
@@ -538,13 +593,15 @@ export default function AISettingsPage() {
                     <div className="space-y-1">
                         <Subheading>Model Selection</Subheading>
                         <Text>
-                            Configure the deployment-wide strong and weak model strings used by
-                            the runtime and the provider used for model requests.
+                            Agents route requests to a strong or weak tier per call.
                         </Text>
                         <Text className="text-xs text-zinc-500 mt-1">
-                            The <strong>strong model</strong> handles structured JSON schema
-                            output. The <strong>weak model</strong> handles tool calls and
-                            lightweight tasks.
+                            <strong>Strong</strong>: JSON-schema output (planning, decisions).
+                            Requires structured-output support.
+                        </Text>
+                        <Text className="text-xs text-zinc-500 mt-1">
+                            <strong>Weak</strong>: tool calls, summaries, iteration. Requires
+                            function-calling support.
                         </Text>
                     </div>
                     <div className="space-y-4">
@@ -634,9 +691,7 @@ export default function AISettingsPage() {
                                 value={strongModel}
                                 onChange={(e) => setStrongModel(e.target.value)}
                             />
-                            <Description>
-                                Must support JSON schema structured output.
-                            </Description>
+                            <Description>Needs structured-output support.</Description>
                         </Field>
                         <Field>
                             <Label>Weak model</Label>
@@ -645,7 +700,94 @@ export default function AISettingsPage() {
                                 value={weakModel}
                                 onChange={(e) => setWeakModel(e.target.value)}
                             />
-                            <Description>Must support tool/function calling.</Description>
+                            <Description>Needs function-calling support.</Description>
+                        </Field>
+                    </div>
+                </section>
+
+                <Divider soft />
+
+                {/* Embeddings */}
+                <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
+                    <div className="space-y-1">
+                        <Subheading>Embeddings</Subheading>
+                        <Text>
+                            Powers semantic search over knowledge bases and agent memory.
+                        </Text>
+                        <Text className="text-xs text-zinc-500 mt-1">
+                            Changing any field invalidates the vector store. All KB docs and
+                            memories must be reindexed.
+                        </Text>
+                    </div>
+                    <div className="space-y-4">
+                        {(embeddingProvider !== (settings?.embedding_provider ?? "gemini") ||
+                            embeddingModel.trim() !== (settings?.embedding_model ?? "") ||
+                            embeddingDimension !== (settings?.embedding_dimension ?? 1536)) && (
+                            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950">
+                                <div className="flex items-start gap-2">
+                                    <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                                    <p className="text-xs text-amber-800 dark:text-amber-300">
+                                        Saving resets the vector store. Reindex all KB docs and
+                                        memories before retrieval works again.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                        <Field>
+                            <Label>Provider</Label>
+                            <Select
+                                value={embeddingProvider}
+                                onValueChange={(v) => {
+                                    const next = v as EmbeddingProvider;
+                                    setEmbeddingProvider(next);
+                                    // Suggest the provider's default model when the current model
+                                    // is empty or matches the previous provider's default.
+                                    const prevDefault = defaultEmbeddingModelFor(embeddingProvider);
+                                    if (!embeddingModel.trim() || embeddingModel.trim() === prevDefault) {
+                                        setEmbeddingModel(defaultEmbeddingModelFor(next));
+                                    }
+                                }}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select provider" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="gemini">Gemini</SelectItem>
+                                    <SelectItem value="openai">OpenAI</SelectItem>
+                                    <SelectItem value="openrouter">OpenRouter</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <Description>Uses the provider's API key below.</Description>
+                        </Field>
+                        <Field>
+                            <Label>Model</Label>
+                            <Input
+                                placeholder={defaultEmbeddingModelFor(embeddingProvider)}
+                                value={embeddingModel}
+                                onChange={(e) => setEmbeddingModel(e.target.value)}
+                            />
+                            <Description>Provider-specific model string.</Description>
+                        </Field>
+                        <Field>
+                            <Label>Dimension</Label>
+                            <Select
+                                value={String(embeddingDimension)}
+                                onValueChange={(v) =>
+                                    setEmbeddingDimension(Number(v) as EmbeddingDimension)
+                                }
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select dimension" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {SUPPORTED_EMBEDDING_DIMENSIONS.map((d) => (
+                                        <SelectItem key={d} value={String(d)}>
+                                            {d}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Description>Must match the model's native output size.</Description>
                         </Field>
                     </div>
                 </section>
@@ -659,9 +801,7 @@ export default function AISettingsPage() {
                             <Subheading>Google Gemini</Subheading>
                             <StatusBadge isSet={settings?.gemini_api_key_set ?? false} />
                         </div>
-                        <Text>
-                            Powers your AI agent's core reasoning and response generation.
-                        </Text>
+                        <Text>Used when Gemini is selected above.</Text>
                         <Text className="text-xs">
                             Get your key from the{" "}
                             <a
@@ -698,10 +838,7 @@ export default function AISettingsPage() {
                             <Subheading>OpenRouter</Subheading>
                             <StatusBadge isSet={settings?.openrouter_api_key_set ?? false} />
                         </div>
-                        <Text>
-                            Configure an OpenRouter API key for deployments that route model
-                            calls through OpenRouter.
-                        </Text>
+                        <Text>Used when OpenRouter is selected above.</Text>
                     </div>
                     <div className="space-y-4">
                         <Field>
@@ -724,9 +861,8 @@ export default function AISettingsPage() {
                                     Require parameters
                                 </div>
                                 <div className="text-xs text-zinc-500">
-                                    Only route to endpoints that explicitly support all requested
-                                    parameters. Required when OpenRouter is the strong model
-                                    provider.
+                                    Skip endpoints that drop requested parameters. Required for
+                                    strong-model routing.
                                 </div>
                             </div>
                             <Switch
@@ -746,10 +882,7 @@ export default function AISettingsPage() {
                             <Subheading>OpenAI</Subheading>
                             <StatusBadge isSet={settings?.openai_api_key_set ?? false} />
                         </div>
-                        <Text>
-                            Configure a direct OpenAI API key for deployments that call OpenAI
-                            models without a router.
-                        </Text>
+                        <Text>Used when OpenAI is selected above.</Text>
                     </div>
                     <Field>
                         <Label>API key</Label>
@@ -788,6 +921,7 @@ export default function AISettingsPage() {
                         />
                     </div>
                 </section>
+
             </div>
         </div>
     );

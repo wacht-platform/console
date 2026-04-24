@@ -52,6 +52,7 @@ const EmailTemplateEditor = lazyImport(
     () => import("./pages/emails/template-editor"),
 );
 const AISettingsPage = lazyImport(() => import("./pages/setup/ai-settings"));
+const ExtensionsPage = lazyImport(() => import("./pages/setup/extensions"));
 const OAuthAppsIndexPage = lazyImport(() => import("./pages/oauth/apps"));
 const OAuthAppDetailsPage = lazyImport(() => import("./pages/oauth/[slug]"));
 const OAuthClientDetailsPage = lazyImport(() => import("./pages/oauth/[slug]-client"));
@@ -452,6 +453,22 @@ export const router = createBrowserRouter([
                             </Suspense>
                         ),
                     },
+                    {
+                        path: "ai-settings",
+                        element: (
+                            <Suspense fallback={<SimpleFallback />}>
+                                <AISettingsPage />
+                            </Suspense>
+                        ),
+                    },
+                    {
+                        path: "extensions",
+                        element: (
+                            <Suspense fallback={<SimpleFallback />}>
+                                <ExtensionsPage />
+                            </Suspense>
+                        ),
+                    },
                 ],
             },
             {
@@ -524,14 +541,6 @@ export const router = createBrowserRouter([
                                 ),
                             },
                         ],
-                    },
-                    {
-                        path: "ai-settings",
-                        element: (
-                            <Suspense fallback={<SimpleFallback />}>
-                                <AISettingsPage />
-                            </Suspense>
-                        ),
                     },
                     {
                         path: "webhook-catalogs",

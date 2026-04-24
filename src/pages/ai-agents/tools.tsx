@@ -91,7 +91,7 @@ export default function ToolsPage() {
 
             {!isLoading && !error && tools.length > 0 && (
                 <div className="relative mb-5">
-                    <MagnifyingGlassIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <MagnifyingGlassIcon className="absolute left-3 top-1/4 h-4 w-4 text-muted-foreground" />
                     <Input
                         placeholder="Search tools..."
                         value={searchTerm}

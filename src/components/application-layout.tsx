@@ -119,6 +119,8 @@ export function ApplicationLayout() {
     const llmsToolsPath = `${llmsBasePath}/tools`;
     const llmsKnowledgeBasePath = `${llmsBasePath}/knowledge-base`;
     const llmsMcpServersPath = `${llmsBasePath}/mcp-servers`;
+    const llmsAiSettingsPath = `${llmsBasePath}/ai-settings`;
+    const llmsExtensionsPath = `${llmsBasePath}/extensions`;
 
     let currentTab = "";
     if (isUsersRoute) {
@@ -134,13 +136,11 @@ export function ApplicationLayout() {
     } else if (isSetupRoute) {
         currentTab = location.pathname.includes("/setup/emails")
             ? "emails"
-            : location.pathname.includes("/setup/ai-settings")
-              ? "ai-settings"
-              : location.pathname.includes("/setup/webhook-catalogs")
-                ? "webhook-catalogs"
-                : location.pathname.includes("/setup/rate-limit-schemes")
-                  ? "rate-limit-schemes"
-                  : "deployment-settings";
+            : location.pathname.includes("/setup/webhook-catalogs")
+              ? "webhook-catalogs"
+              : location.pathname.includes("/setup/rate-limit-schemes")
+                ? "rate-limit-schemes"
+                : "deployment-settings";
     } else if (isAuthRoute) {
         currentTab = location.pathname.includes("/auth/sso")
             ? "sso"
@@ -162,7 +162,13 @@ export function ApplicationLayout() {
                   : location.pathname === llmsMcpServersPath ||
                       location.pathname.startsWith(`${llmsMcpServersPath}/`)
                     ? "mcp-servers"
-                    : "ai-agents";
+                    : location.pathname === llmsAiSettingsPath ||
+                        location.pathname.startsWith(`${llmsAiSettingsPath}/`)
+                      ? "ai-settings"
+                      : location.pathname === llmsExtensionsPath ||
+                          location.pathname.startsWith(`${llmsExtensionsPath}/`)
+                        ? "extensions"
+                        : "ai-agents";
     } else if (isBillingRoute) {
         currentTab = location.pathname.includes("/billing/usage")
             ? "usage"
@@ -287,9 +293,6 @@ export function ApplicationLayout() {
                                                 <TabsTrigger value="emails">
                                                     Email Settings
                                                 </TabsTrigger>
-                                                <TabsTrigger value="ai-settings">
-                                                    AI Settings
-                                                </TabsTrigger>
                                                 <TabsTrigger value="webhook-catalogs">
                                                     Webhook Catalogs
                                                 </TabsTrigger>
@@ -330,6 +333,12 @@ export function ApplicationLayout() {
                                                 </TabsTrigger>
                                                 <TabsTrigger value="mcp-servers">
                                                     MCP Servers
+                                                </TabsTrigger>
+                                                <TabsTrigger value="ai-settings">
+                                                    Configuration
+                                                </TabsTrigger>
+                                                <TabsTrigger value="extensions">
+                                                    Extensions
                                                 </TabsTrigger>
                                             </>
                                         )}

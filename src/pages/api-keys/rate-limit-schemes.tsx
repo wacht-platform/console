@@ -50,7 +50,7 @@ export default function ApiKeyRateLimitSchemesPage() {
 
             <div className="flex items-center gap-2">
                 <div className="relative flex-1 max-w-sm">
-                    <MagnifyingGlassIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <MagnifyingGlassIcon className="absolute left-3 top-1/4 h-4 w-4 text-muted-foreground" />
                     <Input
                         placeholder="Search schemes..."
                         value={search}

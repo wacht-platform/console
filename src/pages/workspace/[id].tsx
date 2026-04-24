@@ -51,7 +51,7 @@ export default function WorkspaceDetailsPage() {
     const navigate = useNavigate();
     const { id } = useParams();
     const workspaceId = id;
-  
+
     // Tab state
     const [activeTab, setActiveTab] = useState("overview");
 
@@ -468,7 +468,7 @@ export default function WorkspaceDetailsPage() {
                                 <div className="flex flex-col sm:flex-row gap-4 mb-6">
                                     <div className="relative flex-1">
                                         <InputGroup>
-                                            <MagnifyingGlassIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                            <MagnifyingGlassIcon className="absolute left-3 top-1/4 h-4 w-4 text-muted-foreground" />
                                             <Input
                                                 name="search"
                                                 placeholder="Search members..."
