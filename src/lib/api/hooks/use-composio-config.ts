@@ -5,6 +5,7 @@ import { useProjects } from "./use-projects";
 import type {
   ComposioAuthConfigListResponse,
   ComposioConfig,
+  ComposioToolkitDetailsResponse,
   ComposioToolkitListResponse,
   EnableComposioAppRequest,
   UpdateComposioConfigRequest,
@@ -159,5 +160,25 @@ export function useComposioToolkitAuthConfigs(slug: string | null, enabled: bool
     queryKey: ["composio-toolkit-auth-configs", selectedDeployment?.id, slug],
     queryFn: () => fetchToolkitAuthConfigs(selectedDeployment!.id, slug!),
     enabled: !!selectedDeployment?.id && !!slug && enabled,
+  });
+}
+
+async function fetchToolkitAuthDetails(
+  deploymentId: string,
+  slug: string,
+): Promise<ComposioToolkitDetailsResponse> {
+  const { data } = await apiClient.get<ComposioToolkitDetailsResponse>(
+    `/deployments/${deploymentId}/ai/composio/toolkits/${encodeURIComponent(slug)}/auth-details`,
+  );
+  return data;
+}
+
+export function useComposioToolkitAuthDetails(slug: string | null) {
+  const { selectedDeployment } = useProjects();
+
+  return useQuery({
+    queryKey: ["composio-toolkit-auth-details", selectedDeployment?.id, slug],
+    queryFn: () => fetchToolkitAuthDetails(selectedDeployment!.id, slug!),
+    enabled: !!selectedDeployment?.id && !!slug,
   });
 }

@@ -3,6 +3,7 @@ export interface ComposioEnabledApp {
   auth_config_id: string;
   display_name?: string;
   logo_url?: string;
+  auth_scheme?: string;
 }
 
 export interface ComposioConfig {
@@ -35,14 +36,51 @@ export interface ComposioToolkitListResponse {
 }
 
 export type EnableComposioAppAuth =
-  | { type: "managed" }
+  | {
+      type: "managed";
+      auth_scheme?: string;
+      credentials?: Record<string, unknown>;
+    }
   | {
       type: "custom";
-      client_id: string;
-      client_secret: string;
-      scopes?: string[];
+      auth_scheme: string;
+      credentials: Record<string, unknown>;
     }
-  | { type: "use_existing"; auth_config_id: string };
+  | {
+      type: "use_existing";
+      auth_config_id: string;
+      auth_scheme?: string;
+    };
+
+export interface ComposioToolkitAuthField {
+  name: string;
+  display_name: string;
+  type: string;
+  description: string;
+  required: boolean;
+  default?: string | null;
+}
+
+export interface ComposioToolkitAuthFields {
+  required: ComposioToolkitAuthField[];
+  optional: ComposioToolkitAuthField[];
+}
+
+export interface ComposioToolkitAuthMode {
+  mode: string;
+  name: string;
+  auth_config_creation: ComposioToolkitAuthFields;
+  connected_account_initiation: ComposioToolkitAuthFields;
+  auth_hint_url?: string | null;
+}
+
+export interface ComposioToolkitDetailsResponse {
+  slug: string;
+  name: string;
+  logo?: string | null;
+  composio_managed_auth_schemes: string[];
+  auth_modes: ComposioToolkitAuthMode[];
+}
 
 export interface ComposioAuthConfigSummary {
   id: string;

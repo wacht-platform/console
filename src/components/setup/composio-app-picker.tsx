@@ -17,11 +17,14 @@ import { Button } from "@/components/ui/button";
 import {
     useComposioToolkits,
     useComposioToolkitAuthConfigs,
+    useComposioToolkitAuthDetails,
     useEnableComposioApp,
 } from "@/lib/api/hooks/use-composio-config";
 import type {
     ComposioAuthConfigSummary,
     ComposioToolkit,
+    ComposioToolkitAuthField,
+    ComposioToolkitAuthMode,
     EnableComposioAppAuth,
 } from "@/types/composio";
 
@@ -219,7 +222,10 @@ function PickerStep({
     );
 }
 
-type EnableMode = "managed" | "custom" | `existing:${string}`;
+type EnableSelection =
+    | { kind: "managed"; mode: ComposioToolkitAuthMode }
+    | { kind: "custom"; mode: ComposioToolkitAuthMode }
+    | { kind: "existing"; configId: string };
 
 function EnableStep({
     toolkit,
@@ -236,56 +242,90 @@ function EnableStep({
     usePlatformKey: boolean;
     isProduction: boolean;
 }) {
-    // Only fetch existing configs on BYO — the platform-managed key would expose other tenants' configs.
     const showExisting = !usePlatformKey;
     const { data: existingData, isLoading: existingLoading } =
         useComposioToolkitAuthConfigs(toolkit.slug, showExisting);
     const existingConfigs = existingData?.auth_configs ?? [];
 
-    const [mode, setMode] = useState<EnableMode>("managed");
-    const [clientId, setClientId] = useState("");
-    const [clientSecret, setClientSecret] = useState("");
-    const [scopes, setScopes] = useState("");
+    const { data: details, isLoading: detailsLoading } =
+        useComposioToolkitAuthDetails(toolkit.slug);
+    const authModes = details?.auth_modes ?? [];
+    const managedSchemes = useMemo(
+        () =>
+            new Set(
+                (details?.composio_managed_auth_schemes ?? []).map((s) =>
+                    s.toLowerCase(),
+                ),
+            ),
+        [details],
+    );
 
-    // When existing configs arrive, default to the first one.
+    const [selection, setSelection] = useState<EnableSelection | null>(null);
+    const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+
     useEffect(() => {
-        if (existingConfigs.length > 0 && mode === "managed") {
-            setMode(`existing:${existingConfigs[0].id}`);
+        if (selection) return;
+        if (existingConfigs.length > 0) {
+            setSelection({ kind: "existing", configId: existingConfigs[0].id });
+            return;
         }
-    }, [existingConfigs, mode]);
+        if (authModes.length > 0) {
+            const first = authModes[0];
+            const managed = managedSchemes.has(first.mode.toLowerCase());
+            setSelection(
+                managed
+                    ? { kind: "managed", mode: first }
+                    : { kind: "custom", mode: first },
+            );
+        }
+    }, [existingConfigs, authModes, selection, managedSchemes]);
 
-    const supportsManaged =
-        toolkit.auth_schemes.length === 0 ||
-        !toolkit.auth_schemes.every((s) => s.toLowerCase() === "no_auth") ||
-        toolkit.auth_schemes.some((s) => s.toLowerCase() === "oauth2");
+    useEffect(() => {
+        setFieldValues({});
+    }, [selection]);
+
+    const customMode =
+        selection?.kind === "custom" ? selection.mode : null;
+    const creationFields = customMode
+        ? [
+              ...customMode.auth_config_creation.required,
+              ...customMode.auth_config_creation.optional,
+          ]
+        : [];
+
+    const requiredMissing = customMode
+        ? customMode.auth_config_creation.required.some(
+              (f) => !(fieldValues[f.name] ?? "").trim(),
+          )
+        : false;
 
     const confirm = () => {
-        if (mode.startsWith("existing:")) {
+        if (!selection) return;
+        if (selection.kind === "existing") {
             onEnable({
                 type: "use_existing",
-                auth_config_id: mode.slice("existing:".length),
+                auth_config_id: selection.configId,
             });
-        } else if (mode === "managed") {
-            onEnable({ type: "managed" });
-        } else {
-            if (!clientId.trim() || !clientSecret.trim()) return;
-            onEnable({
-                type: "custom",
-                client_id: clientId.trim(),
-                client_secret: clientSecret.trim(),
-                scopes: scopes
-                    .split(/[\s,]+/)
-                    .map((s) => s.trim())
-                    .filter(Boolean),
-            });
+            return;
         }
+        if (selection.kind === "managed") {
+            onEnable({ type: "managed", auth_scheme: selection.mode.mode });
+            return;
+        }
+        const credentials = parseCredentials(creationFields, fieldValues);
+        onEnable({
+            type: "custom",
+            auth_scheme: selection.mode.mode,
+            credentials,
+        });
     };
 
     const canConfirm =
         !isPending &&
-        (mode.startsWith("existing:") ||
-            mode === "managed" ||
-            (clientId.trim() && clientSecret.trim()));
+        selection != null &&
+        (selection.kind === "existing" ||
+            selection.kind === "managed" ||
+            !requiredMissing);
 
     return (
         <>
@@ -337,10 +377,14 @@ function EnableStep({
                                             key={cfg.id}
                                             config={cfg}
                                             selected={
-                                                mode === `existing:${cfg.id}`
+                                                selection?.kind === "existing" &&
+                                                selection.configId === cfg.id
                                             }
                                             onSelect={() =>
-                                                setMode(`existing:${cfg.id}`)
+                                                setSelection({
+                                                    kind: "existing",
+                                                    configId: cfg.id,
+                                                })
                                             }
                                         />
                                     ))}
@@ -358,75 +402,86 @@ function EnableStep({
                     )}
 
                     <div className="space-y-2">
-                        {showExisting && (
+                        {showExisting && existingConfigs.length > 0 && (
                             <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">
                                 Or create a new one
                             </div>
                         )}
-                        {supportsManaged && (
-                            <AuthModeCard
-                                selected={mode === "managed"}
-                                onSelect={() => setMode("managed")}
-                                title="Use Composio-managed OAuth"
-                                description={
-                                    isProduction
-                                        ? "Zero config. Consent screen shows Composio — pick 'Use your own OAuth credentials' for branded consent."
-                                        : "One click, no credentials needed. The consent screen will show Composio as the app name."
+                        {detailsLoading ? (
+                            <div className="h-16 animate-pulse rounded-lg border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900" />
+                        ) : authModes.length === 0 ? (
+                            <div className="rounded-lg border border-dashed border-zinc-200 px-3 py-3 text-xs text-zinc-500 dark:border-zinc-800">
+                                No auth methods reported for this app.
+                            </div>
+                        ) : (
+                            authModes.flatMap((m) => {
+                                const managed = managedSchemes.has(
+                                    m.mode.toLowerCase(),
+                                );
+                                const cards: React.ReactNode[] = [];
+                                if (managed) {
+                                    cards.push(
+                                        <AuthModeCard
+                                            key={`${m.mode}:managed`}
+                                            selected={
+                                                selection?.kind === "managed" &&
+                                                selection.mode.mode === m.mode
+                                            }
+                                            onSelect={() =>
+                                                setSelection({
+                                                    kind: "managed",
+                                                    mode: m,
+                                                })
+                                            }
+                                            title={`Use Composio-managed ${m.name}`}
+                                            description={
+                                                isProduction
+                                                    ? "Zero config. Consent screen shows Composio — pick custom for branded consent."
+                                                    : "One click, no admin credentials needed. Consent screen shows Composio."
+                                            }
+                                            icon={<BoltIcon className="h-4 w-4" />}
+                                        />,
+                                    );
                                 }
-                                icon={<BoltIcon className="h-4 w-4" />}
-                            />
+                                const customHasFields =
+                                    m.auth_config_creation.required.length +
+                                        m.auth_config_creation.optional.length >
+                                    0;
+                                if (customHasFields || !managed) {
+                                    cards.push(
+                                        <AuthModeCard
+                                            key={`${m.mode}:custom`}
+                                            selected={
+                                                selection?.kind === "custom" &&
+                                                selection.mode.mode === m.mode
+                                            }
+                                            onSelect={() =>
+                                                setSelection({
+                                                    kind: "custom",
+                                                    mode: m,
+                                                })
+                                            }
+                                            title={`Configure ${m.name} yourself`}
+                                            description={describeCustomDetail(m)}
+                                        />,
+                                    );
+                                }
+                                return cards;
+                            })
                         )}
-                        <AuthModeCard
-                            selected={mode === "custom"}
-                            onSelect={() => setMode("custom")}
-                            title="Use your own OAuth credentials"
-                            description="Bring your own OAuth app so the consent screen shows your brand."
-                        />
                     </div>
 
-                    {mode === "custom" && (
-                        <div className="mt-2 space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-                            <div className="space-y-1">
-                                <label className="text-xs font-medium text-zinc-900 dark:text-zinc-100">
-                                    Client ID
-                                </label>
-                                <Input
-                                    autoFocus
-                                    placeholder="xxxxx.apps.googleusercontent.com"
-                                    value={clientId}
-                                    onChange={(e) =>
-                                        setClientId(e.target.value)
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-xs font-medium text-zinc-900 dark:text-zinc-100">
-                                    Client secret
-                                </label>
-                                <Input
-                                    type="password"
-                                    placeholder="GOCSPX-..."
-                                    value={clientSecret}
-                                    onChange={(e) =>
-                                        setClientSecret(e.target.value)
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-xs font-medium text-zinc-900 dark:text-zinc-100">
-                                    Scopes
-                                </label>
-                                <Input
-                                    placeholder="https://www.googleapis.com/auth/gmail.readonly, ..."
-                                    value={scopes}
-                                    onChange={(e) => setScopes(e.target.value)}
-                                />
-                                <p className="text-xs text-zinc-500">
-                                    Comma- or space-separated. Leave blank for
-                                    the toolkit's defaults.
-                                </p>
-                            </div>
-                        </div>
+                    {customMode && creationFields.length > 0 && (
+                        <DynamicFieldsForm
+                            mode={customMode}
+                            values={fieldValues}
+                            onChange={(name, value) =>
+                                setFieldValues((prev) => ({
+                                    ...prev,
+                                    [name]: value,
+                                }))
+                            }
+                        />
                     )}
                 </div>
             </div>
@@ -440,6 +495,128 @@ function EnableStep({
                 </Button>
             </div>
         </>
+    );
+}
+
+function describeCustomDetail(mode: ComposioToolkitAuthMode): string {
+    const required = mode.auth_config_creation.required.length;
+    return `Provide ${required} ${required === 1 ? "field" : "fields"} from your provider.`;
+}
+
+function parseCredentials(
+    fields: ComposioToolkitAuthField[],
+    values: Record<string, string>,
+): Record<string, unknown> {
+    const out: Record<string, unknown> = {};
+    for (const f of fields) {
+        const raw = (values[f.name] ?? "").trim();
+        if (!raw) continue;
+        out[f.name] = coerceFieldValue(f, raw);
+    }
+    return out;
+}
+
+function coerceFieldValue(
+    field: ComposioToolkitAuthField,
+    raw: string,
+): unknown {
+    const t = field.type.toLowerCase();
+    if (t.includes("array") || field.name.toLowerCase().includes("scope")) {
+        return raw.split(/[\s,]+/).map((s) => s.trim()).filter(Boolean);
+    }
+    if (t.includes("number") || t.includes("integer")) {
+        const n = Number(raw);
+        return Number.isFinite(n) ? n : raw;
+    }
+    if (t.includes("boolean")) {
+        return raw.toLowerCase() === "true" || raw === "1";
+    }
+    return raw;
+}
+
+function DynamicFieldsForm({
+    mode,
+    values,
+    onChange,
+}: {
+    mode: ComposioToolkitAuthMode;
+    values: Record<string, string>;
+    onChange: (name: string, value: string) => void;
+}) {
+    const required = mode.auth_config_creation.required;
+    const optional = mode.auth_config_creation.optional;
+    if (required.length === 0 && optional.length === 0) return null;
+    return (
+        <div className="mt-2 space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+            {required.map((f) => (
+                <FieldInput
+                    key={f.name}
+                    field={f}
+                    value={values[f.name] ?? f.default ?? ""}
+                    onChange={(v) => onChange(f.name, v)}
+                />
+            ))}
+            {optional.length > 0 && (
+                <div className="pt-1">
+                    <div className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+                        Optional
+                    </div>
+                </div>
+            )}
+            {optional.map((f) => (
+                <FieldInput
+                    key={f.name}
+                    field={f}
+                    value={values[f.name] ?? f.default ?? ""}
+                    onChange={(v) => onChange(f.name, v)}
+                />
+            ))}
+            {mode.auth_hint_url && (
+                <p className="text-xs text-zinc-500">
+                    Where to find these:{" "}
+                    <a
+                        href={mode.auth_hint_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline"
+                    >
+                        {mode.auth_hint_url}
+                    </a>
+                </p>
+            )}
+        </div>
+    );
+}
+
+function FieldInput({
+    field,
+    value,
+    onChange,
+}: {
+    field: ComposioToolkitAuthField;
+    value: string;
+    onChange: (v: string) => void;
+}) {
+    const t = field.type.toLowerCase();
+    const isSecret =
+        /(secret|password|token|api[_-]?key)/i.test(field.name) ||
+        /(secret|password)/i.test(t);
+    return (
+        <div className="space-y-1">
+            <label className="flex items-center gap-1 text-xs font-medium text-zinc-900 dark:text-zinc-100">
+                {field.display_name}
+                {field.required && <span className="text-red-500">*</span>}
+            </label>
+            <Input
+                type={isSecret ? "password" : "text"}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder={field.default ?? ""}
+            />
+            {field.description && (
+                <p className="text-xs text-zinc-500">{field.description}</p>
+            )}
+        </div>
     );
 }
 
