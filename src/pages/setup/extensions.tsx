@@ -239,6 +239,12 @@ function ComposioConfigPanel({ isProduction }: { isProduction: boolean }) {
                     </Button>
                 </div>
 
+                <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-400">
+                    Inbound triggers (receiving Telegram messages, Slack DMs,
+                    Gmail replies, etc.) aren't supported yet — agents can
+                    only initiate calls outward. Coming soon.
+                </div>
+
                 {enabledApps.length > 0 ? (
                     <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                         {enabledApps.map((app) => (

@@ -448,6 +448,13 @@ function EnableStep({
                                         m.auth_config_creation.optional.length >
                                     0;
                                 if (customHasFields || !managed) {
+                                    const userOnly =
+                                        !customHasFields &&
+                                        m.connected_account_initiation.required
+                                            .length +
+                                            m.connected_account_initiation
+                                                .optional.length >
+                                            0;
                                     cards.push(
                                         <AuthModeCard
                                             key={`${m.mode}:custom`}
@@ -461,8 +468,15 @@ function EnableStep({
                                                     mode: m,
                                                 })
                                             }
-                                            title={`Configure ${m.name} yourself`}
-                                            description={describeCustomDetail(m)}
+                                            title={
+                                                userOnly
+                                                    ? `End-user supplied ${m.name}`
+                                                    : `Configure ${m.name} yourself`
+                                            }
+                                            description={describeCustomDetail(
+                                                m,
+                                                userOnly,
+                                            )}
                                         />,
                                     );
                                 }
@@ -498,7 +512,13 @@ function EnableStep({
     );
 }
 
-function describeCustomDetail(mode: ComposioToolkitAuthMode): string {
+function describeCustomDetail(
+    mode: ComposioToolkitAuthMode,
+    userOnly: boolean,
+): string {
+    if (userOnly) {
+        return "No admin setup needed — each end user provides their own credentials when they connect.";
+    }
     const required = mode.auth_config_creation.required.length;
     return `Provide ${required} ${required === 1 ? "field" : "fields"} from your provider.`;
 }
