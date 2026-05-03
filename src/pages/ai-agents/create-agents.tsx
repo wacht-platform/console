@@ -159,7 +159,7 @@ export default function CreateAgentsPage() {
                                         <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                                             <CodeBracketSquareIcon className="h-4 w-4" />
                                         </div>
-                                        <span className="font-medium group-hover:text-primary transition-colors">
+                                        <span className="font-medium transition-colors">
                                             {agent.name}
                                         </span>
                                     </div>
