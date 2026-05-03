@@ -469,7 +469,7 @@ function ProjectRow({
                             </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                            <p className="truncate text-sm text-foreground group-hover:text-primary">
+                            <p className="truncate text-sm text-foreground">
                                 {name}
                             </p>
                             <p className="truncate text-xs text-muted-foreground md:hidden">
