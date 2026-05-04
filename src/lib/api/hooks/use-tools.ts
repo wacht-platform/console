@@ -52,21 +52,21 @@ async function fetchTool(
   deploymentId: string,
   toolId: string,
 ): Promise<AiTool> {
-  const { data } = await apiClient.get<{ data: AiTool }>(
+  const { data } = await apiClient.get<{ data?: AiTool } & AiTool>(
     `/deployments/${deploymentId}/ai/tools/${toolId}`,
   );
-  return data.data;
+  return data.data ?? (data as AiTool);
 }
 
 async function createTool(
   deploymentId: string,
   tool: CreateToolRequest,
 ): Promise<AiTool> {
-  const { data } = await apiClient.post<{ data: AiTool }>(
+  const { data } = await apiClient.post<{ data?: AiTool } & AiTool>(
     `/deployments/${deploymentId}/ai/tools`,
     tool,
   );
-  return data.data;
+  return data.data ?? (data as AiTool);
 }
 
 async function updateTool(
@@ -74,11 +74,11 @@ async function updateTool(
   toolId: string,
   tool: UpdateToolRequest,
 ): Promise<AiTool> {
-  const { data } = await apiClient.patch<{ data: AiTool }>(
+  const { data } = await apiClient.patch<{ data?: AiTool } & AiTool>(
     `/deployments/${deploymentId}/ai/tools/${toolId}`,
     tool,
   );
-  return data.data;
+  return data.data ?? (data as AiTool);
 }
 
 async function deleteTool(deploymentId: string, toolId: string): Promise<void> {

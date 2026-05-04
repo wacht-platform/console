@@ -55,14 +55,18 @@ const initialSettingsState: B2BSettingsState = {
   organization_permission_catalog: [],
 };
 
+const idToSelectValue = (id: string | number | null | undefined) =>
+  id == null ? "" : String(id);
+
 export default function ManageOrganizationsPage() {
   const { deploymentSettings, isLoading: isLoadingSettings } =
     useCurrentDeployemnt();
   const updateB2bSettings = useUpdateDeploymentB2bSettings();
   const roleScopeOrganizationId =
-    deploymentSettings?.b2b_settings?.default_org_member_role?.organization_id ??
-    deploymentSettings?.b2b_settings?.default_org_creator_role?.organization_id ??
-    undefined;
+    idToSelectValue(
+      deploymentSettings?.b2b_settings?.default_org_member_role?.organization_id ??
+      deploymentSettings?.b2b_settings?.default_org_creator_role?.organization_id
+    ) || undefined;
   const {
     data: orgRoles,
     isLoading: isLoadingRoles,
@@ -89,9 +93,11 @@ export default function ManageOrganizationsPage() {
           b2bSettings.max_allowed_org_members == null
           ? ""
           : b2bSettings.max_allowed_org_members,
-      default_org_member_role_id: b2bSettings.default_org_member_role?.id ?? "",
+      default_org_member_role_id: idToSelectValue(
+        b2bSettings.default_org_member_role?.id
+      ),
       default_org_creator_role_id:
-        b2bSettings.default_org_creator_role?.id ?? "",
+        idToSelectValue(b2bSettings.default_org_creator_role?.id),
       allow_users_to_create_orgs:
         b2bSettings.allow_users_to_create_orgs ?? true,
       creation_limit_type: b2bSettings.limit_org_creation_per_user
@@ -408,7 +414,7 @@ export default function ManageOrganizationsPage() {
                         {!isLoadingRoles &&
                           !rolesError &&
                           orgRoles?.map((role) => (
-                            <SelectItem key={role.id} value={role.id}>
+                            <SelectItem key={role.id} value={String(role.id)}>
                               {role.name}
                             </SelectItem>
                           ))}
@@ -443,7 +449,7 @@ export default function ManageOrganizationsPage() {
                         {!isLoadingRoles &&
                           !rolesError &&
                           orgRoles?.map((role) => (
-                            <SelectItem key={role.id} value={role.id}>
+                            <SelectItem key={role.id} value={String(role.id)}>
                               {role.name}
                             </SelectItem>
                           ))}

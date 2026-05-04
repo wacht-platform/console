@@ -8,13 +8,20 @@ interface Role {
     description: string;
 }
 
+type ApiRole = Omit<Role, "id"> & {
+    id: string | number;
+};
+
 const fetchDeploymentOrgRoles = async (
     deploymentId: string,
     organizationId: string,
 ): Promise<Role[]> => {
     const path = `/deployments/${deploymentId}/organizations/${organizationId}/roles`;
     const response = await apiClient.get(path);
-    return response.data.data;
+    return (response.data.data ?? []).map((role: ApiRole) => ({
+        ...role,
+        id: String(role.id),
+    }));
 };
 
 export const useDeploymentOrgRoles = (organizationId?: string) => {

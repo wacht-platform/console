@@ -53,14 +53,18 @@ const initialSettingsState: WorkspaceSettingsState = {
   workspace_permission_catalog: [],
 };
 
+const idToSelectValue = (id: string | number | null | undefined) =>
+  id == null ? "" : String(id);
+
 export default function ManageWorkspacesPage() {
   const { deploymentSettings, isLoading: isLoadingSettings } =
     useCurrentDeployemnt();
   const updateB2bSettings = useUpdateDeploymentB2bSettings();
   const roleScopeWorkspaceId =
-    deploymentSettings?.b2b_settings?.default_workspace_member_role?.workspace_id ??
-    deploymentSettings?.b2b_settings?.default_workspace_creator_role?.workspace_id ??
-    undefined;
+    idToSelectValue(
+      deploymentSettings?.b2b_settings?.default_workspace_member_role?.workspace_id ??
+      deploymentSettings?.b2b_settings?.default_workspace_creator_role?.workspace_id
+    ) || undefined;
   const {
     data: workspaceRoles,
     isLoading: isLoadingRoles,
@@ -94,7 +98,7 @@ export default function ManageWorkspacesPage() {
           ? ""
           : b2bSettings.max_allowed_workspace_members,
       default_workspace_member_role_id:
-        b2bSettings.default_workspace_member_role?.id ?? "",
+        idToSelectValue(b2bSettings.default_workspace_member_role?.id),
       creation_limit_type: creationLimitType,
       workspaces_per_org_count:
         creationLimitType === "limited"
@@ -106,7 +110,7 @@ export default function ManageWorkspacesPage() {
       custom_workspace_role_enabled:
         b2bSettings.custom_workspace_role_enabled ?? false,
       default_workspace_creator_role_id:
-        b2bSettings.default_workspace_creator_role?.id ?? "",
+        idToSelectValue(b2bSettings.default_workspace_creator_role?.id),
       enforce_mfa_per_workspace_enabled:
         b2bSettings.enforce_mfa_per_workspace_enabled ?? false,
       workspace_permission_catalog:
@@ -400,7 +404,7 @@ export default function ManageWorkspacesPage() {
                         {!isLoadingRoles &&
                           !rolesError &&
                           workspaceRoles?.map((role) => (
-                            <SelectItem key={role.id} value={role.id}>
+                            <SelectItem key={role.id} value={String(role.id)}>
                               {role.name}
                             </SelectItem>
                           ))}
@@ -438,7 +442,7 @@ export default function ManageWorkspacesPage() {
                         {!isLoadingRoles &&
                           !rolesError &&
                           workspaceRoles?.map((role) => (
-                            <SelectItem key={role.id} value={role.id}>
+                            <SelectItem key={role.id} value={String(role.id)}>
                               {role.name}
                             </SelectItem>
                           ))}
