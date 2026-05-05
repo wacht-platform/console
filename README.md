@@ -3,64 +3,72 @@
 </h1>
 
 <p align="center">
-  The control plane UI for operating identity, access, and API security in Wacht.
+  <strong>The operator UI for running identity, access, and agents on Wacht.</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/wacht-platform/console/stargazers">
-    <img alt="GitHub Stars" src="https://img.shields.io/github/stars/wacht-platform/console?style=flat-square" />
-  </a>
   <a href="https://github.com/wacht-platform/console/blob/main/LICENSE.md">
-    <img alt="License" src="https://img.shields.io/github/license/wacht-platform/console?style=flat-square" />
+    <img alt="License" src="https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square" />
   </a>
-  <img alt="Public Beta" src="https://img.shields.io/badge/status-public%20beta-blue?style=flat-square" />
-  <img alt="Frontend React" src="https://img.shields.io/badge/frontend-react-61dafb?style=flat-square" />
-  <img alt="Build Vite" src="https://img.shields.io/badge/build-vite-646cff?style=flat-square" />
+  <img alt="Status" src="https://img.shields.io/badge/status-public%20beta-blue?style=flat-square" />
+  <img alt="React" src="https://img.shields.io/badge/frontend-react-61dafb?style=flat-square" />
+  <img alt="Vite" src="https://img.shields.io/badge/build-vite-646cff?style=flat-square" />
 </p>
 
 <p align="center">
-  <a href="https://wacht.dev">Website</a> |
-  <a href="https://wacht.dev/docs">Documentation</a> |
+  <a href="https://wacht.dev">Website</a> ·
+  <a href="https://wacht.dev/docs">Docs</a> ·
   <a href="https://github.com/wacht-platform/console/issues">Issues</a>
 </p>
 
-## What This Product Is
+---
 
-Wacht Console is where teams run identity for their products.
+## Overview
 
-Instead of stitching together separate tools, Console gives one place to operate:
+Wacht Console is the operator experience for [Wacht](https://wacht.dev). It is the single
+surface where product, platform, and security teams configure deployments, manage tenants and
+access policies, and operate the identity, integration, and agent runtimes that
+[`platform-api`](https://github.com/wacht-platform/platform-api) exposes.
 
-- authentication methods and sign-in behavior
-- B2B access models (organizations, workspaces, roles, permissions)
-- API auth clients, keys, grants, and gateway controls
-- webhook apps, endpoints, and delivery operations
-- deployment-level settings, policies, and usage visibility
+The console is a React + Vite single-page app. It is consumed by Wacht operators — not by an
+application's end-users — and talks to the platform API's control plane.
 
-## Who Uses It
+## What You Operate Here
 
-- Product teams building auth into customer-facing apps
-- Platform teams running multi-tenant environments
-- Security and operations teams that need strong policy and audit controls
+- **Authentication.** Auth factors, social/OIDC providers, sign-in policies, MFA requirements.
+- **B2B access model.** Organizations, workspaces, roles, and the permission catalog.
+- **API authorization.** API auth clients, keys, grants, and gateway controls.
+- **Integrations.** Webhook apps, endpoints, delivery state, and external service connectors.
+- **Agents.** Agent definitions, tool catalog, scheduled tasks, approvals, and run history.
+- **Deployments.** Deployment-level settings, custom domains, branding, and policy bundles.
+- **Operations.** Usage, billing visibility, audit trails, and operational health.
 
-## Typical Platform Workflow
+## Typical Workflow
 
-1. Create a project and deployment.
-2. Configure auth factors and social/OIDC providers.
-3. Define org/workspace roles and permission catalog.
+1. Create a project and a deployment.
+2. Configure authentication factors and identity providers.
+3. Define organization/workspace roles and the permission catalog.
 4. Register API auth clients and enforce gateway policy.
-5. Monitor usage, webhooks, and operational health.
+5. Author agents, tools, and schedules.
+6. Monitor usage, webhooks, and operational health.
 
-## How Console Fits In Wacht
+## Architecture
 
-- `console` is the operator experience
-- `platform-api` provides control-plane and runtime backend capabilities
-- `frontend-api` powers end-user authentication flows in applications
+Console sits on top of the rest of the Wacht stack:
 
-## Contributor Notes (Minimal Repo Pointers)
+- **`console`** (this repository) — operator UI.
+- **`platform-api`** — control plane and runtime backend.
+- **`frontend-api`** — public API serving deployment end-users.
+- **`react-sdk`** — client libraries that embed the Frontend API into web apps.
 
-- `src/pages/` route-level product surfaces
-- `src/components/` domain UI building blocks
-- `src/lib/api/` API hooks and clients
+## Repository Layout
+
+```
+src/pages/        Route-level product surfaces
+src/components/   Domain UI building blocks
+src/lib/api/      API hooks and clients
+public/           Static assets
+```
 
 ## Quickstart
 
@@ -69,9 +77,9 @@ pnpm install
 pnpm dev
 ```
 
-Local URL: `http://localhost:5173`
+The dev server runs at `http://localhost:5173`.
 
-Build:
+Build and preview:
 
 ```bash
 pnpm build
@@ -84,11 +92,23 @@ Lint:
 pnpm lint
 ```
 
+## Status
+
+Wacht Console is in **public beta**. The UI and underlying control-plane APIs are stabilizing;
+breaking changes are documented in the changelog.
+
+## Contributing
+
+We're not accepting pull requests yet — the contribution process isn't set up. Forks,
+self-hosting, and any other use the AGPL-3.0 allows are welcome. Self-hosting documentation
+is still in progress.
+
 ## Support
 
-- Report issues: [GitHub Issues](https://github.com/wacht-platform/console/issues)
-- Product docs: [wacht.dev/docs](https://wacht.dev/docs)
+- Product and integration docs: [wacht.dev/docs](https://wacht.dev/docs).
+- Direct assistance: [engineering@intellinesia.com](mailto:engineering@intellinesia.com).
 
 ## License
 
-GNU Affero General Public License v3.0 (AGPL-3.0-only). See [LICENSE.md](./LICENSE.md).
+Licensed under the GNU Affero General Public License v3.0 (AGPL-3.0-only).
+See [LICENSE.md](./LICENSE.md) for the full text.
