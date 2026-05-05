@@ -5,7 +5,7 @@ import { useProjects } from "./use-projects";
 interface Role {
     id: string;
     name: string;
-    description: string;
+    description?: string;
 }
 
 type ApiRole = Omit<Role, "id"> & {
@@ -14,9 +14,8 @@ type ApiRole = Omit<Role, "id"> & {
 
 const fetchDeploymentWorkspaceRoles = async (
     deploymentId: string,
-    workspaceId: string,
 ): Promise<Role[]> => {
-    const path = `/deployments/${deploymentId}/workspaces/${workspaceId}/roles`;
+    const path = `/deployments/${deploymentId}/settings/b2b/workspace-roles`;
     const response = await apiClient.get(path);
     return (response.data.data ?? []).map((role: ApiRole) => ({
         ...role,
@@ -24,12 +23,12 @@ const fetchDeploymentWorkspaceRoles = async (
     }));
 };
 
-export const useDeploymentWorkspaceRoles = (workspaceId?: string) => {
+export const useDeploymentWorkspaceRoles = () => {
     const { selectedDeployment } = useProjects();
 
     return useQuery<Role[], Error>({
-        queryKey: ["deploymentWorkspaceRoles", selectedDeployment?.id, workspaceId],
-        queryFn: () => fetchDeploymentWorkspaceRoles(selectedDeployment!.id, workspaceId!),
-        enabled: !!selectedDeployment?.id && !!workspaceId,
+        queryKey: ["deploymentWorkspaceRoles", selectedDeployment?.id],
+        queryFn: () => fetchDeploymentWorkspaceRoles(selectedDeployment!.id),
+        enabled: !!selectedDeployment?.id,
     });
 };

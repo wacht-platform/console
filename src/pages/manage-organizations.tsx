@@ -62,16 +62,11 @@ export default function ManageOrganizationsPage() {
   const { deploymentSettings, isLoading: isLoadingSettings } =
     useCurrentDeployemnt();
   const updateB2bSettings = useUpdateDeploymentB2bSettings();
-  const roleScopeOrganizationId =
-    idToSelectValue(
-      deploymentSettings?.b2b_settings?.default_org_member_role?.organization_id ??
-      deploymentSettings?.b2b_settings?.default_org_creator_role?.organization_id
-    ) || undefined;
   const {
     data: orgRoles,
     isLoading: isLoadingRoles,
     error: rolesError,
-  } = useDeploymentOrgRoles(roleScopeOrganizationId);
+  } = useDeploymentOrgRoles();
 
   const [settingsState, setSettingsState] =
     useState<B2BSettingsState>(initialSettingsState);
@@ -405,7 +400,7 @@ export default function ManageOrganizationsPage() {
                       onValueChange={(value) =>
                         handleSettingChange("default_org_member_role_id", value)
                       }
-                      disabled={isLoadingRoles || !!rolesError || !roleScopeOrganizationId}
+                      disabled={isLoadingRoles || !!rolesError}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder={isLoadingRoles ? "Loading roles..." : "Select a role"} />
@@ -440,7 +435,7 @@ export default function ManageOrganizationsPage() {
                       onValueChange={(value) =>
                         handleSettingChange("default_org_creator_role_id", value)
                       }
-                      disabled={isLoadingRoles || !!rolesError || !roleScopeOrganizationId}
+                      disabled={isLoadingRoles || !!rolesError}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder={isLoadingRoles ? "Loading roles..." : "Select a role"} />

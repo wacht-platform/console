@@ -5,7 +5,7 @@ import { useProjects } from "./use-projects";
 interface Role {
     id: string;
     name: string;
-    description: string;
+    description?: string;
 }
 
 type ApiRole = Omit<Role, "id"> & {
@@ -14,9 +14,8 @@ type ApiRole = Omit<Role, "id"> & {
 
 const fetchDeploymentOrgRoles = async (
     deploymentId: string,
-    organizationId: string,
 ): Promise<Role[]> => {
-    const path = `/deployments/${deploymentId}/organizations/${organizationId}/roles`;
+    const path = `/deployments/${deploymentId}/settings/b2b/organization-roles`;
     const response = await apiClient.get(path);
     return (response.data.data ?? []).map((role: ApiRole) => ({
         ...role,
@@ -24,15 +23,12 @@ const fetchDeploymentOrgRoles = async (
     }));
 };
 
-export const useDeploymentOrgRoles = (organizationId?: string) => {
+export const useDeploymentOrgRoles = () => {
     const { selectedDeployment } = useProjects();
-    if (!selectedDeployment) {
-        throw new Error("Deployment ID is required");
-    }
 
     return useQuery<Role[], Error>({
-        queryKey: ["deploymentOrgRoles", selectedDeployment?.id, organizationId],
-        queryFn: () => fetchDeploymentOrgRoles(selectedDeployment!.id, organizationId!),
-        enabled: !!selectedDeployment?.id && !!organizationId,
+        queryKey: ["deploymentOrgRoles", selectedDeployment?.id],
+        queryFn: () => fetchDeploymentOrgRoles(selectedDeployment!.id),
+        enabled: !!selectedDeployment?.id,
     });
 };
