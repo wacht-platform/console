@@ -120,7 +120,7 @@ export default function ProjectsPage() {
                         <OrganizationSwitcher />
                     </section>
                     <NavbarSpacer />
-                    <UserButton showName={false} />
+                    <UserButton showName={false} showOrgSwitcher={false} />
                 </div>
             </Navbar>
 

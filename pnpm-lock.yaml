@@ -195,8 +195,8 @@ importers:
         specifier: ^1.0.0-beta.27
         version: 1.0.0-beta.27(@wacht/types@1.0.0-beta.26)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(rollup@4.60.2)
       '@wacht/react-router':
-        specifier: ^1.0.0-beta.26
-        version: 1.0.0-beta.26(@wacht/jsx@1.0.0-beta.27(@wacht/types@1.0.0-beta.26)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(rollup@4.60.2))(@wacht/types@1.0.0-beta.26)(react-dom@19.2.5(react@19.2.5))(react-router@7.14.2(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)(rollup@4.60.2)
+        specifier: ^1.0.0-beta.32
+        version: 1.0.0-beta.32(@wacht/jsx@1.0.0-beta.27(@wacht/types@1.0.0-beta.26)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(rollup@4.60.2))(@wacht/types@1.0.0-beta.26)(react-dom@19.2.5(react@19.2.5))(react-router@7.14.2(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)(rollup@4.60.2)
       '@wacht/types':
         specifier: ^1.0.0-beta.26
         version: 1.0.0-beta.26
@@ -2749,11 +2749,11 @@ packages:
       react: '>=19.0.0'
       react-dom: '>=19.0.0'
 
-  '@wacht/react-router@1.0.0-beta.26':
-    resolution: {integrity: sha512-35H8Q09jwiVSgVuAvnMtngV5B27M2T9ExnJkTgAycMch9k1/EYHDm6mFfYc15bLP3716uYT1T7rGUDhdm3NVKw==}
+  '@wacht/react-router@1.0.0-beta.32':
+    resolution: {integrity: sha512-BFPGBqQJTQH7un8RKFrdeZQuGorgEnAgwi1MlFtcNJKYUolmA6ILjYlsictMQuXtfjeLrTWp6hHXwICkAdvkEA==}
     peerDependencies:
-      '@wacht/jsx': ^1.0.0-beta.26
-      '@wacht/types': ^1.0.0-beta.26
+      '@wacht/jsx': ^1.0.0-beta.42
+      '@wacht/types': ^1.0.0-beta.34
       react: '>=19.0.0'
       react-dom: '>=19.0.0'
       react-router: '>=7.0.0'
@@ -7744,7 +7744,7 @@ snapshots:
       - react-native
       - rollup
 
-  '@wacht/react-router@1.0.0-beta.26(@wacht/jsx@1.0.0-beta.27(@wacht/types@1.0.0-beta.26)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(rollup@4.60.2))(@wacht/types@1.0.0-beta.26)(react-dom@19.2.5(react@19.2.5))(react-router@7.14.2(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)(rollup@4.60.2)':
+  '@wacht/react-router@1.0.0-beta.32(@wacht/jsx@1.0.0-beta.27(@wacht/types@1.0.0-beta.26)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(rollup@4.60.2))(@wacht/types@1.0.0-beta.26)(react-dom@19.2.5(react@19.2.5))(react-router@7.14.2(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)(rollup@4.60.2)':
     dependencies:
       '@wacht/backend': 1.0.0-beta.15
       '@wacht/jsx': 1.0.0-beta.27(@wacht/types@1.0.0-beta.26)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(rollup@4.60.2)

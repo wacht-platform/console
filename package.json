@@ -72,7 +72,7 @@
         "@tanstack/react-table": "^8.21.3",
         "@uiw/react-codemirror": "^4.25.9",
         "@wacht/jsx": "^1.0.0-beta.27",
-        "@wacht/react-router": "^1.0.0-beta.26",
+        "@wacht/react-router": "^1.0.0-beta.32",
         "@wacht/types": "^1.0.0-beta.26",
         "@xyflow/react": "^12.6.4",
         "axios": "^1.7.9",

@@ -135,8 +135,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ];
 
     return (
-        <Sidebar collapsible="none" {...props}>
-            <SidebarHeader>
+        <Sidebar collapsible="offcanvas" {...props}>
+            <SidebarHeader className="h-(--header-height) shrink-0 justify-center border-b">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <OrganizationSwitcher />
