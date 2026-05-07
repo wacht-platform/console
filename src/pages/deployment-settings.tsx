@@ -684,6 +684,33 @@ export default function DeploymentSettingsPage() {
     return "#000000";
   };
 
+  const renderColorInput = (
+    value: string | undefined,
+    onChange: (value: string) => void,
+  ) => {
+    const swatchValue = value?.trim();
+    const canPreview = Boolean(swatchValue && isValidCssColor(swatchValue));
+
+    return (
+      <div
+        className="relative h-10 w-16 shrink-0 overflow-hidden rounded border border-zinc-200 bg-[linear-gradient(45deg,#e4e4e7_25%,transparent_25%),linear-gradient(-45deg,#e4e4e7_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e4e4e7_75%),linear-gradient(-45deg,transparent_75%,#e4e4e7_75%)] bg-[length:12px_12px] bg-[position:0_0,0_6px,6px_-6px,-6px_0] p-1 dark:border-zinc-700 dark:bg-[linear-gradient(45deg,#3f3f46_25%,transparent_25%),linear-gradient(-45deg,#3f3f46_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#3f3f46_75%),linear-gradient(-45deg,transparent_75%,#3f3f46_75%)]"
+        title={swatchValue || "Pick color"}
+      >
+        <div
+          className="h-full w-full rounded-sm border border-black/10 dark:border-white/10"
+          style={{ backgroundColor: canPreview ? swatchValue : "transparent" }}
+        />
+        <Input
+          type="color"
+          value={getColorPickerValue(value)}
+          onChange={(e) => onChange(e.target.value)}
+          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+          aria-label="Pick color"
+        />
+      </div>
+    );
+  };
+
   const hasValidationErrors = Object.keys(validationErrors).length > 0;
 
   useEffect(() => {
@@ -977,12 +1004,9 @@ export default function DeploymentSettingsPage() {
         <div className="space-y-2">
           <div className="flex items-center gap-3">
             {field.kind === "color" && (
-              <Input
-                type="color"
-                value={getColorPickerValue(values[tokenKey])}
-                onChange={(e) => updateTokenField(mode, tokenKey, e.target.value)}
-                className="w-16 h-10 p-1 rounded"
-              />
+              renderColorInput(values[tokenKey], (value) =>
+                updateTokenField(mode, tokenKey, value),
+              )
             )}
             <Input
               type="text"
@@ -1309,12 +1333,7 @@ export default function DeploymentSettingsPage() {
                           <Text>{field.description}</Text>
                         </div>
                         <div className="flex items-center gap-3">
-                          <Input
-                            type="color"
-                            value={getColorPickerValue(field.value)}
-                            onChange={(e) => field.onChange(e.target.value)}
-                            className="w-16 h-10 p-1 rounded"
-                          />
+                          {renderColorInput(field.value, field.onChange)}
                           <Input
                             type="text"
                             placeholder={field.placeholder}
@@ -1401,12 +1420,7 @@ export default function DeploymentSettingsPage() {
                           <Text>{field.description}</Text>
                         </div>
                         <div className="flex items-center gap-3">
-                          <Input
-                            type="color"
-                            value={getColorPickerValue(field.value)}
-                            onChange={(e) => field.onChange(e.target.value)}
-                            className="w-16 h-10 p-1 rounded"
-                          />
+                          {renderColorInput(field.value, field.onChange)}
                           <Input
                             type="text"
                             placeholder={field.placeholder}
