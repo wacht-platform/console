@@ -15,6 +15,11 @@ import { InlineLoader } from "../../components/ui/loading-screen";
 import { useAgents, type Agent } from "../../lib/api/hooks/use-agents";
 import { apiClient } from "../../lib/api/client";
 import {
+    hasProviderApiKey,
+    isS3StorageConfigured,
+    type AISettingsSummary,
+} from "../../lib/ai-settings";
+import {
     Table,
     TableBody,
     TableCell,
@@ -37,20 +42,16 @@ export default function CreateAgentsPage() {
     const { data: aiSettings } = useQuery({
         queryKey: ["ai-settings-summary", deploymentId],
         queryFn: async () => {
-            const { data } = await apiClient.get<{
-                gemini_api_key_set: boolean;
-                openai_api_key_set: boolean;
-                openrouter_api_key_set: boolean;
-            }>(`/deployments/${deploymentId}/ai/settings`);
+            const { data } = await apiClient.get<AISettingsSummary>(
+                `/deployments/${deploymentId}/ai/settings`,
+            );
             return data;
         },
         enabled: !!deploymentId,
     });
     const agents = data?.agents || [];
-    const hasProviderApiKey =
-        !!aiSettings?.gemini_api_key_set ||
-        !!aiSettings?.openai_api_key_set ||
-        !!aiSettings?.openrouter_api_key_set;
+    const providerApiKeyConfigured = hasProviderApiKey(aiSettings);
+    const s3StorageConfigured = isS3StorageConfigured(aiSettings);
     const aiSettingsPath =
         projectId && deploymentId
             ? `/project/${projectId}/deployment/${deploymentId}/llms/ai-settings`
@@ -83,17 +84,30 @@ export default function CreateAgentsPage() {
                     </Button>
                 )}
             </div>
-            {aiSettings && !hasProviderApiKey && (
+            {aiSettings && (!providerApiKeyConfigured || !s3StorageConfigured) && (
                 <div className="mb-6 flex flex-col gap-2">
-                    <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
-                        Configure a Gemini, OpenAI, or OpenRouter API key before running agents.{" "}
-                        <Link
-                            to={aiSettingsPath}
-                            className="underline font-medium"
-                        >
-                            Manage AI settings
-                        </Link>
-                    </div>
+                    {!providerApiKeyConfigured && (
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+                            Configure a Gemini, OpenAI, or OpenRouter API key before running agents.{" "}
+                            <Link
+                                to={aiSettingsPath}
+                                className="underline font-medium"
+                            >
+                                Manage AI settings
+                            </Link>
+                        </div>
+                    )}
+                    {!s3StorageConfigured && (
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+                            Configure customer S3 storage before running agents that use workspaces, uploads, or vector tables.{" "}
+                            <Link
+                                to={aiSettingsPath}
+                                className="underline font-medium"
+                            >
+                                Manage AI settings
+                            </Link>
+                        </div>
+                    )}
                 </div>
             )}
 

@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import SavePopup from "@/components/save-popup";
 import { InlineLoader } from "@/components/ui/loading-screen";
+import { isS3StorageConfigured } from "@/lib/ai-settings";
 
 type LlmProvider = "gemini" | "openai" | "openrouter";
 type EmbeddingProvider = "gemini" | "openai" | "openrouter";
@@ -454,9 +455,7 @@ export default function AISettingsPage() {
                             <Subheading>Storage</Subheading>
                             <StorageProviderBadge
                                 provider={settings?.storage.provider ?? "s3"}
-                                configured={Boolean(
-                                    settings?.storage.bucket && settings?.storage.endpoint,
-                                )}
+                                configured={isS3StorageConfigured(settings)}
                             />
                         </div>
                         <Text>

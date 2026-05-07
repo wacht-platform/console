@@ -30,6 +30,11 @@ import { useAgentTools, useTools } from "../../lib/api/hooks/use-tools";
 import { useAgentKnowledgeBases, useKnowledgeBases } from "../../lib/api/hooks/use-knowledge-bases";
 import { useAttachSubAgent } from "../../lib/api/hooks/use-sub-agents";
 import { useProjects } from "../../lib/api/hooks/use-projects";
+import {
+	hasProviderApiKey,
+	isS3StorageConfigured,
+	type AISettingsSummary,
+} from "../../lib/ai-settings";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
 interface CreateAgentDialogProps {
@@ -83,11 +88,7 @@ export function CreateAgentDialog({
 	const { data: aiSettings } = useQuery({
 		queryKey: ["ai-settings-summary", selectedDeployment?.id],
 		queryFn: async () => {
-			const { data } = await apiClient.get<{
-				gemini_api_key_set: boolean;
-				openai_api_key_set: boolean;
-				openrouter_api_key_set: boolean;
-			}>(
+			const { data } = await apiClient.get<AISettingsSummary>(
 				`/deployments/${selectedDeployment!.id}/ai/settings`,
 			);
 			return data;
@@ -95,10 +96,8 @@ export function CreateAgentDialog({
 		enabled: !!selectedDeployment?.id,
 	});
 	const queryClient = useQueryClient();
-	const hasProviderApiKey =
-		!!aiSettings?.gemini_api_key_set ||
-		!!aiSettings?.openai_api_key_set ||
-		!!aiSettings?.openrouter_api_key_set;
+	const providerApiKeyConfigured = hasProviderApiKey(aiSettings);
+	const s3StorageConfigured = isS3StorageConfigured(aiSettings);
 	const aiSettingsPath =
 		projectId && deploymentId
 			? `/project/${projectId}/deployment/${deploymentId}/llms/ai-settings`
@@ -330,15 +329,30 @@ export function CreateAgentDialog({
 				</DialogHeader>
 
 				<form onSubmit={handleSubmit} className="flex-1 overflow-hidden flex flex-col">
-					{aiSettings && !hasProviderApiKey && (
-						<div className="mx-6 mt-1 mb-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
-							<ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0" />
-							<span>
-								Configure a Gemini, OpenAI, or OpenRouter API key before running agents.{" "}
-								<Link to={aiSettingsPath} className="underline font-medium">
-									Manage AI settings
-								</Link>
-							</span>
+					{aiSettings && (!providerApiKeyConfigured || !s3StorageConfigured) && (
+						<div className="mx-6 mt-1 mb-3 space-y-2">
+							{!providerApiKeyConfigured && (
+								<div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+									<ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0" />
+									<span>
+										Configure a Gemini, OpenAI, or OpenRouter API key before running agents.{" "}
+										<Link to={aiSettingsPath} className="underline font-medium">
+											Manage AI settings
+										</Link>
+									</span>
+								</div>
+							)}
+							{!s3StorageConfigured && (
+								<div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+									<ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0" />
+									<span>
+										Configure customer S3 storage before running agents that use workspaces, uploads, or vector tables.{" "}
+										<Link to={aiSettingsPath} className="underline font-medium">
+											Manage AI settings
+										</Link>
+									</span>
+								</div>
+							)}
 						</div>
 					)}
 					{isEditing ? (
