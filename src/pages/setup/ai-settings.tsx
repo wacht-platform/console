@@ -99,7 +99,9 @@ function extractErrorMessage(error: unknown): string {
 }
 
 function providerLabel(provider: LlmProvider): string {
-    return { gemini: "Gemini", openai: "OpenAI", openrouter: "OpenRouter" }[provider];
+    return { gemini: "Gemini", openai: "OpenAI", openrouter: "OpenRouter" }[
+        provider
+    ];
 }
 
 function defaultEmbeddingModelFor(provider: EmbeddingProvider): string {
@@ -110,7 +112,9 @@ function defaultEmbeddingModelFor(provider: EmbeddingProvider): string {
     }[provider];
 }
 
-async function fetchAISettings(deploymentId: string): Promise<AISettingsResponse> {
+async function fetchAISettings(
+    deploymentId: string,
+): Promise<AISettingsResponse> {
     const { data } = await apiClient.get<AISettingsResponse>(
         `/deployments/${deploymentId}/ai/settings`,
     );
@@ -134,16 +138,21 @@ export default function AISettingsPage() {
 
     const [geminiKey, setGeminiKey] = useState("");
     const [openrouterKey, setOpenrouterKey] = useState("");
-    const [openrouterRequireParameters, setOpenrouterRequireParameters] = useState(true);
-    const [strongLlmProvider, setStrongLlmProvider] = useState<LlmProvider>("gemini");
-    const [weakLlmProvider, setWeakLlmProvider] = useState<LlmProvider>("gemini");
+    const [openrouterRequireParameters, setOpenrouterRequireParameters] =
+        useState(true);
+    const [strongLlmProvider, setStrongLlmProvider] =
+        useState<LlmProvider>("gemini");
+    const [weakLlmProvider, setWeakLlmProvider] =
+        useState<LlmProvider>("gemini");
     const [openaiKey, setOpenaiKey] = useState("");
     const [anthropicKey, setAnthropicKey] = useState("");
     const [strongModel, setStrongModel] = useState("");
     const [weakModel, setWeakModel] = useState("");
-    const [embeddingProvider, setEmbeddingProvider] = useState<EmbeddingProvider>("gemini");
+    const [embeddingProvider, setEmbeddingProvider] =
+        useState<EmbeddingProvider>("gemini");
     const [embeddingModel, setEmbeddingModel] = useState("");
-    const [embeddingDimension, setEmbeddingDimension] = useState<EmbeddingDimension>(1536);
+    const [embeddingDimension, setEmbeddingDimension] =
+        useState<EmbeddingDimension>(1536);
     const [storageBucket, setStorageBucket] = useState("");
     const [storageRegion, setStorageRegion] = useState("");
     const [storageEndpoint, setStorageEndpoint] = useState("");
@@ -159,7 +168,6 @@ export default function AISettingsPage() {
         enabled: !!selectedDeployment,
     });
 
-
     const updateMutation = useMutation({
         mutationFn: (updates: UpdateAISettingsRequest) =>
             updateAISettings(selectedDeployment!.id, updates),
@@ -169,7 +177,9 @@ export default function AISettingsPage() {
             setIsDirty(false);
             setGeminiKey("");
             setOpenrouterKey("");
-            setOpenrouterRequireParameters(updatedSettings.openrouter_require_parameters);
+            setOpenrouterRequireParameters(
+                updatedSettings.openrouter_require_parameters,
+            );
             setStrongLlmProvider(updatedSettings.strong_llm_provider);
             setWeakLlmProvider(updatedSettings.weak_llm_provider);
             setOpenaiKey("");
@@ -197,18 +207,34 @@ export default function AISettingsPage() {
         const hasKey = (provider: LlmProvider): boolean => {
             switch (provider) {
                 case "gemini":
-                    return settings?.gemini_api_key_set || Boolean(geminiKey.trim());
+                    return (
+                        settings?.gemini_api_key_set ||
+                        Boolean(geminiKey.trim())
+                    );
                 case "openai":
-                    return settings?.openai_api_key_set || Boolean(openaiKey.trim());
+                    return (
+                        settings?.openai_api_key_set ||
+                        Boolean(openaiKey.trim())
+                    );
                 case "openrouter":
-                    return settings?.openrouter_api_key_set || Boolean(openrouterKey.trim());
+                    return (
+                        settings?.openrouter_api_key_set ||
+                        Boolean(openrouterKey.trim())
+                    );
             }
         };
         return {
             strong: hasKey(strongLlmProvider),
             weak: hasKey(weakLlmProvider),
         };
-    }, [settings, strongLlmProvider, weakLlmProvider, geminiKey, openaiKey, openrouterKey]);
+    }, [
+        settings,
+        strongLlmProvider,
+        weakLlmProvider,
+        geminiKey,
+        openaiKey,
+        openrouterKey,
+    ]);
 
     // Warn if OpenRouter is strong provider and require_parameters is being turned off
     const openrouterStrongWithoutRequireParams =
@@ -243,20 +269,27 @@ export default function AISettingsPage() {
             updates.weak_llm_provider = weakLlmProvider;
         }
         if (geminiKey.trim()) updates.gemini_api_key = geminiKey.trim();
-        if (openrouterKey.trim()) updates.openrouter_api_key = openrouterKey.trim();
-        if (openrouterRequireParameters !== (settings?.openrouter_require_parameters ?? true)) {
+        if (openrouterKey.trim())
+            updates.openrouter_api_key = openrouterKey.trim();
+        if (
+            openrouterRequireParameters !==
+            (settings?.openrouter_require_parameters ?? true)
+        ) {
             updates.openrouter_require_parameters = openrouterRequireParameters;
         }
         if (openaiKey.trim()) updates.openai_api_key = openaiKey.trim();
-        if (anthropicKey.trim()) updates.anthropic_api_key = anthropicKey.trim();
+        if (anthropicKey.trim())
+            updates.anthropic_api_key = anthropicKey.trim();
         if (strongModel.trim() !== (settings?.strong_model ?? ""))
             updates.strong_model = strongModel.trim() || undefined;
         if (weakModel.trim() !== (settings?.weak_model ?? ""))
             updates.weak_model = weakModel.trim() || undefined;
 
         const trimmedEmbeddingModel = embeddingModel.trim();
-        const embeddingProviderChanged = embeddingProvider !== settings?.embedding_provider;
-        const embeddingModelChanged = trimmedEmbeddingModel !== (settings?.embedding_model ?? "");
+        const embeddingProviderChanged =
+            embeddingProvider !== settings?.embedding_provider;
+        const embeddingModelChanged =
+            trimmedEmbeddingModel !== (settings?.embedding_model ?? "");
         if (embeddingProviderChanged || embeddingModelChanged) {
             if (!trimmedEmbeddingModel) {
                 toast.error("Embedding model cannot be empty");
@@ -282,17 +315,21 @@ export default function AISettingsPage() {
             forcePathStyle !== (currentStorage?.force_path_style ?? false) ||
             Boolean(
                 trimmedBucket ||
-                    trimmedRegion ||
-                    trimmedEndpoint ||
-                    trimmedRootPrefix ||
-                    trimmedAccessKeyId ||
-                    trimmedSecretAccessKey,
+                trimmedRegion ||
+                trimmedEndpoint ||
+                trimmedRootPrefix ||
+                trimmedAccessKeyId ||
+                trimmedSecretAccessKey,
             );
 
         if (storageChanged) {
-            const resolvedBucket = trimmedBucket || currentStorage?.bucket || "";
-            const resolvedEndpoint = trimmedEndpoint || currentStorage?.endpoint || "";
-            const hasAccessKeyId = Boolean(trimmedAccessKeyId || currentStorage?.access_key_id_set);
+            const resolvedBucket =
+                trimmedBucket || currentStorage?.bucket || "";
+            const resolvedEndpoint =
+                trimmedEndpoint || currentStorage?.endpoint || "";
+            const hasAccessKeyId = Boolean(
+                trimmedAccessKeyId || currentStorage?.access_key_id_set,
+            );
             const hasSecretAccessKey = Boolean(
                 trimmedSecretAccessKey || currentStorage?.secret_access_key_set,
             );
@@ -307,11 +344,16 @@ export default function AISettingsPage() {
             }
             try {
                 const parsed = new URL(resolvedEndpoint);
-                if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+                if (
+                    parsed.protocol !== "http:" &&
+                    parsed.protocol !== "https:"
+                ) {
                     throw new Error("invalid protocol");
                 }
             } catch {
-                toast.error("Storage endpoint must be a valid http or https URL");
+                toast.error(
+                    "Storage endpoint must be a valid http or https URL",
+                );
                 return;
             }
             if (!hasAccessKeyId) {
@@ -323,16 +365,23 @@ export default function AISettingsPage() {
                 return;
             }
 
-            const storageUpdates: UpdateAIStorageSettingsRequest = { provider: "s3" };
-            if (forcePathStyle !== (currentStorage?.force_path_style ?? false)) {
+            const storageUpdates: UpdateAIStorageSettingsRequest = {
+                provider: "s3",
+            };
+            if (
+                forcePathStyle !== (currentStorage?.force_path_style ?? false)
+            ) {
                 storageUpdates.force_path_style = forcePathStyle;
             }
             if (trimmedBucket) storageUpdates.bucket = trimmedBucket;
             if (trimmedRegion) storageUpdates.region = trimmedRegion;
             if (trimmedEndpoint) storageUpdates.endpoint = trimmedEndpoint;
-            if (trimmedRootPrefix) storageUpdates.root_prefix = trimmedRootPrefix;
-            if (trimmedAccessKeyId) storageUpdates.access_key_id = trimmedAccessKeyId;
-            if (trimmedSecretAccessKey) storageUpdates.secret_access_key = trimmedSecretAccessKey;
+            if (trimmedRootPrefix)
+                storageUpdates.root_prefix = trimmedRootPrefix;
+            if (trimmedAccessKeyId)
+                storageUpdates.access_key_id = trimmedAccessKeyId;
+            if (trimmedSecretAccessKey)
+                storageUpdates.secret_access_key = trimmedSecretAccessKey;
             updates.storage = storageUpdates;
         }
 
@@ -347,7 +396,9 @@ export default function AISettingsPage() {
     const handleCancel = () => {
         setGeminiKey("");
         setOpenrouterKey("");
-        setOpenrouterRequireParameters(settings?.openrouter_require_parameters ?? true);
+        setOpenrouterRequireParameters(
+            settings?.openrouter_require_parameters ?? true,
+        );
         setStrongLlmProvider(settings?.strong_llm_provider ?? "gemini");
         setWeakLlmProvider(settings?.weak_llm_provider ?? "gemini");
         setOpenaiKey("");
@@ -384,27 +435,28 @@ export default function AISettingsPage() {
         const currentStorage = settings?.storage;
         const hasApiKeyChanges = Boolean(
             geminiKey.trim() ||
-                openrouterKey.trim() ||
-                openrouterRequireParameters !== (settings?.openrouter_require_parameters ?? true) ||
-                strongLlmProvider !== (settings?.strong_llm_provider ?? "gemini") ||
-                weakLlmProvider !== (settings?.weak_llm_provider ?? "gemini") ||
-                openaiKey.trim() ||
-                anthropicKey.trim() ||
-                strongModel.trim() !== (settings?.strong_model ?? "") ||
-                weakModel.trim() !== (settings?.weak_model ?? "") ||
-                embeddingProvider !== (settings?.embedding_provider ?? "gemini") ||
-                embeddingModel.trim() !== (settings?.embedding_model ?? "") ||
-                embeddingDimension !== (settings?.embedding_dimension ?? 1536),
+            openrouterKey.trim() ||
+            openrouterRequireParameters !==
+                (settings?.openrouter_require_parameters ?? true) ||
+            strongLlmProvider !== (settings?.strong_llm_provider ?? "gemini") ||
+            weakLlmProvider !== (settings?.weak_llm_provider ?? "gemini") ||
+            openaiKey.trim() ||
+            anthropicKey.trim() ||
+            strongModel.trim() !== (settings?.strong_model ?? "") ||
+            weakModel.trim() !== (settings?.weak_model ?? "") ||
+            embeddingProvider !== (settings?.embedding_provider ?? "gemini") ||
+            embeddingModel.trim() !== (settings?.embedding_model ?? "") ||
+            embeddingDimension !== (settings?.embedding_dimension ?? 1536),
         );
         const hasStorageChanges =
             forcePathStyle !== (currentStorage?.force_path_style ?? false) ||
             Boolean(
                 storageBucket.trim() ||
-                    storageRegion.trim() ||
-                    storageEndpoint.trim() ||
-                    storageRootPrefix.trim() ||
-                    storageAccessKeyId.trim() ||
-                    storageSecretAccessKey.trim(),
+                storageRegion.trim() ||
+                storageEndpoint.trim() ||
+                storageRootPrefix.trim() ||
+                storageAccessKeyId.trim() ||
+                storageSecretAccessKey.trim(),
             );
         setIsDirty(hasApiKeyChanges || hasStorageChanges);
     }, [
@@ -436,8 +488,8 @@ export default function AISettingsPage() {
         <div>
             <Heading>Configuration</Heading>
             <Text className="mt-2 text-zinc-500">
-                Bring your own LLM, embedding, and storage credentials. Keys set here bypass
-                platform billing.
+                Bring your own LLM, embedding, and storage credentials. Keys set
+                here bypass platform billing.
             </Text>
 
             <SavePopup
@@ -459,7 +511,8 @@ export default function AISettingsPage() {
                             />
                         </div>
                         <Text>
-                            S3-compatible bucket for workspaces, uploads, and vector tables.
+                            S3-compatible bucket for workspaces, uploads, and
+                            vector tables.
                         </Text>
                     </div>
 
@@ -469,7 +522,8 @@ export default function AISettingsPage() {
                                 Connection
                             </div>
                             <div className="mt-1 text-xs text-zinc-500">
-                                Must match your provider exactly. Region mismatches fail silently.
+                                Must match your provider exactly. Region
+                                mismatches fail silently.
                             </div>
                             <div className="mt-4 space-y-4">
                                 <div className="grid gap-4 sm:grid-cols-2">
@@ -477,10 +531,13 @@ export default function AISettingsPage() {
                                         <Label>Bucket</Label>
                                         <Input
                                             placeholder={
-                                                settings?.storage.bucket ?? "customer-ai-storage"
+                                                settings?.storage.bucket ??
+                                                "customer-ai-storage"
                                             }
                                             value={storageBucket}
-                                            onChange={(e) => setStorageBucket(e.target.value)}
+                                            onChange={(e) =>
+                                                setStorageBucket(e.target.value)
+                                            }
                                         />
                                     </Field>
                                     <Field>
@@ -491,7 +548,9 @@ export default function AISettingsPage() {
                                                 "Optional, for example us-east-1"
                                             }
                                             value={storageRegion}
-                                            onChange={(e) => setStorageRegion(e.target.value)}
+                                            onChange={(e) =>
+                                                setStorageRegion(e.target.value)
+                                            }
                                         />
                                     </Field>
                                 </div>
@@ -499,13 +558,17 @@ export default function AISettingsPage() {
                                     <Label>Endpoint</Label>
                                     <Input
                                         placeholder={
-                                            settings?.storage.endpoint ?? "https://s3.amazonaws.com"
+                                            settings?.storage.endpoint ??
+                                            "https://s3.amazonaws.com"
                                         }
                                         value={storageEndpoint}
-                                        onChange={(e) => setStorageEndpoint(e.target.value)}
+                                        onChange={(e) =>
+                                            setStorageEndpoint(e.target.value)
+                                        }
                                     />
                                     <Description>
-                                        Full `http` or `https` URL for the S3 endpoint.
+                                        Full `http` or `https` URL for the S3
+                                        endpoint.
                                     </Description>
                                 </Field>
                                 <Field>
@@ -516,7 +579,9 @@ export default function AISettingsPage() {
                                             "Optional, for example wacht"
                                         }
                                         value={storageRootPrefix}
-                                        onChange={(e) => setStorageRootPrefix(e.target.value)}
+                                        onChange={(e) =>
+                                            setStorageRootPrefix(e.target.value)
+                                        }
                                     />
                                     <Description>
                                         Optional folder prefix under the bucket.
@@ -530,7 +595,8 @@ export default function AISettingsPage() {
                                 Credentials
                             </div>
                             <div className="mt-1 text-xs text-zinc-500">
-                                Leave a credential field blank to keep the currently saved value.
+                                Leave a credential field blank to keep the
+                                currently saved value.
                             </div>
                             <div className="mt-4 space-y-4">
                                 <Field>
@@ -544,7 +610,11 @@ export default function AISettingsPage() {
                                                 : "Enter access key ID"
                                         }
                                         value={storageAccessKeyId}
-                                        onChange={(e) => setStorageAccessKeyId(e.target.value)}
+                                        onChange={(e) =>
+                                            setStorageAccessKeyId(
+                                                e.target.value,
+                                            )
+                                        }
                                     />
                                 </Field>
                                 <Field>
@@ -553,13 +623,16 @@ export default function AISettingsPage() {
                                         type="password"
                                         autoComplete="new-password"
                                         placeholder={
-                                            settings?.storage.secret_access_key_set
+                                            settings?.storage
+                                                .secret_access_key_set
                                                 ? "••••••••••••••••"
                                                 : "Enter secret access key"
                                         }
                                         value={storageSecretAccessKey}
                                         onChange={(e) =>
-                                            setStorageSecretAccessKey(e.target.value)
+                                            setStorageSecretAccessKey(
+                                                e.target.value,
+                                            )
                                         }
                                     />
                                 </Field>
@@ -570,8 +643,9 @@ export default function AISettingsPage() {
                                                 Force path-style requests
                                             </div>
                                             <div className="text-xs text-zinc-500">
-                                                Enable this for providers that expect path-style
-                                                bucket addressing.
+                                                Enable this for providers that
+                                                expect path-style bucket
+                                                addressing.
                                             </div>
                                         </div>
                                         <Switch
@@ -592,44 +666,57 @@ export default function AISettingsPage() {
                     <div className="space-y-1">
                         <Subheading>Model Selection</Subheading>
                         <Text>
-                            Agents route requests to a strong or weak tier per call.
+                            Agents route requests to a strong or weak tier per
+                            call.
                         </Text>
                         <Text className="text-xs text-zinc-500 mt-1">
-                            <strong>Strong</strong>: JSON-schema output (planning, decisions).
-                            Requires structured-output support.
+                            <strong>Strong</strong>: JSON-schema output
+                            (planning, decisions). Requires structured-output
+                            support.
                         </Text>
                         <Text className="text-xs text-zinc-500 mt-1">
-                            <strong>Weak</strong>: tool calls, summaries, iteration. Requires
-                            function-calling support.
+                            <strong>Weak</strong>: tool calls, summaries,
+                            iteration. Requires function-calling support.
                         </Text>
                     </div>
                     <div className="space-y-4">
                         {/* Provider/key warnings */}
-                        {(!providerKeyAvailable.strong || !providerKeyAvailable.weak) && (
+                        {(!providerKeyAvailable.strong ||
+                            !providerKeyAvailable.weak) && (
                             <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950">
                                 <div className="flex items-start gap-2">
                                     <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
                                     <div className="space-y-1 text-xs text-amber-800 dark:text-amber-300">
-                                        {!providerKeyAvailable.strong && (
-                                            <p>
-                                                Strong provider ({providerLabel(strongLlmProvider)})
-                                                has no API key — agents requiring structured output
-                                                will fail.
-                                            </p>
-                                        )}
-                                        {!providerKeyAvailable.weak &&
-                                            weakLlmProvider !== strongLlmProvider && (
+                                        {!providerKeyAvailable.strong &&
+                                            weakLlmProvider !==
+                                                strongLlmProvider && (
                                                 <p>
-                                                    Weak provider ({providerLabel(weakLlmProvider)})
-                                                    has no API key — agents requiring tool calls will
-                                                    fail.
+                                                    (
+                                                    {providerLabel(
+                                                        strongLlmProvider,
+                                                    )}
+                                                    ) has no API key
                                                 </p>
                                             )}
                                         {!providerKeyAvailable.weak &&
-                                            weakLlmProvider === strongLlmProvider && (
+                                            weakLlmProvider !==
+                                                strongLlmProvider && (
                                                 <p>
-                                                    {providerLabel(strongLlmProvider)} has no API key
-                                                    — configure the key below before saving.
+                                                    (
+                                                    {providerLabel(
+                                                        weakLlmProvider,
+                                                    )}
+                                                    ) has no API key
+                                                </p>
+                                            )}
+                                        {!providerKeyAvailable.weak &&
+                                            weakLlmProvider ===
+                                                strongLlmProvider && (
+                                                <p>
+                                                    {providerLabel(
+                                                        strongLlmProvider,
+                                                    )}{" "}
+                                                    has no API key
                                                 </p>
                                             )}
                                     </div>
@@ -643,8 +730,9 @@ export default function AISettingsPage() {
                                 <div className="flex items-start gap-2">
                                     <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
                                     <p className="text-xs text-amber-800 dark:text-amber-300">
-                                        OpenRouter is the strong provider but 'require parameters'
-                                        is disabled — JSON schema output may route to models that
+                                        OpenRouter is the strong provider but
+                                        'require parameters' is disabled — JSON
+                                        schema output may route to models that
                                         don't support it.
                                     </p>
                                 </div>
@@ -655,15 +743,23 @@ export default function AISettingsPage() {
                             <Label>Strong provider</Label>
                             <Select
                                 value={strongLlmProvider}
-                                onValueChange={(v) => setStrongLlmProvider(v as LlmProvider)}
+                                onValueChange={(v) =>
+                                    setStrongLlmProvider(v as LlmProvider)
+                                }
                             >
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Select provider" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="gemini">Gemini</SelectItem>
-                                    <SelectItem value="openrouter">OpenRouter</SelectItem>
-                                    <SelectItem value="openai">OpenAI</SelectItem>
+                                    <SelectItem value="gemini">
+                                        Gemini
+                                    </SelectItem>
+                                    <SelectItem value="openrouter">
+                                        OpenRouter
+                                    </SelectItem>
+                                    <SelectItem value="openai">
+                                        OpenAI
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                         </Field>
@@ -671,35 +767,53 @@ export default function AISettingsPage() {
                             <Label>Weak provider</Label>
                             <Select
                                 value={weakLlmProvider}
-                                onValueChange={(v) => setWeakLlmProvider(v as LlmProvider)}
+                                onValueChange={(v) =>
+                                    setWeakLlmProvider(v as LlmProvider)
+                                }
                             >
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Select provider" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="gemini">Gemini</SelectItem>
-                                    <SelectItem value="openrouter">OpenRouter</SelectItem>
-                                    <SelectItem value="openai">OpenAI</SelectItem>
+                                    <SelectItem value="gemini">
+                                        Gemini
+                                    </SelectItem>
+                                    <SelectItem value="openrouter">
+                                        OpenRouter
+                                    </SelectItem>
+                                    <SelectItem value="openai">
+                                        OpenAI
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                         </Field>
                         <Field>
                             <Label>Strong model</Label>
                             <Input
-                                placeholder={settings?.strong_model ?? "provider/strong-model"}
+                                placeholder={
+                                    settings?.strong_model ??
+                                    "provider/strong-model"
+                                }
                                 value={strongModel}
                                 onChange={(e) => setStrongModel(e.target.value)}
                             />
-                            <Description>Needs structured-output support.</Description>
+                            <Description>
+                                Needs structured-output support.
+                            </Description>
                         </Field>
                         <Field>
                             <Label>Weak model</Label>
                             <Input
-                                placeholder={settings?.weak_model ?? "provider/weak-model"}
+                                placeholder={
+                                    settings?.weak_model ??
+                                    "provider/weak-model"
+                                }
                                 value={weakModel}
                                 onChange={(e) => setWeakModel(e.target.value)}
                             />
-                            <Description>Needs function-calling support.</Description>
+                            <Description>
+                                Needs function-calling support.
+                            </Description>
                         </Field>
                     </div>
                 </section>
@@ -711,23 +825,28 @@ export default function AISettingsPage() {
                     <div className="space-y-1">
                         <Subheading>Embeddings</Subheading>
                         <Text>
-                            Powers semantic search over knowledge bases and agent memory.
+                            Powers semantic search over knowledge bases and
+                            agent memory.
                         </Text>
                         <Text className="text-xs text-zinc-500 mt-1">
-                            Changing any field invalidates the vector store. All KB docs and
-                            memories must be reindexed.
+                            Changing any field invalidates the vector store. All
+                            KB docs and memories must be reindexed.
                         </Text>
                     </div>
                     <div className="space-y-4">
-                        {(embeddingProvider !== (settings?.embedding_provider ?? "gemini") ||
-                            embeddingModel.trim() !== (settings?.embedding_model ?? "") ||
-                            embeddingDimension !== (settings?.embedding_dimension ?? 1536)) && (
+                        {(embeddingProvider !==
+                            (settings?.embedding_provider ?? "gemini") ||
+                            embeddingModel.trim() !==
+                                (settings?.embedding_model ?? "") ||
+                            embeddingDimension !==
+                                (settings?.embedding_dimension ?? 1536)) && (
                             <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950">
                                 <div className="flex items-start gap-2">
                                     <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
                                     <p className="text-xs text-amber-800 dark:text-amber-300">
-                                        Saving resets the vector store. Reindex all KB docs and
-                                        memories before retrieval works again.
+                                        Saving resets the vector store. Reindex
+                                        all KB docs and memories before
+                                        retrieval works again.
                                     </p>
                                 </div>
                             </div>
@@ -741,9 +860,17 @@ export default function AISettingsPage() {
                                     setEmbeddingProvider(next);
                                     // Suggest the provider's default model when the current model
                                     // is empty or matches the previous provider's default.
-                                    const prevDefault = defaultEmbeddingModelFor(embeddingProvider);
-                                    if (!embeddingModel.trim() || embeddingModel.trim() === prevDefault) {
-                                        setEmbeddingModel(defaultEmbeddingModelFor(next));
+                                    const prevDefault =
+                                        defaultEmbeddingModelFor(
+                                            embeddingProvider,
+                                        );
+                                    if (
+                                        !embeddingModel.trim() ||
+                                        embeddingModel.trim() === prevDefault
+                                    ) {
+                                        setEmbeddingModel(
+                                            defaultEmbeddingModelFor(next),
+                                        );
                                     }
                                 }}
                             >
@@ -751,28 +878,44 @@ export default function AISettingsPage() {
                                     <SelectValue placeholder="Select provider" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="gemini">Gemini</SelectItem>
-                                    <SelectItem value="openai">OpenAI</SelectItem>
-                                    <SelectItem value="openrouter">OpenRouter</SelectItem>
+                                    <SelectItem value="gemini">
+                                        Gemini
+                                    </SelectItem>
+                                    <SelectItem value="openai">
+                                        OpenAI
+                                    </SelectItem>
+                                    <SelectItem value="openrouter">
+                                        OpenRouter
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
-                            <Description>Uses the provider's API key below.</Description>
+                            <Description>
+                                Uses the provider's API key below.
+                            </Description>
                         </Field>
                         <Field>
                             <Label>Model</Label>
                             <Input
-                                placeholder={defaultEmbeddingModelFor(embeddingProvider)}
+                                placeholder={defaultEmbeddingModelFor(
+                                    embeddingProvider,
+                                )}
                                 value={embeddingModel}
-                                onChange={(e) => setEmbeddingModel(e.target.value)}
+                                onChange={(e) =>
+                                    setEmbeddingModel(e.target.value)
+                                }
                             />
-                            <Description>Provider-specific model string.</Description>
+                            <Description>
+                                Provider-specific model string.
+                            </Description>
                         </Field>
                         <Field>
                             <Label>Dimension</Label>
                             <Select
                                 value={String(embeddingDimension)}
                                 onValueChange={(v) =>
-                                    setEmbeddingDimension(Number(v) as EmbeddingDimension)
+                                    setEmbeddingDimension(
+                                        Number(v) as EmbeddingDimension,
+                                    )
                                 }
                             >
                                 <SelectTrigger className="w-full">
@@ -786,7 +929,9 @@ export default function AISettingsPage() {
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <Description>Must match the model's native output size.</Description>
+                            <Description>
+                                Must match the model's native output size.
+                            </Description>
                         </Field>
                     </div>
                 </section>
@@ -798,7 +943,9 @@ export default function AISettingsPage() {
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <Subheading>Google Gemini</Subheading>
-                            <StatusBadge isSet={settings?.gemini_api_key_set ?? false} />
+                            <StatusBadge
+                                isSet={settings?.gemini_api_key_set ?? false}
+                            />
                         </div>
                         <Text>Used when Gemini is selected above.</Text>
                         <Text className="text-xs">
@@ -835,7 +982,11 @@ export default function AISettingsPage() {
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <Subheading>OpenRouter</Subheading>
-                            <StatusBadge isSet={settings?.openrouter_api_key_set ?? false} />
+                            <StatusBadge
+                                isSet={
+                                    settings?.openrouter_api_key_set ?? false
+                                }
+                            />
                         </div>
                         <Text>Used when OpenRouter is selected above.</Text>
                     </div>
@@ -850,7 +1001,9 @@ export default function AISettingsPage() {
                                         : "Enter OpenRouter API Key"
                                 }
                                 value={openrouterKey}
-                                onChange={(e) => setOpenrouterKey(e.target.value)}
+                                onChange={(e) =>
+                                    setOpenrouterKey(e.target.value)
+                                }
                                 autoComplete="new-password"
                             />
                         </Field>
@@ -860,8 +1013,9 @@ export default function AISettingsPage() {
                                     Require parameters
                                 </div>
                                 <div className="text-xs text-zinc-500">
-                                    Skip endpoints that drop requested parameters. Required for
-                                    strong-model routing.
+                                    Skip endpoints that drop requested
+                                    parameters. Required for strong-model
+                                    routing.
                                 </div>
                             </div>
                             <Switch
@@ -879,7 +1033,9 @@ export default function AISettingsPage() {
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <Subheading>OpenAI</Subheading>
-                            <StatusBadge isSet={settings?.openai_api_key_set ?? false} />
+                            <StatusBadge
+                                isSet={settings?.openai_api_key_set ?? false}
+                            />
                         </div>
                         <Text>Used when OpenAI is selected above.</Text>
                     </div>
@@ -906,7 +1062,9 @@ export default function AISettingsPage() {
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <Subheading>Anthropic</Subheading>
-                            <StatusBadge isSet={settings?.anthropic_api_key_set ?? false} />
+                            <StatusBadge
+                                isSet={settings?.anthropic_api_key_set ?? false}
+                            />
                         </div>
                         <Text>Support for Claude models is coming soon.</Text>
                     </div>
@@ -920,7 +1078,6 @@ export default function AISettingsPage() {
                         />
                     </div>
                 </section>
-
             </div>
         </div>
     );

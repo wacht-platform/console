@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Spinner } from "@/components/ui/app-spinner";
 import {
 	EnvelopeIcon,
@@ -19,6 +19,7 @@ import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogD
 import { Button } from "./ui/button";
 import { toast } from 'sonner';
 import clsx from "clsx";
+import { billingAccountHasFeature, useBillingAccount } from "@/lib/api/hooks/use-billing";
 
 type AuthMethod =
 	| "email"
@@ -112,9 +113,18 @@ export function CreateStagingDeploymentDialog({
 	isLoading = false,
 }: CreateStagingDeploymentDialogProps) {
 	const [selectedMethods, setSelectedMethods] = useState<AuthMethod[]>(["email"]);
+	const { data: billingAccount, isLoading: isBillingLoading } = useBillingAccount();
+	const phoneAuthAvailable =
+		!isBillingLoading && billingAccountHasFeature(billingAccount, "phone_auth");
 	const showPhonePrepaidWarning = selectedMethods.includes("phone");
 	const canResetToDefault =
 		selectedMethods.length !== 1 || selectedMethods[0] !== "email";
+
+	useEffect(() => {
+		if (!phoneAuthAvailable && selectedMethods.includes("phone")) {
+			setSelectedMethods((methods) => methods.filter((method) => method !== "phone"));
+		}
+	}, [phoneAuthAvailable, selectedMethods]);
 
 	const toggleAuthMethod = (method: AuthMethod) => {
 		if (selectedMethods.includes(method)) {
@@ -130,6 +140,12 @@ export function CreateStagingDeploymentDialog({
 	};
 
 	const handleCreate = async () => {
+		if (!phoneAuthAvailable && selectedMethods.includes("phone")) {
+			setSelectedMethods(selectedMethods.filter((method) => method !== "phone"));
+			toast.error("Phone authentication is not available on the current plan");
+			return;
+		}
+
 		try {
 			await onCreateStagingDeployment(selectedMethods);
 			toast.success("Staging deployment created successfully!");
@@ -206,7 +222,9 @@ export function CreateStagingDeploymentDialog({
 									Identity Providers
 								</div>
 								<div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-									{IDENTITY_OPTIONS.map((option) => (
+									{IDENTITY_OPTIONS.filter(
+										(option) => option.method !== "phone" || phoneAuthAvailable,
+									).map((option) => (
 										<AuthMethodCard
 											key={option.method}
 											icon={option.icon}

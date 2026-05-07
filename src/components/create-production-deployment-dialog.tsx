@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Field, Label } from "@/components/ui/fieldset";
 import { Button } from "./ui/button";
 import { Spinner } from "@/components/ui/app-spinner";
@@ -14,6 +14,7 @@ import {
 	ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { useCreateProductionDeployment } from "@/lib/api/hooks/use-projects";
+import { billingAccountHasFeature, useBillingAccount } from "@/lib/api/hooks/use-billing";
 import { toast } from 'sonner';
 import clsx from "clsx";
 import { motion, AnimatePresence } from "framer-motion";
@@ -41,8 +42,17 @@ export function CreateProductionDeploymentDialog({
 	const [selectedMethods, setSelectedMethods] = useState<AuthMethod[]>([
 		"email",
 	]);
+	const { data: billingAccount, isLoading: isBillingLoading } = useBillingAccount();
+	const phoneAuthAvailable =
+		!isBillingLoading && billingAccountHasFeature(billingAccount, "phone_auth");
 	const { createProductionDeployment, isLoading } =
 		useCreateProductionDeployment();
+
+	useEffect(() => {
+		if (!phoneAuthAvailable && selectedMethods.includes("phone")) {
+			setSelectedMethods((methods) => methods.filter((method) => method !== "phone"));
+		}
+	}, [phoneAuthAvailable, selectedMethods]);
 
 	const toggleAuthMethod = (method: AuthMethod) => {
 		if (selectedMethods.includes(method)) {
@@ -85,6 +95,11 @@ export function CreateProductionDeploymentDialog({
 	};
 
 	const handleCreate = async () => {
+		if (!phoneAuthAvailable && selectedMethods.includes("phone")) {
+			setValidationError("Phone authentication is not available on the current plan");
+			return;
+		}
+
 		const validationErr = validateDomain(customDomain);
 		if (validationErr) {
 			setValidationError(validationErr);
@@ -206,12 +221,14 @@ export function CreateProductionDeploymentDialog({
 										selected={selectedMethods.includes("email")}
 										onClick={() => toggleAuthMethod("email")}
 									/>
-									<AuthMethodCard
-										icon={<DevicePhoneMobileIcon className="h-5 w-5" />}
-										label="Phone"
-										selected={selectedMethods.includes("phone")}
-										onClick={() => toggleAuthMethod("phone")}
-									/>
+									{phoneAuthAvailable && (
+										<AuthMethodCard
+											icon={<DevicePhoneMobileIcon className="h-5 w-5" />}
+											label="Phone"
+											selected={selectedMethods.includes("phone")}
+											onClick={() => toggleAuthMethod("phone")}
+										/>
+									)}
 									<AuthMethodCard
 										icon={<UserCircleIcon className="h-5 w-5" />}
 										label="Username"

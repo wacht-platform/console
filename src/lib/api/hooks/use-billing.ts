@@ -150,6 +150,50 @@ export function useBillingAccount() {
   });
 }
 
+export type BillingPlanFeature =
+  | "phone_auth"
+  | "webhooks"
+  | "ai_agents"
+  | "api_keys"
+  | "organizations"
+  | "workspaces";
+
+const PLAN_FEATURES: Record<string, BillingPlanFeature[]> = {
+  starter: ["organizations", "workspaces"],
+  growth: [
+    "phone_auth",
+    "webhooks",
+    "ai_agents",
+    "api_keys",
+    "organizations",
+    "workspaces",
+  ],
+  pro: ["phone_auth", "webhooks", "api_keys", "organizations", "workspaces"],
+};
+
+const PRODUCT_PLAN_NAMES: Record<string, keyof typeof PLAN_FEATURES> = {
+  pdt_6eSgfwefWhNkDH53uKxf8: "starter",
+  pdt_QChhPSpP8MR2wFlAgOsIb: "growth",
+  pdt_Zb4uCKxzPHusE1I1s5Evk: "pro",
+};
+
+export function billingAccountHasFeature(
+  billingAccount?: BillingAccountWithSubscription | null,
+  feature?: BillingPlanFeature,
+) {
+  if (!feature || billingAccount?.subscription?.status !== "active") {
+    return false;
+  }
+
+  const planName =
+    billingAccount.subscription.plan_name?.toLowerCase() ??
+    (billingAccount.subscription.product_id
+      ? PRODUCT_PLAN_NAMES[billingAccount.subscription.product_id]
+      : undefined);
+
+  return Boolean(planName && PLAN_FEATURES[planName]?.includes(feature));
+}
+
 // Create checkout session
 export function useCreateCheckout() {
   const queryClient = useQueryClient();

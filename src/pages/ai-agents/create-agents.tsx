@@ -84,32 +84,36 @@ export default function CreateAgentsPage() {
                     </Button>
                 )}
             </div>
-            {aiSettings && (!providerApiKeyConfigured || !s3StorageConfigured) && (
-                <div className="mb-6 flex flex-col gap-2">
-                    {!providerApiKeyConfigured && (
-                        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
-                            Configure a Gemini, OpenAI, or OpenRouter API key before running agents.{" "}
-                            <Link
-                                to={aiSettingsPath}
-                                className="underline font-medium"
-                            >
-                                Manage AI settings
-                            </Link>
-                        </div>
-                    )}
-                    {!s3StorageConfigured && (
-                        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
-                            Configure customer S3 storage before running agents that use workspaces, uploads, or vector tables.{" "}
-                            <Link
-                                to={aiSettingsPath}
-                                className="underline font-medium"
-                            >
-                                Manage AI settings
-                            </Link>
-                        </div>
-                    )}
-                </div>
-            )}
+            {aiSettings &&
+                (!providerApiKeyConfigured || !s3StorageConfigured) && (
+                    <div className="mb-6 flex flex-col gap-2">
+                        {!providerApiKeyConfigured && (
+                            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+                                Configure a Gemini, OpenAI, or OpenRouter API
+                                key before running agents.{" "}
+                                <Link
+                                    to={aiSettingsPath}
+                                    className="underline font-medium"
+                                >
+                                    Manage AI settings
+                                </Link>
+                            </div>
+                        )}
+                        {!s3StorageConfigured && providerApiKeyConfigured && (
+                            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+                                Configure customer S3 storage before running
+                                agents that use workspaces, uploads, or vector
+                                tables.{" "}
+                                <Link
+                                    to={aiSettingsPath}
+                                    className="underline font-medium"
+                                >
+                                    Manage AI settings
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+                )}
 
             {/* Search */}
             {!isLoading && !error && agents.length > 0 && (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/app-spinner";
 import { usePostHog } from "@posthog/react";
@@ -28,6 +28,7 @@ import GoogleIcon from "@/assets/google.svg";
 import LinkedInIcon from "@/assets/linkedin.svg";
 import { Button } from "./ui/button";
 import { useProjects } from "@/lib/api/hooks/use-projects";
+import { billingAccountHasFeature, useBillingAccount } from "@/lib/api/hooks/use-billing";
 import { motion, AnimatePresence } from "framer-motion";
 
 type AuthMethod =
@@ -56,8 +57,17 @@ export function CreateProjectDialog({
 	]);
 	const [loading, setLoading] = useState(false);
 	const { createProject } = useProjects();
+	const { data: billingAccount, isLoading: isBillingLoading } = useBillingAccount();
 	const posthog = usePostHog();
+	const phoneAuthAvailable =
+		!isBillingLoading && billingAccountHasFeature(billingAccount, "phone_auth");
 	const showPhonePrepaidWarning = selectedMethods.includes("phone");
+
+	useEffect(() => {
+		if (!phoneAuthAvailable && selectedMethods.includes("phone")) {
+			setSelectedMethods((methods) => methods.filter((method) => method !== "phone"));
+		}
+	}, [phoneAuthAvailable, selectedMethods]);
 
 	const toggleAuthMethod = (method: AuthMethod) => {
 		if (selectedMethods.includes(method)) {
@@ -70,6 +80,11 @@ export function CreateProjectDialog({
 	};
 
 	const handleContinue = async () => {
+		if (!phoneAuthAvailable && selectedMethods.includes("phone")) {
+			setSelectedMethods(selectedMethods.filter((method) => method !== "phone"));
+			return;
+		}
+
 		setLoading(true);
 		try {
 			const formData = new FormData();
@@ -158,12 +173,14 @@ export function CreateProjectDialog({
 										selected={selectedMethods.includes("email")}
 										onClick={() => toggleAuthMethod("email")}
 									/>
-									<AuthMethodCard
-										icon={<DevicePhoneMobileIcon className="h-5 w-5" />}
-										label="Phone"
-										selected={selectedMethods.includes("phone")}
-										onClick={() => toggleAuthMethod("phone")}
-									/>
+									{phoneAuthAvailable && (
+										<AuthMethodCard
+											icon={<DevicePhoneMobileIcon className="h-5 w-5" />}
+											label="Phone"
+											selected={selectedMethods.includes("phone")}
+											onClick={() => toggleAuthMethod("phone")}
+										/>
+									)}
 									<AuthMethodCard
 										icon={<UserCircleIcon className="h-5 w-5" />}
 										label="Username"
