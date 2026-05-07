@@ -413,6 +413,8 @@ interface PropertyDef {
   maximum?: number;
   items?: { type?: string };
   default?: unknown;
+  properties?: Record<string, unknown>;
+  required?: string[];
 }
 
 function asObject(value: unknown): Record<string, unknown> | null {
@@ -478,9 +480,8 @@ function ArgsEditor({
 }
 
 /**
- * Renders one input per top-level schema property. Keeps the source of
- * truth in `args_text` — the form parses, mutates, re-serialises on every
- * keystroke. For nested objects/arrays the user can flip to JSON mode.
+ * Top-level schema-driven args editor. Parses args_text once, hands control to
+ * the recursive object renderer, and re-serialises on every change.
  */
 function SchemaForm({
   schema,
@@ -492,9 +493,9 @@ function SchemaForm({
   onChange: (next: string) => void;
 }) {
   const properties = asObject(schema.properties);
-  const required = new Set(
-    Array.isArray(schema.required) ? (schema.required as string[]) : [],
-  );
+  const required = Array.isArray(schema.required)
+    ? (schema.required as string[])
+    : [];
 
   const parsed: Record<string, unknown> = useMemo(() => {
     try {
@@ -507,16 +508,6 @@ function SchemaForm({
     }
   }, [argsText]);
 
-  const setField = (key: string, value: unknown) => {
-    const next: Record<string, unknown> = { ...parsed };
-    if (value === undefined || value === "") {
-      delete next[key];
-    } else {
-      next[key] = value;
-    }
-    onChange(JSON.stringify(next, null, 2));
-  };
-
   if (!properties || Object.keys(properties).length === 0) {
     return (
       <p className="text-[12px] text-muted-foreground">
@@ -526,12 +517,46 @@ function SchemaForm({
   }
 
   return (
-    <div className="space-y-3 rounded border border-border/50 bg-muted/20 p-3">
+    <div className="rounded border border-border/50 bg-muted/20 p-3">
+      <SchemaObjectFields
+        properties={properties}
+        required={required}
+        value={parsed}
+        onChange={(next) => onChange(JSON.stringify(next, null, 2))}
+      />
+    </div>
+  );
+}
+
+function SchemaObjectFields({
+  properties,
+  required,
+  value,
+  onChange,
+}: {
+  properties: Record<string, unknown>;
+  required: string[];
+  value: Record<string, unknown>;
+  onChange: (next: Record<string, unknown>) => void;
+}) {
+  const requiredSet = new Set(required);
+  const setField = (key: string, fieldValue: unknown) => {
+    const next: Record<string, unknown> = { ...value };
+    if (fieldValue === undefined || fieldValue === "") {
+      delete next[key];
+    } else {
+      next[key] = fieldValue;
+    }
+    onChange(next);
+  };
+
+  return (
+    <div className="space-y-3">
       {Object.entries(properties).map(([key, raw]) => {
         const def = (raw && typeof raw === "object" ? raw : {}) as PropertyDef;
         const type = primaryType(def);
-        const isRequired = required.has(key);
-        const current = parsed[key];
+        const isRequired = requiredSet.has(key);
+        const current = value[key];
 
         return (
           <div key={key} className="space-y-1">
@@ -665,6 +690,26 @@ function SchemaField({
   }
 
   if (type === "object") {
+    const nestedProperties = asObject(def.properties);
+    if (nestedProperties && Object.keys(nestedProperties).length > 0) {
+      const nestedRequired = Array.isArray(def.required) ? def.required : [];
+      const nestedValue =
+        value && typeof value === "object" && !Array.isArray(value)
+          ? (value as Record<string, unknown>)
+          : {};
+      return (
+        <div className="rounded border border-border/40 bg-background/40 p-2.5 pl-3">
+          <SchemaObjectFields
+            properties={nestedProperties}
+            required={nestedRequired}
+            value={nestedValue}
+            onChange={(next) =>
+              onChange(Object.keys(next).length === 0 ? undefined : next)
+            }
+          />
+        </div>
+      );
+    }
     const text =
       value === undefined ? "" : JSON.stringify(value, null, 2);
     return (
