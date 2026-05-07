@@ -467,7 +467,6 @@ export function ToolEditorForm({
         name: "",
         description: "",
         type: "api",
-        requires_user_approval: false,
         configuration: {
             type: "Api",
             endpoint: "",
@@ -502,7 +501,6 @@ export function ToolEditorForm({
                 name: tool.name,
                 description: tool.description || "",
                 type: tool.tool_type,
-                requires_user_approval: tool.requires_user_approval ?? false,
                 configuration: normalizeToolConfiguration(tool.configuration),
             });
 
@@ -527,7 +525,6 @@ export function ToolEditorForm({
                 name: "",
                 description: "",
                 type: "api",
-                requires_user_approval: false,
                 configuration: {
                     type: "Api",
                     endpoint: "",
@@ -647,7 +644,6 @@ export function ToolEditorForm({
             const baseToolData = {
                 name: formData.name.trim(),
                 description: normalizeOptionalText(formData.description),
-                requires_user_approval: formData.requires_user_approval,
                 configuration,
             };
 
@@ -1251,33 +1247,6 @@ export function ToolEditorForm({
                             </div>
                         </FormSection>
 
-                        <FormSection
-                            title="Execution policy"
-                            description="Control whether the agent can use this tool directly or needs explicit user approval."
-                        >
-                            <div className="flex items-start justify-between gap-4">
-                                <div className="space-y-1 pr-2">
-                                    <Label htmlFor="requires-user-approval">
-                                        Require user approval
-                                    </Label>
-                                    <p className="text-sm text-muted-foreground">
-                                        The agent must request approval before
-                                        using this tool unless the context
-                                        already has an active approval grant.
-                                    </p>
-                                </div>
-                                <Switch
-                                    id="requires-user-approval"
-                                    checked={formData.requires_user_approval}
-                                    onCheckedChange={(checked) =>
-                                        setFormData({
-                                            ...formData,
-                                            requires_user_approval: checked,
-                                        })
-                                    }
-                                />
-                            </div>
-                        </FormSection>
                     </aside>
 
                     <main className="min-h-0 space-y-8 xl:pl-2">

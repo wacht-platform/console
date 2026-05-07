@@ -30,7 +30,6 @@ import { useAgentTools, useTools } from "../../lib/api/hooks/use-tools";
 import { useAgentKnowledgeBases, useKnowledgeBases } from "../../lib/api/hooks/use-knowledge-bases";
 import { useAttachSubAgent } from "../../lib/api/hooks/use-sub-agents";
 import { useProjects } from "../../lib/api/hooks/use-projects";
-import { useBillingAccount } from "../../lib/api/hooks/use-billing";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
 interface CreateAgentDialogProps {
@@ -81,12 +80,12 @@ export function CreateAgentDialog({
 	const updateAgentMutation = useUpdateAgent();
 	const { selectedDeployment } = useProjects();
 	const { projectId, deploymentId } = useParams();
-	const { data: billingAccount } = useBillingAccount();
 	const { data: aiSettings } = useQuery({
 		queryKey: ["ai-settings-summary", selectedDeployment?.id],
 		queryFn: async () => {
 			const { data } = await apiClient.get<{
 				gemini_api_key_set: boolean;
+				openai_api_key_set: boolean;
 				openrouter_api_key_set: boolean;
 			}>(
 				`/deployments/${selectedDeployment!.id}/ai/settings`,
@@ -96,13 +95,14 @@ export function CreateAgentDialog({
 		enabled: !!selectedDeployment?.id,
 	});
 	const queryClient = useQueryClient();
-	const isPulseUsagePaused = !!billingAccount?.pulse_usage_disabled;
-	const hasCustomGeminiKey =
-		!!aiSettings?.gemini_api_key_set || !!aiSettings?.openrouter_api_key_set;
-	const subscriptionPath =
+	const hasProviderApiKey =
+		!!aiSettings?.gemini_api_key_set ||
+		!!aiSettings?.openai_api_key_set ||
+		!!aiSettings?.openrouter_api_key_set;
+	const aiSettingsPath =
 		projectId && deploymentId
-			? `/project/${projectId}/deployment/${deploymentId}/billing/subscription`
-			: "../billing/subscription";
+			? `/project/${projectId}/deployment/${deploymentId}/llms/ai-settings`
+			: "../ai-settings";
 
 	// Fetch available resources
 	const { data: toolsData } = useTools({ limit: 100 });
@@ -330,13 +330,13 @@ export function CreateAgentDialog({
 				</DialogHeader>
 
 				<form onSubmit={handleSubmit} className="flex-1 overflow-hidden flex flex-col">
-					{isPulseUsagePaused && !hasCustomGeminiKey && (
+					{aiSettings && !hasProviderApiKey && (
 						<div className="mx-6 mt-1 mb-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
 							<ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0" />
 							<span>
-								AI usage is paused until prepaid balance is recharged. You can still create and configure agents.{" "}
-								<Link to={subscriptionPath} className="underline font-medium">
-									Manage subscription
+								Configure a Gemini, OpenAI, or OpenRouter API key before running agents.{" "}
+								<Link to={aiSettingsPath} className="underline font-medium">
+									Manage AI settings
 								</Link>
 							</span>
 						</div>

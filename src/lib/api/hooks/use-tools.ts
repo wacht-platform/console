@@ -4,12 +4,12 @@ import { useProjects } from "./use-projects";
 import { toast } from "sonner";
 import type { PaginatedResponse } from "@/types/api";
 import type { AiTool, AiToolConfiguration, AiToolType } from "@/types/ai-tool";
+import type { InternalToolListResponse } from "@/types/composio";
 
 export interface CreateToolRequest {
   name: string;
   description?: string;
   tool_type: AiToolType;
-  requires_user_approval: boolean;
   configuration: AiToolConfiguration;
 }
 
@@ -17,8 +17,13 @@ export interface UpdateToolRequest {
   name?: string;
   description?: string;
   tool_type?: AiToolType;
-  requires_user_approval?: boolean;
   configuration?: AiToolConfiguration;
+}
+
+export type ApprovalAction = "allow" | "deny" | "review";
+
+export interface UpdateAgentToolApprovalActionRequest {
+  approval_action: ApprovalAction;
 }
 
 interface GetToolsParams {
@@ -93,6 +98,18 @@ async function attachToolToAgent(
   await apiClient.post(`/deployments/${deploymentId}/ai/agents/${agentId}/tools/${toolId}`);
 }
 
+async function setAgentToolApprovalAction(
+  deploymentId: string,
+  agentId: string,
+  toolId: string,
+  payload: UpdateAgentToolApprovalActionRequest,
+): Promise<void> {
+  await apiClient.patch(
+    `/deployments/${deploymentId}/ai/agents/${agentId}/tools/${toolId}`,
+    payload,
+  );
+}
+
 async function detachToolFromAgent(
   deploymentId: string,
   agentId: string,
@@ -125,6 +142,31 @@ export function useTool(toolId: string, enabled = true) {
   });
 }
 
+async function fetchInternalTools(
+  deploymentId: string,
+): Promise<InternalToolListResponse> {
+  const { data } = await apiClient.get<InternalToolListResponse>(
+    `/deployments/${deploymentId}/ai/internal-tools`,
+  );
+  return data;
+}
+
+/**
+ * Built-in runtime tools (read_file, web_search, …) with their JSON schemas.
+ * The list is constant per deploy; cached for the session.
+ */
+export function useInternalTools() {
+  const { selectedDeployment } = useProjects();
+
+  return useQuery({
+    queryKey: ["internal-tools", selectedDeployment?.id],
+    queryFn: () => fetchInternalTools(selectedDeployment!.id),
+    enabled: !!selectedDeployment?.id,
+    staleTime: Infinity,
+    select: (data) => data.tools,
+  });
+}
+
 export function useAgentTools(agentId: string) {
   const { selectedDeployment } = useProjects();
 
@@ -133,6 +175,33 @@ export function useAgentTools(agentId: string) {
     queryFn: () => fetchAgentTools(selectedDeployment!.id, agentId),
     enabled: !!selectedDeployment?.id && !!agentId,
     select: (data) => data.data,
+  });
+}
+
+export function useSetAgentToolApprovalAction() {
+  const { selectedDeployment } = useProjects();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      agentId,
+      toolId,
+      payload,
+    }: {
+      agentId: string;
+      toolId: string;
+      payload: UpdateAgentToolApprovalActionRequest;
+    }) =>
+      setAgentToolApprovalAction(selectedDeployment!.id, agentId, toolId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["agent-tools", selectedDeployment!.id, variables.agentId],
+      });
+      toast.success("Approval action updated");
+    },
+    onError: () => {
+      toast.error("Failed to update approval action");
+    },
   });
 }
 

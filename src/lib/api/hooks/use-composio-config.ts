@@ -5,6 +5,7 @@ import { useProjects } from "./use-projects";
 import type {
   ComposioAuthConfigListResponse,
   ComposioConfig,
+  ComposioToolListResponse,
   ComposioToolkitDetailsResponse,
   ComposioToolkitListResponse,
   EnableComposioAppRequest,
@@ -130,6 +131,42 @@ export function useDisableComposioApp() {
     onError: () => {
       toast.error("Failed to disable app");
     },
+  });
+}
+
+async function fetchComposioTools(
+  deploymentId: string,
+  toolkits?: string[],
+): Promise<ComposioToolListResponse> {
+  const params: Record<string, string> = {};
+  if (toolkits && toolkits.length > 0) {
+    params.toolkits = toolkits.join(",");
+  }
+  const { data } = await apiClient.get<ComposioToolListResponse>(
+    `/deployments/${deploymentId}/ai/composio/tools`,
+    { params },
+  );
+  return data;
+}
+
+/**
+ * Fetches Composio tools for the picker. Gated on the deployment having
+ * Composio enabled — we never hit the upstream tools API for deployments that
+ * haven't turned the integration on, since the request would always come back
+ * empty (or fail key resolution) and just burn quota.
+ */
+export function useComposioTools(options: { toolkits?: string[]; enabled?: boolean } = {}) {
+  const { selectedDeployment } = useProjects();
+  const { data: config } = useComposioConfig();
+  const toolkits = options.toolkits;
+  const callerEnabled = options.enabled ?? true;
+  const composioOn = !!config?.enabled;
+
+  return useQuery({
+    queryKey: ["composio-tools", selectedDeployment?.id, toolkits ?? null],
+    queryFn: () => fetchComposioTools(selectedDeployment!.id, toolkits),
+    enabled: !!selectedDeployment?.id && callerEnabled && composioOn,
+    staleTime: 5 * 60 * 1000,
   });
 }
 

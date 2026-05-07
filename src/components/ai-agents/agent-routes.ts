@@ -16,6 +16,9 @@ export function buildAgentResourcePath(
     | "/tools"
     | "/knowledge-bases"
     | "/sub-agents"
+    | "/models"
+    | "/hooks"
+    | "/approvals"
     | "/debug",
 ): string {
   return `${buildAgentBasePath(params)}${suffix}`;

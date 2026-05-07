@@ -3,8 +3,28 @@ import { WrenchScrewdriverIcon } from "@heroicons/react/24/outline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { InlineLoader } from "@/components/ui/loading-screen";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAgentById } from "@/lib/api/hooks/use-agents";
-import { useAttachTool, useDetachTool, useTools, useAgentTools } from "@/lib/api/hooks/use-tools";
+import {
+  type ApprovalAction,
+  useAttachTool,
+  useDetachTool,
+  useTools,
+  useAgentTools,
+  useSetAgentToolApprovalAction,
+} from "@/lib/api/hooks/use-tools";
+
+const APPROVAL_OPTIONS: { value: ApprovalAction; label: string }[] = [
+  { value: "allow", label: "Allow" },
+  { value: "review", label: "Review" },
+  { value: "deny", label: "Deny" },
+];
 
 export default function AgentToolsPage() {
   const { agentId } = useParams<{ agentId: string }>();
@@ -13,13 +33,14 @@ export default function AgentToolsPage() {
   const { data: attachedTools = [] } = useAgentTools(agentId || "");
   const attachTool = useAttachTool(agentId || "");
   const detachTool = useDetachTool(agentId || "");
+  const setApprovalAction = useSetAgentToolApprovalAction();
 
   if (isLoading) return <InlineLoader />;
   if (error || !agent) {
     return <div className="py-12 text-center text-destructive">{error?.message || "Agent not found"}</div>;
   }
 
-  const attachedIds = new Set(attachedTools.map((tool) => String(tool.id)));
+  const attachedById = new Map(attachedTools.map((tool) => [String(tool.id), tool]));
   const allTools = toolsData?.tools || [];
 
   return (
@@ -31,7 +52,9 @@ export default function AgentToolsPage() {
       ) : (
         <div className="space-y-1.5">
           {allTools.map((tool) => {
-            const attached = attachedIds.has(String(tool.id));
+            const toolId = String(tool.id);
+            const attached = attachedById.get(toolId);
+            const action = (attached?.approval_action ?? "allow") as ApprovalAction;
             return (
               <div key={tool.id} className="flex items-start gap-3 rounded-lg border border-border/60 px-3.5 py-2.5">
                 <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
@@ -46,12 +69,36 @@ export default function AgentToolsPage() {
                   </div>
                   <p className="line-clamp-1 text-[13px] leading-5 text-muted-foreground">{tool.description || "No description"}</p>
                 </div>
+                {attached ? (
+                  <Select
+                    value={action}
+                    onValueChange={(value) =>
+                      setApprovalAction.mutate({
+                        agentId: agentId || "",
+                        toolId,
+                        payload: { approval_action: value as ApprovalAction },
+                      })
+                    }
+                    disabled={setApprovalAction.isPending}
+                  >
+                    <SelectTrigger className="h-8 w-[110px] text-[12px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {APPROVAL_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : null}
                 <Button
                   variant={attached ? "outline" : "default"}
                   size="sm"
                   className="h-8 px-3 text-[12px]"
                   disabled={attachTool.isPending || detachTool.isPending}
-                  onClick={() => attached ? detachTool.mutate(String(tool.id)) : attachTool.mutate(String(tool.id))}
+                  onClick={() => attached ? detachTool.mutate(toolId) : attachTool.mutate(toolId)}
                 >
                   {attached ? "Remove" : "Add"}
                 </Button>

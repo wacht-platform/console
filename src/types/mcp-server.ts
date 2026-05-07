@@ -4,6 +4,7 @@ export interface McpServer {
   updated_at: string;
   deployment_id: string;
   name: string;
+  slug: string;
   config: McpServerConfig;
 }
 

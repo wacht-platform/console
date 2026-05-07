@@ -95,6 +95,15 @@ const AgentKnowledgeBasesPage = lazyImport(
 const AgentSubAgentsPage = lazyImport(
     () => import("./pages/ai-agents/agent-sub-agents"),
 );
+const AgentModelsPage = lazyImport(
+    () => import("./pages/ai-agents/agent-models"),
+);
+const AgentHooksPage = lazyImport(
+    () => import("./pages/ai-agents/agent-hooks"),
+);
+const AgentApprovalsPage = lazyImport(
+    () => import("./pages/ai-agents/agent-approvals"),
+);
 const AgentDebugPage = lazyImport(
     () => import("./pages/ai-agents/agent-debug"),
 );
@@ -395,6 +404,30 @@ export const router = createBrowserRouter([
                                 element: (
                                     <Suspense fallback={<SimpleFallback />}>
                                         <AgentSubAgentsPage />
+                                    </Suspense>
+                                ),
+                            },
+                            {
+                                path: "models",
+                                element: (
+                                    <Suspense fallback={<SimpleFallback />}>
+                                        <AgentModelsPage />
+                                    </Suspense>
+                                ),
+                            },
+                            {
+                                path: "hooks",
+                                element: (
+                                    <Suspense fallback={<SimpleFallback />}>
+                                        <AgentHooksPage />
+                                    </Suspense>
+                                ),
+                            },
+                            {
+                                path: "approvals",
+                                element: (
+                                    <Suspense fallback={<SimpleFallback />}>
+                                        <AgentApprovalsPage />
                                     </Suspense>
                                 ),
                             },

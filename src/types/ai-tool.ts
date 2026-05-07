@@ -74,6 +74,8 @@ export type AiToolConfiguration =
   | PlatformEventToolConfiguration
   | CodeRunnerToolConfiguration;
 
+export type ApprovalAction = "allow" | "deny" | "review";
+
 export interface AiTool {
   id: string;
   created_at: string;
@@ -82,8 +84,8 @@ export interface AiTool {
   description?: string;
   tool_type: AiToolType;
   deployment_id: string;
-  requires_user_approval: boolean;
   configuration: AiToolConfiguration;
+  approval_action?: ApprovalAction;
 }
 
 export type AiToolWithDetails = AiTool;
@@ -93,7 +95,6 @@ export interface ToolFormData {
   name: string;
   description: string;
   type: AiToolType;
-  requires_user_approval: boolean;
   configuration: AiToolConfiguration;
 }
 
@@ -101,7 +102,6 @@ export interface CreateToolRequest {
   name: string;
   description?: string;
   tool_type: AiToolType;
-  requires_user_approval: boolean;
   configuration: AiToolConfiguration;
 }
 
@@ -109,6 +109,5 @@ export interface UpdateToolRequest {
   name?: string;
   description?: string;
   tool_type?: AiToolType;
-  requires_user_approval?: boolean;
   configuration?: AiToolConfiguration;
 }

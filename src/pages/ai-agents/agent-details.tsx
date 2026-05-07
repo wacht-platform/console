@@ -1,7 +1,10 @@
 import { useNavigate, useParams } from "react-router";
 import {
+  BoltIcon,
   BookOpenIcon,
+  CpuChipIcon,
   QueueListIcon,
+  ShieldCheckIcon,
   UserGroupIcon,
   WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
@@ -40,6 +43,30 @@ const resourceCards = [
     description: "Manage delegated agents and spawn settings.",
     icon: UserGroupIcon,
     suffix: "/sub-agents",
+    countKey: null,
+  },
+  {
+    key: "models",
+    title: "Models",
+    description: "Override the strong and weak model.",
+    icon: CpuChipIcon,
+    suffix: "/models",
+    countKey: null,
+  },
+  {
+    key: "hooks",
+    title: "Hooks",
+    description: "Tools to run on execution start and end.",
+    icon: BoltIcon,
+    suffix: "/hooks",
+    countKey: null,
+  },
+  {
+    key: "approvals",
+    title: "Approvals",
+    description: "Per-tool, MCP, virtual, and regex approval policy.",
+    icon: ShieldCheckIcon,
+    suffix: "/approvals",
     countKey: null,
   },
 ] as const;

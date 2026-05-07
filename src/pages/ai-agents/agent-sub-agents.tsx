@@ -39,35 +39,24 @@ export default function AgentSubAgentsPage() {
     );
 
     return (
-        <div>
-            <div className="grid gap-5 xl:grid-cols-[280px_minmax(0,1fr)]">
-                <div className="space-y-3 border-b border-border/50 pb-5 xl:border-b-0 xl:border-r xl:pb-0 xl:pr-5">
-                    <div className="rounded-lg border border-border/60 px-4 py-4">
-                        <div className="text-[13px] font-medium">
-                            Delegation Scope
-                        </div>
-                        <p className="mt-1 text-[13px] leading-5 text-muted-foreground">
-                            Select which agents this agent can delegate work to
-                        </p>
-                        <div className="mt-3 text-[12px] text-muted-foreground">
-                            {attachedCount} sub-agent
-                            {attachedCount === 1 ? "" : "s"} attached
-                        </div>
-                    </div>
-                </div>
+        <div className="space-y-5">
+            <div className="flex items-baseline justify-between gap-3">
+                <p className="text-[13px] leading-5 text-muted-foreground">
+                    Select which agents this agent can delegate work to.
+                </p>
+                <span className="shrink-0 text-[12px] text-muted-foreground">
+                    {attachedCount} attached
+                </span>
+            </div>
 
-                {availableAgents.length === 0 ? (
+            {availableAgents.length === 0 ? (
                     <div className="rounded-lg border border-dashed border-border/60 px-4 py-8 text-center">
                         <p className="text-[13px] text-muted-foreground">
                             No other agents exist in this deployment yet.
                         </p>
                     </div>
                 ) : (
-                    <div className="space-y-3">
-                        <div className="text-[13px] font-medium text-muted-foreground">
-                            Available Agents
-                        </div>
-                        <div className="space-y-1.5">
+                    <div className="space-y-1.5">
                             {availableAgents.map((subAgent) => {
                                 const attached = attachedIds.has(
                                     String(subAgent.id),
@@ -120,10 +109,8 @@ export default function AgentSubAgentsPage() {
                                     </div>
                                 );
                             })}
-                        </div>
                     </div>
                 )}
-            </div>
         </div>
     );
 }

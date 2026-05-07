@@ -7,6 +7,28 @@ export interface AgentConfiguration {
   [key: string]: unknown;
 }
 
+export interface AgentModelOverride {
+  provider: string;
+  model: string;
+}
+
+export interface AgentHookStep {
+  tool_name: string;
+  args?: Record<string, unknown>;
+}
+
+export interface AgentHooksConfig {
+  execution_start?: AgentHookStep[];
+  execution_end?: AgentHookStep[];
+}
+
+export type ApprovalAction = "allow" | "deny" | "review";
+
+export interface AgentToolApprovalRule {
+  pattern: string;
+  action: ApprovalAction;
+}
+
 export interface Agent {
   id: string;
   created_at: string;
@@ -18,6 +40,12 @@ export interface Agent {
   tools_count: number;
   knowledge_bases_count: number;
   sub_agents?: Array<string | number>;
+  strong_model?: AgentModelOverride;
+  weak_model?: AgentModelOverride;
+  hooks?: AgentHooksConfig;
+  require_approval_mcp?: boolean;
+  require_approval_virtual?: boolean;
+  tool_approval_rules?: AgentToolApprovalRule[];
 }
 
 export interface CreateAgentRequest {
@@ -27,6 +55,12 @@ export interface CreateAgentRequest {
   tool_ids?: string[];
   knowledge_base_ids?: string[];
   sub_agents?: number[];
+  strong_model?: AgentModelOverride;
+  weak_model?: AgentModelOverride;
+  hooks?: AgentHooksConfig;
+  require_approval_mcp?: boolean;
+  require_approval_virtual?: boolean;
+  tool_approval_rules?: AgentToolApprovalRule[];
 }
 
 export interface UpdateAgentRequest {
@@ -35,6 +69,14 @@ export interface UpdateAgentRequest {
   status?: string;
   configuration?: AgentConfiguration;
   sub_agents?: number[];
+  strong_model?: AgentModelOverride;
+  clear_strong_model?: boolean;
+  weak_model?: AgentModelOverride;
+  clear_weak_model?: boolean;
+  hooks?: AgentHooksConfig;
+  require_approval_mcp?: boolean;
+  require_approval_virtual?: boolean;
+  tool_approval_rules?: AgentToolApprovalRule[];
 }
 
 interface GetAgentsParams {

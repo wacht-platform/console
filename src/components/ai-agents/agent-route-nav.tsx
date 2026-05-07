@@ -1,8 +1,11 @@
 import { Link, useLocation, useParams } from "react-router";
 import {
+  BoltIcon,
   BookOpenIcon,
   CommandLineIcon,
+  CpuChipIcon,
   QueueListIcon,
+  ShieldCheckIcon,
   Squares2X2Icon,
   UserGroupIcon,
   WrenchScrewdriverIcon,
@@ -16,6 +19,9 @@ const items = [
   { key: "tools", label: "Tools", icon: WrenchScrewdriverIcon, suffix: "/tools" },
   { key: "knowledge-bases", label: "Knowledge Bases", icon: BookOpenIcon, suffix: "/knowledge-bases" },
   { key: "sub-agents", label: "Sub-Agents", icon: UserGroupIcon, suffix: "/sub-agents" },
+  { key: "models", label: "Models", icon: CpuChipIcon, suffix: "/models" },
+  { key: "hooks", label: "Hooks", icon: BoltIcon, suffix: "/hooks" },
+  { key: "approvals", label: "Approvals", icon: ShieldCheckIcon, suffix: "/approvals" },
   { key: "debug", label: "Debug", icon: CommandLineIcon, suffix: "/debug" },
 ] as const;
 

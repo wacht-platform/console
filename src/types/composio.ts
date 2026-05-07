@@ -35,6 +35,29 @@ export interface ComposioToolkitListResponse {
   next_cursor?: string | null;
 }
 
+export interface ComposioToolSummary {
+  name: string;
+  toolkit_slug: string;
+  remote_tool_slug: string;
+  display_name?: string;
+  description?: string;
+  input_schema?: Record<string, unknown> | null;
+}
+
+export interface ComposioToolListResponse {
+  tools: ComposioToolSummary[];
+}
+
+export interface InternalToolSummary {
+  name: string;
+  description: string;
+  input_schema: Record<string, unknown>;
+}
+
+export interface InternalToolListResponse {
+  tools: InternalToolSummary[];
+}
+
 export type EnableComposioAppAuth =
   | {
       type: "managed";

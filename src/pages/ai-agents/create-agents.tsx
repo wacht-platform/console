@@ -13,7 +13,6 @@ import { Badge } from "../../components/ui/badge";
 import { CreateAgentDialog } from "../../components/ai-agents/create-agent-dialog";
 import { InlineLoader } from "../../components/ui/loading-screen";
 import { useAgents, type Agent } from "../../lib/api/hooks/use-agents";
-import { useBillingAccount } from "../../lib/api/hooks/use-billing";
 import { apiClient } from "../../lib/api/client";
 import {
     Table,
@@ -35,12 +34,12 @@ export default function CreateAgentsPage() {
     const { data, isLoading, error } = useAgents({
         search: searchTerm || undefined,
     });
-    const { data: billingAccount } = useBillingAccount();
     const { data: aiSettings } = useQuery({
         queryKey: ["ai-settings-summary", deploymentId],
         queryFn: async () => {
             const { data } = await apiClient.get<{
                 gemini_api_key_set: boolean;
+                openai_api_key_set: boolean;
                 openrouter_api_key_set: boolean;
             }>(`/deployments/${deploymentId}/ai/settings`);
             return data;
@@ -48,14 +47,14 @@ export default function CreateAgentsPage() {
         enabled: !!deploymentId,
     });
     const agents = data?.agents || [];
-    const isPulseUsagePaused = !!billingAccount?.pulse_usage_disabled;
-    const hasCustomGeminiKey =
+    const hasProviderApiKey =
         !!aiSettings?.gemini_api_key_set ||
+        !!aiSettings?.openai_api_key_set ||
         !!aiSettings?.openrouter_api_key_set;
-    const subscriptionPath =
+    const aiSettingsPath =
         projectId && deploymentId
-            ? `/project/${projectId}/deployment/${deploymentId}/billing/subscription`
-            : "../billing/subscription";
+            ? `/project/${projectId}/deployment/${deploymentId}/llms/ai-settings`
+            : "../ai-settings";
 
     const handleCreateAgent = () => {
         setEditingAgent(null);
@@ -84,20 +83,17 @@ export default function CreateAgentsPage() {
                     </Button>
                 )}
             </div>
-            {isPulseUsagePaused && (
+            {aiSettings && !hasProviderApiKey && (
                 <div className="mb-6 flex flex-col gap-2">
-                    {isPulseUsagePaused && !hasCustomGeminiKey && (
-                        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
-                            AI usage is paused until prepaid balance is
-                            recharged.{" "}
-                            <Link
-                                to={subscriptionPath}
-                                className="underline font-medium"
-                            >
-                                Manage subscription
-                            </Link>
-                        </div>
-                    )}
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+                        Configure a Gemini, OpenAI, or OpenRouter API key before running agents.{" "}
+                        <Link
+                            to={aiSettingsPath}
+                            className="underline font-medium"
+                        >
+                            Manage AI settings
+                        </Link>
+                    </div>
                 </div>
             )}
 
