@@ -50,9 +50,6 @@ export default function AgentLayoutPage() {
           <h1 className="text-lg font-medium tracking-tight">
             {agent.name || "Unnamed Agent"}
           </h1>
-          <p className="max-w-3xl text-[13px] leading-5 text-muted-foreground">
-            {agent.description || "No description"}
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => setIsEditDialogOpen(true)}>
