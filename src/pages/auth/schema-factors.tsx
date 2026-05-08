@@ -32,6 +32,11 @@ import {
     useInitializeAuthSettings,
 } from "@/lib/store/auth-settings-store";
 import { useSaveAuthSettings } from "@/lib/api/hooks/use-save-auth-settings";
+import {
+    billingAccountHasFeature,
+    useBillingAccount,
+} from "@/lib/api/hooks/use-billing";
+import { toast } from "sonner";
 
 const Description = ({ children }: { children: React.ReactNode }) => (
     <BaseDescription className="text-muted-foreground">
@@ -42,6 +47,20 @@ const Description = ({ children }: { children: React.ReactNode }) => (
 interface DialogProps {
     open: boolean;
     onClose: () => void;
+}
+
+const PHONE_AUTH_UNAVAILABLE_MESSAGE =
+    "Phone authentication is not available on the current plan";
+
+function settingsUsePhoneAuth(settings: DeploymentAuthSettings) {
+    return Boolean(
+        settings.phone_number?.enabled ||
+            settings.phone_number?.required ||
+            settings.phone_number?.verify_signup ||
+            settings.phone_number?.sms_verification_allowed ||
+            settings.auth_factors_enabled?.phone_otp ||
+            settings.first_factor === "phone_otp",
+    );
 }
 
 function MultiSessionSettingsDialog({ open, onClose }: DialogProps) {
@@ -273,10 +292,19 @@ function EmailSettingsDialog({ open, onClose }: DialogProps) {
     );
 }
 
-function PhoneSettingsDialog({ open, onClose }: DialogProps) {
+function PhoneSettingsDialog({
+    open,
+    onClose,
+    phoneAuthAvailable,
+}: DialogProps & { phoneAuthAvailable: boolean }) {
     const { settings, updatePhoneSettings } = useAuthSettingsStore();
 
     const handlePhoneSettingChange = (settingName: string, value: boolean) => {
+        if (value && !phoneAuthAvailable) {
+            toast.error(PHONE_AUTH_UNAVAILABLE_MESSAGE);
+            return;
+        }
+
         const updateData: { [key: string]: boolean } = {};
         updateData[settingName] = value;
         updatePhoneSettings(updateData);
@@ -291,6 +319,12 @@ function PhoneSettingsDialog({ open, onClose }: DialogProps) {
                         Configure phone number attribute
                     </DialogDescription>
                 </DialogHeader>
+                {!phoneAuthAvailable && (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+                        Phone authentication is not available on the current
+                        plan. Existing phone settings can be turned off.
+                    </div>
+                )}
                 <div className="space-y-4 pt-2">
                     <FieldGroup>
                         <Field>
@@ -977,7 +1011,11 @@ function PasskeySettingsDialog({ open, onClose }: DialogProps) {
     );
 }
 
-function FirstFactorDialog({ open, onClose }: DialogProps) {
+function FirstFactorDialog({
+    open,
+    onClose,
+    phoneAuthAvailable,
+}: DialogProps & { phoneAuthAvailable: boolean }) {
     const { settings } = useAuthSettingsStore();
     const { updateFirstFactor } = useAuthSettingsStore();
 
@@ -1024,7 +1062,7 @@ function FirstFactorDialog({ open, onClose }: DialogProps) {
         });
     }
 
-    if (settings.auth_factors_enabled?.phone_otp) {
+    if (settings.auth_factors_enabled?.phone_otp && phoneAuthAvailable) {
         availableOptions.push({
             value: "phone_otp",
             label: "Phone Code",
@@ -1202,6 +1240,11 @@ export default function SchemaFactorsPage() {
     const { isLoading } = useInitializeAuthSettings();
     const { settings, isDirty: isFormDirty } = useAuthSettingsStore();
     const { isSaving, saveSettings, resetSettings } = useSaveAuthSettings();
+    const { data: billingAccount, isLoading: isBillingLoading } =
+        useBillingAccount();
+    const phoneAuthAvailable =
+        !isBillingLoading &&
+        billingAccountHasFeature(billingAccount, "phone_auth");
 
     // Use isDirty directly from the store for reactive updates
     const isDirty = isFormDirty;
@@ -1220,6 +1263,17 @@ export default function SchemaFactorsPage() {
     } = useAuthSettingsStore();
 
     const handleToggle = (settingType: string, value: boolean) => {
+        if (
+            value &&
+            !phoneAuthAvailable &&
+            (settingType === "phone_enabled" ||
+                settingType === "phone_otp_enabled" ||
+                settingType === "second_factor_phone_otp_enabled")
+        ) {
+            toast.error(PHONE_AUTH_UNAVAILABLE_MESSAGE);
+            return;
+        }
+
         switch (settingType) {
             case "email_enabled":
                 updateEmailSettings({ enabled: value });
@@ -1285,6 +1339,11 @@ export default function SchemaFactorsPage() {
 
     const handleSaveSettings = async () => {
         try {
+            if (!phoneAuthAvailable && settingsUsePhoneAuth(settings)) {
+                toast.error(PHONE_AUTH_UNAVAILABLE_MESSAGE);
+                return;
+            }
+
             const success = await saveSettings();
             if (!success) {
                 console.error("Failed to save settings");
@@ -1311,6 +1370,7 @@ export default function SchemaFactorsPage() {
             <PhoneSettingsDialog
                 open={phoneSettingsOpen}
                 onClose={() => setPhoneSettingsOpen(false)}
+                phoneAuthAvailable={phoneAuthAvailable}
             />
             <UsernameSettingsDialog
                 open={usernameSettingsOpen}
@@ -1339,6 +1399,7 @@ export default function SchemaFactorsPage() {
             <FirstFactorDialog
                 open={firstFactorOpen}
                 onClose={() => setFirstFactorOpen(false)}
+                phoneAuthAvailable={phoneAuthAvailable}
             />
             <SecondFactorPolicyDialog
                 open={secondFactorPolicyOpen}
