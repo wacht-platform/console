@@ -25,11 +25,9 @@ import { CodeFileViewer } from "@/components/code-file-viewer";
 import { MarkdownViewer } from "@/components/markdown-viewer";
 import {
     type SkillScope,
-    type SkillSummaryEntry,
     type SkillTreeEntry,
     useAgentSkillFile,
     useAgentSkillTree,
-    useAgentSkillsSummary,
     useDeleteAgentSkill,
     useImportAgentSkillBundle,
 } from "@/lib/api/hooks/use-agent-skills";
