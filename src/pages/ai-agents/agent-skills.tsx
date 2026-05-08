@@ -25,9 +25,11 @@ import { CodeFileViewer } from "@/components/code-file-viewer";
 import { MarkdownViewer } from "@/components/markdown-viewer";
 import {
     type SkillScope,
+    type SkillSummaryEntry,
     type SkillTreeEntry,
     useAgentSkillFile,
     useAgentSkillTree,
+    useAgentSkillsSummary,
     useDeleteAgentSkill,
     useImportAgentSkillBundle,
 } from "@/lib/api/hooks/use-agent-skills";
@@ -221,6 +223,7 @@ export default function AgentSkillsPage() {
 
     const importMutation = useImportAgentSkillBundle(agentId || "");
     const deleteMutation = useDeleteAgentSkill(agentId || "");
+    const summaryQuery = useAgentSkillsSummary(agentId || "");
 
     const fileQuery = useAgentSkillFile(
         agentId || "",
@@ -276,8 +279,45 @@ export default function AgentSkillsPage() {
         });
     };
 
+    const summary = summaryQuery.data;
+    const visibleSummary: SkillSummaryEntry[] =
+        scope === "agent" ? summary?.agent ?? [] : summary?.system ?? [];
+
     return (
-        <div className="flex h-[calc(100vh-10rem)] flex-col">
+        <div className="flex h-[calc(100vh-10rem)] flex-col gap-3">
+            {visibleSummary.length > 0 ? (
+                <div className="rounded-lg border bg-background p-3">
+                    <div className="mb-2 text-[12px] font-medium uppercase tracking-wide text-muted-foreground">
+                        {scope === "agent" ? "Agent skills" : "System skills"}
+                        <span className="ml-2 text-muted-foreground/70">
+                            ({visibleSummary.length})
+                        </span>
+                    </div>
+                    <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                        {visibleSummary.map((entry) => (
+                            <li
+                                key={entry.slug}
+                                className="rounded-md border border-border/60 bg-muted/10 px-3 py-2"
+                            >
+                                <div className="flex items-baseline justify-between gap-2">
+                                    <span className="truncate font-mono text-[12.5px] font-medium">
+                                        {entry.slug}
+                                    </span>
+                                    <span className="shrink-0 font-mono text-[10.5px] text-muted-foreground">
+                                        {entry.mount_path}
+                                    </span>
+                                </div>
+                                {entry.description ? (
+                                    <p className="mt-1 line-clamp-2 text-[12px] leading-5 text-muted-foreground">
+                                        {entry.description}
+                                    </p>
+                                ) : null}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            ) : null}
+
             <div
                 className={cn(
                     "relative flex min-h-0 flex-1 overflow-hidden rounded-lg border bg-background",

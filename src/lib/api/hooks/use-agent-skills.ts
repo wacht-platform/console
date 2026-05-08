@@ -27,6 +27,19 @@ export interface SkillFileResponse {
   content_base64?: string | null;
 }
 
+export interface SkillSummaryEntry {
+  slug: string;
+  name: string;
+  description?: string | null;
+  mount_path: string;
+  source: SkillScope;
+}
+
+export interface AgentSkillsSummary {
+  system: SkillSummaryEntry[];
+  agent: SkillSummaryEntry[];
+}
+
 async function fetchSkillTree(
   deploymentId: string,
   agentId: string,
@@ -80,6 +93,26 @@ async function deleteAgentSkill(
   );
 }
 
+async function fetchAgentSkillsSummary(
+  deploymentId: string,
+  agentId: string,
+): Promise<AgentSkillsSummary> {
+  const { data } = await apiClient.get<AgentSkillsSummary>(
+    `/deployments/${deploymentId}/ai/agents/${agentId}/skills/list`,
+  );
+  return data;
+}
+
+export function useAgentSkillsSummary(agentId: string) {
+  const { selectedDeployment } = useProjects();
+
+  return useQuery({
+    queryKey: ["agent-skills-summary", selectedDeployment?.id, agentId],
+    queryFn: () => fetchAgentSkillsSummary(selectedDeployment!.id, agentId),
+    enabled: !!selectedDeployment?.id && !!agentId,
+  });
+}
+
 export function useAgentSkillTree(agentId: string, scope: SkillScope, path: string) {
   const { selectedDeployment } = useProjects();
 
@@ -111,6 +144,9 @@ export function useImportAgentSkillBundle(agentId: string) {
       queryClient.invalidateQueries({
         queryKey: ["agent-skill-tree", selectedDeployment?.id, agentId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["agent-skills-summary", selectedDeployment?.id, agentId],
+      });
       toast.success("Skill bundle imported");
     },
     onError: (error: unknown) => {
@@ -129,6 +165,9 @@ export function useDeleteAgentSkill(agentId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["agent-skill-tree", selectedDeployment?.id, agentId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["agent-skills-summary", selectedDeployment?.id, agentId],
       });
       queryClient.invalidateQueries({
         queryKey: ["agent-skill-file", selectedDeployment?.id, agentId],

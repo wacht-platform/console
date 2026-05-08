@@ -63,7 +63,7 @@ export function SiteHeader({
                 <div className="ml-auto flex items-center gap-2">
                     <ThemeToggle />
                     <NotificationBell />
-                    <UserButton showName={false} />
+                    <UserButton showName={false} showOrgSwitcher={false} />
                 </div>
             </div>
         </header>
