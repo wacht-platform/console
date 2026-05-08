@@ -1116,9 +1116,8 @@ export default function DeploymentSettingsPage() {
                 setLogoImageUrl(url);
                 setIsDirty(true);
               }}
-              variant="banner"
+              variant="avatar"
               required={true}
-              imageClassName="object-contain"
             />
           </div>
         </section>
