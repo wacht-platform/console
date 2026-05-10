@@ -79,8 +79,6 @@ function formatGrantTypeLabel(grantType: string): string {
     return labels[grantType] ?? grantType;
 }
 
-const REQUIRED_OAUTH_SCOPES = ["read", "write"] as const;
-
 function defaultScopeDisplayName(scope: string): string {
     return scope
         .split(/[_:.-]/g)
@@ -745,13 +743,10 @@ export default function OAuthAppDetailsPage() {
         if (!oauthApp) return;
         setSettingsName(oauthApp.name);
         setSettingsDescription(oauthApp.description || "");
-        const merged = [...(oauthApp.supported_scopes || [])];
-        for (const scope of REQUIRED_OAUTH_SCOPES) {
-            if (!merged.includes(scope)) merged.push(scope);
-        }
-        setSettingsScopes(merged);
+        const scopes = [...(oauthApp.supported_scopes || [])];
+        setSettingsScopes(scopes);
         setSettingsScopeDefinitions(
-            normalizeScopeDefinitions(merged, oauthApp.scope_definitions || []),
+            normalizeScopeDefinitions(scopes, oauthApp.scope_definitions || []),
         );
         setSettingsAllowDynamicRegistration(
             !!oauthApp.allow_dynamic_client_registration,
