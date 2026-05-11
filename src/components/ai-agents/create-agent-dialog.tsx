@@ -48,7 +48,6 @@ interface AgentFormData {
 	description: string;
 	toolIds: string[];
 	knowledgeBaseIds: string[];
-	integrationIds: string[];
 	subAgentIds: string[];
 }
 
@@ -68,7 +67,6 @@ export function CreateAgentDialog({
 		description: "",
 		toolIds: [],
 		knowledgeBaseIds: [],
-		integrationIds: [],
 		subAgentIds: [],
 	});
 
@@ -130,7 +128,6 @@ export function CreateAgentDialog({
 					description: agent.description || "",
 					toolIds: [],
 					knowledgeBaseIds: [],
-					integrationIds: (agent.configuration?.integration_ids as string[]) || [],
 					subAgentIds: (agent.sub_agents || []).map((id) => String(id)),
 				});
 			} else {
@@ -139,7 +136,6 @@ export function CreateAgentDialog({
 					description: "",
 					toolIds: [],
 					knowledgeBaseIds: [],
-					integrationIds: [],
 					subAgentIds: [],
 				});
 			}
@@ -202,10 +198,6 @@ export function CreateAgentDialog({
 			const agentData = {
 				name: formData.name.trim(),
 				description: formData.description.trim() || undefined,
-				configuration: {
-					integration_ids: formData.integrationIds,
-					quick_questions: [],
-				},
 				sub_agents: formData.subAgentIds.map((id) => Number(id)),
 			};
 
