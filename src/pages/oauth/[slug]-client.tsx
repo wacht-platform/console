@@ -99,20 +99,20 @@ function ClientMetadataItem({
   const hasValue = displayValue !== "Not set";
 
   return (
-    <div className="rounded-lg border bg-zinc-50/60 p-3 dark:bg-zinc-900/40">
+    <div className="grid gap-1 p-3 sm:grid-cols-[160px_1fr] sm:items-start sm:gap-4">
       <p className="text-xs text-zinc-500">{label}</p>
       {hasValue && href ? (
         <a
           href={href}
           target="_blank"
           rel="noreferrer"
-          className="mt-1 block break-all font-mono text-xs text-zinc-800 underline-offset-2 hover:underline dark:text-zinc-100"
+          className="block break-all font-mono text-xs text-zinc-800 underline-offset-2 hover:underline dark:text-zinc-100"
         >
           {displayValue}
         </a>
       ) : (
         <p
-          className={`mt-1 break-all text-sm ${
+          className={`break-all text-sm ${
             hasValue ? "text-zinc-800 dark:text-zinc-100" : "text-muted-foreground"
           }`}
         >
@@ -315,8 +315,8 @@ export default function OAuthClientDetailsPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border p-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-wide text-zinc-500">
                   Client Metadata
@@ -334,7 +334,7 @@ export default function OAuthClientDetailsPage() {
                 Edit
               </Button>
             </div>
-            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="divide-y rounded-md border">
               <ClientMetadataItem
                 label="Client Name"
                 value={oauthClient.client_name}
