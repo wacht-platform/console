@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -52,6 +53,76 @@ function formatGrantTypeLabel(grantType: string): string {
   return labels[grantType] ?? grantType;
 }
 
+type ClientMetadataDraft = {
+  client_name: string;
+  client_uri: string;
+  logo_uri: string;
+  tos_uri: string;
+  policy_uri: string;
+  contacts: string;
+  software_id: string;
+  software_version: string;
+};
+
+const emptyClientMetadataDraft: ClientMetadataDraft = {
+  client_name: "",
+  client_uri: "",
+  logo_uri: "",
+  tos_uri: "",
+  policy_uri: "",
+  contacts: "",
+  software_id: "",
+  software_version: "",
+};
+
+function metadataDisplayValue(value?: string | null): string {
+  return value?.trim() || "Not set";
+}
+
+function splitMetadataList(value: string): string[] {
+  return value
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function ClientMetadataItem({
+  label,
+  value,
+  href,
+}: {
+  label: string;
+  value?: string | null;
+  href?: string | null;
+}) {
+  const displayValue = metadataDisplayValue(value);
+  const hasValue = displayValue !== "Not set";
+
+  return (
+    <div className="rounded-lg border bg-zinc-50/60 p-3 dark:bg-zinc-900/40">
+      <p className="text-xs text-zinc-500">{label}</p>
+      {hasValue && href ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-1 block break-all font-mono text-xs text-zinc-800 underline-offset-2 hover:underline dark:text-zinc-100"
+        >
+          {displayValue}
+        </a>
+      ) : (
+        <p
+          className={`mt-1 break-all text-sm ${
+            hasValue ? "text-zinc-800 dark:text-zinc-100" : "text-muted-foreground"
+          }`}
+        >
+          {displayValue}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function OAuthClientDetailsPage() {
   const { slug, clientId } = useParams();
   const oauthAppSlug = slug || "";
@@ -62,6 +133,10 @@ export default function OAuthClientDetailsPage() {
   const [redirectUrisDraft, setRedirectUrisDraft] = useState("");
   const [isEditPostLogoutUrisOpen, setIsEditPostLogoutUrisOpen] = useState(false);
   const [postLogoutUrisDraft, setPostLogoutUrisDraft] = useState("");
+  const [isEditMetadataOpen, setIsEditMetadataOpen] = useState(false);
+  const [metadataDraft, setMetadataDraft] = useState<ClientMetadataDraft>(
+    emptyClientMetadataDraft,
+  );
 
   const { data: oauthApps = [], isLoading: oauthAppsLoading } = useOAuthApps();
   const { data: oauthClients = [], isLoading: oauthClientsLoading } = useOAuthClients(oauthAppSlug);
@@ -116,6 +191,39 @@ export default function OAuthClientDetailsPage() {
     try {
       await updateOAuthClient.mutateAsync({ redirect_uris: deduped });
       setIsEditRedirectUrisOpen(false);
+    } catch {
+      // handled by hook
+    }
+  };
+
+  const handleOpenEditMetadata = () => {
+    if (!oauthClient) return;
+    setMetadataDraft({
+      client_name: oauthClient.client_name ?? "",
+      client_uri: oauthClient.client_uri ?? "",
+      logo_uri: oauthClient.logo_uri ?? "",
+      tos_uri: oauthClient.tos_uri ?? "",
+      policy_uri: oauthClient.policy_uri ?? "",
+      contacts: (oauthClient.contacts ?? []).join("\n"),
+      software_id: oauthClient.software_id ?? "",
+      software_version: oauthClient.software_version ?? "",
+    });
+    setIsEditMetadataOpen(true);
+  };
+
+  const handleSaveMetadata = async () => {
+    try {
+      await updateOAuthClient.mutateAsync({
+        client_name: metadataDraft.client_name.trim(),
+        client_uri: metadataDraft.client_uri.trim(),
+        logo_uri: metadataDraft.logo_uri.trim(),
+        tos_uri: metadataDraft.tos_uri.trim(),
+        policy_uri: metadataDraft.policy_uri.trim(),
+        contacts: splitMetadataList(metadataDraft.contacts),
+        software_id: metadataDraft.software_id.trim(),
+        software_version: metadataDraft.software_version.trim(),
+      });
+      setIsEditMetadataOpen(false);
     } catch {
       // handled by hook
     }
@@ -204,6 +312,65 @@ export default function OAuthClientDetailsPage() {
             <div className="rounded-lg border bg-background p-3">
               <p className="text-xs text-zinc-500">Updated</p>
               <p className="mt-1 text-sm">{format(new Date(oauthClient.updated_at), "MMM d, yyyy")}</p>
+            </div>
+          </div>
+
+          <div className="rounded-xl border p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-zinc-500">
+                  Client Metadata
+                </p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  Displayed during consent and exposed through client registration metadata.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleOpenEditMetadata}
+              >
+                Edit
+              </Button>
+            </div>
+            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+              <ClientMetadataItem
+                label="Client Name"
+                value={oauthClient.client_name}
+              />
+              <ClientMetadataItem
+                label="Logo URI"
+                value={oauthClient.logo_uri}
+                href={oauthClient.logo_uri}
+              />
+              <ClientMetadataItem
+                label="Client URI"
+                value={oauthClient.client_uri}
+                href={oauthClient.client_uri}
+              />
+              <ClientMetadataItem
+                label="Terms URI"
+                value={oauthClient.tos_uri}
+                href={oauthClient.tos_uri}
+              />
+              <ClientMetadataItem
+                label="Privacy Policy URI"
+                value={oauthClient.policy_uri}
+                href={oauthClient.policy_uri}
+              />
+              <ClientMetadataItem
+                label="Contacts"
+                value={(oauthClient.contacts ?? []).join(", ")}
+              />
+              <ClientMetadataItem
+                label="Software ID"
+                value={oauthClient.software_id}
+              />
+              <ClientMetadataItem
+                label="Software Version"
+                value={oauthClient.software_version}
+              />
             </div>
           </div>
 
@@ -408,6 +575,145 @@ export default function OAuthClientDetailsPage() {
               Copy Secret
             </Button>
             <Button onClick={() => setRotatedSecret(null)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditMetadataOpen} onOpenChange={setIsEditMetadataOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Client Metadata</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <p className="mb-2 text-sm text-muted-foreground">Client Name</p>
+              <Input
+                value={metadataDraft.client_name}
+                onChange={(e) =>
+                  setMetadataDraft((draft) => ({
+                    ...draft,
+                    client_name: e.target.value,
+                  }))
+                }
+                placeholder="Acme Dashboard"
+              />
+            </div>
+            <div>
+              <p className="mb-2 text-sm text-muted-foreground">Logo URI</p>
+              <Input
+                value={metadataDraft.logo_uri}
+                onChange={(e) =>
+                  setMetadataDraft((draft) => ({
+                    ...draft,
+                    logo_uri: e.target.value,
+                  }))
+                }
+                placeholder="https://app.example.com/logo.png"
+              />
+            </div>
+            <div>
+              <p className="mb-2 text-sm text-muted-foreground">Client URI</p>
+              <Input
+                value={metadataDraft.client_uri}
+                onChange={(e) =>
+                  setMetadataDraft((draft) => ({
+                    ...draft,
+                    client_uri: e.target.value,
+                  }))
+                }
+                placeholder="https://app.example.com"
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <p className="mb-2 text-sm text-muted-foreground">Terms URI</p>
+                <Input
+                  value={metadataDraft.tos_uri}
+                  onChange={(e) =>
+                    setMetadataDraft((draft) => ({
+                      ...draft,
+                      tos_uri: e.target.value,
+                    }))
+                  }
+                  placeholder="https://app.example.com/terms"
+                />
+              </div>
+              <div>
+                <p className="mb-2 text-sm text-muted-foreground">
+                  Privacy Policy URI
+                </p>
+                <Input
+                  value={metadataDraft.policy_uri}
+                  onChange={(e) =>
+                    setMetadataDraft((draft) => ({
+                      ...draft,
+                      policy_uri: e.target.value,
+                    }))
+                  }
+                  placeholder="https://app.example.com/privacy"
+                />
+              </div>
+            </div>
+            <div>
+              <p className="mb-2 text-sm text-muted-foreground">Contacts</p>
+              <Textarea
+                value={metadataDraft.contacts}
+                onChange={(e) =>
+                  setMetadataDraft((draft) => ({
+                    ...draft,
+                    contacts: e.target.value,
+                  }))
+                }
+                rows={3}
+                placeholder="security@example.com"
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <p className="mb-2 text-sm text-muted-foreground">Software ID</p>
+                <Input
+                  value={metadataDraft.software_id}
+                  onChange={(e) =>
+                    setMetadataDraft((draft) => ({
+                      ...draft,
+                      software_id: e.target.value,
+                    }))
+                  }
+                  placeholder="com.example.app"
+                />
+              </div>
+              <div>
+                <p className="mb-2 text-sm text-muted-foreground">
+                  Software Version
+                </p>
+                <Input
+                  value={metadataDraft.software_version}
+                  onChange={(e) =>
+                    setMetadataDraft((draft) => ({
+                      ...draft,
+                      software_version: e.target.value,
+                    }))
+                  }
+                  placeholder="1.0.0"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsEditMetadataOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSaveMetadata}
+              disabled={updateOAuthClient.isPending}
+            >
+              {updateOAuthClient.isPending ? "Saving..." : "Save"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
