@@ -306,7 +306,20 @@ export function BillingSetupDialog({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="sm:max-w-5xl w-[95vw] p-0 overflow-hidden border-none bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl shadow-2xl">
+      <DialogContent
+        data-tour-id="billing-setup-form"
+        className="sm:max-w-5xl w-[95vw] p-0 overflow-hidden border-none bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl shadow-2xl"
+        onPointerDownOutside={(e) => {
+          if ((e.target as HTMLElement | null)?.closest("[data-tour-overlay]")) {
+            e.preventDefault();
+          }
+        }}
+        onInteractOutside={(e) => {
+          if ((e.target as HTMLElement | null)?.closest("[data-tour-overlay]")) {
+            e.preventDefault();
+          }
+        }}
+      >
         <AnimatePresence mode="wait">
           {isPolling ? (
             <motion.div
@@ -317,16 +330,16 @@ export function BillingSetupDialog({
               className="p-12 flex flex-col items-center justify-center min-h-[400px] text-center"
             >
               <div className="relative mb-8">
-                <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full" />
+                <div className="absolute inset-0 bg-primary/25 blur-3xl rounded-full" />
                 <div className="relative w-24 h-24 flex items-center justify-center">
-                  <Spinner size="xl" className="text-blue-500" />
+                  <Spinner size="xl" className="text-primary" />
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.5, type: "spring" }}
                     className="absolute inset-0 flex items-center justify-center"
                   >
-                    <CheckBadgeIcon className="w-10 h-10 text-blue-500/50" />
+                    <CheckBadgeIcon className="w-10 h-10 text-primary/55" />
                   </motion.div>
                 </div>
               </div>
@@ -389,7 +402,7 @@ export function BillingSetupDialog({
                       className={clsx(
                         "w-full text-left p-3 rounded-xl border transition-all duration-300 relative overflow-hidden group",
                         selectedPlanId === plan.id
-                          ? "border-blue-500 bg-blue-50/50 dark:bg-blue-950/20 ring-1 ring-blue-500/50"
+                          ? "border-primary bg-primary/10 dark:bg-primary/15 ring-1 ring-primary/45"
                           : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 bg-white/50 dark:bg-zinc-900/40",
                       )}
                       whileHover={{ y: -1 }}
@@ -400,7 +413,7 @@ export function BillingSetupDialog({
                           className={clsx(
                             "w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-300 flex-shrink-0",
                             selectedPlanId === plan.id
-                              ? "bg-blue-600 text-white"
+                              ? "bg-primary text-primary-foreground"
                               : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500",
                           )}
                         >
@@ -414,7 +427,7 @@ export function BillingSetupDialog({
                                 {plan.name}
                               </span>
                               {plan.popular && (
-                                <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-[9px] font-medium text-white px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                                <span className="bg-primary text-[9px] font-medium text-white px-1.5 py-0.5 rounded-full uppercase tracking-wider">
                                   Popular
                                 </span>
                               )}
@@ -430,16 +443,16 @@ export function BillingSetupDialog({
                           </div>
                           <div className="text-xs text-zinc-500 dark:text-zinc-400 flex flex-wrap gap-x-3 gap-y-0.5">
                             <span className="flex items-center gap-1">
-                              <CheckBadgeIcon className="w-2.5 h-2.5 text-blue-500" />
+                              <CheckBadgeIcon className="w-2.5 h-2.5 text-primary" />
                               {plan.mau}
                             </span>
                             <span className="flex items-center gap-1">
-                              <CheckBadgeIcon className="w-2.5 h-2.5 text-blue-500" />
+                              <CheckBadgeIcon className="w-2.5 h-2.5 text-primary" />
                               {plan.orgs}
                             </span>
                             {(plan as any).webhooks && (
                               <span className="flex items-center gap-1">
-                                <CheckBadgeIcon className="w-2.5 h-2.5 text-blue-500" />
+                                <CheckBadgeIcon className="w-2.5 h-2.5 text-primary" />
                                 {(plan as any).webhooks}
                               </span>
                             )}
@@ -450,14 +463,14 @@ export function BillingSetupDialog({
                   ))}
                 </div>
 
-                <div className="mt-8 p-4 bg-indigo-50/50 dark:bg-indigo-950/10 rounded-xl border border-indigo-100/50 dark:border-indigo-900/20">
+                <div className="mt-8 p-4 bg-primary/8 dark:bg-primary/12 rounded-xl border border-primary/20 dark:border-primary/25">
                   <div className="flex gap-3">
-                    <InformationCircleIcon className="w-5 h-5 text-indigo-500 flex-shrink-0" />
+                    <InformationCircleIcon className="w-5 h-5 text-primary flex-shrink-0" />
                     <div>
-                      <p className="text-xs font-medium text-indigo-900 dark:text-indigo-100 mb-1">
+                      <p className="text-xs font-medium text-foreground mb-1">
                         Flexible Billing
                       </p>
-                      <p className="text-[11px] text-indigo-600/80 dark:text-indigo-400/80 leading-relaxed">
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">
                         Usage is tracked hourly. You'll only pay for unique
                         active entities within each billing cycle. Additional
                         metrics charged separately.
@@ -510,7 +523,7 @@ export function BillingSetupDialog({
                   )}
 
                   <div className="space-y-5">
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5" data-tour-id="billing-legal-name">
                       <Label className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider ml-1">
                         Entity Name
                       </Label>
@@ -521,11 +534,11 @@ export function BillingSetupDialog({
                           handleInputChange("legal_name", e.target.value)
                         }
                         placeholder="Your legal or company name"
-                        className="rounded-xl border-zinc-200 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30 focus:ring-blue-500/20 focus:border-blue-500 h-11"
+                        className="rounded-xl border-zinc-200 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30 focus:ring-primary/20 focus:border-primary h-11"
                       />
                     </div>
 
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5" data-tour-id="billing-work-email">
                       <Label className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider ml-1">
                         Work Email
                       </Label>
@@ -537,7 +550,7 @@ export function BillingSetupDialog({
                           handleInputChange("billing_email", e.target.value)
                         }
                         placeholder="billing@company.com"
-                        className="rounded-xl border-zinc-200 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30 focus:ring-blue-500/20 focus:border-blue-500 h-11"
+                        className="rounded-xl border-zinc-200 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30 focus:ring-primary/20 focus:border-primary h-11"
                       />
                     </div>
 
@@ -551,7 +564,7 @@ export function BillingSetupDialog({
                           handleInputChange("tax_id", e.target.value)
                         }
                         placeholder="GSTIN, VAT, or EIN"
-                        className="rounded-xl border-zinc-200 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30 focus:ring-blue-500/20 focus:border-blue-500 h-11"
+                        className="rounded-xl border-zinc-200 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30 focus:ring-primary/20 focus:border-primary h-11"
                       />
                     </div>
                   </div>
@@ -559,12 +572,13 @@ export function BillingSetupDialog({
 
                 <div className="pt-8 flex flex-col gap-3">
                   <Button
+                    data-tour-id="billing-submit-button"
                     onClick={handleSubmit}
                     disabled={!isFormValid || createCheckout.isPending}
                     className={clsx(
                       "w-full h-12 rounded-xl text-white font-medium transition-all duration-300 border-none",
                       isFormValid
-                        ? "bg-gradient-to-br from-blue-600 to-indigo-600 hover:shadow-lg hover:shadow-blue-500/25 active:scale-[0.98]"
+                        ? "bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/30 active:scale-[0.98]"
                         : "bg-zinc-200 dark:bg-zinc-800 text-zinc-400",
                     )}
                   >

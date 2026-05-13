@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { useTour } from "@/lib/tour";
 import { format } from "date-fns";
 import { Pencil } from "lucide-react";
 import { toast } from "sonner";
@@ -39,7 +40,10 @@ import {
     useSetOAuthScopeMapping,
     useUnarchiveOAuthScope,
     useOAuthApps,
+    useOAuthAppSigningKeys,
     useOAuthClients,
+    useRotateOAuthAppSigningKey,
+    useCompromiseOAuthAppSigningKey,
     useUpdateOAuthApp,
     useUpdateOAuthScope,
     useVerifyOAuthAppDomain,
@@ -684,6 +688,7 @@ export default function OAuthAppDetailsPage() {
 
     const { data: oauthApps = [], isLoading: oauthAppsLoading } =
         useOAuthApps();
+    useTour("first-oauth-app-details", !oauthAppsLoading);
     const { deploymentSettings } = useCurrentDeployemnt();
     const { selectedDeployment } = useProjects();
     const verifyOAuthAppDomain = useVerifyOAuthAppDomain(oauthAppSlug);
@@ -880,16 +885,24 @@ export default function OAuthAppDetailsPage() {
     const revocationEndpoint = `${issuerUrl}/oauth/revoke`;
     const introspectionEndpoint = `${issuerUrl}/oauth/introspect`;
     const registrationEndpoint = `${issuerUrl}/oauth/register`;
+    const userinfoEndpoint = `${issuerUrl}/oauth/userinfo`;
+    const endSessionEndpoint = `${issuerUrl}/oauth/logout`;
     const metadataEndpoint = `${issuerUrl}/.well-known/oauth-authorization-server`;
+    const openidConfigurationEndpoint = `${issuerUrl}/.well-known/openid-configuration`;
+    const jwksEndpoint = `${issuerUrl}/.well-known/jwks.json`;
     const connectorMapTarget = "oauth.wacht.services";
     const runtimeEndpoints = [
         { label: "Authorization", value: authorizationEndpoint },
         { label: "Token", value: tokenEndpoint },
+        { label: "UserInfo", value: userinfoEndpoint },
+        { label: "End Session (Logout)", value: endSessionEndpoint },
         { label: "Revocation", value: revocationEndpoint },
         { label: "Introspection", value: introspectionEndpoint },
         { label: "Dynamic Registration", value: registrationEndpoint },
     ];
     const discoveryEndpoints = [
+        { label: "OpenID Configuration", value: openidConfigurationEndpoint },
+        { label: "JWKS", value: jwksEndpoint },
         { label: "OAuth Metadata", value: metadataEndpoint },
     ];
     const isProductionDeployment = selectedDeployment?.mode === "production";
@@ -940,9 +953,30 @@ export default function OAuthAppDetailsPage() {
 
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
                     <TabsList>
-                        <TabsTrigger value="clients">Clients</TabsTrigger>
-                        <TabsTrigger value="runtime">Runtime</TabsTrigger>
-                        <TabsTrigger value="settings">App Settings</TabsTrigger>
+                        <TabsTrigger
+                            value="clients"
+                            data-tour-id="oauth-app-tab-clients"
+                        >
+                            Clients
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="runtime"
+                            data-tour-id="oauth-app-tab-runtime"
+                        >
+                            Runtime
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="signing-keys"
+                            data-tour-id="oauth-app-tab-signing-keys"
+                        >
+                            Signing Keys
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="settings"
+                            data-tour-id="oauth-app-tab-settings"
+                        >
+                            App Settings
+                        </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="clients" className="mt-4">
@@ -1154,7 +1188,7 @@ export default function OAuthAppDetailsPage() {
 
                             <section>
                                 <p className="text-xs uppercase tracking-wide text-zinc-500">
-                                    OAuth Endpoints
+                                    OAuth &amp; OIDC Endpoints
                                 </p>
                                 <div className="mt-3 space-y-2">
                                     {runtimeEndpoints.map((item) => (
@@ -1226,6 +1260,10 @@ export default function OAuthAppDetailsPage() {
                                 </div>
                             </section>
                         </div>
+                    </TabsContent>
+
+                    <TabsContent value="signing-keys" className="mt-4">
+                        <SigningKeysSection oauthAppSlug={oauthAppSlug} />
                     </TabsContent>
 
                     <TabsContent value="settings" className="mt-4">
@@ -1555,5 +1593,254 @@ export default function OAuthAppDetailsPage() {
                 </DialogContent>
             </Dialog>
         </>
+    );
+}
+
+function SigningKeysSection({ oauthAppSlug }: { oauthAppSlug: string }) {
+    const { data: keys, isLoading } = useOAuthAppSigningKeys(oauthAppSlug);
+    const rotate = useRotateOAuthAppSigningKey(oauthAppSlug);
+    const compromise = useCompromiseOAuthAppSigningKey(oauthAppSlug);
+    const [confirmCompromise, setConfirmCompromise] = useState<string | null>(
+        null,
+    );
+    const [confirmRotate, setConfirmRotate] = useState(false);
+
+    const sorted = useMemo(() => {
+        if (!keys) return [];
+        const order = { active: 0, retired: 1, compromised: 2 } as const;
+        return [...keys].sort(
+            (a, b) =>
+                (order[a.status as keyof typeof order] ?? 9) -
+                (order[b.status as keyof typeof order] ?? 9),
+        );
+    }, [keys]);
+
+    const downloadPem = (kid: string, pem: string) => {
+        const blob = new Blob([pem], { type: "application/x-pem-file" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${oauthAppSlug}-${kid}.pem`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    const handleRotateConfirmed = async () => {
+        try {
+            await rotate.mutateAsync();
+        } catch {
+            // onError already surfaced a toast
+        } finally {
+            setConfirmRotate(false);
+        }
+    };
+
+    const handleCompromiseConfirmed = async () => {
+        if (!confirmCompromise) return;
+        try {
+            await compromise.mutateAsync(confirmCompromise);
+        } catch {
+            // onError already surfaced a toast
+        } finally {
+            setConfirmCompromise(null);
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <section className="space-y-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <p className="text-xs uppercase tracking-wide text-zinc-500">
+                            OIDC
+                        </p>
+                        <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
+                            Signing Keys
+                        </h3>
+                    </div>
+                    <Button
+                        onClick={() => setConfirmRotate(true)}
+                        disabled={rotate.isPending}
+                    >
+                        {rotate.isPending ? "Rotating..." : "Rotate Key"}
+                    </Button>
+                </div>
+
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Key ID</TableHead>
+                            <TableHead>Algorithm</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">
+                                Actions
+                            </TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {isLoading ? (
+                            <SkeletonTableRows
+                                rows={3}
+                                columns={4}
+                                withAvatar={false}
+                            />
+                        ) : sorted.length === 0 ? (
+                            <TableRow>
+                                <TableCell
+                                    colSpan={4}
+                                    className="h-20 text-center text-muted-foreground"
+                                >
+                                    No signing keys yet — click "Rotate Key" to
+                                    generate the first one.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            sorted.map((key) => (
+                                <TableRow key={key.kid}>
+                                    <TableCell className="font-mono text-xs">
+                                        {key.kid}
+                                    </TableCell>
+                                    <TableCell className="text-muted-foreground">
+                                        {key.algorithm}
+                                    </TableCell>
+                                    <TableCell>
+                                        <StatusPill status={key.status} />
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex items-center justify-end gap-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-7 px-2 text-xs"
+                                                onClick={() =>
+                                                    downloadPem(
+                                                        key.kid,
+                                                        key.public_key_pem,
+                                                    )
+                                                }
+                                            >
+                                                Download PEM
+                                            </Button>
+                                            {key.status !== "compromised" && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-7 px-2 text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                                                    onClick={() =>
+                                                        setConfirmCompromise(
+                                                            key.kid,
+                                                        )
+                                                    }
+                                                >
+                                                    Mark Compromised
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </section>
+
+            <Dialog
+                open={confirmRotate}
+                onOpenChange={(open) => {
+                    if (!open && !rotate.isPending) setConfirmRotate(false);
+                }}
+            >
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Rotate signing key?</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3 text-sm">
+                        <p>
+                            The current active key will be marked{" "}
+                            <code className="text-xs">retired</code> (still
+                            published in JWKS so in-flight id_tokens keep
+                            verifying), and a fresh RSA key will sign all future
+                            id_tokens.
+                        </p>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setConfirmRotate(false)}
+                            disabled={rotate.isPending}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleRotateConfirmed}
+                            disabled={rotate.isPending}
+                        >
+                            {rotate.isPending ? "Rotating..." : "Rotate Key"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={!!confirmCompromise}
+                onOpenChange={(open) => {
+                    if (!open && !compromise.isPending)
+                        setConfirmCompromise(null);
+                }}
+            >
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Mark key as compromised?</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3 text-sm">
+                        <p>
+                            This is destructive. The key will be removed from
+                            JWKS immediately, and every id_token signed by it
+                            will stop verifying. Use only when you suspect the
+                            private key has leaked.
+                        </p>
+                        <p className="font-mono text-xs break-all text-muted-foreground">
+                            {confirmCompromise}
+                        </p>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setConfirmCompromise(null)}
+                            disabled={compromise.isPending}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            disabled={compromise.isPending}
+                            onClick={handleCompromiseConfirmed}
+                        >
+                            {compromise.isPending
+                                ? "Marking..."
+                                : "Mark compromised"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
+}
+
+function StatusPill({ status }: { status: string }) {
+    const cls =
+        status === "active"
+            ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-emerald-500/30"
+            : status === "retired"
+              ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 ring-amber-500/30"
+              : "bg-rose-500/15 text-rose-700 dark:text-rose-400 ring-rose-500/30";
+    return (
+        <span
+            className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1 ring-inset ${cls}`}
+        >
+            {status}
+        </span>
     );
 }

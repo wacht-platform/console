@@ -115,7 +115,10 @@ export function SegmentsManageTab() {
                             </div>
                         </div>
                     </div>
-                    <Button onClick={handleCreate}>
+                    <Button
+                        data-tour-id="segments-create-button"
+                        onClick={handleCreate}
+                    >
                         <IconPlus className="mr-2 h-4 w-4" />
                         Create Segment
                     </Button>
@@ -211,7 +214,10 @@ export function SegmentsManageTab() {
                                     Get started by creating your first segment.
                                 </p>
                                 <div className="mt-6">
-                                    <Button onClick={handleCreate}>
+                                    <Button
+                                        data-tour-id="segments-create-button"
+                                        onClick={handleCreate}
+                                    >
                                         <IconPlus className="mr-2 h-4 w-4" />
                                         Create Segment
                                     </Button>

@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { CreateSegmentModal } from "@/components/segments/CreateSegmentModal";
 import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
+import { useTour } from "@/lib/tour";
 
 export default function SegmentDetailsPage() {
     const { id } = useParams();
@@ -47,6 +48,7 @@ export default function SegmentDetailsPage() {
     const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
 
     const segment = segments?.find((s) => s.id === id);
+    useTour("first-segment-details", !!segment);
 
     useEffect(() => {
         if (segment) {
@@ -179,7 +181,10 @@ export default function SegmentDetailsPage() {
 
             <div className="space-y-6">
                 {/* Header */}
-                <div className="flex flex-col gap-4 pt-4">
+                <div
+                    className="flex flex-col gap-4 pt-4"
+                    data-tour-id="segment-header"
+                >
                     <div className="flex justify-between items-start">
                         <div>
                             <div className="flex items-center gap-3">
@@ -209,7 +214,10 @@ export default function SegmentDetailsPage() {
                                 )}
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div
+                            className="flex items-center gap-2"
+                            data-tour-id="segment-actions"
+                        >
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -249,7 +257,7 @@ export default function SegmentDetailsPage() {
                         </div>
                     </div>
 
-                    <Table>
+                    <Table data-tour-id="segment-members-table">
                         <TableHeader>
                             <TableRow>
                                 <TableHead>ID</TableHead>

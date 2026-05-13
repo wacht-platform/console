@@ -60,6 +60,8 @@ export default function OAuthClientDetailsPage() {
   const [rotatedSecret, setRotatedSecret] = useState<string | null>(null);
   const [isEditRedirectUrisOpen, setIsEditRedirectUrisOpen] = useState(false);
   const [redirectUrisDraft, setRedirectUrisDraft] = useState("");
+  const [isEditPostLogoutUrisOpen, setIsEditPostLogoutUrisOpen] = useState(false);
+  const [postLogoutUrisDraft, setPostLogoutUrisDraft] = useState("");
 
   const { data: oauthApps = [], isLoading: oauthAppsLoading } = useOAuthApps();
   const { data: oauthClients = [], isLoading: oauthClientsLoading } = useOAuthClients(oauthAppSlug);
@@ -114,6 +116,31 @@ export default function OAuthClientDetailsPage() {
     try {
       await updateOAuthClient.mutateAsync({ redirect_uris: deduped });
       setIsEditRedirectUrisOpen(false);
+    } catch {
+      // handled by hook
+    }
+  };
+
+  const handleOpenEditPostLogoutUris = () => {
+    if (!oauthClient) return;
+    setPostLogoutUrisDraft(
+      (oauthClient.post_logout_redirect_uris ?? []).join("\n"),
+    );
+    setIsEditPostLogoutUrisOpen(true);
+  };
+
+  const handleSavePostLogoutUris = async () => {
+    const uris = postLogoutUrisDraft
+      .split("\n")
+      .map((value) => value.trim())
+      .filter(Boolean);
+    const deduped = [...new Set(uris)];
+
+    try {
+      await updateOAuthClient.mutateAsync({
+        post_logout_redirect_uris: deduped,
+      });
+      setIsEditPostLogoutUrisOpen(false);
     } catch {
       // handled by hook
     }
@@ -200,6 +227,52 @@ export default function OAuthClientDetailsPage() {
                       size="sm"
                       className="h-6 px-2 text-xs"
                       onClick={() => copy("Redirect URI", uri)}
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-zinc-500">
+                  Post-Logout Redirect URIs
+                </p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  OIDC RP-initiated logout will only redirect to these allowlisted URLs.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleOpenEditPostLogoutUris}
+              >
+                Edit
+              </Button>
+            </div>
+            <div className="divide-y rounded-md border">
+              {!oauthClient.post_logout_redirect_uris ||
+              oauthClient.post_logout_redirect_uris.length === 0 ? (
+                <p className="p-3 text-sm text-muted-foreground">
+                  None configured. RP-initiated logout will fall back to the hosted logout page.
+                </p>
+              ) : (
+                oauthClient.post_logout_redirect_uris.map((uri) => (
+                  <div key={uri} className="flex items-start justify-between gap-3 p-3">
+                    <p className="font-mono text-xs break-all text-zinc-800 dark:text-zinc-100">
+                      {uri}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs"
+                      onClick={() => copy("Post-Logout Redirect URI", uri)}
                     >
                       Copy
                     </Button>
@@ -360,6 +433,45 @@ export default function OAuthClientDetailsPage() {
             <Button
               type="button"
               onClick={handleSaveRedirectUris}
+              disabled={updateOAuthClient.isPending}
+            >
+              {updateOAuthClient.isPending ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isEditPostLogoutUrisOpen}
+        onOpenChange={setIsEditPostLogoutUrisOpen}
+      >
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Post-Logout Redirect URIs</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              One URI per line. RPs sending a user through `/oauth/logout` can
+              only redirect back to entries in this list.
+            </p>
+            <Textarea
+              value={postLogoutUrisDraft}
+              onChange={(e) => setPostLogoutUrisDraft(e.target.value)}
+              rows={8}
+              placeholder="https://app.example.com/signed-out"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsEditPostLogoutUrisOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSavePostLogoutUris}
               disabled={updateOAuthClient.isPending}
             >
               {updateOAuthClient.isPending ? "Saving..." : "Save"}

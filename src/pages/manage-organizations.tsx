@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useTourController } from "@/lib/tour";
 import { Divider } from "@/components/ui/divider";
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -116,12 +117,31 @@ export default function ManageOrganizationsPage() {
     });
   }, []);
 
+  const { start: startTour } = useTourController();
+  const prevOrgsEnabledRef = useRef<boolean | null>(null);
+
   useEffect(() => {
     if (deploymentSettings?.b2b_settings) {
       populateSettings(deploymentSettings.b2b_settings);
       setIsDirty(false);
+      // Seed the ref with the server value so we don't false-trigger the
+      // tour on initial page load when orgs are already enabled.
+      if (prevOrgsEnabledRef.current === null) {
+        prevOrgsEnabledRef.current =
+          deploymentSettings.b2b_settings.organizations_enabled ?? false;
+      }
     }
   }, [deploymentSettings, populateSettings]);
+
+  useEffect(() => {
+    if (prevOrgsEnabledRef.current === null) return;
+    const current = settingsState.organizations_enabled;
+    const prev = prevOrgsEnabledRef.current;
+    prevOrgsEnabledRef.current = current;
+    if (prev === false && current === true) {
+      startTour("first-orgs-enabled");
+    }
+  }, [settingsState.organizations_enabled, startTour]);
 
   const handleSettingChange = useCallback(
     <K extends keyof B2BSettingsState>(
@@ -271,7 +291,10 @@ export default function ManageOrganizationsPage() {
     <div className="flex flex-col gap-2 mb-2">
       <Heading className="mb-4">Manage Organizations</Heading>
 
-      <div className="flex items-start justify-between">
+      <div
+        className="flex items-start justify-between"
+        data-tour-id="b2b-enable-orgs"
+      >
         <div>
           <h2 className="text-base font-medium">Enable organizations</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -296,7 +319,7 @@ export default function ManageOrganizationsPage() {
         <div className="my-10">
           <div className="space-y-28">
             <div className="space-y-6">
-              <div className="space-y-10">
+              <div className="space-y-10" data-tour-id="b2b-feature-toggles">
                 <div className="flex items-start justify-between">
                   <div>
                     <h2 className="text-base font-medium">
@@ -382,7 +405,7 @@ export default function ManageOrganizationsPage() {
 
               <Divider className="my-10" soft />
 
-              <div className="space-y-10">
+              <div className="space-y-10" data-tour-id="b2b-roles-permissions">
                 <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
                   <div className="space-y-1">
                     <Subheading>

@@ -1416,7 +1416,7 @@ export default function SchemaFactorsPage() {
                 </div>
 
                 <div className="space-y-16">
-                    <div className="space-y-6">
+                    <div className="space-y-6" data-tour-id="auth-section-user-schema">
                         <div>
                             <h2 className="text-base font-medium">
                                 User Schema
@@ -1624,7 +1624,7 @@ export default function SchemaFactorsPage() {
                         </div>
                     </div>
 
-                    <div className="space-y-6">
+                    <div className="space-y-6" data-tour-id="auth-section-first-factor">
                         <div className="gap-x-8 gap-y-1 flex flex-col">
                             <h2 className="text-base font-medium">
                                 First Factor Authentication
@@ -1844,7 +1844,7 @@ export default function SchemaFactorsPage() {
                         </div>
                     </div>
 
-                    <div className="space-y-6">
+                    <div className="space-y-6" data-tour-id="auth-section-second-factor">
                         <div className="flex items-start justify-between">
                             <div>
                                 <h2 className="text-base font-medium">

@@ -17,6 +17,7 @@ import { Toaster } from "sonner";
 import { useTheme } from "./lib/providers/theme";
 import { usePostHog } from "@posthog/react";
 import { TooltipProvider } from "./components/ui/tooltip";
+import { TourProvider } from "./lib/tour";
 
 function SignedInRoutes() {
   const { getToken, session, loading } = useSession();
@@ -89,7 +90,9 @@ function SignedInRoutes() {
 
   return (
     <QueryProvider>
-      <RouterProvider router={router} />
+      <TourProvider>
+        <RouterProvider router={router} />
+      </TourProvider>
     </QueryProvider>
   );
 }

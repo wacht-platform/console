@@ -25,11 +25,18 @@ import {
 } from "@/components/ui/dialog";
 import { Text } from "@/components/ui/text";
 import type { Deployment } from "@/types/deployment";
+import { useTourAction, useTourCompletion } from "@/lib/tour";
 
 export function ApplicationLayout() {
+    useTourCompletion("first-deployment-create", true);
     const navigate = useNavigate();
     const location = useLocation();
     const params = useParams();
+    useTourAction("tour:navigate", (rel) => {
+        if (!rel || !params.projectId || !params.deploymentId) return;
+        const path = `/project/${params.projectId}/deployment/${params.deploymentId}/${rel.replace(/^\/+/, "")}`;
+        navigate(path);
+    });
     const [isCreateProjectDialogOpen, setIsCreateProjectDialogOpen] =
         useState(false);
     const [isBillingSetupDialogOpen, setIsBillingSetupDialogOpen] =
@@ -277,67 +284,118 @@ export function ApplicationLayout() {
                                         )}
                                         {isB2BRoute && (
                                             <>
-                                                <TabsTrigger value="organizations">
+                                                <TabsTrigger
+                                                    value="organizations"
+                                                    data-tour-id="b2b-tab-organizations"
+                                                >
                                                     Organizations
                                                 </TabsTrigger>
-                                                <TabsTrigger value="workspaces">
+                                                <TabsTrigger
+                                                    value="workspaces"
+                                                    data-tour-id="b2b-tab-workspaces"
+                                                >
                                                     Workspaces
                                                 </TabsTrigger>
                                             </>
                                         )}
                                         {isSetupRoute && (
                                             <>
-                                                <TabsTrigger value="deployment-settings">
+                                                <TabsTrigger
+                                                    value="deployment-settings"
+                                                    data-tour-id="setup-tab-deployment-settings"
+                                                >
                                                     Deployment Settings
                                                 </TabsTrigger>
-                                                <TabsTrigger value="emails">
+                                                <TabsTrigger
+                                                    value="emails"
+                                                    data-tour-id="setup-tab-emails"
+                                                >
                                                     Email Settings
                                                 </TabsTrigger>
-                                                <TabsTrigger value="webhook-catalogs">
+                                                <TabsTrigger
+                                                    value="webhook-catalogs"
+                                                    data-tour-id="setup-tab-webhook-catalogs"
+                                                >
                                                     Webhook Catalogs
                                                 </TabsTrigger>
-                                                <TabsTrigger value="rate-limit-schemes">
+                                                <TabsTrigger
+                                                    value="rate-limit-schemes"
+                                                    data-tour-id="setup-tab-rate-limit-schemes"
+                                                >
                                                     Rate Limit Schemes
                                                 </TabsTrigger>
                                             </>
                                         )}
                                         {isAuthRoute && (
                                             <>
-                                                <TabsTrigger value="schema-factors">
+                                                <TabsTrigger
+                                                    value="schema-factors"
+                                                    data-tour-id="auth-tab-schema-factors"
+                                                >
                                                     Schema & Factors
                                                 </TabsTrigger>
-                                                <TabsTrigger value="sso">
+                                                <TabsTrigger
+                                                    value="sso"
+                                                    data-tour-id="auth-tab-sso"
+                                                >
                                                     SSO
                                                 </TabsTrigger>
-                                                <TabsTrigger value="sessions">
+                                                <TabsTrigger
+                                                    value="sessions"
+                                                    data-tour-id="auth-tab-sessions"
+                                                >
                                                     Sessions
                                                 </TabsTrigger>
-                                                <TabsTrigger value="restrictions">
+                                                <TabsTrigger
+                                                    value="restrictions"
+                                                    data-tour-id="auth-tab-restrictions"
+                                                >
                                                     Restrictions
                                                 </TabsTrigger>
-                                                <TabsTrigger value="jwt-templates">
+                                                <TabsTrigger
+                                                    value="jwt-templates"
+                                                    data-tour-id="auth-tab-jwt-templates"
+                                                >
                                                     JWT Templates
                                                 </TabsTrigger>
                                             </>
                                         )}
                                         {isLLMRoute && (
                                             <>
-                                                <TabsTrigger value="ai-agents">
+                                                <TabsTrigger
+                                                    value="ai-agents"
+                                                    data-tour-id="llm-tab-agents"
+                                                >
                                                     AI Agents
                                                 </TabsTrigger>
-                                                <TabsTrigger value="tools">
+                                                <TabsTrigger
+                                                    value="tools"
+                                                    data-tour-id="llm-tab-tools"
+                                                >
                                                     Tools
                                                 </TabsTrigger>
-                                                <TabsTrigger value="knowledge-base">
+                                                <TabsTrigger
+                                                    value="knowledge-base"
+                                                    data-tour-id="llm-tab-knowledge-base"
+                                                >
                                                     Knowledge Base
                                                 </TabsTrigger>
-                                                <TabsTrigger value="mcp-servers">
+                                                <TabsTrigger
+                                                    value="mcp-servers"
+                                                    data-tour-id="llm-tab-mcp-servers"
+                                                >
                                                     MCP Servers
                                                 </TabsTrigger>
-                                                <TabsTrigger value="ai-settings">
+                                                <TabsTrigger
+                                                    value="ai-settings"
+                                                    data-tour-id="llm-tab-ai-settings"
+                                                >
                                                     Configuration
                                                 </TabsTrigger>
-                                                <TabsTrigger value="extensions">
+                                                <TabsTrigger
+                                                    value="extensions"
+                                                    data-tour-id="llm-tab-extensions"
+                                                >
                                                     Extensions
                                                 </TabsTrigger>
                                             </>

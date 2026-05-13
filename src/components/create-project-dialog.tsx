@@ -114,16 +114,28 @@ export function CreateProjectDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-			<DialogContent className="sm:max-w-4xl p-0 overflow-hidden border-none bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl shadow-2xl">
+			<DialogContent
+				className="sm:max-w-4xl p-0 overflow-hidden border-none bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl shadow-2xl"
+				onPointerDownOutside={(e) => {
+					if ((e.target as HTMLElement | null)?.closest("[data-tour-overlay]")) {
+						e.preventDefault();
+					}
+				}}
+				onInteractOutside={(e) => {
+					if ((e.target as HTMLElement | null)?.closest("[data-tour-overlay]")) {
+						e.preventDefault();
+					}
+				}}
+			>
 				<div className="relative">
 					{/* Decorative background gradients */}
-					<div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-					<div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+					<div className="absolute top-0 right-0 w-96 h-96 bg-primary/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+					<div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
 					<DialogHeader className="p-8 pb-4 relative z-10">
 						<div className="flex items-center gap-3 mb-2">
-							<div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 shadow-sm">
-								<RocketLaunchIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+							<div className="p-2.5 rounded-xl bg-primary/10 dark:bg-primary/15 border border-primary/20 dark:border-primary/25 shadow-sm">
+								<RocketLaunchIcon className="w-6 h-6 text-primary" />
 							</div>
 							<DialogTitle className="text-xl font-normal text-zinc-900 dark:text-zinc-100">
 								Create New Project
@@ -144,12 +156,12 @@ export function CreateProjectDialog({
 							</div>
 
 							{/* Project Name */}
-							<Field className="space-y-2">
+							<Field className="space-y-2" data-tour-id="create-project-name">
 								<Label className="text-sm font-normal text-zinc-600 dark:text-zinc-400">Project Name</Label>
 								<Input
 									type="text"
 									placeholder="e.g., Acme Dashboard"
-									className="w-full bg-zinc-50/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all rounded-xl py-2.5"
+									className="w-full bg-zinc-50/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 focus:ring-primary/20 focus:border-primary/50 transition-all rounded-xl py-2.5"
 									value={appName}
 									onChange={(e) => setAppName(e.target.value)}
 									autoFocus
@@ -158,7 +170,10 @@ export function CreateProjectDialog({
 						</section>
 
 						{/* Authentication Methods Section */}
-						<section className="space-y-5">
+						<section
+							className="space-y-5"
+							data-tour-id="create-project-auth-methods"
+						>
 							<div className="flex items-center gap-2">
 								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-800 to-transparent" />
 								<span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Authentication Methods</span>
@@ -248,13 +263,14 @@ export function CreateProjectDialog({
 							Cancel
 						</Button>
 						<Button
+							data-tour-id="create-project-submit"
 							onClick={handleContinue}
 							disabled={!appName || selectedMethods.length === 0 || loading}
 							className={clsx(
-								"min-w-[140px] shadow-lg shadow-blue-500/10 transition-all duration-300",
+								"min-w-[140px] shadow-lg shadow-primary/15 transition-all duration-300",
 								!appName || selectedMethods.length === 0 || loading
 									? "opacity-50 cursor-not-allowed"
-									: "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white transform hover:translate-y-[-1px]"
+									: "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-primary/20 transform hover:translate-y-[-1px]"
 							)}
 						>
 							{loading ? (
@@ -294,7 +310,7 @@ function AuthMethodCard({
 				"relative flex items-center gap-3 rounded-xl transition-all cursor-pointer border select-none overflow-hidden",
 				compact ? "p-2.5" : "p-3",
 				selected
-					? "bg-blue-50/80 dark:bg-blue-500/10 border-blue-500/30 shadow-[0_0_15px_-3px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/20"
+					? "bg-primary/10 dark:bg-primary/15 border-primary/35 shadow-[0_0_15px_-3px_color-mix(in_oklab,var(--primary)_30%,transparent)] ring-1 ring-primary/25"
 					: "bg-white dark:bg-zinc-900/40 border-zinc-200/60 dark:border-zinc-800/60 hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 shadow-sm"
 			)}
 			onClick={onClick}
@@ -303,7 +319,7 @@ function AuthMethodCard({
 				"flex shrink-0 items-center justify-center rounded-lg transition-colors",
 				compact ? "h-6 w-6" : "h-8 w-8",
 				selected
-					? "bg-white dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 shadow-sm"
+					? "bg-white dark:bg-primary/20 text-primary shadow-sm"
 					: "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500"
 			)}>
 				{icon}
@@ -311,7 +327,7 @@ function AuthMethodCard({
 			<span className={clsx(
 				"flex-1 font-medium truncate",
 				compact ? "text-xs" : "text-sm",
-				selected ? "text-blue-900 dark:text-blue-100" : "text-zinc-600 dark:text-zinc-400"
+				selected ? "text-primary dark:text-primary-foreground" : "text-zinc-600 dark:text-zinc-400"
 			)}>
 				{label}
 			</span>
@@ -324,7 +340,7 @@ function AuthMethodCard({
 						exit={{ opacity: 0, scale: 0 }}
 						className="absolute top-2 right-2"
 					>
-						<div className="bg-blue-500 text-white rounded-full p-0.5 shadow-sm">
+						<div className="bg-primary text-primary-foreground rounded-full p-0.5 shadow-sm">
 							<CheckCircleIcon className="h-3 w-3" />
 						</div>
 					</motion.div>

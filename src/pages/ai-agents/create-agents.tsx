@@ -13,6 +13,7 @@ import { Badge } from "../../components/ui/badge";
 import { CreateAgentDialog } from "../../components/ai-agents/create-agent-dialog";
 import { InlineLoader } from "../../components/ui/loading-screen";
 import { useAgents, type Agent } from "../../lib/api/hooks/use-agents";
+import { useTour } from "../../lib/tour";
 import { apiClient } from "../../lib/api/client";
 import {
     hasProviderApiKey,
@@ -50,6 +51,8 @@ export default function CreateAgentsPage() {
         enabled: !!deploymentId,
     });
     const agents = data?.agents || [];
+
+    useTour("first-agents", !isLoading);
     const providerApiKeyConfigured = hasProviderApiKey(aiSettings);
     const s3StorageConfigured = isS3StorageConfigured(aiSettings);
     const aiSettingsPath =
@@ -78,7 +81,10 @@ export default function CreateAgentsPage() {
                     </p>
                 </div>
                 {!isLoading && !error && (
-                    <Button onClick={handleCreateAgent}>
+                    <Button
+                        data-tour-id="agents-create-button"
+                        onClick={handleCreateAgent}
+                    >
                         <PlusIcon className="h-4 w-4 mr-2" />
                         Create Agent
                     </Button>
@@ -117,7 +123,7 @@ export default function CreateAgentsPage() {
 
             {/* Search */}
             {!isLoading && !error && agents.length > 0 && (
-                <div className="relative mb-6">
+                <div className="relative mb-6" data-tour-id="agents-search">
                     <MagnifyingGlassIcon className="absolute left-3 top-1/4 h-4 w-4 text-muted-foreground" />
                     <Input
                         placeholder="Search agents..."
@@ -152,7 +158,7 @@ export default function CreateAgentsPage() {
                     </div>
                 </div>
             ) : (
-                <Table>
+                <Table data-tour-id="agents-table">
                     <TableHeader>
                         <TableRow>
                             <TableHead>Name</TableHead>

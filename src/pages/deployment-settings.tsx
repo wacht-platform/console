@@ -1069,7 +1069,10 @@ export default function DeploymentSettingsPage() {
       />
 
       <div className="mt-8 space-y-10">
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+        <section
+          className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center"
+          data-tour-id="setup-app-name"
+        >
           <div className="space-y-1">
             <Subheading>App Name</Subheading>
             <Text>The name of your application displayed to users.</Text>
@@ -1098,7 +1101,10 @@ export default function DeploymentSettingsPage() {
 
         <Divider className="my-8" soft />
 
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+        <section
+          className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center"
+          data-tour-id="setup-logo"
+        >
           <div className="space-y-1">
             <Subheading>Application Logo</Subheading>
             <Text>Upload your application's logo image.</Text>
@@ -1122,7 +1128,10 @@ export default function DeploymentSettingsPage() {
           </div>
         </section>
 
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+        <section
+          className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center"
+          data-tour-id="setup-favicon"
+        >
           <div className="space-y-1">
             <Subheading>Favicon</Subheading>
             <Text>Upload your application's favicon image.</Text>
@@ -1148,7 +1157,10 @@ export default function DeploymentSettingsPage() {
 
         <Divider className="my-8" soft />
 
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+        <section
+          className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center"
+          data-tour-id="setup-privacy-url"
+        >
           <div className="space-y-1">
             <Subheading>Privacy Policy URL</Subheading>
             <Text>Link to your application's privacy policy.</Text>
@@ -1179,7 +1191,10 @@ export default function DeploymentSettingsPage() {
           </div>
         </section>
 
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+        <section
+          className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center"
+          data-tour-id="setup-terms-url"
+        >
           <div className="space-y-1">
             <Subheading>Terms of Service URL</Subheading>
             <Text>Link to your application's terms of service.</Text>
@@ -1208,7 +1223,7 @@ export default function DeploymentSettingsPage() {
 
         <Divider className="my-8" soft />
 
-        <section className="space-y-6">
+        <section className="space-y-6" data-tour-id="setup-theme">
           <div className="space-y-1">
             <Subheading>Theme Tokens</Subheading>
             <Text>
@@ -1458,7 +1473,10 @@ export default function DeploymentSettingsPage() {
 
         <Divider className="my-8" soft />
 
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
+        <section
+          className="grid gap-x-8 gap-y-6 sm:grid-cols-3"
+          data-tour-id="setup-redirects"
+        >
           <div className="space-y-1 col-span-2">
             <Subheading>User Redirects</Subheading>
             <Text>
@@ -1681,7 +1699,10 @@ export default function DeploymentSettingsPage() {
 
         <Divider className="my-8" soft />
 
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+        <section
+          className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center"
+          data-tour-id="setup-default-images"
+        >
           <div className="space-y-1">
             <Subheading>Default User Profile Image</Subheading>
             <Text>
@@ -1800,7 +1821,10 @@ export default function DeploymentSettingsPage() {
           </div>
         </section>
 
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+        <section
+          className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center"
+          data-tour-id="setup-signup-terms"
+        >
           <div className="space-y-1">
             <Subheading>Signup Terms Statement</Subheading>
             <Text>Custom terms statement shown during signup process.</Text>
@@ -1847,7 +1871,10 @@ export default function DeploymentSettingsPage() {
           </div>
         </section>
 
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
+        <section
+          className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center"
+          data-tour-id="setup-waitlist-support"
+        >
           <div className="space-y-1">
             <Subheading>Waitlist Page URL</Subheading>
             <Text>URL for your application's waitlist page.</Text>

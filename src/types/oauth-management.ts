@@ -75,6 +75,10 @@ export interface OAuthClient {
   created_at: string;
   updated_at: string;
   client_secret?: string;
+  /** OIDC: allowlist for RP-initiated logout redirects. */
+  post_logout_redirect_uris?: string[];
+  /** OIDC: algorithm used to sign id_tokens for this client. Defaults to RS256. */
+  id_token_signing_alg?: string;
 }
 
 export interface Jwk {
@@ -116,6 +120,10 @@ export interface UpdateOAuthClientRequest {
   jwks_uri?: string;
   jwks?: JwksDocument;
   public_key_pem?: string;
+  /** OIDC: replaces the entire allowlist when present. */
+  post_logout_redirect_uris?: string[];
+  /** OIDC: id_token signing algorithm for this client. */
+  id_token_signing_alg?: string;
 }
 
 export interface RotateOAuthClientSecretResponse {

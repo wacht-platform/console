@@ -29,6 +29,7 @@ import {
     TableRow,
 } from "@/components/ui/app-table";
 import { toast } from "sonner";
+import { useTour } from "@/lib/tour";
 import {
     useCreateOAuthApp,
     useOAuthApps,
@@ -116,7 +117,27 @@ function CreateOAuthAppDialog({
 
     return (
         <Dialog open={open} onOpenChange={(val) => !val && handleClose()}>
-            <DialogContent className="sm:max-w-lg">
+            <DialogContent
+                className="sm:max-w-lg"
+                onPointerDownOutside={(e) => {
+                    if (
+                        (e.target as HTMLElement | null)?.closest(
+                            "[data-tour-overlay]",
+                        )
+                    ) {
+                        e.preventDefault();
+                    }
+                }}
+                onInteractOutside={(e) => {
+                    if (
+                        (e.target as HTMLElement | null)?.closest(
+                            "[data-tour-overlay]",
+                        )
+                    ) {
+                        e.preventDefault();
+                    }
+                }}
+            >
                 <DialogHeader>
                     <DialogTitle>Create OAuth App</DialogTitle>
                 </DialogHeader>
@@ -173,7 +194,7 @@ function CreateOAuthAppDialog({
                         />
                     </div>
 
-                    <Field>
+                    <Field data-tour-id="oauth-app-slug">
                         <Label>Slug</Label>
                         <Input
                             placeholder="mcp-auth"
@@ -181,7 +202,7 @@ function CreateOAuthAppDialog({
                             onChange={(e) => setSlug(e.target.value)}
                         />
                     </Field>
-                    <Field>
+                    <Field data-tour-id="oauth-app-name">
                         <Label>Name</Label>
                         <Input
                             placeholder="MCP Auth Server"
@@ -224,6 +245,7 @@ function CreateOAuthAppDialog({
                         Cancel
                     </Button>
                     <Button
+                        data-tour-id="oauth-app-submit"
                         onClick={handleCreate}
                         disabled={createOAuthApp.isPending}
                     >
@@ -244,6 +266,7 @@ export default function OAuthAppsIndexPage() {
     const [search, setSearch] = useState("");
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const { data: oauthApps = [], isLoading } = useOAuthApps();
+    useTour("first-oauth-apps", !isLoading);
     const isProduction = selectedDeployment?.mode === "production";
     const rootDomain = useMemo(() => {
         if (!selectedDeployment) return "";
@@ -289,6 +312,7 @@ export default function OAuthAppsIndexPage() {
                 </div>
 
                 <Button
+                    data-tour-id="oauth-create-button"
                     onClick={() => setIsCreateDialogOpen(true)}
                     className="ml-auto"
                 >

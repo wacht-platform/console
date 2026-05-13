@@ -104,13 +104,29 @@ export function CreateSegmentModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(val) => !val && handleClose()}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent
+        className="sm:max-w-lg"
+        onPointerDownOutside={(e) => {
+          if (
+            (e.target as HTMLElement | null)?.closest("[data-tour-overlay]")
+          ) {
+            e.preventDefault();
+          }
+        }}
+        onInteractOutside={(e) => {
+          if (
+            (e.target as HTMLElement | null)?.closest("[data-tour-overlay]")
+          ) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>{segmentToEdit ? "Edit Segment" : "Create Segment"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
+            <div className="space-y-2" data-tour-id="segment-name">
               <Label>Segment Name</Label>
               <Input
                 value={name}
@@ -121,7 +137,7 @@ export function CreateSegmentModal({
               {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2" data-tour-id="segment-type">
               <Label>Type</Label>
               <Select
                 value={type}
@@ -156,6 +172,7 @@ export function CreateSegmentModal({
             <Button
               type="submit"
               disabled={isPending}
+              data-tour-id="segment-submit"
             >
               {isPending
                 ? (segmentToEdit ? "Updating..." : "Creating...")

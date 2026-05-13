@@ -521,3 +521,111 @@ export function useRevokeOAuthGrant(
     },
   });
 }
+
+// ---------------------------------------------------------------------------
+// OIDC signing keys
+// ---------------------------------------------------------------------------
+
+export interface OAuthAppSigningKey {
+  kid: string;
+  algorithm: string;
+  status: "active" | "retired" | "compromised";
+  public_key_pem: string;
+}
+
+async function listSigningKeys(
+  deploymentId: string,
+  oauthAppSlug: string,
+): Promise<OAuthAppSigningKey[]> {
+  const response = await apiClient.get(
+    `/deployments/${deploymentId}/oauth/apps/${oauthAppSlug}/signing-keys`,
+  );
+  return getArrayField<OAuthAppSigningKey>(response.data, "keys");
+}
+
+async function rotateSigningKey(
+  deploymentId: string,
+  oauthAppSlug: string,
+): Promise<OAuthAppSigningKey | undefined> {
+  const response = await apiClient.post(
+    `/deployments/${deploymentId}/oauth/apps/${oauthAppSlug}/signing-keys/rotate`,
+    {},
+  );
+  // Backend returns `{ new: OAuthAppSigningKey }` wrapped in the standard
+  // `{ data: ... }` envelope. getNestedRecord unwraps the envelope.
+  const record = getNestedRecord(response.data);
+  return (record.new as OAuthAppSigningKey | undefined) ?? undefined;
+}
+
+async function compromiseSigningKey(
+  deploymentId: string,
+  oauthAppSlug: string,
+  kid: string,
+): Promise<void> {
+  await apiClient.post(
+    `/deployments/${deploymentId}/oauth/apps/${oauthAppSlug}/signing-keys/${encodeURIComponent(kid)}/compromise`,
+    {},
+  );
+}
+
+export function useOAuthAppSigningKeys(oauthAppSlug?: string) {
+  const { selectedDeployment } = useProjects();
+  const deploymentId = selectedDeployment?.id?.toString();
+  const enabled = !!deploymentId && !!oauthAppSlug;
+
+  return useQuery({
+    queryKey: ["oauth-signing-keys", deploymentId, oauthAppSlug],
+    queryFn: () => listSigningKeys(deploymentId!, oauthAppSlug!),
+    enabled,
+  });
+}
+
+export function useRotateOAuthAppSigningKey(oauthAppSlug?: string) {
+  const queryClient = useQueryClient();
+  const { selectedDeployment } = useProjects();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!selectedDeployment?.id) throw new Error("No deployment selected");
+      if (!oauthAppSlug) throw new Error("OAuth app not selected");
+      return rotateSigningKey(selectedDeployment.id.toString(), oauthAppSlug);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["oauth-signing-keys"] });
+      toast.success("Signing key rotated. Old key remains in JWKS during the grace window.");
+    },
+    onError: (error: unknown) => {
+      const message =
+        error instanceof Error ? error.message : "Failed to rotate signing key";
+      toast.error(message);
+    },
+  });
+}
+
+export function useCompromiseOAuthAppSigningKey(oauthAppSlug?: string) {
+  const queryClient = useQueryClient();
+  const { selectedDeployment } = useProjects();
+
+  return useMutation({
+    mutationFn: async (kid: string) => {
+      if (!selectedDeployment?.id) throw new Error("No deployment selected");
+      if (!oauthAppSlug) throw new Error("OAuth app not selected");
+      return compromiseSigningKey(
+        selectedDeployment.id.toString(),
+        oauthAppSlug,
+        kid,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["oauth-signing-keys"] });
+      toast.success("Key marked as compromised — JWKS no longer publishes it.");
+    },
+    onError: (error: unknown) => {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to mark key as compromised";
+      toast.error(message);
+    },
+  });
+}

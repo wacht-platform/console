@@ -39,6 +39,7 @@ import { useBillingAccount } from "@/lib/api/hooks/use-billing";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { useProjectStore } from "@/lib/store/project";
 import { ProjectWithDeployments } from "@/types/project";
+import { useTour, useTourCompletion } from "@/lib/tour";
 
 function projectHasMode(
     project: ProjectWithDeployments,
@@ -103,6 +104,17 @@ export default function ProjectsPage() {
         [stagingProjects, query],
     );
 
+    useTour("first-deployment-create", !isLoading);
+
+    const hasAnyDeployment = useMemo(
+        () =>
+            (projects ?? []).some(
+                (project) => project.deployments.length > 0,
+            ),
+        [projects],
+    );
+    useTourCompletion("first-deployment-create", hasAnyDeployment);
+
     const createdThisMonth = allProjects.filter((project) => {
         const created = new Date(project.created_at);
         const now = new Date();
@@ -149,6 +161,7 @@ export default function ProjectsPage() {
                                 />
                             </div>
                             <Button
+                                data-tour-id="projects-create-button"
                                 onClick={handleCreateProject}
                                 className="gap-2"
                             >
@@ -457,6 +470,7 @@ function ProjectRow({
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.18, delay: index * 0.02 }}
             onClick={navigateToProject}
+            data-tour-id={isFirst ? "project-card" : undefined}
             className={`group w-full border-border/70 px-4 py-3 text-left transition-colors hover:bg-muted/40 ${isFirst ? "" : "border-t"}`}
         >
             <div className="grid gap-3 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_160px_120px_130px_28px] md:items-center">
