@@ -886,7 +886,7 @@ export default function OAuthClientDetailsPage() {
                   }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
