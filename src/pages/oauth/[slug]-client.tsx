@@ -7,6 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -137,6 +146,12 @@ export default function OAuthClientDetailsPage() {
   const [metadataDraft, setMetadataDraft] = useState<ClientMetadataDraft>(
     emptyClientMetadataDraft,
   );
+  const [isEditOidcOpen, setIsEditOidcOpen] = useState(false);
+  const [oidcDraft, setOidcDraft] = useState({
+    access_token_format: "opaque" as "opaque" | "jwt",
+    access_token_ttl_seconds: "3600",
+    skip_consent: false,
+  });
 
   const { data: oauthApps = [], isLoading: oauthAppsLoading } = useOAuthApps();
   const { data: oauthClients = [], isLoading: oauthClientsLoading } = useOAuthClients(oauthAppSlug);
@@ -249,6 +264,35 @@ export default function OAuthClientDetailsPage() {
         post_logout_redirect_uris: deduped,
       });
       setIsEditPostLogoutUrisOpen(false);
+    } catch {
+      // handled by hook
+    }
+  };
+
+  const handleOpenEditOidc = () => {
+    if (!oauthClient) return;
+    const format = oauthClient.access_token_format === "jwt" ? "jwt" : "opaque";
+    setOidcDraft({
+      access_token_format: format,
+      access_token_ttl_seconds: String(oauthClient.access_token_ttl_seconds ?? 3600),
+      skip_consent: !!oauthClient.skip_consent,
+    });
+    setIsEditOidcOpen(true);
+  };
+
+  const handleSaveOidc = async () => {
+    const ttl = Number(oidcDraft.access_token_ttl_seconds);
+    if (!Number.isFinite(ttl) || ttl < 60 || ttl > 86400) {
+      toast.error("Access token TTL must be between 60 and 86400 seconds");
+      return;
+    }
+    try {
+      await updateOAuthClient.mutateAsync({
+        access_token_format: oidcDraft.access_token_format,
+        access_token_ttl_seconds: ttl,
+        skip_consent: oidcDraft.skip_consent,
+      });
+      setIsEditOidcOpen(false);
     } catch {
       // handled by hook
     }
@@ -446,6 +490,45 @@ export default function OAuthClientDetailsPage() {
                   </div>
                 ))
               )}
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-zinc-500">
+                  OIDC Settings
+                </p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  Access token format, TTL, and consent behavior for this client.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleOpenEditOidc}
+              >
+                Edit
+              </Button>
+            </div>
+            <div className="divide-y rounded-md border">
+              <ClientMetadataItem
+                label="Access Token Format"
+                value={
+                  oauthClient.access_token_format === "jwt"
+                    ? "JWT (stateless, signed with deployment key)"
+                    : "Opaque (default)"
+                }
+              />
+              <ClientMetadataItem
+                label="Access Token TTL"
+                value={`${oauthClient.access_token_ttl_seconds ?? 3600} seconds`}
+              />
+              <ClientMetadataItem
+                label="Skip Consent Screen"
+                value={oauthClient.skip_consent ? "Yes (first-party client)" : "No"}
+              />
             </div>
           </div>
 
@@ -778,6 +861,95 @@ export default function OAuthClientDetailsPage() {
             <Button
               type="button"
               onClick={handleSavePostLogoutUris}
+              disabled={updateOAuthClient.isPending}
+            >
+              {updateOAuthClient.isPending ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditOidcOpen} onOpenChange={setIsEditOidcOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit OIDC Settings</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Access Token Format</Label>
+              <Select
+                value={oidcDraft.access_token_format}
+                onValueChange={(value) =>
+                  setOidcDraft((draft) => ({
+                    ...draft,
+                    access_token_format: value === "jwt" ? "jwt" : "opaque",
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="opaque">
+                    Opaque (verified via /oauth/introspect)
+                  </SelectItem>
+                  <SelectItem value="jwt">
+                    JWT (stateless, verify locally via JWKS)
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">
+                JWT mode lets RPs verify access tokens without calling the
+                gateway. Tokens are signed with the same key as id_tokens.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Access Token TTL (seconds)</Label>
+              <Input
+                type="number"
+                min={60}
+                max={86400}
+                value={oidcDraft.access_token_ttl_seconds}
+                onChange={(e) =>
+                  setOidcDraft((draft) => ({
+                    ...draft,
+                    access_token_ttl_seconds: e.target.value,
+                  }))
+                }
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Between 60 and 86400 seconds. Default 3600.
+              </p>
+            </div>
+
+            <div className="flex items-start justify-between gap-3 rounded-md border p-3">
+              <div>
+                <Label className="text-sm">Skip Consent Screen</Label>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  First-party / trusted clients only. Bypasses the user-facing
+                  consent prompt on every authorize request.
+                </p>
+              </div>
+              <Switch
+                checked={oidcDraft.skip_consent}
+                onCheckedChange={(checked) =>
+                  setOidcDraft((draft) => ({ ...draft, skip_consent: checked }))
+                }
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsEditOidcOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSaveOidc}
               disabled={updateOAuthClient.isPending}
             >
               {updateOAuthClient.isPending ? "Saving..." : "Save"}

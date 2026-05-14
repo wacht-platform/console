@@ -87,6 +87,12 @@ export interface OAuthClient {
   post_logout_redirect_uris?: string[];
   /** OIDC: algorithm used to sign id_tokens for this client. Defaults to RS256. */
   id_token_signing_alg?: string;
+  /** OIDC: access token format — "opaque" (default) or "jwt" for stateless verification. */
+  access_token_format?: string;
+  /** OIDC: access token TTL in seconds. 60–86400. Default 3600. */
+  access_token_ttl_seconds?: number;
+  /** OIDC: skip the consent screen for first-party / trusted clients. */
+  skip_consent?: boolean;
 }
 
 export interface Jwk {
@@ -126,6 +132,11 @@ export interface CreateOAuthClientRequest {
   jwks_uri?: string;
   jwks?: JwksDocument;
   public_key_pem?: string;
+  post_logout_redirect_uris?: string[];
+  id_token_signing_alg?: string;
+  access_token_format?: string;
+  access_token_ttl_seconds?: number;
+  skip_consent?: boolean;
 }
 
 export interface UpdateOAuthClientRequest {
@@ -148,6 +159,12 @@ export interface UpdateOAuthClientRequest {
   post_logout_redirect_uris?: string[];
   /** OIDC: id_token signing algorithm for this client. */
   id_token_signing_alg?: string;
+  /** OIDC: "opaque" or "jwt". */
+  access_token_format?: string;
+  /** OIDC: access token TTL in seconds. 60–86400. */
+  access_token_ttl_seconds?: number;
+  /** OIDC: skip the consent screen for first-party / trusted clients. */
+  skip_consent?: boolean;
 }
 
 export interface RotateOAuthClientSecretResponse {
