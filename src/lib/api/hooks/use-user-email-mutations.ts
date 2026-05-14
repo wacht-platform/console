@@ -90,6 +90,27 @@ export function useUpdateUserEmail(userId: string) {
   });
 }
 
+export function useMakeUserEmailPrimary(userId: string) {
+  const queryClient = useQueryClient();
+  const { selectedDeployment } = useProjects();
+
+  return useMutation({
+    mutationFn: async (emailId: string) => {
+      if (!selectedDeployment?.id || !userId) {
+        throw new Error("No deployment or user selected");
+      }
+      await apiClient.post(
+        `/deployments/${selectedDeployment.id}/users/${userId}/emails/${emailId}/make-primary`,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["user-details", selectedDeployment?.id, userId],
+      });
+    },
+  });
+}
+
 export function useDeleteUserEmail(userId: string) {
   const queryClient = useQueryClient();
   const { selectedDeployment } = useProjects();

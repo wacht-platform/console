@@ -91,6 +91,27 @@ export function useUpdateUserPhone(userId: string) {
   });
 }
 
+export function useMakeUserPhonePrimary(userId: string) {
+  const queryClient = useQueryClient();
+  const { selectedDeployment } = useProjects();
+
+  return useMutation({
+    mutationFn: async (phoneId: string) => {
+      if (!selectedDeployment?.id || !userId) {
+        throw new Error("No deployment or user selected");
+      }
+      await apiClient.post(
+        `/deployments/${selectedDeployment.id}/users/${userId}/phones/${phoneId}/make-primary`,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["user-details", selectedDeployment?.id, userId],
+      });
+    },
+  });
+}
+
 export function useDeleteUserPhone(userId: string) {
   const queryClient = useQueryClient();
   const { selectedDeployment } = useProjects();

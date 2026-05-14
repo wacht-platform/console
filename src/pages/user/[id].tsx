@@ -10,17 +10,38 @@ import {
   useAddUserEmail,
   useUpdateUserEmail,
   useDeleteUserEmail,
+  useMakeUserEmailPrimary,
 } from "@/lib/api/hooks/use-user-email-mutations";
 import {
   useAddUserPhone,
   useUpdateUserPhone,
   useDeleteUserPhone,
+  useMakeUserPhonePrimary,
 } from "@/lib/api/hooks/use-user-phone-mutations";
 import { useDeleteUserSocialConnection } from "@/lib/api/hooks/use-user-social-mutations";
 import {
   useDeleteUser,
   useImpersonateUser,
+  useRemoveUserPassword,
 } from "@/lib/api/hooks/use-deployment-user-mutations";
+import {
+  useUserOrganizationMemberships,
+  useUserWorkspaceMemberships,
+} from "@/lib/api/hooks/use-user-memberships";
+import {
+  useUserSignins,
+  useRevokeUserSignin,
+  useRevokeAllUserSignins,
+} from "@/lib/api/hooks/use-user-sessions";
+import {
+  useUserPasskeys,
+  useRenameUserPasskey,
+  useDeleteUserPasskey,
+} from "@/lib/api/hooks/use-user-passkeys";
+import {
+  useDeleteUserAuthenticator,
+  useRegenerateBackupCodes,
+} from "@/lib/api/hooks/use-user-mfa-mutations";
 import { useUpdateUser } from "@/lib/api/hooks/use-update-user";
 import { Button } from "@/components/ui/button";
 import {
@@ -61,6 +82,7 @@ import { EditPhoneModal } from "@/components/modals/edit-phone-modal";
 import { EditProfileModal } from "@/components/modals/edit-profile-modal";
 import { ChangePasswordModal } from "@/components/modals/change-password-modal";
 import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
+import { BackupCodesModal } from "@/components/modals/backup-codes-modal";
 
 export default function UserDetailsPage() {
   const { id, projectId, deploymentId } = useParams();
@@ -77,12 +99,35 @@ export default function UserDetailsPage() {
   const { mutateAsync: addEmail } = useAddUserEmail(userId);
   const { mutateAsync: updateEmail } = useUpdateUserEmail(userId);
   const { mutateAsync: deleteEmail } = useDeleteUserEmail(userId);
+  const { mutateAsync: makeEmailPrimary } = useMakeUserEmailPrimary(userId);
 
   const { mutateAsync: addPhone } = useAddUserPhone(userId);
   const { mutateAsync: updatePhone } = useUpdateUserPhone(userId);
   const { mutateAsync: deletePhone } = useDeleteUserPhone(userId);
+  const { mutateAsync: makePhonePrimary } = useMakeUserPhonePrimary(userId);
 
   const { mutateAsync: deleteSocialConnection } = useDeleteUserSocialConnection(userId);
+  const { mutateAsync: removePassword } = useRemoveUserPassword(userId);
+
+  // Memberships
+  const { data: orgMemberships } = useUserOrganizationMemberships(userId);
+  const { data: workspaceMemberships } = useUserWorkspaceMemberships(userId);
+
+  // Sessions
+  const { data: signins } = useUserSignins(userId);
+  const { mutateAsync: revokeSignin } = useRevokeUserSignin(userId);
+  const { mutateAsync: revokeAllSignins, isPending: isRevokingAll } =
+    useRevokeAllUserSignins(userId);
+
+  // Passkeys
+  const { data: passkeys } = useUserPasskeys(userId);
+  const { mutateAsync: renamePasskey } = useRenameUserPasskey(userId);
+  const { mutateAsync: deletePasskey } = useDeleteUserPasskey(userId);
+
+  // MFA
+  const { mutateAsync: deleteAuthenticator } = useDeleteUserAuthenticator(userId);
+  const { mutateAsync: regenerateBackupCodes, isPending: isRegeneratingCodes } =
+    useRegenerateBackupCodes(userId);
 
   // Modal states
   const [activeTab, setActiveTab] = useState("emails"); // Default to emails as Overview is removed
@@ -96,6 +141,9 @@ export default function UserDetailsPage() {
   const [selectedEmail, setSelectedEmail] = useState<UserEmailAddress | null>(null);
   const [selectedPhone, setSelectedPhone] = useState<UserPhoneNumber | null>(null);
   const [deleteItem, setDeleteItem] = useState<{ id: string; type: string; name: string } | null>(null);
+  const [newBackupCodes, setNewBackupCodes] = useState<string[] | null>(null);
+  const [renamingPasskeyId, setRenamingPasskeyId] = useState<string | null>(null);
+  const [renamingPasskeyValue, setRenamingPasskeyValue] = useState("");
 
   // Metadata states
   const [publicMetadata, setPublicMetadata] = useState<string>("");
@@ -133,17 +181,63 @@ export default function UserDetailsPage() {
       if (deleteItem.type === "email") await deleteEmail(deleteItem.id);
       if (deleteItem.type === "phone") await deletePhone(deleteItem.id);
       if (deleteItem.type === "social") await deleteSocialConnection(deleteItem.id);
+      if (deleteItem.type === "passkey") await deletePasskey(deleteItem.id);
+      if (deleteItem.type === "signin") await revokeSignin(deleteItem.id);
+      if (deleteItem.type === "authenticator") await deleteAuthenticator();
+      if (deleteItem.type === "password") await removePassword();
+      if (deleteItem.type === "all-sessions") await revokeAllSignins();
       if (deleteItem.type === "user") {
         await deleteUser(deleteItem.id);
         navigate(`/project/${projectId}/deployment/${deploymentId}/users`);
       }
-      toast.success(`${deleteItem.type} deleted successfully`);
+      toast.success(`${deleteItem.type} action complete`);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to delete item");
+      toast.error("Action failed");
     }
     setDeleteItem(null);
     setConfirmationDialogOpen(false);
+  };
+
+  const handleMakeEmailPrimary = async (emailId: string) => {
+    try {
+      await makeEmailPrimary(emailId);
+      toast.success("Email marked as primary");
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? "Failed to make primary");
+    }
+  };
+
+  const handleMakePhonePrimary = async (phoneId: string) => {
+    try {
+      await makePhonePrimary(phoneId);
+      toast.success("Phone marked as primary");
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? "Failed to make primary");
+    }
+  };
+
+  const handleRegenerateBackupCodes = async () => {
+    try {
+      const res = await regenerateBackupCodes();
+      setNewBackupCodes(res.backup_codes);
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to regenerate backup codes");
+    }
+  };
+
+  const handleRenamePasskey = async (passkeyId: string) => {
+    const trimmed = renamingPasskeyValue.trim();
+    if (!trimmed) return;
+    try {
+      await renamePasskey({ passkeyId, name: trimmed });
+      setRenamingPasskeyId(null);
+      setRenamingPasskeyValue("");
+      toast.success("Passkey renamed");
+    } catch (e) {
+      toast.error("Failed to rename passkey");
+    }
   };
 
   const handleImpersonate = async () => {
@@ -226,9 +320,21 @@ export default function UserDetailsPage() {
 
               <div className="flex justify-between items-center">
                 <span className="text-sm text-zinc-500 font-normal">Password</span>
-                <Button variant="outline" size="sm" className="h-7 text-xs px-2 font-normal" onClick={() => setChangePasswordModalOpen(true)}>
-                  {user.has_password ? "Change" : "Set"}
-                </Button>
+                <div className="flex gap-1">
+                  <Button variant="outline" size="sm" className="h-7 text-xs px-2 font-normal" onClick={() => setChangePasswordModalOpen(true)}>
+                    {user.has_password ? "Change" : "Set"}
+                  </Button>
+                  {user.has_password && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs px-2 font-normal text-destructive hover:bg-destructive/10"
+                      onClick={() => handleDeleteItem(userId, "password", "the password")}
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </div>
               </div>
 
               <div className="flex justify-between items-center">
@@ -249,7 +355,7 @@ export default function UserDetailsPage() {
         </div>
 
         {/* Main Content */}
-        <div className="col-span-1 lg:col-span-8">
+        <div className="col-span-1 lg:col-span-8 min-w-0">
           <div className="flex justify-end gap-2 mb-6">
             <Button variant="outline" size="sm" onClick={handleImpersonate} disabled={isImpersonating} className="h-8 gap-1.5 font-normal">
               <PlayCircleIcon className="h-4 w-4" /> Impersonate
@@ -286,10 +392,6 @@ export default function UserDetailsPage() {
                 <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{format(new Date(user.created_at), "MMM d, yyyy")}</p>
               </div>
               <div className="space-y-0.5">
-                <p className="text-xs text-zinc-500 font-normal uppercase tracking-wider">Last Session</p>
-                <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{format(new Date(user.updated_at), "MMM d, yyyy")}</p>
-              </div>
-              <div className="space-y-0.5">
                 <p className="text-xs text-zinc-500 font-normal uppercase tracking-wider">2FA Policy</p>
                 <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal capitalize">{user.second_factor_policy || "None"}</p>
               </div>
@@ -300,6 +402,11 @@ export default function UserDetailsPage() {
             <TabsList>
               <TabsTrigger value="emails">Emails</TabsTrigger>
               <TabsTrigger value="phones">Phones</TabsTrigger>
+              <TabsTrigger value="sessions">Sessions</TabsTrigger>
+              <TabsTrigger value="mfa">MFA</TabsTrigger>
+              <TabsTrigger value="passkeys">Passkeys</TabsTrigger>
+              <TabsTrigger value="organizations">Organizations</TabsTrigger>
+              <TabsTrigger value="workspaces">Workspaces</TabsTrigger>
               <TabsTrigger value="metadata">Metadata</TabsTrigger>
             </TabsList>
 
@@ -316,9 +423,9 @@ export default function UserDetailsPage() {
                   icon={<EnvelopeIcon className="h-10 w-10 text-zinc-200" />}
                 />
               ) : (
-                <div className="border rounded-lg overflow-hidden border-zinc-100 dark:border-zinc-800/50">
+                <div className="max-h-[480px] overflow-y-auto">
                   <Table>
-                    <TableHeader>
+                    <TableHeader className="sticky top-0 bg-white dark:bg-zinc-950 z-10">
                       <TableRow className="bg-zinc-50/30 dark:bg-zinc-900/10">
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Email</TableHead>
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Status</TableHead>
@@ -345,6 +452,11 @@ export default function UserDetailsPage() {
                           <TableCell className="text-zinc-500 text-xs font-normal">{format(new Date(email.created_at), "MMM d, yyyy")}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-1">
+                              {email.verified && email.id !== user.primary_email_address_id && (
+                                <Button variant="ghost" size="sm" className="h-7 text-xs font-normal" onClick={() => handleMakeEmailPrimary(email.id)}>
+                                  Make primary
+                                </Button>
+                              )}
                               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setSelectedEmail(email); setEditEmailModalOpen(true); }}>
                                 <PencilIcon className="h-3.5 w-3.5" />
                               </Button>
@@ -374,9 +486,9 @@ export default function UserDetailsPage() {
                   icon={<PhoneIcon className="h-10 w-10 text-zinc-200" />}
                 />
               ) : (
-                <div className="border rounded-lg overflow-hidden border-zinc-100 dark:border-zinc-800/50">
+                <div className="max-h-[480px] overflow-y-auto">
                   <Table>
-                    <TableHeader>
+                    <TableHeader className="sticky top-0 bg-white dark:bg-zinc-950 z-10">
                       <TableRow className="bg-zinc-50/30 dark:bg-zinc-900/10">
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Number</TableHead>
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Status</TableHead>
@@ -403,6 +515,11 @@ export default function UserDetailsPage() {
                           <TableCell className="text-zinc-500 text-xs font-normal">{format(new Date(phone.created_at), "MMM d, yyyy")}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-1">
+                              {phone.verified && phone.id !== user.primary_phone_number_id && (
+                                <Button variant="ghost" size="sm" className="h-7 text-xs font-normal" onClick={() => handleMakePhonePrimary(phone.id)}>
+                                  Make primary
+                                </Button>
+                              )}
                               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setSelectedPhone(phone); setEditPhoneModalOpen(true); }}>
                                 <PencilIcon className="h-3.5 w-3.5" />
                               </Button>
@@ -411,6 +528,313 @@ export default function UserDetailsPage() {
                               </Button>
                             </div>
                           </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="sessions" className="mt-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-sm font-normal text-zinc-500 uppercase tracking-wider">Active sign-ins</h3>
+                {!!signins?.length && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDeleteItem(userId, "all-sessions", "all active sign-ins")}
+                    disabled={isRevokingAll}
+                    className="h-8 font-normal"
+                  >
+                    Revoke all
+                  </Button>
+                )}
+              </div>
+              {!signins?.length ? (
+                <EmptyState
+                  title="No active sign-ins"
+                  description="This user has no live sessions."
+                  icon={<XCircleIcon className="h-10 w-10 text-zinc-200" />}
+                />
+              ) : (
+                <div className="max-h-[480px] overflow-y-auto">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-white dark:bg-zinc-950 z-10">
+                      <TableRow className="bg-zinc-50/30 dark:bg-zinc-900/10">
+                        <TableHead className="font-normal text-xs uppercase tracking-wider">Device</TableHead>
+                        <TableHead className="font-normal text-xs uppercase tracking-wider">Location</TableHead>
+                        <TableHead className="font-normal text-xs uppercase tracking-wider">Last active</TableHead>
+                        <TableHead className="text-right font-normal text-xs uppercase tracking-wider">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {signins.map((s) => (
+                        <TableRow key={s.id}>
+                          <TableCell className="text-sm font-normal">
+                            {s.browser || s.device || "Unknown"}
+                            <div className="text-xs text-zinc-500">{s.ip_address || "—"}</div>
+                          </TableCell>
+                          <TableCell className="text-sm font-normal">
+                            {[s.city, s.region, s.country].filter(Boolean).join(", ") || "—"}
+                          </TableCell>
+                          <TableCell className="text-xs text-zinc-500 font-normal">
+                            {format(new Date(s.last_active_at), "MMM d, yyyy HH:mm")}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 text-xs font-normal text-destructive hover:bg-destructive/10"
+                              onClick={() => handleDeleteItem(s.id, "signin", "this sign-in")}
+                            >
+                              Revoke
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="mfa" className="mt-4">
+              <h3 className="text-sm font-normal text-zinc-500 uppercase tracking-wider mb-4">Two-factor methods</h3>
+              <div className="max-h-[480px] overflow-y-auto">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-white dark:bg-zinc-950 z-10">
+                    <TableRow className="bg-zinc-50/30 dark:bg-zinc-900/10">
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Factor</TableHead>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Status</TableHead>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Details</TableHead>
+                      <TableHead className="text-right font-normal text-xs uppercase tracking-wider">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="text-sm font-normal">Authenticator app (TOTP)</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={
+                            user.has_otp
+                              ? "text-green-600 dark:text-green-500 border-green-500/20 bg-green-500/5 font-normal py-0"
+                              : "text-zinc-500 border-zinc-500/20 bg-zinc-500/5 font-normal py-0"
+                          }
+                        >
+                          {user.has_otp ? "Enrolled" : "Not enrolled"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs text-zinc-500 font-normal">
+                        {user.has_otp
+                          ? "Authenticator app linked. Removing forces re-enrollment."
+                          : "Enrollment happens from the user's account portal."}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {user.has_otp && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs font-normal text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeleteItem(userId, "authenticator", "TOTP authenticator")}
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="text-sm font-normal">Backup codes</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={
+                            user.has_backup_codes
+                              ? "text-green-600 dark:text-green-500 border-green-500/20 bg-green-500/5 font-normal py-0"
+                              : "text-zinc-500 border-zinc-500/20 bg-zinc-500/5 font-normal py-0"
+                          }
+                        >
+                          {user.has_backup_codes ? "Active" : "Not generated"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs text-zinc-500 font-normal">
+                        {user.has_backup_codes
+                          ? "Regenerating invalidates any unused codes."
+                          : "Single-use fallback codes for when the authenticator is unavailable."}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs font-normal"
+                          onClick={handleRegenerateBackupCodes}
+                          disabled={isRegeneratingCodes}
+                        >
+                          {user.has_backup_codes ? "Regenerate" : "Generate"}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="passkeys" className="mt-4">
+              <h3 className="text-sm font-normal text-zinc-500 uppercase tracking-wider mb-4">Registered passkeys</h3>
+              {!passkeys?.length ? (
+                <EmptyState
+                  title="No passkeys"
+                  description="User has not registered any passkeys."
+                  icon={<XCircleIcon className="h-10 w-10 text-zinc-200" />}
+                />
+              ) : (
+                <div className="max-h-[480px] overflow-y-auto">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-white dark:bg-zinc-950 z-10">
+                      <TableRow className="bg-zinc-50/30 dark:bg-zinc-900/10">
+                        <TableHead className="font-normal text-xs uppercase tracking-wider">Name</TableHead>
+                        <TableHead className="font-normal text-xs uppercase tracking-wider">Device</TableHead>
+                        <TableHead className="font-normal text-xs uppercase tracking-wider">Last used</TableHead>
+                        <TableHead className="text-right font-normal text-xs uppercase tracking-wider">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {passkeys.map((p) => (
+                        <TableRow key={p.id}>
+                          <TableCell>
+                            {renamingPasskeyId === p.id ? (
+                              <div className="flex gap-1">
+                                <input
+                                  className="flex h-7 w-full rounded-md border border-zinc-200 bg-transparent px-2 text-sm dark:border-zinc-800"
+                                  value={renamingPasskeyValue}
+                                  onChange={(e) => setRenamingPasskeyValue(e.target.value)}
+                                  autoFocus
+                                />
+                                <Button size="sm" variant="ghost" className="h-7 text-xs font-normal" onClick={() => handleRenamePasskey(p.id)}>
+                                  Save
+                                </Button>
+                                <Button size="sm" variant="ghost" className="h-7 text-xs font-normal" onClick={() => setRenamingPasskeyId(null)}>
+                                  Cancel
+                                </Button>
+                              </div>
+                            ) : (
+                              <span className="text-sm font-normal">{p.name}</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-xs text-zinc-500 font-normal">{p.device_type || "—"}</TableCell>
+                          <TableCell className="text-xs text-zinc-500 font-normal">
+                            {p.last_used_at ? format(new Date(p.last_used_at), "MMM d, yyyy") : "Never"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => {
+                                  setRenamingPasskeyId(p.id);
+                                  setRenamingPasskeyValue(p.name);
+                                }}
+                              >
+                                <PencilIcon className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                                onClick={() => handleDeleteItem(p.id, "passkey", p.name)}
+                              >
+                                <TrashIcon className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="organizations" className="mt-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-sm font-normal text-zinc-500 uppercase tracking-wider">Organization memberships</h3>
+                <span className="text-xs text-zinc-500">{orgMemberships?.length ?? 0} total</span>
+              </div>
+              {!orgMemberships?.length ? (
+                <EmptyState title="No organizations" description="User is not a member of any organization." icon={<XCircleIcon className="h-10 w-10 text-zinc-200" />} />
+              ) : (
+                <div className="max-h-[480px] overflow-y-auto">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-white dark:bg-zinc-950 z-10">
+                      <TableRow className="bg-zinc-50/30 dark:bg-zinc-900/10">
+                        <TableHead className="font-normal text-xs uppercase tracking-wider">Organization</TableHead>
+                        <TableHead className="font-normal text-xs uppercase tracking-wider">Roles</TableHead>
+                        <TableHead className="font-normal text-xs uppercase tracking-wider">Joined</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {orgMemberships.map((m) => (
+                        <TableRow key={m.id}>
+                          <TableCell className="text-sm font-normal">{m.organization.name}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {m.roles.length === 0 ? (
+                                <span className="text-xs text-zinc-500">—</span>
+                              ) : (
+                                m.roles.map((r) => (
+                                  <Badge key={r.id} variant="secondary" className="font-normal text-xs">
+                                    {r.name}
+                                  </Badge>
+                                ))
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-xs text-zinc-500 font-normal">{format(new Date(m.created_at), "MMM d, yyyy")}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="workspaces" className="mt-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-sm font-normal text-zinc-500 uppercase tracking-wider">Workspace memberships</h3>
+                <span className="text-xs text-zinc-500">{workspaceMemberships?.length ?? 0} total</span>
+              </div>
+              {!workspaceMemberships?.length ? (
+                <EmptyState title="No workspaces" description="User is not a member of any workspace." icon={<XCircleIcon className="h-10 w-10 text-zinc-200" />} />
+              ) : (
+                <div className="max-h-[480px] overflow-y-auto">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-white dark:bg-zinc-950 z-10">
+                      <TableRow className="bg-zinc-50/30 dark:bg-zinc-900/10">
+                        <TableHead className="font-normal text-xs uppercase tracking-wider">Workspace</TableHead>
+                        <TableHead className="font-normal text-xs uppercase tracking-wider">Roles</TableHead>
+                        <TableHead className="font-normal text-xs uppercase tracking-wider">Joined</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {workspaceMemberships.map((m) => (
+                        <TableRow key={m.id}>
+                          <TableCell className="text-sm font-normal">{m.workspace.name}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {m.roles.length === 0 ? (
+                                <span className="text-xs text-zinc-500">—</span>
+                              ) : (
+                                m.roles.map((r) => (
+                                  <Badge key={r.id} variant="secondary" className="font-normal text-xs">
+                                    {r.name}
+                                  </Badge>
+                                ))
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-xs text-zinc-500 font-normal">{format(new Date(m.created_at), "MMM d, yyyy")}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -528,11 +952,44 @@ export default function UserDetailsPage() {
         isOpen={confirmationDialogOpen}
         onClose={() => setConfirmationDialogOpen(false)}
         onConfirm={handleConfirmDelete}
-        title={`Delete User ${user.first_name}`}
-        message={`Are you sure you want to delete this user? This action cannot be undone.`}
-        confirmText="Delete"
+        title={
+          deleteItem?.type === "all-sessions"
+            ? "Revoke all sign-ins"
+            : deleteItem?.type === "signin"
+              ? "Revoke sign-in"
+              : deleteItem?.type === "passkey"
+                ? `Delete passkey ${deleteItem.name}`
+                : deleteItem?.type === "authenticator"
+                  ? "Remove TOTP authenticator"
+                  : deleteItem?.type === "password"
+                    ? "Remove password"
+                    : `Delete ${deleteItem?.type ?? "item"}`
+        }
+        message={
+          deleteItem?.type === "password"
+            ? "The user will no longer be able to sign in with a password. They'll need another factor."
+            : deleteItem?.type === "all-sessions"
+              ? "Every active sign-in for this user will be revoked. The user will need to sign in again on all devices."
+              : deleteItem?.type === "authenticator"
+                ? "The user's TOTP factor will be removed. They'll need to re-enroll to use 2FA."
+                : "This action cannot be undone."
+        }
+        confirmText={
+          deleteItem?.type === "all-sessions" || deleteItem?.type === "signin"
+            ? "Revoke"
+            : deleteItem?.type === "password"
+              ? "Remove"
+              : "Delete"
+        }
         cancelText="Cancel"
       />
+      {newBackupCodes && (
+        <BackupCodesModal
+          isOpen={!!newBackupCodes}
+          onClose={() => setNewBackupCodes(null)}
+          codes={newBackupCodes}
+        />
+      )}
     </>
   );
 }

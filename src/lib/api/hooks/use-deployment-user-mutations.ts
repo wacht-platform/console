@@ -125,6 +125,27 @@ export function useDeleteUser() {
   });
 }
 
+export function useRemoveUserPassword(userId: string) {
+  const queryClient = useQueryClient();
+  const { selectedDeployment } = useProjects();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!selectedDeployment?.id || !userId) {
+        throw new Error("No deployment or user selected");
+      }
+      await apiClient.delete(
+        `/deployments/${selectedDeployment.id}/users/${userId}/password`,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["user-details", selectedDeployment?.id, userId],
+      });
+    },
+  });
+}
+
 export function useDeleteInvitation() {
   const queryClient = useQueryClient();
   const { selectedDeployment } = useProjects();

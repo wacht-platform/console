@@ -94,6 +94,88 @@ export interface SocialConnection {
 	refresh_token: string;
 }
 
+export interface UserSignin {
+	id: string;
+	created_at: string;
+	updated_at: string;
+	session_id: string;
+	user_id: string | null;
+	active_organization_membership_id: string | null;
+	active_workspace_membership_id: string | null;
+	expires_at: string;
+	last_active_at: string;
+	ip_address: string;
+	browser: string;
+	device: string;
+	city: string;
+	region: string;
+	region_code: string;
+	country: string;
+	country_code: string;
+}
+
+export interface UserPasskey {
+	id: string;
+	created_at: string | null;
+	updated_at: string | null;
+	user_id: string;
+	name: string;
+	sign_count: number;
+	transports: string[] | null;
+	last_used_at: string | null;
+	backed_up: boolean | null;
+	device_type: string | null;
+}
+
+export interface UserRoleSummary {
+	id: string;
+	created_at: string;
+	updated_at: string;
+	name: string;
+	permissions: string[];
+	is_deployment_level: boolean;
+}
+
+export interface UserOrganizationMembership {
+	id: string;
+	created_at: string;
+	updated_at: string;
+	organization_id: string;
+	user_id: string;
+	public_metadata: Record<string, unknown>;
+	roles: UserRoleSummary[];
+	organization: {
+		id: string;
+		created_at: string;
+		updated_at: string;
+		name: string;
+		image_url: string;
+		description: string;
+		member_count: number;
+	};
+}
+
+export interface UserWorkspaceMembership {
+	id: string;
+	created_at: string;
+	updated_at: string;
+	workspace_id: string;
+	organization_id: string;
+	organization_membership_id: string;
+	user_id: string;
+	public_metadata: Record<string, unknown>;
+	roles: UserRoleSummary[];
+	workspace: {
+		id: string;
+		created_at: string;
+		updated_at: string;
+		name: string;
+		image_url: string;
+		description: string;
+		member_count: number;
+	};
+}
+
 export interface UserDetails {
 	id: string;
 	created_at: string;
