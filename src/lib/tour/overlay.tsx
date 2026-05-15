@@ -399,8 +399,8 @@ function CenterCard({
         >
             {/* Single-line chip header */}
             <div className="flex items-center gap-2 px-5 pt-4 pb-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10.5px] font-medium tracking-[0.04em] text-primary ring-1 ring-inset ring-primary/20">
-                    <Sparkles className="h-3 w-3" strokeWidth={2.4} />
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2 py-0.5 text-[10.5px] font-medium tracking-[0.04em] text-foreground/80 ring-1 ring-inset ring-border/70 dark:bg-muted/40">
+                    <Sparkles className="h-3 w-3 text-muted-foreground" strokeWidth={2.4} />
                     Buddy
                 </span>
                 <div className="flex-1" />
@@ -719,8 +719,8 @@ function WaitingCenter({
             className="pointer-events-auto fixed left-1/2 top-1/2 z-[1001] w-[380px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl shadow-black/30"
         >
             <div className="flex items-center gap-2 px-4 pt-3 pb-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10.5px] font-medium tracking-[0.04em] text-primary ring-1 ring-inset ring-primary/20">
-                    <Sparkles className="h-3 w-3" strokeWidth={2.4} />
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2 py-0.5 text-[10.5px] font-medium tracking-[0.04em] text-foreground/80 ring-1 ring-inset ring-border/70 dark:bg-muted/40">
+                    <Sparkles className="h-3 w-3 text-muted-foreground" strokeWidth={2.4} />
                     Buddy
                 </span>
                 <div className="flex-1" />
