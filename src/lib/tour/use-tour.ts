@@ -45,6 +45,6 @@ export function useTourAction(
     handlerRef.current = handler;
 
     React.useEffect(() => {
-        return registerAction(id, () => handlerRef.current());
+        return registerAction(id, (arg) => handlerRef.current(arg));
     }, [id, registerAction]);
 }

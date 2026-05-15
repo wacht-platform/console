@@ -40,6 +40,7 @@ export function AgentRouteNav() {
           <Link
             key={item.key}
             to={href}
+            data-tour-id={`agent-tab-${item.key}`}
             className={cn(
               "inline-flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-[13px] font-medium transition-colors",
               active

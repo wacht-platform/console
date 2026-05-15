@@ -7,6 +7,7 @@ import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
 import { CreateAgentDialog } from "@/components/ai-agents/create-agent-dialog";
 import { AgentRouteNav } from "@/components/ai-agents/agent-route-nav";
 import { useAgentById, useDeleteAgent } from "@/lib/api/hooks/use-agents";
+import { useTour } from "@/lib/tour";
 
 export default function AgentLayoutPage() {
   const navigate = useNavigate();
@@ -20,6 +21,11 @@ export default function AgentLayoutPage() {
   const { data: agent, isLoading, error } = useAgentById(agentId || "");
   const deleteAgentMutation = useDeleteAgent();
   const basePath = `/project/${projectId}/deployment/${deploymentId}/llms/ai-agents`;
+
+  // Fires the agent-builder walkthrough once per agent open. The navigate
+  // action that drives each step is registered globally on
+  // ApplicationLayout — it auto-detects agent context from the URL.
+  useTour("agent-builder", !isLoading && !!agent);
 
   const handleDelete = async () => {
     if (!agent) return;

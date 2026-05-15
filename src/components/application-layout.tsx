@@ -34,8 +34,22 @@ export function ApplicationLayout() {
     const params = useParams();
     useTourAction("tour:navigate", (rel) => {
         if (!rel || !params.projectId || !params.deploymentId) return;
-        const path = `/project/${params.projectId}/deployment/${params.deploymentId}/${rel.replace(/^\/+/, "")}`;
-        navigate(path);
+        const trimmed = rel.replace(/^\/+/, "");
+        const deploymentRoot = `/project/${params.projectId}/deployment/${params.deploymentId}`;
+        // When we're inside an agent (URL contains /llms/ai-agents/{agentId}/...)
+        // a step's bare `navigateTo` is treated as a sub-route of THIS agent.
+        // So `navigateTo: "skills"` jumps to that agent's Skills tab regardless
+        // of which tab the user happens to be on right now.
+        const agentMatch = location.pathname.match(
+            new RegExp(
+                `^${deploymentRoot}/llms/ai-agents/([^/]+)(?:/|$)`,
+            ),
+        );
+        if (agentMatch) {
+            navigate(`${deploymentRoot}/llms/ai-agents/${agentMatch[1]}/${trimmed}`);
+            return;
+        }
+        navigate(`${deploymentRoot}/${trimmed}`);
     });
     const [isCreateProjectDialogOpen, setIsCreateProjectDialogOpen] =
         useState(false);
