@@ -339,47 +339,42 @@ function PopoverCard({
                     width={14}
                     height={7}
                 />
-                <div className="relative bg-gradient-to-br from-primary/[0.08] via-primary/[0.02] to-transparent px-5 pt-4 pb-4">
-                    <div className="mb-3 flex items-center gap-2.5">
-                        <BuddyAvatar size="sm" />
-                        <div className="flex min-w-0 flex-1 flex-col leading-tight">
-                            <span className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-primary">
-                                Buddy
-                            </span>
-                            <span className="truncate text-[10.5px] text-muted-foreground">
-                                Your console guide
-                            </span>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={onTurnOff}
-                            aria-label="Turn off Buddy"
-                            title="Turn off Buddy"
-                            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                        >
-                            <BellOff className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            aria-label="Skip tour"
-                            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                        >
-                            <X className="h-3.5 w-3.5" />
-                        </button>
-                    </div>
-                    <div className="text-[14px] font-semibold leading-snug tracking-tight">
-                        {title}
-                    </div>
-                    {progress ? (
-                        <div className="mt-3">
-                            <StepProgress
-                                current={progress.current}
-                                total={progress.total}
-                            />
-                        </div>
-                    ) : null}
+                {/* Top chip row — Buddy badge + close affordances. Single line. */}
+                <div className="flex items-center gap-2 px-4 pt-3 pb-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10.5px] font-medium tracking-[0.04em] text-primary ring-1 ring-inset ring-primary/20">
+                        <Sparkles className="h-3 w-3" strokeWidth={2.4} />
+                        Buddy
+                    </span>
+                    <div className="flex-1" />
+                    <button
+                        type="button"
+                        onClick={onTurnOff}
+                        aria-label="Turn off Buddy"
+                        title="Turn off Buddy"
+                        className="inline-flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                    >
+                        <BellOff className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        aria-label="Skip tour"
+                        className="inline-flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                    >
+                        <X className="h-3.5 w-3.5" />
+                    </button>
                 </div>
+
+                {progress ? (
+                    <div className="px-4 pb-3">
+                        <StepProgress
+                            current={progress.current}
+                            total={progress.total}
+                        />
+                    </div>
+                ) : null}
+
+                <div className="h-px w-full bg-border/70" />
 
                 <AnimatePresence mode="wait" initial={false}>
                     <motion.div
@@ -392,13 +387,18 @@ function PopoverCard({
                             stiffness: 380,
                             damping: 30,
                         }}
-                        className="px-5 py-4 text-[13px] leading-relaxed text-foreground/85"
+                        className="px-5 pt-4 pb-5"
                     >
-                        {body}
+                        <div className="text-[14px] font-medium leading-snug tracking-[-0.005em] text-foreground">
+                            {title}
+                        </div>
+                        <div className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+                            {body}
+                        </div>
                     </motion.div>
                 </AnimatePresence>
 
-                <div className="flex items-center justify-between gap-2 border-t border-border/60 bg-muted/40 px-3.5 py-2.5">
+                <div className="flex items-center justify-between gap-2 border-t border-border/70 bg-muted/30 px-3.5 py-2.5 dark:bg-muted/20">
                     <div className="flex items-center">{leftSlot}</div>
                     <div className="flex items-center gap-1.5">
                         {rightSlot}
@@ -435,41 +435,37 @@ function CenterCard({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.96 }}
             transition={{ type: "spring", stiffness: 340, damping: 28 }}
-            className="pointer-events-auto fixed left-1/2 top-1/2 z-[1001] w-[440px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border/70 bg-popover text-popover-foreground shadow-[0_36px_80px_-12px_rgba(0,0,0,0.55)] ring-1 ring-black/5 dark:ring-white/5"
+            className="pointer-events-auto fixed left-1/2 top-1/2 z-[1001] w-[420px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border/70 bg-popover text-popover-foreground shadow-[0_36px_80px_-12px_rgba(0,0,0,0.55)] ring-1 ring-black/5 dark:ring-white/5"
         >
-            <div className="relative overflow-hidden bg-gradient-to-br from-primary/[0.14] via-primary/[0.04] to-transparent px-7 pt-7 pb-6">
-                <div
-                    aria-hidden
-                    className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/15 blur-2xl"
-                />
+            {/* Single-line chip header */}
+            <div className="flex items-center gap-2 px-5 pt-4 pb-3">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10.5px] font-medium tracking-[0.04em] text-primary ring-1 ring-inset ring-primary/20">
+                    <Sparkles className="h-3 w-3" strokeWidth={2.4} />
+                    Buddy
+                </span>
+                <div className="flex-1" />
                 <button
                     type="button"
                     onClick={onTurnOff}
                     aria-label="Turn off Buddy"
                     title="Turn off Buddy"
-                    className="absolute right-3 top-3 inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                    className="inline-flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
                 >
                     <BellOff className="h-3.5 w-3.5" />
                 </button>
-                <div className="relative flex items-center gap-3">
-                    <BuddyAvatar size="lg" />
-                    <div className="flex flex-col leading-tight">
-                        <span className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-primary">
-                            Buddy
-                        </span>
-                        <span className="text-[11px] text-muted-foreground">
-                            Your friendly Wacht guide
-                        </span>
-                    </div>
-                </div>
-                <div className="relative mt-5 text-[17px] font-semibold leading-snug tracking-tight">
+            </div>
+
+            <div className="h-px w-full bg-border/70" />
+
+            <div className="px-6 pt-5 pb-2">
+                <div className="text-[16px] font-medium leading-snug tracking-[-0.01em] text-foreground">
                     {title}
                 </div>
             </div>
-            <div className="px-7 py-5 text-[13.5px] leading-relaxed text-foreground/85">
+            <div className="px-6 pt-2 pb-5 text-[13.5px] leading-relaxed text-muted-foreground">
                 {body}
             </div>
-            <div className="flex items-center justify-between gap-2 border-t border-border/60 bg-muted/40 px-4 py-3">
+            <div className="flex items-center justify-between gap-2 border-t border-border/70 bg-muted/30 px-4 py-3 dark:bg-muted/20">
                 <button
                     type="button"
                     onClick={onSkip}
@@ -579,7 +575,7 @@ export function TourOverlay({ payload }: { payload: ActiveTourPayload }) {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.18 }}
-                    className="pointer-events-auto absolute inset-0 bg-foreground/45 backdrop-blur-[3px]"
+                    className="pointer-events-auto absolute inset-0 bg-black/55 backdrop-blur-[3px] dark:bg-black/70"
                     onClick={payload.onSkip}
                 />
                 <AnimatePresence mode="wait">
@@ -762,38 +758,35 @@ function WaitingCenter({
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
             className="pointer-events-auto fixed left-1/2 top-1/2 z-[1001] w-[380px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl shadow-black/30"
         >
-            <div className="relative bg-gradient-to-br from-primary/[0.08] via-primary/[0.02] to-transparent px-5 pt-4 pb-4">
-                <div className="mb-3 flex items-center gap-2.5">
-                    <BuddyAvatar size="sm" />
-                    <div className="flex min-w-0 flex-1 flex-col leading-tight">
-                        <span className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-primary">
-                            Buddy
-                        </span>
-                        <span className="truncate text-[10.5px] text-muted-foreground">
-                            Your console guide
-                        </span>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={onTurnOff}
-                        aria-label="Turn off Buddy"
-                        title="Turn off Buddy"
-                        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                    >
-                        <BellOff className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                        type="button"
-                        onClick={onSkip}
-                        aria-label="Skip tour"
-                        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                    >
-                        <X className="h-3.5 w-3.5" />
-                    </button>
-                </div>
-                <div className="text-[14px] font-semibold leading-snug tracking-tight">
-                    {title}
-                </div>
+            <div className="flex items-center gap-2 px-4 pt-3 pb-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10.5px] font-medium tracking-[0.04em] text-primary ring-1 ring-inset ring-primary/20">
+                    <Sparkles className="h-3 w-3" strokeWidth={2.4} />
+                    Buddy
+                </span>
+                <div className="flex-1" />
+                <button
+                    type="button"
+                    onClick={onTurnOff}
+                    aria-label="Turn off Buddy"
+                    title="Turn off Buddy"
+                    className="inline-flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                >
+                    <BellOff className="h-3.5 w-3.5" />
+                </button>
+                <button
+                    type="button"
+                    onClick={onSkip}
+                    aria-label="Skip tour"
+                    className="inline-flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                >
+                    <X className="h-3.5 w-3.5" />
+                </button>
+            </div>
+
+            <div className="h-px w-full bg-border/70" />
+
+            <div className="px-5 pt-4 pb-2 text-[14px] font-medium leading-snug tracking-[-0.005em] text-foreground">
+                {title}
             </div>
             <div className="px-4 py-4 text-[13px] leading-relaxed text-foreground/85">
                 {body}
