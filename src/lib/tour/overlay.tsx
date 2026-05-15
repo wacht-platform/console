@@ -102,46 +102,6 @@ function useTargetRect(target?: string) {
 }
 
 /**
- * Buddy's "face". A Sparkles glyph on a soft primary-tinted disc with a
- * gentle continuous pulse — reads as a personable guide, not a system icon.
- */
-function BuddyAvatar({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
-    const dims =
-        size === "lg"
-            ? "h-11 w-11"
-            : size === "sm"
-              ? "h-7 w-7"
-              : "h-9 w-9";
-    const iconSize =
-        size === "lg" ? "h-5 w-5" : size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4";
-
-    return (
-        <motion.div
-            initial={{ scale: 0.85, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 360, damping: 22 }}
-            className={cn(
-                "relative flex shrink-0 items-center justify-center rounded-full",
-                "bg-gradient-to-br from-primary/25 via-primary/10 to-primary/5",
-                "ring-1 ring-primary/30 shadow-sm",
-                dims,
-            )}
-        >
-            <motion.div
-                aria-hidden
-                className="absolute inset-0 rounded-full bg-primary/20"
-                animate={{ scale: [1, 1.18, 1], opacity: [0.45, 0, 0.45] }}
-                transition={{ duration: 2.4, repeat: Infinity, ease: "easeOut" }}
-            />
-            <Sparkles
-                className={cn("relative text-primary", iconSize)}
-                strokeWidth={2.1}
-            />
-        </motion.div>
-    );
-}
-
-/**
  * Step pips — thin horizontal pills that fill as the user advances. Renders
  * nothing for single-step tours since there's no progress to show.
  */
