@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { format } from "date-fns";
+import { formatDistanceToNowStrict } from "date-fns";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePostHog } from "@posthog/react";
@@ -7,19 +7,11 @@ import { OrganizationSwitcher, UserButton } from "@wacht/react-router";
 import {
     MagnifyingGlassIcon,
     PlusIcon,
-    ArrowUpRightIcon,
-    GlobeAltIcon,
-    RocketLaunchIcon,
-    BeakerIcon,
-    ClockIcon,
     ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 
 import { Navbar, NavbarSpacer } from "@/components/ui/navbar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
     Dialog,
     DialogContent,
@@ -31,15 +23,17 @@ import {
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { ProjectLoadingGrid } from "@/components/ui/loading-screen";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Text } from "@/components/ui/text";
 import { BillingSetupDialog } from "@/components/billing-setup-dialog";
 import { CreateProjectDialog } from "@/components/create-project-dialog";
 import { useBillingAccount } from "@/lib/api/hooks/use-billing";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { useProjectStore } from "@/lib/store/project";
-import { ProjectWithDeployments } from "@/types/project";
+import { cn } from "@/lib/utils";
+import type { ProjectWithDeployments } from "@/types/project";
 import { useTour, useTourCompletion } from "@/lib/tour";
+
+type Mode = "all" | "production" | "staging";
 
 function projectHasMode(
     project: ProjectWithDeployments,
@@ -48,15 +42,62 @@ function projectHasMode(
     return project.deployments.some((deployment) => deployment.mode === mode);
 }
 
-function filterProjects(projects: ProjectWithDeployments[], query: string) {
-    if (!query.trim()) return projects;
-    const term = query.toLowerCase();
+function filterProjects(
+    projects: ProjectWithDeployments[],
+    query: string,
+    mode: Mode,
+) {
+    const term = query.trim().toLowerCase();
     return projects.filter((project) => {
+        if (mode !== "all" && !projectHasMode(project, mode)) return false;
+        if (!term) return true;
         const hostText = project.deployments
             .map((deployment) => deployment.frontend_host)
             .join(" ");
         return `${project.name} ${hostText}`.toLowerCase().includes(term);
     });
+}
+
+/**
+ * Deterministic palette + gradient seeded from a stringified id. Same project
+ * always renders the same backdrop — gives every card a quietly unique color
+ * fingerprint without us picking colors by hand.
+ */
+function seededGradient(id: string) {
+    let hash = 0;
+    for (let i = 0; i < id.length; i += 1) {
+        hash = (hash * 31 + id.charCodeAt(i)) | 0;
+    }
+    const base = Math.abs(hash) % 360;
+    const accent = (base + 47) % 360;
+    return {
+        backgroundImage: [
+            `radial-gradient(120% 80% at 15% 10%, hsla(${base},70%,62%,0.18), transparent 55%)`,
+            `radial-gradient(100% 80% at 85% 90%, hsla(${accent},75%,58%,0.14), transparent 60%)`,
+        ].join(", "),
+    } as React.CSSProperties;
+}
+
+/**
+ * Time-since helper that prefers short, scannable strings ("3h ago",
+ * "2d ago") over the verbose `MMM d, yyyy` we used before.
+ */
+function relativeTime(value: string | Date | undefined) {
+    if (!value) return "—";
+    try {
+        return `${formatDistanceToNowStrict(new Date(value))} ago`;
+    } catch {
+        return "—";
+    }
+}
+
+function mostRecentDeploymentTime(project: ProjectWithDeployments) {
+    const times = project.deployments
+        .map((d) => new Date(d.updated_at ?? d.created_at ?? project.created_at))
+        .map((d) => d.getTime())
+        .filter((t) => Number.isFinite(t));
+    if (times.length === 0) return new Date(project.created_at).getTime();
+    return Math.max(...times);
 }
 
 export default function ProjectsPage() {
@@ -68,6 +109,7 @@ export default function ProjectsPage() {
     const [pendingBillingDialogOpen, setPendingBillingDialogOpen] =
         useState(false);
     const [query, setQuery] = useState("");
+    const [mode, setMode] = useState<Mode>("all");
 
     const handleCreateProject = () => {
         if (
@@ -84,24 +126,33 @@ export default function ProjectsPage() {
     };
 
     const allProjects = useMemo(() => projects ?? [], [projects]);
-    const productionProjects = allProjects.filter((project) =>
-        projectHasMode(project, "production"),
-    );
-    const stagingProjects = allProjects.filter((project) =>
-        projectHasMode(project, "staging"),
+    const productionCount = allProjects.filter((p) =>
+        projectHasMode(p, "production"),
+    ).length;
+    const stagingCount = allProjects.filter((p) =>
+        projectHasMode(p, "staging"),
+    ).length;
+    const createdThisMonth = allProjects.filter((project) => {
+        const created = new Date(project.created_at);
+        const now = new Date();
+        return (
+            created.getUTCFullYear() === now.getUTCFullYear() &&
+            created.getUTCMonth() === now.getUTCMonth()
+        );
+    }).length;
+
+    const ranked = useMemo(
+        () =>
+            [...allProjects].sort(
+                (a, b) =>
+                    mostRecentDeploymentTime(b) - mostRecentDeploymentTime(a),
+            ),
+        [allProjects],
     );
 
-    const filteredAllProjects = useMemo(
-        () => filterProjects(allProjects, query),
-        [allProjects, query],
-    );
-    const filteredProductionProjects = useMemo(
-        () => filterProjects(productionProjects, query),
-        [productionProjects, query],
-    );
-    const filteredStagingProjects = useMemo(
-        () => filterProjects(stagingProjects, query),
-        [stagingProjects, query],
+    const filteredProjects = useMemo(
+        () => filterProjects(ranked, query, mode),
+        [ranked, query, mode],
     );
 
     useTour("first-deployment-create", !isLoading);
@@ -115,15 +166,6 @@ export default function ProjectsPage() {
     );
     useTourCompletion("first-deployment-create", hasAnyDeployment);
 
-    const createdThisMonth = allProjects.filter((project) => {
-        const created = new Date(project.created_at);
-        const now = new Date();
-        return (
-            created.getUTCFullYear() === now.getUTCFullYear() &&
-            created.getUTCMonth() === now.getUTCMonth()
-        );
-    }).length;
-
     return (
         <div className="min-h-screen bg-background">
             <Navbar className="fixed top-0 left-0 right-0 z-50 h-14 border-b border-border/70 bg-background/90 backdrop-blur-md">
@@ -136,124 +178,89 @@ export default function ProjectsPage() {
                 </div>
             </Navbar>
 
-            <main className="mx-auto max-w-7xl px-6 pt-14 pb-16 lg:px-8">
-                <section className="mt-8">
-                    <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <main className="mx-auto max-w-7xl px-6 pt-14 pb-20 lg:px-8">
+                {/* Title row + stat ticker. Single editorial-feeling block,
+                    no boxes. */}
+                <section className="mt-10 mb-8 border-b border-border/60 pb-6">
+                    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                         <div>
-                            <h1 className="text-3xl tracking-tight text-foreground md:text-2xl">
-                                Projects
-                            </h1>
-                            <p className="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
-                                Centralize every app and deployment environment
-                                in one control plane.
+                            <div className="flex items-baseline gap-3">
+                                <h1 className="text-[34px] font-medium leading-none tracking-[-0.025em] text-foreground">
+                                    Projects
+                                </h1>
+                                <span className="font-mono text-sm text-muted-foreground">
+                                    {allProjects.length.toString().padStart(2, "0")}
+                                </span>
+                            </div>
+                            <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[12.5px] text-muted-foreground">
+                                <StatItem
+                                    label="production"
+                                    value={productionCount}
+                                />
+                                <Separator />
+                                <StatItem
+                                    label="staging"
+                                    value={stagingCount}
+                                />
+                                <Separator />
+                                <StatItem
+                                    label="new this month"
+                                    value={createdThisMonth}
+                                />
                             </p>
                         </div>
-                        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-                            <div className="relative sm:w-80">
-                                <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+                            <div className="relative sm:w-72">
+                                <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                                 <Input
                                     value={query}
                                     onChange={(event) =>
                                         setQuery(event.target.value)
                                     }
-                                    placeholder="Search by project or host..."
-                                    className="pl-9"
+                                    placeholder="Search projects or hosts"
+                                    className="h-9 pl-9 text-[13px]"
                                 />
                             </div>
                             <Button
                                 data-tour-id="projects-create-button"
                                 onClick={handleCreateProject}
-                                className="gap-2"
+                                className="h-9 gap-2"
                             >
                                 <PlusIcon className="h-4 w-4" />
                                 New project
                             </Button>
                         </div>
                     </div>
+
+                    <div className="mt-5 flex flex-wrap items-center gap-1.5">
+                        <FilterChip
+                            active={mode === "all"}
+                            onClick={() => setMode("all")}
+                        >
+                            All
+                        </FilterChip>
+                        <FilterChip
+                            active={mode === "production"}
+                            onClick={() => setMode("production")}
+                        >
+                            Production
+                        </FilterChip>
+                        <FilterChip
+                            active={mode === "staging"}
+                            onClick={() => setMode("staging")}
+                        >
+                            Staging
+                        </FilterChip>
+                    </div>
                 </section>
 
-                <section className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-                    <MetricCard
-                        title="Total Projects"
-                        value={allProjects.length}
-                        icon={<GlobeAltIcon className="h-4 w-4" />}
-                    />
-                    <MetricCard
-                        title="Production"
-                        value={productionProjects.length}
-                        icon={<RocketLaunchIcon className="h-4 w-4" />}
-                    />
-                    <MetricCard
-                        title="Staging"
-                        value={stagingProjects.length}
-                        icon={<BeakerIcon className="h-4 w-4" />}
-                    />
-                    <MetricCard
-                        title="Created This Month"
-                        value={createdThisMonth}
-                        icon={<ClockIcon className="h-4 w-4" />}
-                    />
-                </section>
-
-                <section className="mt-7">
-                    <Tabs defaultValue="all" className="w-full">
-                        <TabsList className="h-10 rounded-xl border border-border/80 bg-muted/40 p-1">
-                            <TabsTrigger
-                                value="all"
-                                className="h-8 rounded-lg px-4 text-xs"
-                            >
-                                All
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="production"
-                                className="h-8 rounded-lg px-4 text-xs"
-                            >
-                                Production
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="staging"
-                                className="h-8 rounded-lg px-4 text-xs"
-                            >
-                                Staging
-                            </TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="all" className="mt-5">
-                            <ProjectsGrid
-                                isLoading={isLoading}
-                                projects={filteredAllProjects}
-                                query={query}
-                                emptyTitle="No projects yet"
-                                emptyDescription="Create your first project to get started."
-                                onCreateProject={handleCreateProject}
-                            />
-                        </TabsContent>
-
-                        <TabsContent value="production" className="mt-5">
-                            <ProjectsGrid
-                                isLoading={isLoading}
-                                projects={filteredProductionProjects}
-                                query={query}
-                                emptyTitle="No production deployments"
-                                emptyDescription="Deploy a production environment to see projects here."
-                                onCreateProject={handleCreateProject}
-                                highlightMode="production"
-                            />
-                        </TabsContent>
-
-                        <TabsContent value="staging" className="mt-5">
-                            <ProjectsGrid
-                                isLoading={isLoading}
-                                projects={filteredStagingProjects}
-                                query={query}
-                                emptyTitle="No staging deployments"
-                                emptyDescription="Create a staging environment to see projects here."
-                                onCreateProject={handleCreateProject}
-                                highlightMode="staging"
-                            />
-                        </TabsContent>
-                    </Tabs>
-                </section>
+                <ProjectsBento
+                    isLoading={isLoading}
+                    projects={filteredProjects}
+                    query={query}
+                    mode={mode}
+                    onCreateProject={handleCreateProject}
+                />
             </main>
 
             <CreateProjectDialog
@@ -320,67 +327,78 @@ export default function ProjectsPage() {
     );
 }
 
-function MetricCard({
-    title,
-    value,
-    icon,
-}: {
-    title: string;
-    value: number;
-    icon: React.ReactNode;
-}) {
+function Separator() {
+    return <span className="text-muted-foreground/40">/</span>;
+}
+
+function StatItem({ label, value }: { label: string; value: number }) {
     return (
-        <Card className="border-border/80 bg-card">
-            <CardContent className="flex items-center justify-between p-4">
-                <div>
-                    <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                        {title}
-                    </p>
-                    <p className="mt-2 text-2xl tracking-tight text-foreground">
-                        {value}
-                    </p>
-                </div>
-                <div className="rounded-lg border border-border/80 bg-muted/40 p-2 text-muted-foreground">
-                    {icon}
-                </div>
-            </CardContent>
-        </Card>
+        <span className="inline-flex items-baseline gap-1.5">
+            <span className="text-foreground">
+                {value.toString().padStart(2, "0")}
+            </span>
+            <span className="text-[11.5px] uppercase tracking-[0.08em]">
+                {label}
+            </span>
+        </span>
     );
 }
 
-function ProjectsGrid({
+function FilterChip({
+    active,
+    onClick,
+    children,
+}: {
+    active: boolean;
+    onClick: () => void;
+    children: React.ReactNode;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className={cn(
+                "inline-flex h-7 items-center rounded-full border px-3 text-[12px] font-medium transition-colors",
+                active
+                    ? "border-foreground/80 bg-foreground text-background"
+                    : "border-border bg-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground",
+            )}
+        >
+            {children}
+        </button>
+    );
+}
+
+function ProjectsBento({
     isLoading,
     projects,
     query,
-    emptyTitle,
-    emptyDescription,
+    mode,
     onCreateProject,
-    highlightMode,
 }: {
     isLoading: boolean;
     projects: ProjectWithDeployments[];
     query: string;
-    emptyTitle: string;
-    emptyDescription: string;
+    mode: Mode;
     onCreateProject: () => void;
-    highlightMode?: "production" | "staging";
 }) {
     if (isLoading) {
         return <ProjectLoadingGrid items={6} />;
     }
 
-    if (projects.length === 0 && query.trim().length > 0) {
-        return (
-            <EmptyState
-                title="No matching projects"
-                description={`No results found for "${query}"`}
-                actionLabel="Create Project"
-                onAction={onCreateProject}
-            />
-        );
-    }
-
     if (projects.length === 0) {
+        const emptyTitle = query.trim()
+            ? "No matching projects"
+            : mode === "production"
+              ? "No production deployments"
+              : mode === "staging"
+                ? "No staging deployments"
+                : "No projects yet";
+        const emptyDescription = query.trim()
+            ? `No results found for "${query}"`
+            : mode === "all"
+              ? "Create your first project to get started."
+              : `Deploy a ${mode} environment to see projects here.`;
         return (
             <EmptyState
                 title={emptyTitle}
@@ -391,24 +409,24 @@ function ProjectsGrid({
         );
     }
 
+    const [featured, ...rest] = projects;
     return (
-        <div className="overflow-hidden rounded-xl border border-border/80 bg-card">
-            <div className="hidden grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_160px_120px_130px_28px] items-center gap-3 border-b border-border/70 bg-muted/30 px-4 py-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground md:grid">
-                <span>Project</span>
-                <span>Host</span>
-                <span>Environment</span>
-                <span>Deployments</span>
-                <span>Created</span>
-                <span />
-            </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {featured ? (
+                <ProjectCard
+                    key={featured.id}
+                    project={featured}
+                    featured
+                    isFirst
+                />
+            ) : null}
             <AnimatePresence initial={false}>
-                {projects.map((project, index) => (
-                    <ProjectRow
+                {rest.map((project, index) => (
+                    <ProjectCard
                         key={project.id}
                         project={project}
                         index={index}
-                        highlightMode={highlightMode}
-                        isFirst={index === 0}
+                        isFirst={false}
                     />
                 ))}
             </AnimatePresence>
@@ -416,116 +434,197 @@ function ProjectsGrid({
     );
 }
 
-function ProjectRow({
+function ProjectCard({
     project,
-    index,
-    highlightMode,
+    index = 0,
+    featured = false,
     isFirst,
 }: {
     project: ProjectWithDeployments;
-    index: number;
-    highlightMode?: "production" | "staging";
+    index?: number;
+    featured?: boolean;
     isFirst: boolean;
 }) {
     const navigate = useNavigate();
     const { setSelectedProject, setSelectedDeployment } = useProjectStore();
     const posthog = usePostHog();
-    const { id, name, image_url, deployments, created_at } = project;
 
-    const production = deployments.find(
-        (deployment) => deployment.mode === "production",
-    );
-    const staging = deployments.find(
-        (deployment) => deployment.mode === "staging",
-    );
-    const primary = production || staging || deployments[0];
+    const production = project.deployments.find((d) => d.mode === "production");
+    const staging = project.deployments.find((d) => d.mode === "staging");
+    const primary = production ?? staging ?? project.deployments[0];
 
-    const navigateToProject = () => {
-        let targetDeployment = highlightMode
-            ? deployments.find(
-                  (deployment) => deployment.mode === highlightMode,
-              )
-            : production || deployments[0];
-
-        if (!targetDeployment) targetDeployment = deployments[0];
-        if (!targetDeployment) return;
-
+    const openProject = () => {
+        if (!primary) return;
         posthog?.capture("project_opened", {
-            project_id: id,
-            project_name: name,
-            deployment_mode: targetDeployment.mode,
+            project_id: project.id,
+            project_name: project.name,
+            deployment_mode: primary.mode,
         });
-
         setSelectedProject(project);
-        setSelectedDeployment(targetDeployment);
-        navigate(`/project/${id}/deployment/${targetDeployment.id}`);
+        setSelectedDeployment(primary);
+        navigate(`/project/${project.id}/deployment/${primary.id}`);
     };
+
+    const gradient = seededGradient(String(project.id));
+    const lastTouched = mostRecentDeploymentTime(project);
 
     return (
         <motion.button
             type="button"
             layout
-            initial={{ opacity: 0, y: 6 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.18, delay: index * 0.02 }}
-            onClick={navigateToProject}
+            transition={{ duration: 0.22, delay: index * 0.02 }}
+            onClick={openProject}
             data-tour-id={isFirst ? "project-card" : undefined}
-            className={`group w-full border-border/70 px-4 py-3 text-left transition-colors hover:bg-muted/40 ${isFirst ? "" : "border-t"}`}
+            whileHover={{ y: -2 }}
+            className={cn(
+                "group relative overflow-hidden rounded-2xl border border-border/70 bg-card text-left transition-shadow",
+                "hover:border-foreground/30 hover:shadow-[0_18px_42px_-22px_rgba(0,0,0,0.45)] dark:hover:shadow-[0_18px_42px_-12px_rgba(0,0,0,0.7)]",
+                featured ? "md:col-span-2" : "",
+            )}
         >
-            <div className="grid gap-3 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_160px_120px_130px_28px] md:items-center">
-                <div className="min-w-0">
-                    <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8 rounded-md border border-border/80">
-                            <AvatarImage src={image_url} />
-                            <AvatarFallback className="rounded-md bg-muted text-xs">
-                                {name.charAt(0)}
-                            </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                            <p className="truncate text-sm text-foreground">
-                                {name}
-                            </p>
-                            <p className="truncate text-xs text-muted-foreground md:hidden">
-                                {primary?.frontend_host ?? "No host"}
-                            </p>
-                        </div>
-                    </div>
-                </div>
+            {/* Seeded color signature — same project always gets the same wash. */}
+            <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0 opacity-90 transition-opacity duration-500 group-hover:opacity-100"
+                style={gradient}
+            />
+            {/* Subtle grid texture for that 'developer console' feel. */}
+            <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0 opacity-[0.07] dark:opacity-[0.08]"
+                style={{
+                    backgroundImage:
+                        "linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)",
+                    backgroundSize: "28px 28px",
+                }}
+            />
 
-                <p className="hidden truncate text-xs text-muted-foreground md:block">
-                    {primary?.frontend_host ?? "No host"}
-                </p>
-
-                <div className="flex items-center gap-2">
-                    {production && (
-                        <Badge className="rounded-md border-emerald-500/20 bg-emerald-500/10 px-1.5 py-0 text-[10px] text-emerald-600 dark:text-emerald-400">
-                            Prod
-                        </Badge>
-                    )}
-                    {staging && (
-                        <Badge className="rounded-md border-sky-500/20 bg-sky-500/10 px-1.5 py-0 text-[10px] text-sky-600 dark:text-sky-400">
-                            Staging
-                        </Badge>
-                    )}
-                    {!production && !staging && (
-                        <Badge
-                            variant="outline"
-                            className="rounded-md px-1.5 py-0 text-[10px]"
+            <div
+                className={cn(
+                    "relative flex h-full flex-col gap-4 p-5",
+                    featured ? "md:p-7" : "p-5",
+                )}
+            >
+                <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                        <h3
+                            className={cn(
+                                "truncate font-medium tracking-[-0.015em] text-foreground",
+                                featured ? "text-[22px]" : "text-[17px]",
+                            )}
                         >
-                            Unlabeled
-                        </Badge>
-                    )}
+                            {project.name}
+                        </h3>
+                        <p className="mt-1 font-mono text-[11.5px] text-muted-foreground">
+                            {relativeTime(new Date(lastTouched).toISOString())}
+                        </p>
+                    </div>
+                    <EnvironmentDots
+                        production={!!production}
+                        staging={!!staging}
+                    />
                 </div>
 
-                <p className="text-xs text-muted-foreground">
-                    {deployments.length}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                    {format(new Date(created_at), "MMM d, yyyy")}
-                </p>
-                <ArrowUpRightIcon className="hidden h-4 w-4 text-muted-foreground group-hover:text-primary md:block" />
+                <div className="mt-auto space-y-1">
+                    {production ? (
+                        <HostLine label="prod" host={production.frontend_host} />
+                    ) : null}
+                    {staging ? (
+                        <HostLine label="stg" host={staging.frontend_host} />
+                    ) : null}
+                    {!production && !staging ? (
+                        <HostLine label="—" host="No deployment yet" muted />
+                    ) : null}
+                </div>
             </div>
         </motion.button>
+    );
+}
+
+function EnvironmentDots({
+    production,
+    staging,
+}: {
+    production: boolean;
+    staging: boolean;
+}) {
+    if (!production && !staging) {
+        return (
+            <span className="inline-flex h-5 items-center rounded-full border border-border bg-background/60 px-1.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
+                idle
+            </span>
+        );
+    }
+    return (
+        <div className="flex shrink-0 items-center gap-2 rounded-full border border-border/80 bg-background/60 px-2 py-0.5 backdrop-blur-[2px]">
+            {production ? (
+                <Dot label="prod" tone="emerald" pulse />
+            ) : null}
+            {staging ? <Dot label="stg" tone="sky" /> : null}
+        </div>
+    );
+}
+
+function Dot({
+    label,
+    tone,
+    pulse = false,
+}: {
+    label: string;
+    tone: "emerald" | "sky";
+    pulse?: boolean;
+}) {
+    const ringColor =
+        tone === "emerald" ? "bg-emerald-500" : "bg-sky-500";
+    return (
+        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.08em] text-foreground/75">
+            <span className="relative inline-flex h-1.5 w-1.5">
+                {pulse ? (
+                    <span
+                        className={cn(
+                            "absolute inset-0 rounded-full opacity-60",
+                            ringColor,
+                        )}
+                        style={{ animation: "ping 2.4s cubic-bezier(0,0,0.2,1) infinite" }}
+                    />
+                ) : null}
+                <span
+                    className={cn(
+                        "relative inline-flex h-1.5 w-1.5 rounded-full",
+                        ringColor,
+                    )}
+                />
+            </span>
+            {label}
+        </span>
+    );
+}
+
+function HostLine({
+    label,
+    host,
+    muted = false,
+}: {
+    label: string;
+    host: string;
+    muted?: boolean;
+}) {
+    return (
+        <div className="flex items-center gap-2 font-mono text-[12px]">
+            <span className="w-9 shrink-0 text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                {label}
+            </span>
+            <span
+                className={cn(
+                    "min-w-0 truncate",
+                    muted ? "text-muted-foreground" : "text-foreground/85",
+                )}
+            >
+                {host}
+            </span>
+        </div>
     );
 }

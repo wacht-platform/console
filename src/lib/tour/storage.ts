@@ -6,7 +6,7 @@ import { apiClient } from "@/lib/api/client";
  * the same dialect.
  */
 export type TourSeenState = {
-    completedAt: string;
+    completed_at: string;
     version: number;
 };
 
@@ -73,7 +73,7 @@ export function createServerTourStorage(): TourStorage & {
         },
         markSeen(tourId, version) {
             const entry: TourSeenState = {
-                completedAt: new Date().toISOString(),
+                completed_at: new Date().toISOString(),
                 version,
             };
             state.tours[tourId] = entry;
