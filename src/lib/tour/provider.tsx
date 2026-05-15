@@ -1,4 +1,6 @@
 import * as React from "react";
+import { useUser } from "@wacht/react-router";
+import type { CurrentUser } from "@wacht/types";
 import {
     getTour,
     type LinearTour,
@@ -10,20 +12,17 @@ import {
     type TourId,
     type TourStep,
 } from "./registry";
-import { localTourStorage, type TourStorage } from "./storage";
+import {
+    createServerTourStorage,
+    type BuddyServerState,
+    type TourStorage,
+} from "./storage";
 import {
     TourContext,
     type TourActionHandler,
     type TourContextValue,
 } from "./context";
 import { TourOverlay } from "./overlay";
-
-/**
- * Hard kill switch: while true, no Buddy tour ever fires (including forced
- * starts, intros, and overlays). Flip to `false` to re-enable once the
- * onboarding work is finished.
- */
-const BUDDY_KILL_SWITCH = true;
 
 export type ActiveTourPayload =
     | {
@@ -86,13 +85,44 @@ function pickReactiveScene(tour: ReactiveTour): ReactiveScene | null {
     return null;
 }
 
+/**
+ * Pull `public_metadata.buddy` off the user object. `useUser()` returns
+ * `Partial<CurrentUser>` while SWR is loading, hence the partial shape here.
+ * Defensive against stale / hand-edited metadata, too.
+ */
+function readBuddyMetadata(
+    user: Partial<CurrentUser> | null | undefined,
+): BuddyServerState | null {
+    const buddy = user?.public_metadata?.buddy;
+    if (!buddy || typeof buddy !== "object") return null;
+    return buddy as BuddyServerState;
+}
+
 export function TourProvider({
     children,
-    storage = localTourStorage,
+    storage: storageProp,
 }: {
     children: React.ReactNode;
     storage?: TourStorage;
 }) {
+    // One instance per provider mount. The provider hydrates it from the
+    // signed-in user's `public_metadata.buddy` as soon as `useUser()` lands.
+    const serverStorage = React.useMemo(() => createServerTourStorage(), []);
+    const storage = storageProp ?? serverStorage;
+    const { user, loading: userLoading } = useUser();
+    const [hydrated, setHydrated] = React.useState(false);
+
+    React.useEffect(() => {
+        if (userLoading || !user) return;
+        if (storageProp) {
+            setHydrated(true);
+            return;
+        }
+        const buddyState = readBuddyMetadata(user);
+        serverStorage.hydrate(buddyState);
+        setHydrated(true);
+    }, [user, userLoading, serverStorage, storageProp]);
+
     const [session, setSession] = React.useState<SessionState | null>(null);
     const dismissedRef = React.useRef<Set<TourId>>(new Set());
     const actionRegistry = React.useRef(
@@ -236,7 +266,12 @@ export function TourProvider({
 
     const start = React.useCallback<TourContextValue["start"]>(
         (tourId, opts) => {
-            if (BUDDY_KILL_SWITCH) return;
+            // Wait for the user-backed state to land before deciding what to
+            // show — otherwise we could replay a tour the user already
+            // completed on another device.
+            if (!hydrated) {
+                return;
+            }
             const tour = getTour(tourId);
             if (!tour) return;
             if (!opts?.force && storage.isDisabled()) return;
@@ -255,7 +290,7 @@ export function TourProvider({
                 });
             }
         },
-        [storage],
+        [storage, hydrated],
     );
 
     const setBuddyDisabled = React.useCallback(
@@ -464,7 +499,7 @@ export function TourProvider({
     return (
         <TourContext.Provider value={value}>
             {children}
-            {!BUDDY_KILL_SWITCH && activePayload ? (
+            {hydrated && activePayload ? (
                 <TourOverlay payload={activePayload} />
             ) : null}
         </TourContext.Provider>

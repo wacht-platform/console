@@ -1,9 +1,18 @@
-const STORAGE_PREFIX = "wacht.tour.";
-const DISABLED_KEY = "wacht.buddy.disabled";
+import { apiClient } from "@/lib/api/client";
 
+/**
+ * Per-tour completion record. Versions match `registry.ts::tours[*].version`;
+ * we keep the same shape on disk + over the wire so client and server speak
+ * the same dialect.
+ */
 export type TourSeenState = {
     completedAt: string;
     version: number;
+};
+
+export type BuddyServerState = {
+    disabled: boolean;
+    tours: Record<string, TourSeenState>;
 };
 
 export interface TourStorage {
@@ -15,76 +24,78 @@ export interface TourStorage {
     setDisabled(disabled: boolean): void;
 }
 
-function safeRead(key: string): TourSeenState | null {
-    if (typeof window === "undefined") return null;
-    try {
-        const raw = window.localStorage.getItem(key);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw) as Partial<TourSeenState>;
-        if (
-            typeof parsed?.completedAt === "string" &&
-            typeof parsed?.version === "number"
-        ) {
-            return parsed as TourSeenState;
-        }
-        return null;
-    } catch {
-        return null;
-    }
-}
-
-function safeWrite(key: string, value: TourSeenState) {
-    if (typeof window === "undefined") return;
-    try {
-        window.localStorage.setItem(key, JSON.stringify(value));
-    } catch {
-        // quota / private mode — silently ignore
-    }
-}
-
-export const localTourStorage: TourStorage = {
-    isSeen(tourId, version) {
-        const state = safeRead(STORAGE_PREFIX + tourId);
-        if (!state) return false;
-        return state.version >= version;
-    },
-    markSeen(tourId, version) {
-        safeWrite(STORAGE_PREFIX + tourId, {
-            completedAt: new Date().toISOString(),
-            version,
-        });
-    },
-    reset(tourId) {
-        if (typeof window === "undefined") return;
-        if (tourId) {
-            window.localStorage.removeItem(STORAGE_PREFIX + tourId);
-            return;
-        }
-        const keys: string[] = [];
-        for (let i = 0; i < window.localStorage.length; i += 1) {
-            const k = window.localStorage.key(i);
-            if (k && k.startsWith(STORAGE_PREFIX)) keys.push(k);
-        }
-        keys.forEach((k) => window.localStorage.removeItem(k));
-    },
-    isDisabled() {
-        if (typeof window === "undefined") return false;
-        try {
-            return window.localStorage.getItem(DISABLED_KEY) === "true";
-        } catch {
-            return false;
-        }
-    },
-    setDisabled(disabled) {
-        if (typeof window === "undefined") return;
-        try {
-            if (disabled) {
-                window.localStorage.setItem(DISABLED_KEY, "true");
-            } else {
-                window.localStorage.removeItem(DISABLED_KEY);
-            }
-        } catch {
-            // quota / private mode — silently ignore
-        }
-    },
+type ServerTourUpdate = {
+    disabled?: boolean;
+    tours?: Record<string, TourSeenState>;
+    reset?: boolean;
 };
+
+async function patchServer(update: ServerTourUpdate): Promise<void> {
+    try {
+        await apiClient.patch("/buddy/state", update);
+    } catch (err) {
+        // Failed sync is non-fatal — local state still drives the session.
+        // Log so we can spot persistent failures in prod.
+        console.warn("[buddy] failed to sync state to server", err);
+    }
+}
+
+/**
+ * Build a tour storage backed by an in-memory cache that the provider
+ * hydrates from the signed-in user's `public_metadata.buddy`. Writes hit
+ * the cache synchronously and fire the server PATCH in the background.
+ *
+ * Returned `hydrate` is what the provider calls when the user object lands
+ * (or changes — e.g. after sign-out → sign-in within the same SPA load).
+ */
+export function createServerTourStorage(): TourStorage & {
+    hydrate: (state: BuddyServerState | null | undefined) => void;
+    isHydrated: () => boolean;
+} {
+    let hydrated = false;
+    let state: BuddyServerState = { disabled: false, tours: {} };
+
+    return {
+        hydrate(initial) {
+            state = {
+                disabled: Boolean(initial?.disabled),
+                tours: { ...(initial?.tours ?? {}) },
+            };
+            hydrated = true;
+        },
+        isHydrated() {
+            return hydrated;
+        },
+        isSeen(tourId, version) {
+            const entry = state.tours[tourId];
+            if (!entry) return false;
+            return entry.version >= version;
+        },
+        markSeen(tourId, version) {
+            const entry: TourSeenState = {
+                completedAt: new Date().toISOString(),
+                version,
+            };
+            state.tours[tourId] = entry;
+            void patchServer({ tours: { [tourId]: entry } });
+        },
+        reset(tourId) {
+            if (tourId) {
+                delete state.tours[tourId];
+                // No partial-delete op on the server — easiest correct write
+                // is the full remaining map plus reset:true to clear first.
+                void patchServer({ reset: true, tours: { ...state.tours } });
+                return;
+            }
+            state.tours = {};
+            void patchServer({ reset: true });
+        },
+        isDisabled() {
+            return state.disabled;
+        },
+        setDisabled(disabled) {
+            state.disabled = disabled;
+            void patchServer({ disabled });
+        },
+    };
+}

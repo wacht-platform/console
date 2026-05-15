@@ -11,7 +11,7 @@ import {
     type Placement,
 } from "@floating-ui/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, ArrowLeft, ArrowRight, Compass, BellOff } from "lucide-react";
+import { X, ArrowLeft, ArrowRight, BellOff, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ActiveTourPayload } from "./provider";
 import type { ReactiveStep, TourStep } from "./registry";
@@ -101,6 +101,86 @@ function useTargetRect(target?: string) {
     return { el, rect };
 }
 
+/**
+ * Buddy's "face". A Sparkles glyph on a soft primary-tinted disc with a
+ * gentle continuous pulse — reads as a personable guide, not a system icon.
+ */
+function BuddyAvatar({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
+    const dims =
+        size === "lg"
+            ? "h-11 w-11"
+            : size === "sm"
+              ? "h-7 w-7"
+              : "h-9 w-9";
+    const iconSize =
+        size === "lg" ? "h-5 w-5" : size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4";
+
+    return (
+        <motion.div
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 360, damping: 22 }}
+            className={cn(
+                "relative flex shrink-0 items-center justify-center rounded-full",
+                "bg-gradient-to-br from-primary/25 via-primary/10 to-primary/5",
+                "ring-1 ring-primary/30 shadow-sm",
+                dims,
+            )}
+        >
+            <motion.div
+                aria-hidden
+                className="absolute inset-0 rounded-full bg-primary/20"
+                animate={{ scale: [1, 1.18, 1], opacity: [0.45, 0, 0.45] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeOut" }}
+            />
+            <Sparkles
+                className={cn("relative text-primary", iconSize)}
+                strokeWidth={2.1}
+            />
+        </motion.div>
+    );
+}
+
+/**
+ * Step pips — thin horizontal pills that fill as the user advances. Renders
+ * nothing for single-step tours since there's no progress to show.
+ */
+function StepProgress({
+    current,
+    total,
+}: {
+    current: number;
+    total: number;
+}) {
+    if (total <= 1) return null;
+    return (
+        <div
+            role="progressbar"
+            aria-valuemin={1}
+            aria-valuemax={total}
+            aria-valuenow={current + 1}
+            className="flex w-full items-center gap-1"
+        >
+            {Array.from({ length: total }).map((_, i) => {
+                const done = i < current;
+                const active = i === current;
+                return (
+                    <span
+                        key={i}
+                        className={cn(
+                            "h-[3px] flex-1 rounded-full transition-[background-color,box-shadow] duration-300",
+                            done && "bg-primary/80",
+                            active &&
+                                "bg-primary shadow-[0_0_8px_-1px_rgba(99,102,241,0.55)]",
+                            !done && !active && "bg-muted-foreground/20",
+                        )}
+                    />
+                );
+            })}
+        </div>
+    );
+}
+
 function SpotlightMask({ rect }: { rect: Rect }) {
     const x = Math.max(0, rect.left - SPOTLIGHT_PAD);
     const y = Math.max(0, rect.top - SPOTLIGHT_PAD);
@@ -181,6 +261,7 @@ function PopoverCard({
     rightSlot,
     onClose,
     onTurnOff,
+    progress,
 }: {
     target?: string;
     title: string;
@@ -191,6 +272,7 @@ function PopoverCard({
     rightSlot: React.ReactNode;
     onClose: () => void;
     onTurnOff: () => void;
+    progress?: { current: number; total: number };
 }) {
     const arrowRef = React.useRef<SVGSVGElement>(null);
     const { refs, floatingStyles, context } = useFloating({
@@ -242,11 +324,11 @@ function PopoverCard({
             className="pointer-events-auto z-[1001]"
         >
             <motion.div
-                initial={{ opacity: 0, scale: 0.96, y: 4 }}
+                initial={{ opacity: 0, scale: 0.97, y: 6 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: 4 }}
-                transition={{ type: "spring", stiffness: 360, damping: 30 }}
-                className="relative w-[360px] max-w-[calc(100vw-32px)] overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl shadow-black/30 ring-1 ring-black/5 dark:ring-white/5"
+                exit={{ opacity: 0, scale: 0.97, y: 6 }}
+                transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                className="relative w-[380px] max-w-[calc(100vw-32px)] overflow-hidden rounded-2xl border border-border/70 bg-popover text-popover-foreground shadow-[0_24px_60px_-12px_rgba(0,0,0,0.45)] ring-1 ring-black/5 dark:ring-white/5"
             >
                 <FloatingArrow
                     ref={arrowRef}
@@ -257,19 +339,14 @@ function PopoverCard({
                     width={14}
                     height={7}
                 />
-                <div className="relative border-b border-border bg-gradient-to-br from-primary/[0.10] via-primary/[0.03] to-transparent px-4 pt-3 pb-3">
-                    <div className="mb-2 flex items-center gap-2">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/15 text-primary shadow-sm ring-1 ring-primary/25">
-                            <Compass
-                                className="h-4 w-4"
-                                strokeWidth={2.2}
-                            />
-                        </div>
+                <div className="relative bg-gradient-to-br from-primary/[0.08] via-primary/[0.02] to-transparent px-5 pt-4 pb-4">
+                    <div className="mb-3 flex items-center gap-2.5">
+                        <BuddyAvatar size="sm" />
                         <div className="flex min-w-0 flex-1 flex-col leading-tight">
-                            <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary">
+                            <span className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-primary">
                                 Buddy
                             </span>
-                            <span className="truncate text-[10px] text-muted-foreground">
+                            <span className="truncate text-[10.5px] text-muted-foreground">
                                 Your console guide
                             </span>
                         </div>
@@ -291,16 +368,37 @@ function PopoverCard({
                             <X className="h-3.5 w-3.5" />
                         </button>
                     </div>
-                    <div className="truncate text-sm font-semibold tracking-tight">
+                    <div className="text-[14px] font-semibold leading-snug tracking-tight">
                         {title}
                     </div>
+                    {progress ? (
+                        <div className="mt-3">
+                            <StepProgress
+                                current={progress.current}
+                                total={progress.total}
+                            />
+                        </div>
+                    ) : null}
                 </div>
 
-                <div className="px-4 py-4 text-[13px] leading-relaxed text-foreground/85">
-                    {body}
-                </div>
+                <AnimatePresence mode="wait" initial={false}>
+                    <motion.div
+                        key={typeof title === "string" ? title : "step"}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{
+                            type: "spring",
+                            stiffness: 380,
+                            damping: 30,
+                        }}
+                        className="px-5 py-4 text-[13px] leading-relaxed text-foreground/85"
+                    >
+                        {body}
+                    </motion.div>
+                </AnimatePresence>
 
-                <div className="flex items-center justify-between gap-2 border-t border-border bg-muted/50 px-3 py-2.5">
+                <div className="flex items-center justify-between gap-2 border-t border-border/60 bg-muted/40 px-3.5 py-2.5">
                     <div className="flex items-center">{leftSlot}</div>
                     <div className="flex items-center gap-1.5">
                         {rightSlot}
@@ -333,13 +431,17 @@ function CenterCard({
     return (
         <motion.div
             key={keyId}
-            initial={{ opacity: 0, y: 12, scale: 0.97 }}
+            initial={{ opacity: 0, y: 16, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.97 }}
-            transition={{ type: "spring", stiffness: 320, damping: 28 }}
-            className="pointer-events-auto fixed left-1/2 top-1/2 z-[1001] w-[420px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-popover text-popover-foreground shadow-2xl shadow-black/40 ring-1 ring-black/5 dark:ring-white/5"
+            exit={{ opacity: 0, y: -10, scale: 0.96 }}
+            transition={{ type: "spring", stiffness: 340, damping: 28 }}
+            className="pointer-events-auto fixed left-1/2 top-1/2 z-[1001] w-[440px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border/70 bg-popover text-popover-foreground shadow-[0_36px_80px_-12px_rgba(0,0,0,0.55)] ring-1 ring-black/5 dark:ring-white/5"
         >
-            <div className="relative border-b border-border bg-gradient-to-br from-primary/[0.12] via-primary/[0.04] to-transparent px-6 pt-6 pb-5">
+            <div className="relative overflow-hidden bg-gradient-to-br from-primary/[0.14] via-primary/[0.04] to-transparent px-7 pt-7 pb-6">
+                <div
+                    aria-hidden
+                    className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/15 blur-2xl"
+                />
                 <button
                     type="button"
                     onClick={onTurnOff}
@@ -349,27 +451,25 @@ function CenterCard({
                 >
                     <BellOff className="h-3.5 w-3.5" />
                 </button>
-                <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary shadow-sm ring-1 ring-primary/30">
-                        <Compass className="h-6 w-6" strokeWidth={2.0} />
-                    </div>
+                <div className="relative flex items-center gap-3">
+                    <BuddyAvatar size="lg" />
                     <div className="flex flex-col leading-tight">
-                        <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">
+                        <span className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-primary">
                             Buddy
                         </span>
                         <span className="text-[11px] text-muted-foreground">
-                            Wacht onboarding guide
+                            Your friendly Wacht guide
                         </span>
                     </div>
                 </div>
-                <div className="mt-4 text-base font-semibold tracking-tight">
+                <div className="relative mt-5 text-[17px] font-semibold leading-snug tracking-tight">
                     {title}
                 </div>
             </div>
-            <div className="px-6 py-5 text-[13.5px] leading-relaxed text-foreground/85">
+            <div className="px-7 py-5 text-[13.5px] leading-relaxed text-foreground/85">
                 {body}
             </div>
-            <div className="flex items-center justify-between gap-2 border-t border-border bg-muted/50 px-4 py-3">
+            <div className="flex items-center justify-between gap-2 border-t border-border/60 bg-muted/40 px-4 py-3">
                 <button
                     type="button"
                     onClick={onSkip}
@@ -555,24 +655,35 @@ function TourTargetedFrame({
                         align={step.align}
                         onClose={payload.onSkip}
                         onTurnOff={payload.onTurnOff}
+                        progress={
+                            payload.kind === "linear-step"
+                                ? {
+                                      current: payload.stepIndex,
+                                      total: payload.tour.steps.length,
+                                  }
+                                : payload.scene.steps.length > 1
+                                  ? {
+                                        current: payload.stepIndex,
+                                        total: payload.scene.steps.length,
+                                    }
+                                  : undefined
+                        }
                         leftSlot={
-                            payload.kind === "linear-step" ? (
-                                <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                                    {payload.stepIndex + 1} /{" "}
-                                    {payload.tour.steps.length}
-                                </span>
-                            ) : payload.scene.steps.length > 1 ? (
-                                <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                                    {payload.stepIndex + 1} /{" "}
-                                    {payload.scene.steps.length}
-                                </span>
-                            ) : (
+                            payload.kind === "reactive-step" &&
+                            payload.scene.steps.length === 1 ? (
                                 <FooterButton
                                     onClick={payload.onSkip}
                                     variant="ghost"
                                 >
                                     Skip tour
                                 </FooterButton>
+                            ) : (
+                                <span className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                                    Step{" "}
+                                    {payload.kind === "linear-step"
+                                        ? `${payload.stepIndex + 1} of ${payload.tour.steps.length}`
+                                        : `${payload.stepIndex + 1} of ${payload.scene.steps.length}`}
+                                </span>
                             )
                         }
                         rightSlot={
@@ -651,16 +762,14 @@ function WaitingCenter({
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
             className="pointer-events-auto fixed left-1/2 top-1/2 z-[1001] w-[380px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl shadow-black/30"
         >
-            <div className="relative border-b border-border bg-gradient-to-br from-primary/[0.10] via-primary/[0.03] to-transparent px-4 pt-3 pb-3">
-                <div className="mb-2 flex items-center gap-2">
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/15 text-primary shadow-sm ring-1 ring-primary/25">
-                        <Compass className="h-4 w-4" strokeWidth={2.2} />
-                    </div>
+            <div className="relative bg-gradient-to-br from-primary/[0.08] via-primary/[0.02] to-transparent px-5 pt-4 pb-4">
+                <div className="mb-3 flex items-center gap-2.5">
+                    <BuddyAvatar size="sm" />
                     <div className="flex min-w-0 flex-1 flex-col leading-tight">
-                        <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary">
+                        <span className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-primary">
                             Buddy
                         </span>
-                        <span className="truncate text-[10px] text-muted-foreground">
+                        <span className="truncate text-[10.5px] text-muted-foreground">
                             Your console guide
                         </span>
                     </div>
@@ -682,7 +791,7 @@ function WaitingCenter({
                         <X className="h-3.5 w-3.5" />
                     </button>
                 </div>
-                <div className="truncate text-sm font-semibold tracking-tight">
+                <div className="text-[14px] font-semibold leading-snug tracking-tight">
                     {title}
                 </div>
             </div>
