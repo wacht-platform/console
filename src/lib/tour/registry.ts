@@ -632,43 +632,31 @@ export const tours = {
     },
     "first-api-auth": {
         id: "first-api-auth",
-        version: 1,
-        title: "API auth tour",
+        version: 2,
+        title: "API Auth",
+        // Intro-only: the page below is an iframe of the live vanity surface,
+        // so Buddy can't spotlight anything inside it. The intro tells the
+        // user what they're looking at and dismisses out of the way.
         mode: "linear",
         intro: {
-            title: "Issue API keys to your users",
-            body: "Wacht lets your end users generate API keys with scoped rate limits and audit logs — all from your app.",
-            primaryLabel: "Show me",
+            title: "This is the live API Auth surface",
+            body: "What you see below is the exact hosted page your end users use to manage their API keys — embedded here so you can preview, test, and operate it as an admin. Every key you create lands in your real deployment. To put it in your app, either drop the same vanity URL in an iframe or render the React components from @wacht/react — both share the same data model.",
+            primaryLabel: "Got it",
         },
-        steps: [
-            {
-                target: "api-auth-content",
-                title: "Hosted or embedded",
-                body: "You can drop our hosted vanity page in, or embed the React components into your app — both share the same data model.",
-                side: "top",
-                align: "center",
-            },
-        ],
+        steps: [],
     },
     "first-webhooks": {
         id: "first-webhooks",
-        version: 1,
-        title: "Webhooks tour",
+        version: 2,
+        title: "Webhooks",
+        // Same iframe constraint as first-api-auth — intro only, no spotlight.
         mode: "linear",
         intro: {
-            title: "Webhooks, fully managed",
-            body: "Let your users subscribe to your events without you owning the delivery infrastructure. Retries, signatures, and replay are built-in.",
-            primaryLabel: "Walk me through",
+            title: "Managed webhook subscriptions",
+            body: "What you see below is the live customer-facing webhook surface for this deployment. Your customers subscribe to events from your catalog; Wacht handles delivery, retries, signatures, and replay. To wire your own UI, drop the hosted vanity in an iframe or render @wacht/react components against the same backend. First step before any of this is useful: define your event catalog under Setup → Webhook Catalogs.",
+            primaryLabel: "Got it",
         },
-        steps: [
-            {
-                target: "webhooks-content",
-                title: "Define your catalog first",
-                body: "Your catalog is the set of events your app emits. Define it once under Setup → Webhook Catalogs and your users can subscribe by name.",
-                side: "top",
-                align: "center",
-            },
-        ],
+        steps: [],
     },
 } satisfies Record<string, TourDefinition>;
 

@@ -24,6 +24,15 @@ import {
 } from "./context";
 import { TourOverlay } from "./overlay";
 
+/**
+ * Temporary kill switch. While true, no tour ever fires (including forced
+ * starts and intros) and the overlay never renders. Flip to `false` to
+ * re-enable Buddy. Lives here (not in storage) so it doesn't depend on the
+ * server-backed buddy state — useful for hard-disabling during an outage
+ * or while we iterate on tour content.
+ */
+const BUDDY_DISABLED = true;
+
 export type ActiveTourPayload =
     | {
           kind: "intro";
@@ -266,6 +275,9 @@ export function TourProvider({
 
     const start = React.useCallback<TourContextValue["start"]>(
         (tourId, opts) => {
+            // Hard kill switch — short-circuit before any hydration / storage
+            // / dismiss logic. See `BUDDY_DISABLED` at the top of this file.
+            if (BUDDY_DISABLED) return;
             // Wait for the user-backed state to land before deciding what to
             // show — otherwise we could replay a tour the user already
             // completed on another device.
@@ -499,7 +511,7 @@ export function TourProvider({
     return (
         <TourContext.Provider value={value}>
             {children}
-            {hydrated && activePayload ? (
+            {!BUDDY_DISABLED && hydrated && activePayload ? (
                 <TourOverlay payload={activePayload} />
             ) : null}
         </TourContext.Provider>
