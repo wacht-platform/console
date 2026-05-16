@@ -59,26 +59,6 @@ function filterProjects(
 }
 
 /**
- * Deterministic palette + gradient seeded from a stringified id. Same project
- * always renders the same backdrop — gives every card a quietly unique color
- * fingerprint without us picking colors by hand.
- */
-function seededGradient(id: string) {
-    let hash = 0;
-    for (let i = 0; i < id.length; i += 1) {
-        hash = (hash * 31 + id.charCodeAt(i)) | 0;
-    }
-    const base = Math.abs(hash) % 360;
-    const accent = (base + 47) % 360;
-    return {
-        backgroundImage: [
-            `radial-gradient(120% 80% at 15% 10%, hsla(${base},70%,62%,0.18), transparent 55%)`,
-            `radial-gradient(100% 80% at 85% 90%, hsla(${accent},75%,58%,0.14), transparent 60%)`,
-        ].join(", "),
-    } as React.CSSProperties;
-}
-
-/**
  * Time-since helper that prefers short, scannable strings ("3h ago",
  * "2d ago") over the verbose `MMM d, yyyy` we used before.
  */
@@ -185,7 +165,7 @@ export default function ProjectsPage() {
                     <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                         <div>
                             <div className="flex items-baseline gap-3">
-                                <h1 className="text-[34px] font-medium leading-none tracking-[-0.025em] text-foreground">
+                                <h1 className="text-[34px] leading-none tracking-[-0.025em] text-foreground">
                                     Projects
                                 </h1>
                                 <span className="font-mono text-sm text-muted-foreground">
@@ -358,7 +338,7 @@ function FilterChip({
             type="button"
             onClick={onClick}
             className={cn(
-                "inline-flex h-7 items-center rounded-full border px-3 text-[12px] font-medium transition-colors",
+                "inline-flex h-7 items-center rounded-full border px-3 text-[12px] transition-colors",
                 active
                     ? "border-foreground/80 bg-foreground text-background"
                     : "border-border bg-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground",
@@ -465,7 +445,6 @@ function ProjectCard({
         navigate(`/project/${project.id}/deployment/${primary.id}`);
     };
 
-    const gradient = seededGradient(String(project.id));
     const lastTouched = mostRecentDeploymentTime(project);
 
     return (
@@ -480,28 +459,11 @@ function ProjectCard({
             data-tour-id={isFirst ? "project-card" : undefined}
             whileHover={{ y: -2 }}
             className={cn(
-                "group relative overflow-hidden rounded-2xl border border-border/70 bg-card text-left transition-shadow",
-                "hover:border-foreground/30 hover:shadow-[0_18px_42px_-22px_rgba(0,0,0,0.45)] dark:hover:shadow-[0_18px_42px_-12px_rgba(0,0,0,0.7)]",
+                "group relative overflow-hidden rounded-2xl border border-border/70 bg-card text-left transition-colors",
+                "hover:border-foreground/30",
                 featured ? "md:col-span-2" : "",
             )}
         >
-            {/* Seeded color signature — same project always gets the same wash. */}
-            <span
-                aria-hidden
-                className="pointer-events-none absolute inset-0 opacity-90 transition-opacity duration-500 group-hover:opacity-100"
-                style={gradient}
-            />
-            {/* Subtle grid texture for that 'developer console' feel. */}
-            <span
-                aria-hidden
-                className="pointer-events-none absolute inset-0 opacity-[0.07] dark:opacity-[0.08]"
-                style={{
-                    backgroundImage:
-                        "linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)",
-                    backgroundSize: "28px 28px",
-                }}
-            />
-
             <div
                 className={cn(
                     "relative flex h-full flex-col gap-4 p-5",
@@ -512,7 +474,7 @@ function ProjectCard({
                     <div className="min-w-0">
                         <h3
                             className={cn(
-                                "truncate font-medium tracking-[-0.015em] text-foreground",
+                                "truncate tracking-[-0.01em] text-foreground",
                                 featured ? "text-[22px]" : "text-[17px]",
                             )}
                         >
