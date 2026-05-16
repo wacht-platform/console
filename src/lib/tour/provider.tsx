@@ -31,7 +31,7 @@ import { TourOverlay } from "./overlay";
  * server-backed buddy state — useful for hard-disabling during an outage
  * or while we iterate on tour content.
  */
-const BUDDY_DISABLED = true;
+const BUDDY_DISABLED = false;
 
 export type ActiveTourPayload =
     | {
