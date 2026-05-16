@@ -31,7 +31,7 @@ import { TourOverlay } from "./overlay";
  * server-backed buddy state — useful for hard-disabling during an outage
  * or while we iterate on tour content.
  */
-const BUDDY_DISABLED = true;
+const BUDDY_DISABLED = false;
 
 export type ActiveTourPayload =
     | {
@@ -150,8 +150,7 @@ export function TourProvider({
         [],
     );
 
-    const reactiveTour =
-        session?.phase === "reactive" ? session.tour : null;
+    const reactiveTour = session?.phase === "reactive" ? session.tour : null;
 
     // Reactive watcher — picks the active scene from what's currently in the DOM.
     React.useEffect(() => {
@@ -480,8 +479,7 @@ export function TourProvider({
             complete,
             runAction,
             registerAction,
-            isSeen: (tourId) =>
-                storage.isSeen(tourId, getTour(tourId).version),
+            isSeen: (tourId) => storage.isSeen(tourId, getTour(tourId).version),
             isDismissedThisSession: (tourId) =>
                 dismissedRef.current.has(tourId),
             resetTour: (tourId) => {
