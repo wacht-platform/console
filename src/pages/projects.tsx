@@ -1,16 +1,18 @@
 import { useMemo, useState } from "react";
 import { formatDistanceToNowStrict } from "date-fns";
 import { useNavigate } from "react-router";
-import { motion, AnimatePresence } from "framer-motion";
 import { usePostHog } from "@posthog/react";
 import { OrganizationSwitcher, UserButton } from "@wacht/react-router";
 import {
     MagnifyingGlassIcon,
     PlusIcon,
+    ChevronRightIcon,
     ExclamationTriangleIcon,
+    FolderOpenIcon,
 } from "@heroicons/react/24/outline";
 
 import { Navbar, NavbarSpacer } from "@/components/ui/navbar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -20,9 +22,17 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
-import { ProjectLoadingGrid } from "@/components/ui/loading-screen";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { SkeletonTableRows } from "@/components/ui/app-skeleton";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/app-table";
 import { Text } from "@/components/ui/text";
 import { BillingSetupDialog } from "@/components/billing-setup-dialog";
 import { CreateProjectDialog } from "@/components/create-project-dialog";
@@ -31,6 +41,7 @@ import { useProjects } from "@/lib/api/hooks/use-projects";
 import { useProjectStore } from "@/lib/store/project";
 import { cn } from "@/lib/utils";
 import type { ProjectWithDeployments } from "@/types/project";
+import type { Deployment } from "@/types/deployment";
 import { useTour, useTourCompletion } from "@/lib/tour";
 
 type Mode = "all" | "production" | "staging";
@@ -58,10 +69,6 @@ function filterProjects(
     });
 }
 
-/**
- * Time-since helper that prefers short, scannable strings ("3h ago",
- * "2d ago") over the verbose `MMM d, yyyy` we used before.
- */
 function relativeTime(value: string | Date | undefined) {
     if (!value) return "—";
     try {
@@ -159,82 +166,71 @@ export default function ProjectsPage() {
             </Navbar>
 
             <main className="mx-auto max-w-7xl px-6 pt-14 pb-20 lg:px-8">
-                {/* Title row + stat ticker. Single editorial-feeling block,
-                    no boxes. */}
-                <section className="mt-10 mb-8 border-b border-border/60 pb-6">
-                    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                        <div>
-                            <div className="flex items-baseline gap-3">
-                                <h1 className="text-[34px] leading-none tracking-[-0.025em] text-foreground">
-                                    Projects
-                                </h1>
-                                <span className="font-mono text-sm text-muted-foreground">
-                                    {allProjects.length.toString().padStart(2, "0")}
-                                </span>
-                            </div>
-                            <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[12.5px] text-muted-foreground">
-                                <StatItem
-                                    label="production"
-                                    value={productionCount}
-                                />
-                                <Separator />
-                                <StatItem
-                                    label="staging"
-                                    value={stagingCount}
-                                />
-                                <Separator />
-                                <StatItem
-                                    label="new this month"
-                                    value={createdThisMonth}
-                                />
-                            </p>
-                        </div>
-                        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-                            <div className="relative sm:w-72">
-                                <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                                <Input
-                                    value={query}
-                                    onChange={(event) =>
-                                        setQuery(event.target.value)
-                                    }
-                                    placeholder="Search projects or hosts"
-                                    className="h-9 pl-9 text-[13px]"
-                                />
-                            </div>
-                            <Button
-                                data-tour-id="projects-create-button"
-                                onClick={handleCreateProject}
-                                className="h-9 gap-2"
-                            >
-                                <PlusIcon className="h-4 w-4" />
-                                New project
-                            </Button>
-                        </div>
+                <header className="mt-10 mb-6 flex flex-col gap-1">
+                    <h1 className="text-2xl font-normal tracking-tight text-foreground">
+                        Projects
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                        Manage your projects and jump into a deployment.
+                    </p>
+                </header>
+
+                <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <StatTile label="Total" value={allProjects.length} />
+                    <StatTile
+                        label="Production"
+                        value={productionCount}
+                        tone="emerald"
+                    />
+                    <StatTile
+                        label="Staging"
+                        value={stagingCount}
+                        tone="sky"
+                    />
+                    <StatTile label="New this month" value={createdThisMonth} />
+                </div>
+
+                <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <div className="relative flex-1 sm:max-w-sm">
+                        <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            value={query}
+                            onChange={(event) => setQuery(event.target.value)}
+                            placeholder="Search projects or hosts"
+                            className="pl-9"
+                        />
                     </div>
 
-                    <div className="mt-5 flex flex-wrap items-center gap-1.5">
-                        <FilterChip
-                            active={mode === "all"}
-                            onClick={() => setMode("all")}
-                        >
-                            All
-                        </FilterChip>
-                        <FilterChip
-                            active={mode === "production"}
-                            onClick={() => setMode("production")}
-                        >
+                    <ToggleGroup
+                        type="single"
+                        value={mode}
+                        onValueChange={(value) => {
+                            if (value) setMode(value as Mode);
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="*:data-[slot=toggle-group-item]:!px-3.5 *:data-[slot=toggle-group-item]:!text-[13px]"
+                    >
+                        <ToggleGroupItem value="all">All</ToggleGroupItem>
+                        <ToggleGroupItem value="production">
                             Production
-                        </FilterChip>
-                        <FilterChip
-                            active={mode === "staging"}
-                            onClick={() => setMode("staging")}
-                        >
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="staging">
                             Staging
-                        </FilterChip>
-                    </div>
-                </section>
+                        </ToggleGroupItem>
+                    </ToggleGroup>
 
-                <ProjectsBento
+                    <Button
+                        data-tour-id="projects-create-button"
+                        onClick={handleCreateProject}
+                        className="gap-2 sm:ml-auto"
+                    >
+                        <PlusIcon className="h-4 w-4" />
+                        New project
+                    </Button>
+                </div>
+
+                <ProjectsTable
                     isLoading={isLoading}
                     projects={filteredProjects}
                     query={query}
@@ -307,49 +303,35 @@ export default function ProjectsPage() {
     );
 }
 
-function Separator() {
-    return <span className="text-muted-foreground/40">/</span>;
-}
-
-function StatItem({ label, value }: { label: string; value: number }) {
-    return (
-        <span className="inline-flex items-baseline gap-1.5">
-            <span className="text-foreground">
-                {value.toString().padStart(2, "0")}
-            </span>
-            <span className="text-[11.5px] uppercase tracking-[0.08em]">
-                {label}
-            </span>
-        </span>
-    );
-}
-
-function FilterChip({
-    active,
-    onClick,
-    children,
+function StatTile({
+    label,
+    value,
+    tone,
 }: {
-    active: boolean;
-    onClick: () => void;
-    children: React.ReactNode;
+    label: string;
+    value: number;
+    tone?: "emerald" | "sky";
 }) {
+    const dotColor =
+        tone === "emerald"
+            ? "bg-emerald-500"
+            : tone === "sky"
+              ? "bg-sky-500"
+              : "bg-muted-foreground/40";
     return (
-        <button
-            type="button"
-            onClick={onClick}
-            className={cn(
-                "inline-flex h-7 items-center rounded-full border px-3 text-[12px] transition-colors",
-                active
-                    ? "border-foreground/80 bg-foreground text-background"
-                    : "border-border bg-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground",
-            )}
-        >
-            {children}
-        </button>
+        <div className="rounded-lg border border-border/70 bg-card px-4 py-3">
+            <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+                <span className={cn("h-1.5 w-1.5 rounded-full", dotColor)} />
+                {label}
+            </div>
+            <div className="mt-1 text-2xl font-normal tabular-nums text-foreground">
+                {value}
+            </div>
+        </div>
     );
 }
 
-function ProjectsBento({
+function ProjectsTable({
     isLoading,
     projects,
     query,
@@ -362,67 +344,83 @@ function ProjectsBento({
     mode: Mode;
     onCreateProject: () => void;
 }) {
-    if (isLoading) {
-        return <ProjectLoadingGrid items={6} />;
-    }
+    const showEmpty = !isLoading && projects.length === 0;
+    const emptyTitle = query.trim()
+        ? "No matching projects"
+        : mode === "production"
+          ? "No production deployments"
+          : mode === "staging"
+            ? "No staging deployments"
+            : "No projects yet";
+    const emptyDescription = query.trim()
+        ? `No results found for "${query}"`
+        : mode === "all"
+          ? "Create your first project to get started."
+          : `Deploy a ${mode} environment to see projects here.`;
 
-    if (projects.length === 0) {
-        const emptyTitle = query.trim()
-            ? "No matching projects"
-            : mode === "production"
-              ? "No production deployments"
-              : mode === "staging"
-                ? "No staging deployments"
-                : "No projects yet";
-        const emptyDescription = query.trim()
-            ? `No results found for "${query}"`
-            : mode === "all"
-              ? "Create your first project to get started."
-              : `Deploy a ${mode} environment to see projects here.`;
-        return (
-            <EmptyState
-                title={emptyTitle}
-                description={emptyDescription}
-                actionLabel="Create Project"
-                onAction={onCreateProject}
-            />
-        );
-    }
-
-    const [featured, ...rest] = projects;
     return (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {featured ? (
-                <ProjectCard
-                    key={featured.id}
-                    project={featured}
-                    featured
-                    isFirst
-                />
-            ) : null}
-            <AnimatePresence initial={false}>
-                {rest.map((project, index) => (
-                    <ProjectCard
-                        key={project.id}
-                        project={project}
-                        index={index}
-                        isFirst={false}
-                    />
-                ))}
-            </AnimatePresence>
-        </div>
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Project</TableHead>
+                    <TableHead className="hidden md:table-cell">
+                        Environments
+                    </TableHead>
+                    <TableHead className="hidden lg:table-cell">
+                        Hosts
+                    </TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                        Updated
+                    </TableHead>
+                    <TableHead className="w-10" />
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {isLoading ? (
+                    <SkeletonTableRows rows={6} columns={5} withAvatar />
+                ) : showEmpty ? (
+                    <TableRow>
+                        <TableCell colSpan={5} className="h-40">
+                            <div className="flex flex-col items-center justify-center gap-2 py-6 text-center">
+                                <FolderOpenIcon className="h-8 w-8 text-muted-foreground" />
+                                <p className="text-sm font-medium text-foreground">
+                                    {emptyTitle}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    {emptyDescription}
+                                </p>
+                                {!query.trim() && mode === "all" ? (
+                                    <Button
+                                        size="sm"
+                                        className="mt-3 gap-2"
+                                        onClick={onCreateProject}
+                                    >
+                                        <PlusIcon className="h-4 w-4" />
+                                        Create project
+                                    </Button>
+                                ) : null}
+                            </div>
+                        </TableCell>
+                    </TableRow>
+                ) : (
+                    projects.map((project, index) => (
+                        <ProjectRow
+                            key={project.id}
+                            project={project}
+                            isFirst={index === 0}
+                        />
+                    ))
+                )}
+            </TableBody>
+        </Table>
     );
 }
 
-function ProjectCard({
+function ProjectRow({
     project,
-    index = 0,
-    featured = false,
     isFirst,
 }: {
     project: ProjectWithDeployments;
-    index?: number;
-    featured?: boolean;
     isFirst: boolean;
 }) {
     const navigate = useNavigate();
@@ -446,147 +444,78 @@ function ProjectCard({
     };
 
     const lastTouched = mostRecentDeploymentTime(project);
+    const initials = project.name.slice(0, 2).toUpperCase();
+    const hostSummary = hostsLabel(production, staging);
 
     return (
-        <motion.button
-            type="button"
-            layout
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.22, delay: index * 0.02 }}
-            onClick={openProject}
+        <TableRow
             data-tour-id={isFirst ? "project-card" : undefined}
-            whileHover={{ y: -2 }}
-            className={cn(
-                "group relative overflow-hidden rounded-2xl border border-border/70 bg-card text-left transition-colors",
-                "hover:border-foreground/30",
-                featured ? "md:col-span-2" : "",
-            )}
+            className="cursor-pointer"
+            onClick={openProject}
         >
-            <div
-                className={cn(
-                    "relative flex h-full flex-col gap-4 p-5",
-                    featured ? "md:p-7" : "p-5",
-                )}
-            >
-                <div className="flex items-start justify-between gap-3">
+            <TableCell className="py-3">
+                <div className="flex items-center gap-3">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={project.image_url} alt={project.name} />
+                        <AvatarFallback>{initials}</AvatarFallback>
+                    </Avatar>
                     <div className="min-w-0">
-                        <h3
-                            className={cn(
-                                "truncate tracking-[-0.01em] text-foreground",
-                                featured ? "text-[22px]" : "text-[17px]",
-                            )}
-                        >
+                        <div className="truncate text-sm text-foreground">
                             {project.name}
-                        </h3>
-                        <p className="mt-1 font-mono text-[11.5px] text-muted-foreground">
+                        </div>
+                        <div className="mt-0.5 truncate text-xs text-muted-foreground sm:hidden">
                             {relativeTime(new Date(lastTouched).toISOString())}
-                        </p>
+                        </div>
                     </div>
-                    <EnvironmentDots
-                        production={!!production}
-                        staging={!!staging}
-                    />
                 </div>
-
-                <div className="mt-auto space-y-1">
-                    {production ? (
-                        <HostLine label="prod" host={production.frontend_host} />
-                    ) : null}
-                    {staging ? (
-                        <HostLine label="stg" host={staging.frontend_host} />
-                    ) : null}
+            </TableCell>
+            <TableCell className="hidden md:table-cell">
+                <div className="flex items-center gap-1.5">
+                    {production ? <EnvPill tone="emerald" label="Production" /> : null}
+                    {staging ? <EnvPill tone="sky" label="Staging" /> : null}
                     {!production && !staging ? (
-                        <HostLine label="—" host="No deployment yet" muted />
+                        <span className="text-xs text-muted-foreground">—</span>
                     ) : null}
                 </div>
-            </div>
-        </motion.button>
+            </TableCell>
+            <TableCell className="hidden max-w-[280px] lg:table-cell">
+                <span className="block truncate font-mono text-xs text-muted-foreground">
+                    {hostSummary}
+                </span>
+            </TableCell>
+            <TableCell className="hidden text-xs text-muted-foreground sm:table-cell">
+                {relativeTime(new Date(lastTouched).toISOString())}
+            </TableCell>
+            <TableCell className="w-10 text-muted-foreground">
+                <ChevronRightIcon className="h-4 w-4" />
+            </TableCell>
+        </TableRow>
     );
 }
 
-function EnvironmentDots({
-    production,
-    staging,
-}: {
-    production: boolean;
-    staging: boolean;
-}) {
-    if (!production && !staging) {
-        return (
-            <span className="inline-flex h-5 items-center rounded-full border border-border bg-background/60 px-1.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
-                idle
-            </span>
-        );
-    }
-    return (
-        <div className="flex shrink-0 items-center gap-2 rounded-full border border-border/80 bg-background/60 px-2 py-0.5 backdrop-blur-[2px]">
-            {production ? (
-                <Dot label="prod" tone="emerald" pulse />
-            ) : null}
-            {staging ? <Dot label="stg" tone="sky" /> : null}
-        </div>
-    );
+function hostsLabel(
+    production: Deployment | undefined,
+    staging: Deployment | undefined,
+) {
+    const parts: string[] = [];
+    if (production?.frontend_host) parts.push(production.frontend_host);
+    if (staging?.frontend_host) parts.push(staging.frontend_host);
+    if (parts.length === 0) return "No deployment yet";
+    return parts.join("  ·  ");
 }
 
-function Dot({
-    label,
+function EnvPill({
     tone,
-    pulse = false,
+    label,
 }: {
-    label: string;
     tone: "emerald" | "sky";
-    pulse?: boolean;
+    label: string;
 }) {
-    const ringColor =
-        tone === "emerald" ? "bg-emerald-500" : "bg-sky-500";
+    const dotColor = tone === "emerald" ? "bg-emerald-500" : "bg-sky-500";
     return (
-        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.08em] text-foreground/75">
-            <span className="relative inline-flex h-1.5 w-1.5">
-                {pulse ? (
-                    <span
-                        className={cn(
-                            "absolute inset-0 rounded-full opacity-60",
-                            ringColor,
-                        )}
-                        style={{ animation: "ping 2.4s cubic-bezier(0,0,0.2,1) infinite" }}
-                    />
-                ) : null}
-                <span
-                    className={cn(
-                        "relative inline-flex h-1.5 w-1.5 rounded-full",
-                        ringColor,
-                    )}
-                />
-            </span>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-background px-2 py-0.5 text-[11px] text-foreground/80">
+            <span className={cn("h-1.5 w-1.5 rounded-full", dotColor)} />
             {label}
         </span>
-    );
-}
-
-function HostLine({
-    label,
-    host,
-    muted = false,
-}: {
-    label: string;
-    host: string;
-    muted?: boolean;
-}) {
-    return (
-        <div className="flex items-center gap-2 font-mono text-[12px]">
-            <span className="w-9 shrink-0 text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                {label}
-            </span>
-            <span
-                className={cn(
-                    "min-w-0 truncate",
-                    muted ? "text-muted-foreground" : "text-foreground/85",
-                )}
-            >
-                {host}
-            </span>
-        </div>
     );
 }
