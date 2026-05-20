@@ -166,7 +166,7 @@ export const tours = {
                         side: "top",
                         align: "center",
                         title: "Confirm to continue",
-                        body: "We won't charge anything until you exceed the free tier. Pick a plan on the left if you haven't yet, then click here.",
+                        body: "This is a one time setup and you will not be led to checkout unless you picked a plan plan",
                     },
                 ],
             },
