@@ -151,8 +151,8 @@ export const tours = {
                         target: "billing-legal-name",
                         side: "bottom",
                         align: "start",
-                        title: "Enter your company name",
-                        body: "This is your legal entity name — what'll appear on invoices and receipts.",
+                        title: "Billing name",
+                        body: "Enter your billing name (no charges or checkout yet, we just need this for legal reason 🙂)",
                     },
                     {
                         target: "billing-work-email",
@@ -409,7 +409,7 @@ export const tours = {
                         side: "bottom",
                         align: "start",
                         title: "Give it a display name",
-                        body: "Human-readable name shown to users on the consent screen. \"MCP Auth Server\" or your product name works.",
+                        body: 'Human-readable name shown to users on the consent screen. "MCP Auth Server" or your product name works.',
                     },
                     {
                         target: "oauth-app-submit",
