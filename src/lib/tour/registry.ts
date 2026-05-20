@@ -166,7 +166,7 @@ export const tours = {
                         side: "top",
                         align: "center",
                         title: "Confirm to continue",
-                        body: "This is a one time setup and you will not be led to checkout unless you picked a plan plan",
+                        body: "This is a one time setup and you will not be led to checkout unless you picked a paid plan",
                     },
                 ],
             },
