@@ -130,7 +130,7 @@ export default function AgentApprovalsPage() {
   return (
     <div className="space-y-8">
       <p className="text-[13px] leading-5 text-muted-foreground">
-        Resolution order: regex rules → per-tool action → MCP/virtual toggle → allow.
+        Resolution order: regex rules → MCP/virtual toggle → per-tool action → allow.
         First match wins.{" "}
         <a
           href="https://wacht.dev/docs/guides/agents/approval-policy"
