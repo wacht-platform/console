@@ -1,11 +1,19 @@
-import { useState, useEffect, useMemo } from "react";
+import {
+    useState,
+    useEffect,
+    useMemo,
+    type ComponentProps,
+    type FormEvent,
+    type ReactNode,
+} from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { apiClient } from "@/lib/api/client";
-import { Heading, Subheading } from "@/components/ui/heading";
+import { cn } from "@/lib/utils";
+import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
-import { Divider } from "@/components/ui/divider";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
     Select,
     SelectContent,
@@ -13,17 +21,39 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Description, Field, Label } from "@/components/ui/fieldset";
+import { Field, Label } from "@/components/ui/fieldset";
 import { Switch } from "@/components/ui/switch";
 import {
-    CheckCircleIcon,
-    XCircleIcon,
-    ExclamationTriangleIcon,
-} from "@heroicons/react/20/solid";
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
+import { ExclamationTriangleIcon } from "@heroicons/react/20/solid";
+import {
+    PencilIcon,
+    PlusIcon,
+    TrashIcon,
+} from "@heroicons/react/24/outline";
 import { toast } from "sonner";
 import SavePopup from "@/components/save-popup";
 import { InlineLoader } from "@/components/ui/loading-screen";
-import { isS3StorageConfigured } from "@/lib/ai-settings";
+import { useTour } from "@/lib/tour";
+import GoogleLogo from "@/assets/google.svg";
+import OpenAiLogo from "@/assets/openai-logo.svg";
+import OpenRouterLogo from "@/assets/openrouter-logo.svg";
+import {
+    type AiProviderProfile,
+    type CreateAiProviderProfileRequest,
+    type UpdateAiProviderProfileRequest,
+    useAiProviderProfiles,
+    useCreateAiProviderProfile,
+    useDeleteAiProviderProfile,
+    useUpdateAiProviderProfile,
+} from "@/lib/api/hooks/use-ai-provider-profiles";
 
 type LlmProvider = "gemini" | "openai" | "openrouter";
 type EmbeddingProvider = "gemini" | "openai" | "openrouter";
@@ -145,7 +175,6 @@ export default function AISettingsPage() {
     const [weakLlmProvider, setWeakLlmProvider] =
         useState<LlmProvider>("gemini");
     const [openaiKey, setOpenaiKey] = useState("");
-    const [anthropicKey, setAnthropicKey] = useState("");
     const [strongModel, setStrongModel] = useState("");
     const [weakModel, setWeakModel] = useState("");
     const [embeddingProvider, setEmbeddingProvider] =
@@ -161,12 +190,24 @@ export default function AISettingsPage() {
     const [storageSecretAccessKey, setStorageSecretAccessKey] = useState("");
     const [forcePathStyle, setForcePathStyle] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
+    const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+    const [editingProfile, setEditingProfile] =
+        useState<AiProviderProfile | null>(null);
+    const [deletingProfile, setDeletingProfile] =
+        useState<AiProviderProfile | null>(null);
 
     const { data: settings, isLoading } = useQuery({
         queryKey: ["ai-settings", selectedDeployment?.id],
         queryFn: () => fetchAISettings(selectedDeployment!.id),
         enabled: !!selectedDeployment,
     });
+    const { data: providerProfiles = [], isLoading: profilesLoading } =
+        useAiProviderProfiles();
+    const createProfileMutation = useCreateAiProviderProfile();
+    const updateProfileMutation = useUpdateAiProviderProfile();
+    const deleteProfileMutation = useDeleteAiProviderProfile();
+
+    useTour("first-ai-settings", !isLoading);
 
     const updateMutation = useMutation({
         mutationFn: (updates: UpdateAISettingsRequest) =>
@@ -183,7 +224,6 @@ export default function AISettingsPage() {
             setStrongLlmProvider(updatedSettings.strong_llm_provider);
             setWeakLlmProvider(updatedSettings.weak_llm_provider);
             setOpenaiKey("");
-            setAnthropicKey("");
             setStrongModel(updatedSettings.strong_model ?? "");
             setWeakModel(updatedSettings.weak_model ?? "");
             setEmbeddingProvider(updatedSettings.embedding_provider);
@@ -201,6 +241,42 @@ export default function AISettingsPage() {
             toast.error(extractErrorMessage(error));
         },
     });
+
+    const handleProfileSave = async (
+        request:
+            | CreateAiProviderProfileRequest
+            | UpdateAiProviderProfileRequest,
+    ) => {
+        try {
+            if (editingProfile) {
+                await updateProfileMutation.mutateAsync({
+                    profileId: editingProfile.id,
+                    profile: request,
+                });
+                toast.success("Provider profile updated");
+            } else {
+                await createProfileMutation.mutateAsync(
+                    request as CreateAiProviderProfileRequest,
+                );
+                toast.success("Provider profile created");
+            }
+            setProfileDialogOpen(false);
+            setEditingProfile(null);
+        } catch (error) {
+            toast.error(extractErrorMessage(error));
+        }
+    };
+
+    const handleProfileDelete = async () => {
+        if (!deletingProfile) return;
+        try {
+            await deleteProfileMutation.mutateAsync(deletingProfile.id);
+            toast.success("Provider profile deleted");
+            setDeletingProfile(null);
+        } catch (error) {
+            toast.error(extractErrorMessage(error));
+        }
+    };
 
     // Compute whether the selected provider has a key available (saved or newly entered)
     const providerKeyAvailable = useMemo(() => {
@@ -278,8 +354,6 @@ export default function AISettingsPage() {
             updates.openrouter_require_parameters = openrouterRequireParameters;
         }
         if (openaiKey.trim()) updates.openai_api_key = openaiKey.trim();
-        if (anthropicKey.trim())
-            updates.anthropic_api_key = anthropicKey.trim();
         if (strongModel.trim() !== (settings?.strong_model ?? ""))
             updates.strong_model = strongModel.trim() || undefined;
         if (weakModel.trim() !== (settings?.weak_model ?? ""))
@@ -402,7 +476,6 @@ export default function AISettingsPage() {
         setStrongLlmProvider(settings?.strong_llm_provider ?? "gemini");
         setWeakLlmProvider(settings?.weak_llm_provider ?? "gemini");
         setOpenaiKey("");
-        setAnthropicKey("");
         setStrongModel(settings?.strong_model ?? "");
         setWeakModel(settings?.weak_model ?? "");
         setEmbeddingProvider(settings?.embedding_provider ?? "gemini");
@@ -441,7 +514,6 @@ export default function AISettingsPage() {
             strongLlmProvider !== (settings?.strong_llm_provider ?? "gemini") ||
             weakLlmProvider !== (settings?.weak_llm_provider ?? "gemini") ||
             openaiKey.trim() ||
-            anthropicKey.trim() ||
             strongModel.trim() !== (settings?.strong_model ?? "") ||
             weakModel.trim() !== (settings?.weak_model ?? "") ||
             embeddingProvider !== (settings?.embedding_provider ?? "gemini") ||
@@ -467,7 +539,6 @@ export default function AISettingsPage() {
         strongLlmProvider,
         weakLlmProvider,
         openaiKey,
-        anthropicKey,
         strongModel,
         weakModel,
         embeddingProvider,
@@ -485,12 +556,16 @@ export default function AISettingsPage() {
     if (isLoading) return <InlineLoader />;
 
     return (
-        <div>
-            <Heading>Configuration</Heading>
-            <Text className="mt-2 text-zinc-500">
-                Bring your own LLM, embedding, and storage credentials. Keys set
-                here bypass platform billing.
-            </Text>
+        <div className="w-full pb-20" data-tour-id="llm-ai-settings-page">
+            <div className="mb-5">
+                <Heading className="text-xl font-semibold tracking-[-0.01em]">
+                    Configuration
+                </Heading>
+                <Text className="mt-1.5 text-[12.5px] leading-5 text-muted-foreground">
+                    Bring your own LLM, embedding, and storage credentials. Keys
+                    here bypass platform billing.
+                </Text>
+            </div>
 
             <SavePopup
                 isDirty={isDirty}
@@ -499,297 +574,132 @@ export default function AISettingsPage() {
                 onCancel={handleCancel}
             />
 
-            <div className="mt-8 space-y-10">
-                {/* Storage */}
-                <section className="space-y-4">
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                            <Subheading>Storage</Subheading>
-                            <StorageProviderBadge
-                                provider={settings?.storage.provider ?? "s3"}
-                                configured={isS3StorageConfigured(settings)}
+            <div className="divide-y divide-border/70">
+                <section className="pb-5" data-tour-id="ai-settings-storage">
+                    <SectionHeader
+                        title="Storage"
+                        description="S3-compatible bucket."
+                    />
+                    <div className="grid gap-x-3.5 gap-y-3 sm:grid-cols-2">
+                        <CompactField label="Bucket">
+                            <CompactInput
+                                placeholder={
+                                    settings?.storage.bucket ??
+                                    "customer-ai-storage"
+                                }
+                                value={storageBucket}
+                                onChange={(e) =>
+                                    setStorageBucket(e.target.value)
+                                }
                             />
-                        </div>
-                        <Text>
-                            S3-compatible bucket for workspaces, uploads, and
-                            vector tables.
-                        </Text>
+                        </CompactField>
+                        <CompactField label="Region">
+                            <CompactInput
+                                placeholder={
+                                    settings?.storage.region ??
+                                    "Optional, for example us-east-1"
+                                }
+                                value={storageRegion}
+                                onChange={(e) =>
+                                    setStorageRegion(e.target.value)
+                                }
+                            />
+                        </CompactField>
+                        <CompactField label="Endpoint" full>
+                            <CompactInput
+                                placeholder={
+                                    settings?.storage.endpoint ??
+                                    "https://s3.amazonaws.com"
+                                }
+                                value={storageEndpoint}
+                                onChange={(e) =>
+                                    setStorageEndpoint(e.target.value)
+                                }
+                            />
+                        </CompactField>
+                        <CompactField label="Root prefix" full>
+                            <CompactInput
+                                placeholder={
+                                    settings?.storage.root_prefix ??
+                                    "Optional, for example /agents"
+                                }
+                                value={storageRootPrefix}
+                                onChange={(e) =>
+                                    setStorageRootPrefix(e.target.value)
+                                }
+                            />
+                        </CompactField>
+                        <CompactField label="Access key ID">
+                            <CompactInput
+                                type="password"
+                                autoComplete="new-password"
+                                placeholder={
+                                    settings?.storage.access_key_id_set
+                                        ? "••••••••••••••••"
+                                        : "Enter access key ID"
+                                }
+                                value={storageAccessKeyId}
+                                onChange={(e) =>
+                                    setStorageAccessKeyId(e.target.value)
+                                }
+                            />
+                        </CompactField>
+                        <CompactField label="Secret access key">
+                            <CompactInput
+                                type="password"
+                                autoComplete="new-password"
+                                placeholder={
+                                    settings?.storage.secret_access_key_set
+                                        ? "••••••••••••••••"
+                                        : "Enter secret access key"
+                                }
+                                value={storageSecretAccessKey}
+                                onChange={(e) =>
+                                    setStorageSecretAccessKey(e.target.value)
+                                }
+                            />
+                        </CompactField>
                     </div>
-
-                    <div className="grid gap-0 lg:grid-cols-2">
-                        <div className="border-b border-zinc-200 pb-6 dark:border-zinc-800 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-8">
-                            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                                Connection
-                            </div>
-                            <div className="mt-1 text-xs text-zinc-500">
-                                Must match your provider exactly. Region
-                                mismatches fail silently.
-                            </div>
-                            <div className="mt-4 space-y-4">
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <Field>
-                                        <Label>Bucket</Label>
-                                        <Input
-                                            placeholder={
-                                                settings?.storage.bucket ??
-                                                "customer-ai-storage"
-                                            }
-                                            value={storageBucket}
-                                            onChange={(e) =>
-                                                setStorageBucket(e.target.value)
-                                            }
-                                        />
-                                    </Field>
-                                    <Field>
-                                        <Label>Region</Label>
-                                        <Input
-                                            placeholder={
-                                                settings?.storage.region ??
-                                                "Optional, for example us-east-1"
-                                            }
-                                            value={storageRegion}
-                                            onChange={(e) =>
-                                                setStorageRegion(e.target.value)
-                                            }
-                                        />
-                                    </Field>
-                                </div>
-                                <Field>
-                                    <Label>Endpoint</Label>
-                                    <Input
-                                        placeholder={
-                                            settings?.storage.endpoint ??
-                                            "https://s3.amazonaws.com"
-                                        }
-                                        value={storageEndpoint}
-                                        onChange={(e) =>
-                                            setStorageEndpoint(e.target.value)
-                                        }
-                                    />
-                                    <Description>
-                                        Full `http` or `https` URL for the S3
-                                        endpoint.
-                                    </Description>
-                                </Field>
-                                <Field>
-                                    <Label>Root prefix</Label>
-                                    <Input
-                                        placeholder={
-                                            settings?.storage.root_prefix ??
-                                            "Optional, for example wacht"
-                                        }
-                                        value={storageRootPrefix}
-                                        onChange={(e) =>
-                                            setStorageRootPrefix(e.target.value)
-                                        }
-                                    />
-                                    <Description>
-                                        Optional folder prefix under the bucket.
-                                    </Description>
-                                </Field>
-                            </div>
-                        </div>
-
-                        <div className="pt-6 lg:pl-8 lg:pt-0">
-                            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                                Credentials
-                            </div>
-                            <div className="mt-1 text-xs text-zinc-500">
-                                Leave a credential field blank to keep the
-                                currently saved value.
-                            </div>
-                            <div className="mt-4 space-y-4">
-                                <Field>
-                                    <Label>Access key ID</Label>
-                                    <Input
-                                        type="password"
-                                        autoComplete="new-password"
-                                        placeholder={
-                                            settings?.storage.access_key_id_set
-                                                ? "••••••••••••••••"
-                                                : "Enter access key ID"
-                                        }
-                                        value={storageAccessKeyId}
-                                        onChange={(e) =>
-                                            setStorageAccessKeyId(
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
-                                </Field>
-                                <Field>
-                                    <Label>Secret access key</Label>
-                                    <Input
-                                        type="password"
-                                        autoComplete="new-password"
-                                        placeholder={
-                                            settings?.storage
-                                                .secret_access_key_set
-                                                ? "••••••••••••••••"
-                                                : "Enter secret access key"
-                                        }
-                                        value={storageSecretAccessKey}
-                                        onChange={(e) =>
-                                            setStorageSecretAccessKey(
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
-                                </Field>
-                                <div className="border-zinc-200 pt-10 dark:border-zinc-800">
-                                    <div className="flex items-center justify-between gap-4">
-                                        <div className="space-y-1">
-                                            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                                                Force path-style requests
-                                            </div>
-                                            <div className="text-xs text-zinc-500">
-                                                Enable this for providers that
-                                                expect path-style bucket
-                                                addressing.
-                                            </div>
-                                        </div>
-                                        <Switch
-                                            checked={forcePathStyle}
-                                            onCheckedChange={setForcePathStyle}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <ToggleRow
+                        title="Force path-style requests"
+                        description="Enable for providers that expect path-style bucket addressing."
+                        checked={forcePathStyle}
+                        onCheckedChange={setForcePathStyle}
+                    />
                 </section>
 
-                <Divider soft />
+                <section className="py-5" data-tour-id="ai-settings-models">
+                    <SectionHeader
+                        title="Model routing"
+                        description="Strong for planning, weak for tool calls."
+                    />
 
-                {/* Model selection */}
-                <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
-                    <div className="space-y-1">
-                        <Subheading>Model Selection</Subheading>
-                        <Text>
-                            Agents route requests to a strong or weak tier per
-                            call.
-                        </Text>
-                        <Text className="text-xs text-zinc-500 mt-1">
-                            <strong>Strong</strong>: JSON-schema output
-                            (planning, decisions). Requires structured-output
-                            support.
-                        </Text>
-                        <Text className="text-xs text-zinc-500 mt-1">
-                            <strong>Weak</strong>: tool calls, summaries,
-                            iteration. Requires function-calling support.
-                        </Text>
-                    </div>
-                    <div className="space-y-4">
-                        {/* Provider/key warnings */}
-                        {(!providerKeyAvailable.strong ||
-                            !providerKeyAvailable.weak) && (
-                            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950">
-                                <div className="flex items-start gap-2">
-                                    <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-                                    <div className="space-y-1 text-xs text-amber-800 dark:text-amber-300">
-                                        {!providerKeyAvailable.strong &&
-                                            weakLlmProvider !==
-                                                strongLlmProvider && (
-                                                <p>
-                                                    (
-                                                    {providerLabel(
-                                                        strongLlmProvider,
-                                                    )}
-                                                    ) has no API key
-                                                </p>
-                                            )}
-                                        {!providerKeyAvailable.weak &&
-                                            weakLlmProvider !==
-                                                strongLlmProvider && (
-                                                <p>
-                                                    (
-                                                    {providerLabel(
-                                                        weakLlmProvider,
-                                                    )}
-                                                    ) has no API key
-                                                </p>
-                                            )}
-                                        {!providerKeyAvailable.weak &&
-                                            weakLlmProvider ===
-                                                strongLlmProvider && (
-                                                <p>
-                                                    {providerLabel(
-                                                        strongLlmProvider,
-                                                    )}{" "}
-                                                    has no API key
-                                                </p>
-                                            )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                    {(!providerKeyAvailable.strong ||
+                        !providerKeyAvailable.weak ||
+                        openrouterStrongWithoutRequireParams) && (
+                        <div className="mb-3 flex items-center gap-1.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">
+                            <ExclamationTriangleIcon className="h-3 w-3 shrink-0" />
+                            <span>
+                                {!providerKeyAvailable.strong
+                                    ? `${providerLabel(strongLlmProvider)} has no strong-provider key`
+                                    : !providerKeyAvailable.weak
+                                      ? `${providerLabel(weakLlmProvider)} has no weak-provider key`
+                                      : "OpenRouter require parameters must stay enabled for strong routing"}
+                            </span>
+                        </div>
+                    )}
 
-                        {/* OpenRouter + require_parameters warning */}
-                        {openrouterStrongWithoutRequireParams && (
-                            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950">
-                                <div className="flex items-start gap-2">
-                                    <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-                                    <p className="text-xs text-amber-800 dark:text-amber-300">
-                                        OpenRouter is the strong provider but
-                                        'require parameters' is disabled — JSON
-                                        schema output may route to models that
-                                        don't support it.
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-
-                        <Field>
-                            <Label>Strong provider</Label>
-                            <Select
+                    <div className="grid gap-x-3.5 gap-y-3 sm:grid-cols-2">
+                        <CompactField label="Strong provider">
+                            <ProviderSelect
                                 value={strongLlmProvider}
                                 onValueChange={(v) =>
                                     setStrongLlmProvider(v as LlmProvider)
                                 }
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select provider" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="gemini">
-                                        Gemini
-                                    </SelectItem>
-                                    <SelectItem value="openrouter">
-                                        OpenRouter
-                                    </SelectItem>
-                                    <SelectItem value="openai">
-                                        OpenAI
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </Field>
-                        <Field>
-                            <Label>Weak provider</Label>
-                            <Select
-                                value={weakLlmProvider}
-                                onValueChange={(v) =>
-                                    setWeakLlmProvider(v as LlmProvider)
-                                }
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select provider" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="gemini">
-                                        Gemini
-                                    </SelectItem>
-                                    <SelectItem value="openrouter">
-                                        OpenRouter
-                                    </SelectItem>
-                                    <SelectItem value="openai">
-                                        OpenAI
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </Field>
-                        <Field>
-                            <Label>Strong model</Label>
-                            <Input
+                            />
+                        </CompactField>
+                        <CompactField label="Strong model">
+                            <CompactInput
                                 placeholder={
                                     settings?.strong_model ??
                                     "provider/strong-model"
@@ -797,13 +707,17 @@ export default function AISettingsPage() {
                                 value={strongModel}
                                 onChange={(e) => setStrongModel(e.target.value)}
                             />
-                            <Description>
-                                Needs structured-output support.
-                            </Description>
-                        </Field>
-                        <Field>
-                            <Label>Weak model</Label>
-                            <Input
+                        </CompactField>
+                        <CompactField label="Weak provider">
+                            <ProviderSelect
+                                value={weakLlmProvider}
+                                onValueChange={(v) =>
+                                    setWeakLlmProvider(v as LlmProvider)
+                                }
+                            />
+                        </CompactField>
+                        <CompactField label="Weak model">
+                            <CompactInput
                                 placeholder={
                                     settings?.weak_model ??
                                     "provider/weak-model"
@@ -811,55 +725,35 @@ export default function AISettingsPage() {
                                 value={weakModel}
                                 onChange={(e) => setWeakModel(e.target.value)}
                             />
-                            <Description>
-                                Needs function-calling support.
-                            </Description>
-                        </Field>
+                        </CompactField>
                     </div>
                 </section>
 
-                <Divider soft />
-
-                {/* Embeddings */}
-                <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
-                    <div className="space-y-1">
-                        <Subheading>Embeddings</Subheading>
-                        <Text>
-                            Powers semantic search over knowledge bases and
-                            agent memory.
-                        </Text>
-                        <Text className="text-xs text-zinc-500 mt-1">
-                            Changing any field invalidates the vector store. All
-                            KB docs and memories must be reindexed.
-                        </Text>
-                    </div>
-                    <div className="space-y-4">
-                        {(embeddingProvider !==
-                            (settings?.embedding_provider ?? "gemini") ||
-                            embeddingModel.trim() !==
-                                (settings?.embedding_model ?? "") ||
-                            embeddingDimension !==
-                                (settings?.embedding_dimension ?? 1536)) && (
-                            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950">
-                                <div className="flex items-start gap-2">
-                                    <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-                                    <p className="text-xs text-amber-800 dark:text-amber-300">
-                                        Saving resets the vector store. Reindex
-                                        all KB docs and memories before
-                                        retrieval works again.
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-                        <Field>
-                            <Label>Provider</Label>
+                <section className="py-5" data-tour-id="ai-settings-embeddings">
+                    <SectionHeader
+                        title="Embeddings"
+                        description="Semantic search over knowledge bases."
+                        action={
+                            (embeddingProvider !==
+                                (settings?.embedding_provider ?? "gemini") ||
+                                embeddingModel.trim() !==
+                                    (settings?.embedding_model ?? "") ||
+                                embeddingDimension !==
+                                    (settings?.embedding_dimension ?? 1536)) && (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">
+                                    <ExclamationTriangleIcon className="h-3 w-3" />
+                                    Invalidates vector store
+                                </span>
+                            )
+                        }
+                    />
+                    <div className="grid gap-x-3.5 gap-y-3 sm:grid-cols-3">
+                        <CompactField label="Provider">
                             <Select
                                 value={embeddingProvider}
                                 onValueChange={(v) => {
                                     const next = v as EmbeddingProvider;
                                     setEmbeddingProvider(next);
-                                    // Suggest the provider's default model when the current model
-                                    // is empty or matches the previous provider's default.
                                     const prevDefault =
                                         defaultEmbeddingModelFor(
                                             embeddingProvider,
@@ -874,9 +768,9 @@ export default function AISettingsPage() {
                                     }
                                 }}
                             >
-                                <SelectTrigger className="w-full">
+                                <CompactSelectTrigger>
                                     <SelectValue placeholder="Select provider" />
-                                </SelectTrigger>
+                                </CompactSelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="gemini">
                                         Gemini
@@ -889,13 +783,9 @@ export default function AISettingsPage() {
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
-                            <Description>
-                                Uses the provider's API key below.
-                            </Description>
-                        </Field>
-                        <Field>
-                            <Label>Model</Label>
-                            <Input
+                        </CompactField>
+                        <CompactField label="Model">
+                            <CompactInput
                                 placeholder={defaultEmbeddingModelFor(
                                     embeddingProvider,
                                 )}
@@ -904,12 +794,8 @@ export default function AISettingsPage() {
                                     setEmbeddingModel(e.target.value)
                                 }
                             />
-                            <Description>
-                                Provider-specific model string.
-                            </Description>
-                        </Field>
-                        <Field>
-                            <Label>Dimension</Label>
+                        </CompactField>
+                        <CompactField label="Dimension">
                             <Select
                                 value={String(embeddingDimension)}
                                 onValueChange={(v) =>
@@ -918,9 +804,9 @@ export default function AISettingsPage() {
                                     )
                                 }
                             >
-                                <SelectTrigger className="w-full">
+                                <CompactSelectTrigger>
                                     <SelectValue placeholder="Select dimension" />
-                                </SelectTrigger>
+                                </CompactSelectTrigger>
                                 <SelectContent>
                                     {SUPPORTED_EMBEDDING_DIMENSIONS.map((d) => (
                                         <SelectItem key={d} value={String(d)}>
@@ -929,76 +815,57 @@ export default function AISettingsPage() {
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <Description>
-                                Must match the model's native output size.
-                            </Description>
-                        </Field>
+                        </CompactField>
                     </div>
                 </section>
 
-                <Divider soft />
-
-                {/* Google Gemini */}
-                <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
-                    <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                            <Subheading>Google Gemini</Subheading>
-                            <StatusBadge
-                                isSet={settings?.gemini_api_key_set ?? false}
-                            />
-                        </div>
-                        <Text>Used when Gemini is selected above.</Text>
-                        <Text className="text-xs">
-                            Get your key from the{" "}
-                            <a
-                                href="https://aistudio.google.com/apikey"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-500 hover:underline"
-                            >
-                                Google AI Studio
-                            </a>
-                        </Text>
-                    </div>
-                    <div className="space-y-1">
-                        <Input
-                            type="password"
-                            placeholder={
-                                settings?.gemini_api_key_set
-                                    ? "••••••••••••••••"
-                                    : "Enter Gemini API Key"
-                            }
-                            value={geminiKey}
-                            onChange={(e) => setGeminiKey(e.target.value)}
-                            autoComplete="new-password"
-                        />
-                    </div>
-                </section>
-
-                <Divider soft />
-
-                {/* OpenRouter */}
-                <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
-                    <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                            <Subheading>OpenRouter</Subheading>
-                            <StatusBadge
-                                isSet={
-                                    settings?.openrouter_api_key_set ?? false
-                                }
-                            />
-                        </div>
-                        <Text>Used when OpenRouter is selected above.</Text>
-                    </div>
+                <section className="py-5" data-tour-id="ai-settings-provider-keys">
+                    <SectionHeader
+                        title="Provider keys"
+                        description="Leave blank to keep saved value."
+                    />
                     <div className="space-y-4">
-                        <Field>
-                            <Label>API key</Label>
-                            <Input
+                        <ProviderKeyRow
+                            logo={<GeminiProviderLogo />}
+                            name="Google Gemini"
+                            statusSet={settings?.gemini_api_key_set ?? false}
+                            subtext={
+                                <a
+                                    href="https://aistudio.google.com/apikey"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="border-b border-border text-foreground"
+                                >
+                                    Google AI Studio
+                                </a>
+                            }
+                        >
+                            <CompactInput
+                                type="password"
+                                placeholder={
+                                    settings?.gemini_api_key_set
+                                        ? "••••••••••••••••"
+                                        : "Enter Gemini API key"
+                                }
+                                value={geminiKey}
+                                onChange={(e) => setGeminiKey(e.target.value)}
+                                autoComplete="new-password"
+                            />
+                        </ProviderKeyRow>
+
+                        <ProviderKeyRow
+                            logo={<OpenRouterProviderLogo />}
+                            name="OpenRouter"
+                            statusSet={
+                                settings?.openrouter_api_key_set ?? false
+                            }
+                        >
+                            <CompactInput
                                 type="password"
                                 placeholder={
                                     settings?.openrouter_api_key_set
                                         ? "••••••••••••••••"
-                                        : "Enter OpenRouter API Key"
+                                        : "Enter OpenRouter API key"
                                 }
                                 value={openrouterKey}
                                 onChange={(e) =>
@@ -1006,117 +873,625 @@ export default function AISettingsPage() {
                                 }
                                 autoComplete="new-password"
                             />
-                        </Field>
-                        <div className="flex items-center justify-between gap-4 rounded-lg border border-zinc-200 px-4 py-3 dark:border-zinc-800">
-                            <div className="space-y-1">
-                                <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                                    Require parameters
-                                </div>
-                                <div className="text-xs text-zinc-500">
-                                    Skip endpoints that drop requested
-                                    parameters. Required for strong-model
-                                    routing.
-                                </div>
-                            </div>
-                            <Switch
+                            <ToggleRow
+                                title="Require parameters"
+                                description="Skip endpoints that drop params."
                                 checked={openrouterRequireParameters}
-                                onCheckedChange={setOpenrouterRequireParameters}
+                                onCheckedChange={
+                                    setOpenrouterRequireParameters
+                                }
                             />
-                        </div>
+                        </ProviderKeyRow>
+
+                        <ProviderKeyRow
+                            logo={<OpenAiProviderLogo />}
+                            name="OpenAI"
+                            statusSet={settings?.openai_api_key_set ?? false}
+                        >
+                            <CompactInput
+                                type="password"
+                                placeholder={
+                                    settings?.openai_api_key_set
+                                        ? "••••••••••••••••"
+                                        : "sk-..."
+                                }
+                                value={openaiKey}
+                                onChange={(e) => setOpenaiKey(e.target.value)}
+                                autoComplete="new-password"
+                            />
+                        </ProviderKeyRow>
                     </div>
                 </section>
 
-                <Divider soft />
-
-                {/* OpenAI */}
-                <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
-                    <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                            <Subheading>OpenAI</Subheading>
-                            <StatusBadge
-                                isSet={settings?.openai_api_key_set ?? false}
-                            />
+                <section className="py-5" data-tour-id="ai-settings-openai-profiles">
+                    <SectionHeader
+                        title="OpenAI profiles"
+                        description="Per-agent keys and endpoints."
+                        action={
+                            <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => {
+                                    setEditingProfile(null);
+                                    setProfileDialogOpen(true);
+                                }}
+                            >
+                                <PlusIcon className="h-3.5 w-3.5" />
+                                New profile
+                            </Button>
+                        }
+                    />
+                    {profilesLoading ? (
+                        <InlineLoader />
+                    ) : providerProfiles.length > 0 ? (
+                        <div className="space-y-3">
+                            {providerProfiles.map((profile) => (
+                                <div
+                                    key={profile.id}
+                                    className="grid gap-2 sm:grid-cols-[1fr_auto]"
+                                >
+                                    <div className="min-w-0">
+                                        <div className="flex min-w-0 items-center gap-2">
+                                            <span className="truncate text-[12.5px] font-medium text-foreground">
+                                                {profile.name}
+                                            </span>
+                                            <StatusBadge
+                                                isSet={profile.enabled}
+                                                onLabel="Enabled"
+                                                offLabel="Disabled"
+                                            />
+                                        </div>
+                                        <div className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
+                                            {profile.slug}
+                                            {profile.default_model
+                                                ? ` · ${profile.default_model}`
+                                                : ""}
+                                            {profile.base_url
+                                                ? ` · ${profile.base_url}`
+                                                : ""}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon-xs"
+                                            onClick={() => {
+                                                setEditingProfile(profile);
+                                                setProfileDialogOpen(true);
+                                            }}
+                                        >
+                                            <PencilIcon className="h-3.5 w-3.5" />
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon-xs"
+                                            onClick={() =>
+                                                setDeletingProfile(profile)
+                                            }
+                                        >
+                                            <TrashIcon className="h-3.5 w-3.5 text-destructive" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                        <Text>Used when OpenAI is selected above.</Text>
+                    ) : (
+                        <div className="flex items-center gap-3 py-1">
+                            <div className="text-[11.5px] text-muted-foreground">
+                                No profiles yet.
+                            </div>
+                        </div>
+                    )}
+                </section>
+
+            </div>
+
+            <ProviderProfileDialog
+                open={profileDialogOpen}
+                profile={editingProfile}
+                isSaving={
+                    createProfileMutation.isPending ||
+                    updateProfileMutation.isPending
+                }
+                onClose={() => {
+                    setProfileDialogOpen(false);
+                    setEditingProfile(null);
+                }}
+                onSave={handleProfileSave}
+            />
+            <ConfirmationDialog
+                isOpen={!!deletingProfile}
+                onClose={() => setDeletingProfile(null)}
+                onConfirm={handleProfileDelete}
+                title="Delete OpenAI profile"
+                message={
+                    deletingProfile
+                        ? `Delete "${deletingProfile.name}"? Agents using this profile will fall back once the database clears the reference.`
+                        : "Delete this profile?"
+                }
+                confirmText="Delete"
+                isDestructive
+                isLoading={deleteProfileMutation.isPending}
+            />
+        </div>
+    );
+}
+
+function SectionHeader({
+    title,
+    description,
+    action,
+}: {
+    title: string;
+    description: string;
+    action?: ReactNode;
+}) {
+    return (
+        <div className="mb-3.5 flex items-baseline gap-2.5">
+            <h3 className="m-0 text-sm font-semibold leading-5 tracking-[-0.005em] text-foreground">
+                {title}
+            </h3>
+            <p className="m-0 text-xs leading-5 text-muted-foreground">
+                {description}
+            </p>
+            {action && <div className="ml-auto shrink-0">{action}</div>}
+        </div>
+    );
+}
+
+function CompactField({
+    label,
+    full,
+    children,
+}: {
+    label: string;
+    full?: boolean;
+    children: ReactNode;
+}) {
+    return (
+        <label
+            className={cn(
+                "flex min-w-0 flex-col gap-1.5",
+                full && "sm:col-span-full",
+            )}
+        >
+            <span className="text-[11.5px] font-medium leading-none text-foreground">
+                {label}
+            </span>
+            {children}
+        </label>
+    );
+}
+
+function CompactInput({ className, ...props }: ComponentProps<typeof Input>) {
+    return (
+        <Input
+            className={cn(
+                "h-[30px] rounded-md border-input bg-input/40 px-2.5 font-mono text-[12px] shadow-none placeholder:text-muted-foreground/70 focus-visible:ring-2",
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
+function CompactSelectTrigger({
+    className,
+    children,
+}: ComponentProps<typeof SelectTrigger>) {
+    return (
+        <SelectTrigger
+            className={cn(
+                "h-[30px] w-full rounded-md border-input bg-input/40 px-2.5 text-[12.5px] shadow-none focus:ring-2",
+                className,
+            )}
+        >
+            {children}
+        </SelectTrigger>
+    );
+}
+
+function ProviderSelect({
+    value,
+    onValueChange,
+}: {
+    value: LlmProvider;
+    onValueChange: (value: string) => void;
+}) {
+    return (
+        <Select value={value} onValueChange={onValueChange}>
+            <CompactSelectTrigger>
+                <SelectValue placeholder="Select provider" />
+            </CompactSelectTrigger>
+            <SelectContent>
+                <SelectItem value="gemini">Gemini</SelectItem>
+                <SelectItem value="openai">OpenAI</SelectItem>
+                <SelectItem value="openrouter">OpenRouter</SelectItem>
+            </SelectContent>
+        </Select>
+    );
+}
+
+function ToggleRow({
+    title,
+    description,
+    checked,
+    onCheckedChange,
+}: {
+    title: string;
+    description: string;
+    checked: boolean;
+    onCheckedChange: (checked: boolean) => void;
+}) {
+    return (
+        <div className="flex items-center gap-3 py-1 pt-3">
+            <div className="min-w-0 flex-1">
+                <div className="text-xs font-medium leading-4 text-foreground">
+                    {title}
+                </div>
+                <div className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
+                    {description}
+                </div>
+            </div>
+            <Switch checked={checked} onCheckedChange={onCheckedChange} />
+        </div>
+    );
+}
+
+function ProviderKeyRow({
+    logo,
+    name,
+    statusSet,
+    subtext,
+    children,
+}: {
+    logo: ReactNode;
+    name: string;
+    statusSet: boolean;
+    subtext?: ReactNode;
+    children: ReactNode;
+}) {
+    return (
+        <div className="space-y-2">
+            <div className="flex min-w-0 items-center gap-2.5">
+                <div className="grid h-6 w-6 shrink-0 place-items-center rounded-[5px] border border-border/60 bg-white">
+                    {logo}
+                </div>
+                <div className="min-w-0">
+                    <div className="flex min-w-0 items-center gap-1.5 text-[12.5px] font-medium leading-4 text-foreground">
+                        <span className="truncate">{name}</span>
+                        <StatusBadge isSet={statusSet} />
                     </div>
+                    {subtext && (
+                        <div className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
+                            {subtext}
+                        </div>
+                    )}
+                </div>
+            </div>
+            <div className="space-y-1.5">{children}</div>
+        </div>
+    );
+}
+
+function GeminiProviderLogo() {
+    return <img src={GoogleLogo} alt="" className="h-3.5 w-3.5" />;
+}
+
+function OpenRouterProviderLogo() {
+    return (
+        <img src={OpenRouterLogo} alt="" className="h-4 w-4" />
+    );
+}
+
+function OpenAiProviderLogo() {
+    return <img src={OpenAiLogo} alt="" className="h-4 w-4" />;
+}
+
+interface ProviderProfileForm {
+    name: string;
+    slug: string;
+    apiKey: string;
+    baseUrl: string;
+    organization: string;
+    project: string;
+    defaultModel: string;
+    enabled: boolean;
+}
+
+function ProviderProfileDialog({
+    open,
+    profile,
+    isSaving,
+    onClose,
+    onSave,
+}: {
+    open: boolean;
+    profile: AiProviderProfile | null;
+    isSaving: boolean;
+    onClose: () => void;
+    onSave: (
+        request:
+            | CreateAiProviderProfileRequest
+            | UpdateAiProviderProfileRequest,
+    ) => Promise<void>;
+}) {
+    const [form, setForm] = useState<ProviderProfileForm>({
+        name: "",
+        slug: "",
+        apiKey: "",
+        baseUrl: "",
+        organization: "",
+        project: "",
+        defaultModel: "",
+        enabled: true,
+    });
+
+    useEffect(() => {
+        if (!open) return;
+        setForm({
+            name: profile?.name ?? "",
+            slug: profile?.slug ?? "",
+            apiKey: "",
+            baseUrl: profile?.base_url ?? "",
+            organization: profile?.organization ?? "",
+            project: profile?.project ?? "",
+            defaultModel: profile?.default_model ?? "",
+            enabled: profile?.enabled ?? true,
+        });
+    }, [open, profile]);
+
+    const isEditing = !!profile;
+
+    const handleNameChange = (name: string) => {
+        setForm((prev) => ({
+            ...prev,
+            name,
+            slug: prev.slug || slugify(name),
+        }));
+    };
+
+    const handleSubmit = async (event: FormEvent) => {
+        event.preventDefault();
+        const name = form.name.trim();
+        const slug = form.slug.trim();
+        const apiKey = form.apiKey.trim();
+
+        if (!name) {
+            toast.error("Profile name is required");
+            return;
+        }
+        if (!slug) {
+            toast.error("Profile slug is required");
+            return;
+        }
+        if (!isEditing && !apiKey) {
+            toast.error("API key is required for a new profile");
+            return;
+        }
+
+        const common = {
+            name,
+            slug,
+            base_url: optionalString(form.baseUrl),
+            organization: optionalString(form.organization),
+            project: optionalString(form.project),
+            default_model: optionalString(form.defaultModel),
+            enabled: form.enabled,
+        };
+
+        if (isEditing) {
+            await onSave({
+                ...common,
+                api_key: apiKey || undefined,
+            });
+        } else {
+            await onSave({
+                ...common,
+                provider: "openai",
+                api_key: apiKey,
+            });
+        }
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+            <DialogContent className="sm:max-w-2xl">
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {isEditing
+                                ? "Edit OpenAI profile"
+                                : "New OpenAI profile"}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Profiles store separate OpenAI credentials and can
+                            be selected by individual agents.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <Field>
+                            <Label>Name</Label>
+                            <Input
+                                value={form.name}
+                                onChange={(event) =>
+                                    handleNameChange(event.target.value)
+                                }
+                                placeholder="Production OpenAI"
+                            />
+                        </Field>
+                        <Field>
+                            <Label>Slug</Label>
+                            <Input
+                                value={form.slug}
+                                onChange={(event) =>
+                                    setForm({
+                                        ...form,
+                                        slug: slugify(event.target.value),
+                                    })
+                                }
+                                placeholder="production-openai"
+                            />
+                        </Field>
+                    </div>
+
                     <Field>
                         <Label>API key</Label>
                         <Input
                             type="password"
-                            placeholder={
-                                settings?.openai_api_key_set
-                                    ? "••••••••••••••••"
-                                    : "Enter OpenAI API Key"
-                            }
-                            value={openaiKey}
-                            onChange={(e) => setOpenaiKey(e.target.value)}
                             autoComplete="new-password"
+                            value={form.apiKey}
+                            onChange={(event) =>
+                                setForm({
+                                    ...form,
+                                    apiKey: event.target.value,
+                                })
+                            }
+                            placeholder={
+                                isEditing && profile?.api_key_set
+                                    ? "Leave blank to keep current key"
+                                    : "sk-..."
+                            }
                         />
                     </Field>
-                </section>
 
-                <Divider soft />
-
-                {/* Anthropic */}
-                <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start opacity-70">
-                    <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                            <Subheading>Anthropic</Subheading>
-                            <StatusBadge
-                                isSet={settings?.anthropic_api_key_set ?? false}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <Field>
+                            <Label>Default model</Label>
+                            <Input
+                                value={form.defaultModel}
+                                onChange={(event) =>
+                                    setForm({
+                                        ...form,
+                                        defaultModel: event.target.value,
+                                    })
+                                }
+                                placeholder="gpt-5.1"
                             />
-                        </div>
-                        <Text>Support for Claude models is coming soon.</Text>
+                        </Field>
+                        <Field>
+                            <Label>Base URL</Label>
+                            <Input
+                                value={form.baseUrl}
+                                onChange={(event) =>
+                                    setForm({
+                                        ...form,
+                                        baseUrl: event.target.value,
+                                    })
+                                }
+                                placeholder="https://api.openai.com/v1"
+                            />
+                        </Field>
                     </div>
-                    <div className="space-y-1">
-                        <Input
-                            type="password"
-                            placeholder="Coming soon"
-                            value={anthropicKey}
-                            onChange={(e) => setAnthropicKey(e.target.value)}
-                            disabled
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <Field>
+                            <Label>Organization</Label>
+                            <Input
+                                value={form.organization}
+                                onChange={(event) =>
+                                    setForm({
+                                        ...form,
+                                        organization: event.target.value,
+                                    })
+                                }
+                                placeholder="Optional"
+                            />
+                        </Field>
+                        <Field>
+                            <Label>Project</Label>
+                            <Input
+                                value={form.project}
+                                onChange={(event) =>
+                                    setForm({
+                                        ...form,
+                                        project: event.target.value,
+                                    })
+                                }
+                                placeholder="Optional"
+                            />
+                        </Field>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-4 rounded-md border border-zinc-200 px-4 py-3 dark:border-zinc-800">
+                        <div>
+                            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                Enabled
+                            </div>
+                            <div className="text-xs text-zinc-500">
+                                Disabled profiles cannot be selected by agents.
+                            </div>
+                        </div>
+                        <Switch
+                            checked={form.enabled}
+                            onCheckedChange={(enabled) =>
+                                setForm({ ...form, enabled })
+                            }
                         />
                     </div>
-                </section>
-            </div>
-        </div>
+
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={onClose}
+                            disabled={isSaving}
+                        >
+                            Cancel
+                        </Button>
+                        <Button type="submit" disabled={isSaving}>
+                            {isSaving ? "Saving..." : "Save"}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
     );
 }
 
-function StatusBadge({ isSet }: { isSet: boolean }) {
-    if (isSet) {
-        return (
-            <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
-                <CheckCircleIcon className="h-3.5 w-3.5" />
-                <span>Configured</span>
-            </div>
-        );
-    }
-    return (
-        <div className="flex items-center gap-1 text-zinc-400 text-xs font-medium">
-            <XCircleIcon className="h-3.5 w-3.5" />
-            <span>Not set</span>
-        </div>
-    );
+function slugify(value: string): string {
+    return value
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
 }
 
-function StorageProviderBadge({
-    provider,
-    configured,
+function optionalString(value: string): string | undefined {
+    const trimmed = value.trim();
+    return trimmed || undefined;
+}
+
+function StatusBadge({
+    isSet,
+    onLabel = "Configured",
+    offLabel = "Not set",
 }: {
-    provider: AIStorageProvider;
-    configured: boolean;
+    isSet: boolean;
+    onLabel?: string;
+    offLabel?: string;
 }) {
-    if (!configured) {
-        return (
-            <div className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                Not configured
-            </div>
-        );
-    }
     return (
-        <div className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
-            {provider === "s3" ? "Customer S3" : "Customer S3"}
-        </div>
+        <span
+            className={cn(
+                "inline-flex items-center gap-1 text-[10.5px] font-medium leading-4",
+                isSet
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-muted-foreground",
+            )}
+        >
+            <span
+                className={cn(
+                    "h-1.5 w-1.5 rounded-full",
+                    isSet
+                        ? "bg-emerald-500 dark:bg-emerald-400"
+                        : "bg-muted-foreground",
+                )}
+            />
+            {isSet ? onLabel : offLabel}
+        </span>
     );
 }

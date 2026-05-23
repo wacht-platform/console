@@ -8,8 +8,9 @@ export interface AgentConfiguration {
 }
 
 export interface AgentModelOverride {
-  provider: string;
-  model: string;
+  provider?: string;
+  model?: string;
+  profile_id?: string;
 }
 
 export interface AgentHookStep {
@@ -228,6 +229,9 @@ export function useUpdateAgent() {
       });
       queryClient.invalidateQueries({
         queryKey: ["agent", selectedDeployment!.id, agentId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["agent-details", selectedDeployment!.id, agentId],
       });
     },
   });

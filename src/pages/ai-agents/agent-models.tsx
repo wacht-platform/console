@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { InlineLoader } from "@/components/ui/loading-screen";
+import { useAiProviderProfiles } from "@/lib/api/hooks/use-ai-provider-profiles";
 import {
   type AgentModelOverride,
   useAgentById,
@@ -25,26 +26,58 @@ const PROVIDER_CHOICES = [
   { value: "gemini", label: "Google Gemini" },
 ] as const;
 
+type ModelMode = "provider" | "profile";
+
 interface ModelFormState {
   enabled: boolean;
+  mode: ModelMode;
   provider: string;
   model: string;
+  profileId: string;
 }
 
-const EMPTY_FORM: ModelFormState = { enabled: false, provider: "", model: "" };
+const EMPTY_FORM: ModelFormState = {
+  enabled: false,
+  mode: "provider",
+  provider: "",
+  model: "",
+  profileId: "",
+};
 
 function fromOverride(override?: AgentModelOverride): ModelFormState {
   if (!override) return EMPTY_FORM;
-  return { enabled: true, provider: override.provider, model: override.model };
+  if (override.profile_id) {
+    return {
+      enabled: true,
+      mode: "profile",
+      provider: "",
+      model: override.model ?? "",
+      profileId: String(override.profile_id),
+    };
+  }
+  return {
+    enabled: true,
+    mode: "provider",
+    provider: override.provider ?? "",
+    model: override.model ?? "",
+    profileId: "",
+  };
 }
 
 export default function AgentModelsPage() {
   const { agentId } = useParams<{ agentId: string }>();
   const { data: agent, isLoading, error } = useAgentById(agentId || "");
+  const { data: profiles = [], isLoading: profilesLoading } =
+    useAiProviderProfiles();
   const updateAgent = useUpdateAgent();
 
   const [strong, setStrong] = useState<ModelFormState>(EMPTY_FORM);
   const [weak, setWeak] = useState<ModelFormState>(EMPTY_FORM);
+
+  const enabledProfiles = useMemo(
+    () => profiles.filter((profile) => profile.enabled),
+    [profiles],
+  );
 
   useEffect(() => {
     if (!agent) return;
@@ -61,42 +94,28 @@ export default function AgentModelsPage() {
     );
   }
 
-  const isDirty = (() => {
-    const original = {
-      strong: fromOverride(agent.strong_model),
-      weak: fromOverride(agent.weak_model),
-    };
-    return (
-      original.strong.enabled !== strong.enabled ||
-      original.strong.provider !== strong.provider ||
-      original.strong.model !== strong.model ||
-      original.weak.enabled !== weak.enabled ||
-      original.weak.provider !== weak.provider ||
-      original.weak.model !== weak.model
-    );
-  })();
+  const original = {
+    strong: fromOverride(agent.strong_model),
+    weak: fromOverride(agent.weak_model),
+  };
+  const isDirty =
+    !sameModelState(original.strong, strong) ||
+    !sameModelState(original.weak, weak);
 
   const formInvalid =
-    (strong.enabled && (!strong.provider.trim() || !strong.model.trim())) ||
-    (weak.enabled && (!weak.provider.trim() || !weak.model.trim()));
+    isModelStateInvalid(strong) || isModelStateInvalid(weak);
 
   const onSave = async () => {
     if (formInvalid) return;
     const update: Parameters<typeof updateAgent.mutate>[0]["agent"] = {};
     if (strong.enabled) {
-      update.strong_model = {
-        provider: strong.provider.trim(),
-        model: strong.model.trim(),
-      };
+      update.strong_model = toOverride(strong);
       update.clear_strong_model = false;
     } else {
       update.clear_strong_model = true;
     }
     if (weak.enabled) {
-      update.weak_model = {
-        provider: weak.provider.trim(),
-        model: weak.model.trim(),
-      };
+      update.weak_model = toOverride(weak);
       update.clear_weak_model = false;
     } else {
       update.clear_weak_model = true;
@@ -115,17 +134,8 @@ export default function AgentModelsPage() {
   return (
     <div className="space-y-8">
       <p className="text-[13px] leading-5 text-muted-foreground">
-        Falls back to deployment defaults when unset. Only the provider and model name are
-        overridden here — keys and other knobs always come from the deployment.{" "}
-        <a
-          href="https://wacht.dev/docs/guides/agents/model-overrides"
-          className="underline underline-offset-2"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Docs
-        </a>
-        .
+        Falls back to deployment defaults when unset. Overrides can use a direct
+        provider/model pair or an OpenAI profile defined in deployment settings.
       </p>
 
       <ModelOverrideRow
@@ -134,6 +144,8 @@ export default function AgentModelsPage() {
         description="Main reasoning loop and high-quality calls."
         state={strong}
         onChange={setStrong}
+        profiles={enabledProfiles}
+        profilesLoading={profilesLoading}
       />
 
       <div className="border-t border-border/40" />
@@ -141,9 +153,11 @@ export default function AgentModelsPage() {
       <ModelOverrideRow
         id="weak"
         title="Weak model"
-        description="Cheap/fast calls — terminal review, summarisation, classification."
+        description="Cheap/fast calls: terminal review, summarisation, classification."
         state={weak}
         onChange={setWeak}
+        profiles={enabledProfiles}
+        profilesLoading={profilesLoading}
       />
 
       <div className="flex items-center justify-end gap-2 border-t border-border/40 pt-5">
@@ -161,7 +175,7 @@ export default function AgentModelsPage() {
           onClick={onSave}
           disabled={!isDirty || formInvalid || updateAgent.isPending}
         >
-          {updateAgent.isPending ? "Saving…" : "Save"}
+          {updateAgent.isPending ? "Saving..." : "Save"}
         </Button>
       </div>
     </div>
@@ -174,13 +188,26 @@ function ModelOverrideRow({
   description,
   state,
   onChange,
+  profiles,
+  profilesLoading,
 }: {
   id: string;
   title: string;
   description: string;
   state: ModelFormState;
   onChange: (next: ModelFormState) => void;
+  profiles: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    default_model?: string | null;
+  }>;
+  profilesLoading: boolean;
 }) {
+  const selectedProfile = profiles.find(
+    (profile) => profile.id === state.profileId,
+  );
+
   return (
     <div className="space-y-3">
       <div className="flex items-start justify-between gap-3">
@@ -194,49 +221,155 @@ function ModelOverrideRow({
           <span>Override</span>
           <Switch
             checked={state.enabled}
-            onCheckedChange={(checked) => onChange({ ...state, enabled: checked })}
+            onCheckedChange={(checked) =>
+              onChange({ ...state, enabled: checked })
+            }
           />
         </div>
       </div>
 
       {state.enabled ? (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor={`${id}-provider`}>Provider</Label>
-            <Select
-              value={state.provider}
-              onValueChange={(value) => onChange({ ...state, provider: value })}
-            >
-              <SelectTrigger id={`${id}-provider`} className="w-full">
-                <SelectValue placeholder="Pick a provider" />
-              </SelectTrigger>
-              <SelectContent>
-                {PROVIDER_CHOICES.map((p) => (
-                  <SelectItem key={p.value} value={p.value}>
-                    {p.label}
+        <div className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor={`${id}-mode`}>Source</Label>
+              <Select
+                value={state.mode}
+                onValueChange={(value) =>
+                  onChange({
+                    ...state,
+                    mode: value as ModelMode,
+                    provider: value === "profile" ? "" : state.provider,
+                    profileId: value === "provider" ? "" : state.profileId,
+                  })
+                }
+              >
+                <SelectTrigger id={`${id}-mode`} className="w-full">
+                  <SelectValue placeholder="Pick a source" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="provider">Provider and model</SelectItem>
+                  <SelectItem value="profile" disabled={!profiles.length}>
+                    OpenAI profile
                   </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {state.mode === "provider" ? (
+              <div className="space-y-1.5">
+                <Label htmlFor={`${id}-provider`}>Provider</Label>
+                <Select
+                  value={state.provider}
+                  onValueChange={(value) =>
+                    onChange({ ...state, provider: value })
+                  }
+                >
+                  <SelectTrigger id={`${id}-provider`} className="w-full">
+                    <SelectValue placeholder="Pick a provider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROVIDER_CHOICES.map((p) => (
+                      <SelectItem key={p.value} value={p.value}>
+                        {p.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <Label htmlFor={`${id}-profile`}>Profile</Label>
+                <Select
+                  value={state.profileId}
+                  onValueChange={(value) =>
+                    onChange({
+                      ...state,
+                      profileId: value,
+                      model:
+                        state.model ||
+                        profiles.find((profile) => profile.id === value)
+                          ?.default_model ||
+                        "",
+                    })
+                  }
+                >
+                  <SelectTrigger id={`${id}-profile`} className="w-full">
+                    <SelectValue
+                      placeholder={
+                        profilesLoading ? "Loading profiles" : "Pick a profile"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {profiles.map((profile) => (
+                      <SelectItem key={profile.id} value={profile.id}>
+                        {profile.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
+
           <div className="space-y-1.5">
-            <Label htmlFor={`${id}-model`}>Model</Label>
+            <Label htmlFor={`${id}-model`}>
+              {state.mode === "profile" ? "Model override" : "Model"}
+            </Label>
             <Input
               id={`${id}-model`}
               value={state.model}
-              placeholder={modelPlaceholder(state.provider)}
+              placeholder={
+                state.mode === "profile"
+                  ? selectedProfile?.default_model || "Use profile default"
+                  : modelPlaceholder(state.provider)
+              }
               onChange={(e) => onChange({ ...state, model: e.target.value })}
             />
             <p className="text-[12px] leading-4 text-muted-foreground">
-              Exact identifier accepted by the provider's API.
+              {state.mode === "profile"
+                ? "Leave blank to use the profile default model."
+                : "Exact identifier accepted by the provider API."}
             </p>
           </div>
         </div>
       ) : (
-        <p className="text-[13px] text-muted-foreground">Using deployment default.</p>
+        <p className="text-[13px] text-muted-foreground">
+          Using deployment default.
+        </p>
       )}
     </div>
   );
+}
+
+function sameModelState(a: ModelFormState, b: ModelFormState): boolean {
+  return (
+    a.enabled === b.enabled &&
+    a.mode === b.mode &&
+    a.provider === b.provider &&
+    a.model === b.model &&
+    a.profileId === b.profileId
+  );
+}
+
+function isModelStateInvalid(state: ModelFormState): boolean {
+  if (!state.enabled) return false;
+  if (state.mode === "profile") return !state.profileId.trim();
+  return !state.provider.trim() || !state.model.trim();
+}
+
+function toOverride(state: ModelFormState): AgentModelOverride {
+  if (state.mode === "profile") {
+    return {
+      profile_id: state.profileId.trim(),
+      model: state.model.trim() || undefined,
+    };
+  }
+  return {
+    provider: state.provider.trim(),
+    model: state.model.trim(),
+  };
 }
 
 function modelPlaceholder(provider: string): string {

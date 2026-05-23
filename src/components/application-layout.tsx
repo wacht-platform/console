@@ -36,17 +36,47 @@ export function ApplicationLayout() {
         if (!rel || !params.projectId || !params.deploymentId) return;
         const trimmed = rel.replace(/^\/+/, "");
         const deploymentRoot = `/project/${params.projectId}/deployment/${params.deploymentId}`;
+        const deploymentRoutePattern =
+            /^(api-keys|auth|b2b-settings|billing|dns-verification|go-live|llms|oauth|portal|settings|setup|sms|users|webhooks)(?:\/|$)/;
+        if (deploymentRoutePattern.test(trimmed)) {
+            navigate(`${deploymentRoot}/${trimmed}`);
+            return;
+        }
         // When we're inside an agent (URL contains /llms/ai-agents/{agentId}/...)
         // a step's bare `navigateTo` is treated as a sub-route of THIS agent.
         // So `navigateTo: "skills"` jumps to that agent's Skills tab regardless
         // of which tab the user happens to be on right now.
+        const agentTabs = new Set([
+            "approvals",
+            "debug",
+            "hooks",
+            "knowledge-bases",
+            "models",
+            "skills",
+            "sub-agents",
+            "tools",
+        ]);
         const agentMatch = location.pathname.match(
             new RegExp(
                 `^${deploymentRoot}/llms/ai-agents/([^/]+)(?:/|$)`,
             ),
         );
-        if (agentMatch) {
-            navigate(`${deploymentRoot}/llms/ai-agents/${agentMatch[1]}/${trimmed}`);
+        if (agentMatch && agentTabs.has(trimmed)) {
+            navigate(
+                `${deploymentRoot}/llms/ai-agents/${agentMatch[1]}/${trimmed}`,
+            );
+            return;
+        }
+        const llmTabs = new Set([
+            "ai-agents",
+            "ai-settings",
+            "extensions",
+            "knowledge-base",
+            "mcp-servers",
+            "tools",
+        ]);
+        if (llmTabs.has(trimmed)) {
+            navigate(`${deploymentRoot}/llms/${trimmed}`);
             return;
         }
         navigate(`${deploymentRoot}/${trimmed}`);
