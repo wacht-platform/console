@@ -12,7 +12,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { RadioGroup, Radio } from "@/components/ui/radio";
+import { SimpleCombobox } from "@/components/ui/simple-combobox";
 import { InlineLoader } from "@/components/ui/loading-screen";
+import { cn } from "@/lib/utils";
 import { useAiProviderProfiles } from "@/lib/api/hooks/use-ai-provider-profiles";
 import {
   type AgentModelOverride,
@@ -208,6 +211,33 @@ function ModelOverrideRow({
     (profile) => profile.id === state.profileId,
   );
 
+  const profileOptions = useMemo(
+    () =>
+      profiles.map((profile) => ({
+        value: profile.id,
+        label: profile.name,
+        keywords: [profile.slug, profile.default_model ?? ""].filter(Boolean),
+      })),
+    [profiles],
+  );
+
+  const renderProfileOption = (option: { value: string; label: string }) => {
+    const profile = profiles.find((p) => p.id === option.value);
+    const subtitle = profile?.default_model
+      ? `${profile.default_model} · ${profile.slug}`
+      : profile?.slug;
+    return (
+      <span className="flex min-w-0 items-center gap-1.5">
+        <span className="truncate text-[13px]">{option.label}</span>
+        {subtitle ? (
+          <span className="truncate text-[11.5px] text-muted-foreground">
+            {subtitle}
+          </span>
+        ) : null}
+      </span>
+    );
+  };
+
   return (
     <div className="space-y-3">
       <div className="flex items-start justify-between gap-3">
@@ -229,111 +259,134 @@ function ModelOverrideRow({
       </div>
 
       {state.enabled ? (
-        <div className="space-y-3">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor={`${id}-mode`}>Source</Label>
-              <Select
-                value={state.mode}
-                onValueChange={(value) =>
-                  onChange({
-                    ...state,
-                    mode: value as ModelMode,
-                    provider: value === "profile" ? "" : state.provider,
-                    profileId: value === "provider" ? "" : state.profileId,
-                  })
-                }
-              >
-                <SelectTrigger id={`${id}-mode`} className="w-full">
-                  <SelectValue placeholder="Pick a source" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="provider">Provider and model</SelectItem>
-                  <SelectItem value="profile" disabled={!profiles.length}>
-                    OpenAI profile
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
+        <RadioGroup
+          value={state.mode}
+          onValueChange={(value) =>
+            onChange({
+              ...state,
+              mode: value as ModelMode,
+              provider: value === "profile" ? "" : state.provider,
+              profileId: value === "provider" ? "" : state.profileId,
+            })
+          }
+          className="gap-2"
+        >
+          <div className="rounded-lg border border-border p-3">
+            <label
+              htmlFor={`${id}-mode-provider`}
+              className="flex cursor-pointer items-center gap-2"
+            >
+              <Radio id={`${id}-mode-provider`} value="provider" />
+              <span className="text-[13px] font-medium leading-none">
+                Provider and model
+              </span>
+            </label>
             {state.mode === "provider" ? (
-              <div className="space-y-1.5">
-                <Label htmlFor={`${id}-provider`}>Provider</Label>
-                <Select
-                  value={state.provider}
-                  onValueChange={(value) =>
-                    onChange({ ...state, provider: value })
-                  }
-                >
-                  <SelectTrigger id={`${id}-provider`} className="w-full">
-                    <SelectValue placeholder="Pick a provider" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PROVIDER_CHOICES.map((p) => (
-                      <SelectItem key={p.value} value={p.value}>
-                        {p.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor={`${id}-provider`}>Provider</Label>
+                  <Select
+                    value={state.provider}
+                    onValueChange={(value) =>
+                      onChange({ ...state, provider: value })
+                    }
+                  >
+                    <SelectTrigger id={`${id}-provider`} className="w-full">
+                      <SelectValue placeholder="Pick a provider" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PROVIDER_CHOICES.map((p) => (
+                        <SelectItem key={p.value} value={p.value}>
+                          {p.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor={`${id}-provider-model`}>Model</Label>
+                  <Input
+                    id={`${id}-provider-model`}
+                    value={state.model}
+                    placeholder={modelPlaceholder(state.provider)}
+                    onChange={(e) =>
+                      onChange({ ...state, model: e.target.value })
+                    }
+                  />
+                  <p className="text-[12px] leading-4 text-muted-foreground">
+                    Exact identifier accepted by the provider API.
+                  </p>
+                </div>
               </div>
-            ) : (
-              <div className="space-y-1.5">
-                <Label htmlFor={`${id}-profile`}>Profile</Label>
-                <Select
-                  value={state.profileId}
-                  onValueChange={(value) =>
-                    onChange({
-                      ...state,
-                      profileId: value,
-                      model:
-                        state.model ||
-                        profiles.find((profile) => profile.id === value)
-                          ?.default_model ||
-                        "",
-                    })
-                  }
-                >
-                  <SelectTrigger id={`${id}-profile`} className="w-full">
-                    <SelectValue
-                      placeholder={
-                        profilesLoading ? "Loading profiles" : "Pick a profile"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {profiles.map((profile) => (
-                      <SelectItem key={profile.id} value={profile.id}>
-                        {profile.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            ) : null}
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor={`${id}-model`}>
-              {state.mode === "profile" ? "Model override" : "Model"}
-            </Label>
-            <Input
-              id={`${id}-model`}
-              value={state.model}
-              placeholder={
-                state.mode === "profile"
-                  ? selectedProfile?.default_model || "Use profile default"
-                  : modelPlaceholder(state.provider)
-              }
-              onChange={(e) => onChange({ ...state, model: e.target.value })}
-            />
-            <p className="text-[12px] leading-4 text-muted-foreground">
-              {state.mode === "profile"
-                ? "Leave blank to use the profile default model."
-                : "Exact identifier accepted by the provider API."}
-            </p>
+          <div className="rounded-lg border border-border p-3">
+            <label
+              htmlFor={`${id}-mode-profile`}
+              className={cn(
+                "flex items-center gap-2",
+                profiles.length
+                  ? "cursor-pointer"
+                  : "cursor-not-allowed opacity-50",
+              )}
+            >
+              <Radio
+                id={`${id}-mode-profile`}
+                value="profile"
+                disabled={!profiles.length}
+              />
+              <span className="text-[13px] font-medium leading-none">
+                Profile
+              </span>
+            </label>
+            {state.mode === "profile" ? (
+              <div className="mt-3 space-y-3">
+                <div className="space-y-1.5">
+                  <Label>Profile</Label>
+                  <SimpleCombobox
+                    options={profileOptions}
+                    value={state.profileId}
+                    onChange={(value) =>
+                      onChange({
+                        ...state,
+                        profileId: value,
+                        model:
+                          state.model ||
+                          profiles.find((profile) => profile.id === value)
+                            ?.default_model ||
+                          "",
+                      })
+                    }
+                    placeholder={
+                      profilesLoading
+                        ? "Loading profiles"
+                        : "Search by name or slug"
+                    }
+                    emptyText="No matching profile."
+                    renderItem={renderProfileOption}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor={`${id}-profile-model`}>Model override</Label>
+                  <Input
+                    id={`${id}-profile-model`}
+                    value={state.model}
+                    placeholder={
+                      selectedProfile?.default_model || "Use profile default"
+                    }
+                    onChange={(e) =>
+                      onChange({ ...state, model: e.target.value })
+                    }
+                  />
+                  <p className="text-[12px] leading-4 text-muted-foreground">
+                    Leave blank to use the profile default model.
+                  </p>
+                </div>
+              </div>
+            ) : null}
           </div>
-        </div>
+        </RadioGroup>
       ) : (
         <p className="text-[13px] text-muted-foreground">
           Using deployment default.

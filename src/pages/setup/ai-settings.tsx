@@ -1069,7 +1069,7 @@ function CompactInput({ className, ...props }: ComponentProps<typeof Input>) {
     return (
         <Input
             className={cn(
-                "h-[30px] rounded-md border-input bg-input/40 px-2.5 font-mono text-[12px] shadow-none placeholder:text-muted-foreground/70 focus-visible:ring-2",
+                "h-[30px] rounded-md border-input bg-input/40 px-2.5 text-[12.5px] shadow-none placeholder:text-muted-foreground/70 focus-visible:ring-2",
                 className,
             )}
             {...props}
