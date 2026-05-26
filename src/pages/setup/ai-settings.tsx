@@ -1199,6 +1199,7 @@ interface ProviderProfileForm {
     project: string;
     defaultModel: string;
     enabled: boolean;
+    disablePromptCaching: boolean;
 }
 
 function ProviderProfileDialog({
@@ -1227,6 +1228,7 @@ function ProviderProfileDialog({
         project: "",
         defaultModel: "",
         enabled: true,
+        disablePromptCaching: false,
     });
 
     useEffect(() => {
@@ -1240,6 +1242,7 @@ function ProviderProfileDialog({
             project: profile?.project ?? "",
             defaultModel: profile?.default_model ?? "",
             enabled: profile?.enabled ?? true,
+            disablePromptCaching: profile?.disable_prompt_caching ?? false,
         });
     }, [open, profile]);
 
@@ -1280,6 +1283,7 @@ function ProviderProfileDialog({
             project: optionalString(form.project),
             default_model: optionalString(form.defaultModel),
             enabled: form.enabled,
+            disable_prompt_caching: form.disablePromptCaching,
         };
 
         if (isEditing) {
@@ -1429,6 +1433,25 @@ function ProviderProfileDialog({
                             checked={form.enabled}
                             onCheckedChange={(enabled) =>
                                 setForm({ ...form, enabled })
+                            }
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-4 rounded-md border border-zinc-200 px-4 py-3 dark:border-zinc-800">
+                        <div>
+                            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                Disable prompt caching
+                            </div>
+                            <div className="text-xs text-zinc-500">
+                                Skips the prompt_cache_key sent to this endpoint.
+                                Turn on for OpenAI-compatible base URLs that
+                                reject it.
+                            </div>
+                        </div>
+                        <Switch
+                            checked={form.disablePromptCaching}
+                            onCheckedChange={(disablePromptCaching) =>
+                                setForm({ ...form, disablePromptCaching })
                             }
                         />
                     </div>
