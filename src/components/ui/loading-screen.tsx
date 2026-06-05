@@ -152,45 +152,24 @@ export function AppLoading() {
 			exit={{ opacity: 0 }}
 			className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-card"
 		>
-			<div className="relative flex flex-col items-center gap-6">
-				<div className="relative h-20 w-20">
-					<motion.div
-						animate={{
-							scale: [1, 1.16, 1],
-							opacity: [0.22, 0.08, 0.22],
-						}}
-						transition={{
-							duration: 2,
-							repeat: Infinity,
-							ease: "easeInOut",
-						}}
-						className="absolute inset-0 rounded-3xl bg-primary blur-2xl"
+			<div className="relative h-16 w-16">
+				<motion.div
+					animate={{
+						scale: [1, 1.07, 1],
+					}}
+					transition={{
+						duration: 1.8,
+						repeat: Infinity,
+						ease: "easeInOut",
+					}}
+					className="flex h-full w-full items-center justify-center rounded-[18px] border border-border bg-[oklch(1_0_0)] shadow-lg shadow-black/10"
+				>
+					<img
+						src="/favicon.ico"
+						alt="Wacht"
+						className="h-9 w-9 object-contain"
 					/>
-					<motion.div
-						animate={{
-							scale: [1, 1.05, 1],
-						}}
-						transition={{
-							duration: 2,
-							repeat: Infinity,
-							ease: "easeInOut",
-						}}
-						className="relative flex h-full w-full items-center justify-center rounded-3xl border border-border bg-card shadow-2xl shadow-primary/10 dark:border-border"
-					>
-						<img
-							src="/favicon.ico"
-							alt="Wacht"
-							className="h-10 w-10 rounded-xl object-contain"
-						/>
-					</motion.div>
-				</div>
-				<div className="h-1.5 w-16 overflow-hidden rounded-full bg-secondary">
-					<motion.div
-						animate={{ x: ["-120%", "220%"] }}
-						transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-						className="h-full w-8 rounded-full bg-primary dark:bg-primary"
-					/>
-				</div>
+				</motion.div>
 			</div>
 		</motion.div>
 	);
