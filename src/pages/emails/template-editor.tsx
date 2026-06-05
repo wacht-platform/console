@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import type { EditorView } from "@codemirror/view";
 import { useParams, useNavigate } from "react-router";
-import { Heading } from "@/components/ui/heading";
 import { Input } from "@/components/ui/input";
+import { Segmented } from "@/components/ui/segmented";
 import { Button } from "@/components/ui/button";
 import { EmailTemplate } from "@/types/deployment";
 import { useEmailTemplate } from "@/lib/api/hooks/use-email-templates";
@@ -12,10 +12,143 @@ import { InlineLoader } from "@/components/ui/loading-screen";
 import { toast } from "sonner";
 import { getTemplateVariables } from "@/lib/email-template-variables";
 import { CodeEditor } from "@/components/code-editor";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { CodeBracketIcon, EyeIcon } from "@heroicons/react/24/outline";
+import {
+  ChevronRightIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/24/outline";
 import AdvancedEditor from "@/components/editor/advanced-editor";
+import { cn } from "@/lib/utils";
 
+function SplitInput({
+  value,
+  onChange,
+  suffix,
+  placeholder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  suffix: string;
+  placeholder?: string;
+}) {
+  return (
+    <div className="flex h-9 overflow-hidden rounded-md border border-border focus-within:border-ring">
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="min-w-0 flex-1 border-0 bg-background px-2.5 font-mono text-xs text-foreground placeholder:text-muted-foreground focus:outline-none"
+      />
+      <span className="flex items-center whitespace-nowrap border-l border-border bg-secondary px-2 font-mono text-[11px] text-muted-foreground">
+        {suffix}
+      </span>
+    </div>
+  );
+}
+
+function SettingsSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="border-b border-border px-4 py-4 last:border-0">
+      <p className="mb-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+        {title}
+      </p>
+      <div className="flex flex-col gap-3">{children}</div>
+    </div>
+  );
+}
+
+function SettingField({
+  label,
+  note,
+  children,
+}: {
+  label: string;
+  note?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="mb-1 block text-[11px] font-medium text-foreground">
+        {label}
+      </label>
+      {children}
+      {note ? (
+        <p className="mt-1 text-[11px] text-muted-foreground">{note}</p>
+      ) : null}
+    </div>
+  );
+}
+
+function VarGroup({
+  title,
+  count,
+  expanded,
+  children,
+}: {
+  title: string;
+  count?: number;
+  expanded?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(!!expanded);
+  return (
+    <div className="border-b border-border last:border-0">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex h-8 w-full items-center justify-between px-3 text-xs font-medium text-foreground"
+      >
+        <span className="flex items-center gap-1.5">
+          <ChevronRightIcon
+            className={cn(
+              "h-3 w-3 text-muted-foreground transition-transform",
+              open && "rotate-90",
+            )}
+          />
+          {title}
+        </span>
+        {count != null ? (
+          <span className="font-mono text-[10px] text-muted-foreground">
+            {count}
+          </span>
+        ) : null}
+      </button>
+      {open ? <div className="pb-2">{children}</div> : null}
+    </div>
+  );
+}
+
+function VarItem({
+  name,
+  v,
+  onInsert,
+}: {
+  name: string;
+  v: string;
+  onInsert: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onMouseDown={(e) => {
+        e.preventDefault();
+        onInsert();
+      }}
+      className="flex w-full items-center justify-between gap-2 py-1.5 pl-7 pr-3 text-left transition-colors hover:bg-secondary"
+    >
+      <span className="truncate text-xs text-foreground">{name}</span>
+      <code className="shrink-0 rounded border border-border bg-secondary px-1 py-0.5 font-mono text-[10px] text-muted-foreground">
+        {`{{${v}}}`}
+      </code>
+    </button>
+  );
+}
 
 export default function EmailTemplateEditor() {
   const { templateId } = useParams<{ templateId: string }>();
@@ -24,6 +157,7 @@ export default function EmailTemplateEditor() {
   const codeMirrorRef = useRef<EditorView | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("visual");
+  const [varQuery, setVarQuery] = useState("");
 
   const { emailTemplate, isLoading, error, updateTemplate } = useEmailTemplate(
     templateId!
@@ -109,206 +243,211 @@ export default function EmailTemplateEditor() {
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-600">Error loading template</p>
+      <div className="py-12 text-center">
+        <p className="text-sm text-destructive">Error loading template</p>
         <Button onClick={handleBack} className="mt-4">
-          Back to Templates
+          Back to templates
         </Button>
       </div>
     );
   }
 
+  const mailHost = deploymentSettings?.mail_from_host
+    ? `@${deploymentSettings.mail_from_host}`
+    : "@…";
+
   return (
     <div>
-      <div className="mb-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <Heading className="text-xl font-normal text-gray-900 dark:text-zinc-100">
-              {formData.template_name || "Email Template"}
-            </Heading>
-            <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
-              Customize your email template content and settings
-            </p>
-          </div>
-          <Button onClick={onSave} disabled={isSaving}>
-            {isSaving ? (
-              <>
-                <Spinner className="w-4 h-4 mr-2" />
-                Saving...
-              </>
-            ) : (
-              "Save Template"
-            )}
-          </Button>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+            Email template
+          </p>
+          <h1 className="mt-1 text-xl font-medium tracking-tight text-foreground">
+            {formData.template_name || "Email template"}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Customize the content, sender and variables for this transactional
+            email.
+          </p>
         </div>
+        <Button onClick={onSave} disabled={isSaving}>
+          {isSaving ? (
+            <>
+              <Spinner className="mr-2 h-4 w-4" />
+              Saving…
+            </>
+          ) : (
+            "Save template"
+          )}
+        </Button>
       </div>
 
-      <div className="space-y-8">
-        {/* Basic Information */}
-        <div>
-          <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100 mb-4">Basic Information</h3>
-          <div>
-            <label className="block text-sm font-normal text-gray-700 dark:text-gray-300">
-              Template Name
-            </label>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">This name is for internal reference only</p>
-            <Input
-              value={formData.template_name}
-              onChange={(e) => handleInputChange("template_name", e.target.value)}
-              placeholder="e.g., Welcome Email, Password Reset"
-              className="mt-2"
-            />
-          </div>
-        </div>
-
-        {/* Email Configuration */}
-        <div>
-          <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100 mb-4">Email Configuration</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-normal text-gray-700 dark:text-gray-300">
-                From Address
-              </label>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">The sender name for this email</p>
-              <div className="mt-2 inline-flex rounded-md border border-gray-300 dark:border-zinc-600 focus-within:border-indigo-500">
-                <input
-                  type="text"
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[260px_minmax(0,1fr)_280px]">
+        {/* Left: settings */}
+        <aside className="min-w-0">
+          <div className="overflow-hidden rounded-lg border border-border bg-card">
+            <div className="border-b border-border px-4 py-3">
+              <p className="text-sm font-medium text-foreground">Settings</p>
+            </div>
+            <SettingsSection title="Template">
+              <SettingField label="Name" note="Internal reference only.">
+                <Input
+                  value={formData.template_name}
+                  onChange={(e) =>
+                    handleInputChange("template_name", e.target.value)
+                  }
+                  placeholder="Welcome email"
+                />
+              </SettingField>
+              <SettingField label="Subject">
+                <Input
+                  className="font-mono text-xs"
+                  value={formData.template_subject}
+                  onChange={(e) =>
+                    handleInputChange("template_subject", e.target.value)
+                  }
+                  placeholder="Welcome to {{app.name}}!"
+                />
+              </SettingField>
+            </SettingsSection>
+            <SettingsSection title="Sender">
+              <SettingField label="From">
+                <SplitInput
                   value={formData.template_from}
-                  onChange={(e) => handleInputChange("template_from", e.target.value)}
-                  className="w-48 rounded-l-md border-0 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
+                  onChange={(v) => handleInputChange("template_from", v)}
+                  suffix={mailHost}
                   placeholder="noreply"
                 />
-                <span className="inline-flex items-center px-1.5 py-2 rounded-r-md border-0 bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 text-xs whitespace-nowrap">
-                  @{deploymentSettings?.mail_from_host}
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-normal text-gray-700 dark:text-gray-300">
-                Reply-To Address
-              </label>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Where replies should be sent</p>
-              <div className="mt-2 inline-flex rounded-md border border-gray-300 dark:border-zinc-600 focus-within:border-indigo-500">
-                <input
-                  type="text"
+              </SettingField>
+              <SettingField label="Reply-to">
+                <SplitInput
                   value={formData.template_reply_to}
-                  onChange={(e) => handleInputChange("template_reply_to", e.target.value)}
-                  className="w-48 rounded-l-md border-0 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
+                  onChange={(v) => handleInputChange("template_reply_to", v)}
+                  suffix={mailHost}
                   placeholder="support"
                 />
-                <span className="inline-flex items-center px-1.5 py-2 rounded-r-md border-0 bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 text-xs whitespace-nowrap">
-                  @{deploymentSettings?.mail_from_host}
-                </span>
-              </div>
-            </div>
+              </SettingField>
+            </SettingsSection>
           </div>
+        </aside>
 
-          <div className="mt-6">
-            <label className="block text-sm font-normal text-gray-700 dark:text-gray-300">
-              Email Subject
-            </label>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">You can use template variables in the subject line</p>
-            <Input
-              value={formData.template_subject}
-              onChange={(e) => handleInputChange("template_subject", e.target.value)}
-              className="mt-2"
-              placeholder="e.g., Welcome to {{app.name}}!"
-            />
-          </div>
-        </div>
-
-        {/* Email Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-9 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100">Email Content</h3>
-                <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">Design your email template</p>
-              </div>
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
-                <TabsList className="bg-gray-100 dark:bg-zinc-800 p-1 h-auto">
-                  <TabsTrigger value="visual" className="text-xs px-3 py-1.5 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-700">
-                    <EyeIcon className="w-3.5 h-3.5 mr-1.5" />
-                    Visual
-                  </TabsTrigger>
-                  <TabsTrigger value="code" className="text-xs px-3 py-1.5 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-700">
-                    <CodeBracketIcon className="w-3.5 h-3.5 mr-1.5" />
-                    Code
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-0">
-              <TabsContent value="visual" className="mt-0">
-                <div className="border border-gray-200 dark:border-zinc-700 rounded-lg overflow-hidden">
-                  <AdvancedEditor
-                    value={formData.template_data}
-                    onChange={handleEditorChange}
-                    onEditorInit={handleEditorInit}
-                  />
+        {/* Center: editor */}
+        <main className="min-w-0">
+          <div className="overflow-hidden rounded-lg border border-border bg-card">
+            <div className="border-b border-border bg-secondary px-4 py-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                    Subject
+                  </p>
+                  <p className="mt-1 truncate text-sm font-medium text-foreground">
+                    {formData.template_subject || "No subject set"}
+                  </p>
                 </div>
-              </TabsContent>
-              <TabsContent value="code" className="mt-0">
+                <Segmented
+                  value={activeTab}
+                  onChange={setActiveTab}
+                  options={[
+                    { value: "visual", label: "Visual" },
+                    { value: "code", label: "Code" },
+                  ]}
+                />
+              </div>
+              <p className="mt-2 font-mono text-[11px] text-muted-foreground">
+                <span className="text-muted-foreground/60">from</span>{" "}
+                {formData.template_from || "noreply"}
+                {mailHost}
+              </p>
+            </div>
+
+            <div className="wa-editor-light bg-card">
+              {activeTab === "visual" ? (
+                <AdvancedEditor
+                  value={formData.template_data}
+                  onChange={handleEditorChange}
+                  onEditorInit={handleEditorInit}
+                />
+              ) : (
                 <CodeEditor
                   value={formData.template_data}
                   language="html"
-                  minHeight={500}
+                  minHeight={520}
+                  chrome="flush"
                   onChange={(value) => handleEditorChange(value || "")}
                   onCreateEditor={(view) => {
                     codeMirrorRef.current = view;
                   }}
                 />
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          <div className="lg:col-span-3 space-y-4">
-            <div>
-              <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100">Variables</h3>
-              <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">Click to insert</p>
+              )}
             </div>
 
-            <div className="space-y-3 max-h-[600px] overflow-y-auto">
-              {templateId && getTemplateVariables(templateId).map((category) => (
-                <details key={category.category} className="group" open>
-                  <summary className="cursor-pointer list-none">
-                    <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800">
-                      <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">{category.category}</span>
-                      <svg className="w-4 h-4 text-gray-500 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </summary>
-                  <div className="mt-2 space-y-1 px-1">
-                    {category.variables.map((variable) => (
-                      <button
-                        key={variable.key}
-                        type="button"
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          insertVariable(variable.key);
-                        }}
-                        className="w-full text-left px-2.5 py-1.5 text-xs font-normal rounded border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600 transition-colors"
-                        title={variable.description}
+            <div className="flex items-center gap-3 border-t border-border bg-secondary px-4 py-2 font-mono text-[11px] text-muted-foreground">
+              <span>
+                {activeTab === "visual" ? "Visual editor" : "HTML source"}
+              </span>
+              <span>·</span>
+              <span>
+                {(formData.template_data || "").length.toLocaleString()} chars
+              </span>
+            </div>
+          </div>
+        </main>
+
+        {/* Right: variables */}
+        <aside className="min-w-0">
+          <div className="overflow-hidden rounded-lg border border-border bg-card">
+            <div className="border-b border-border p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-sm font-medium text-foreground">Variables</p>
+                <span className="font-mono text-[11px] text-muted-foreground">
+                  click to insert
+                </span>
+              </div>
+              <div className="relative">
+                <MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="h-8 pl-8 font-mono text-xs"
+                  placeholder="Search variables…"
+                  value={varQuery}
+                  onChange={(e) => setVarQuery(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="max-h-[560px] overflow-y-auto">
+              {templateId
+                ? getTemplateVariables(templateId).map((category, index) => {
+                    const q = varQuery.trim().toLowerCase();
+                    const items = category.variables.filter(
+                      (variable) =>
+                        !q ||
+                        `${variable.label} ${variable.key}`
+                            .toLowerCase()
+                            .includes(q),
+                    );
+                    if (items.length === 0) return null;
+                    return (
+                      <VarGroup
+                        key={`${category.category}-${q ? "s" : "n"}`}
+                        title={category.category}
+                        count={items.length}
+                        expanded={!!q || index < 2}
                       >
-                        <div className="flex flex-col">
-                          <span className="font-medium text-gray-700 dark:text-gray-300 text-xs mb-0.5">
-                            {variable.label}
-                          </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-500">
-                            {`{{${variable.key}}}`}
-                          </span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </details>
-              ))}
+                        {items.map((variable) => (
+                          <VarItem
+                            key={variable.key}
+                            name={variable.label}
+                            v={variable.key}
+                            onInsert={() => insertVariable(variable.key)}
+                          />
+                        ))}
+                      </VarGroup>
+                    );
+                  })
+                : null}
             </div>
           </div>
-        </div>
+        </aside>
       </div>
     </div>
   );

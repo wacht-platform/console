@@ -144,10 +144,10 @@ export function DomainManagement({ organizationId }: DomainManagementProps) {
         <div className="space-y-4">
             <div className="flex justify-between items-end">
                 <div>
-                    <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
+                    <h3 className="text-lg font-medium text-foreground">
                         Domains
                     </h3>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                    <p className="text-sm text-muted-foreground">
                         Verify domains to enable SSO for this organization.
                     </p>
                 </div>
@@ -162,7 +162,7 @@ export function DomainManagement({ organizationId }: DomainManagementProps) {
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Add New Domain</DialogTitle>
-                            <DialogDescription className="mt-2 text-zinc-500 dark:text-zinc-400">
+                            <DialogDescription className="mt-2 text-muted-foreground">
                                 Verify a domain to enable Single Sign-On (SSO)
                                 for your organization users. We'll ask you to
                                 add a DNS record to prove ownership.
@@ -177,14 +177,14 @@ export function DomainManagement({ organizationId }: DomainManagementProps) {
                                 <div className="space-y-3">
                                     <label
                                         htmlFor="fqdn"
-                                        className="block text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100"
+                                        className="block text-sm font-medium leading-6 text-foreground"
                                     >
                                         Domain Name
                                     </label>
                                     <div className="relative">
                                         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                             <GlobeAltIcon
-                                                className="h-5 w-5 text-zinc-400"
+                                                className="h-5 w-5 text-muted-foreground"
                                                 aria-hidden="true"
                                             />
                                         </div>
@@ -192,7 +192,7 @@ export function DomainManagement({ organizationId }: DomainManagementProps) {
                                             id="fqdn"
                                             placeholder="e.g. acme.com"
                                             {...form.register("fqdn")}
-                                            className="pl-10 dark:bg-zinc-800/50"
+                                            className="pl-10"
                                             autoFocus
                                         />
                                     </div>
@@ -202,7 +202,7 @@ export function DomainManagement({ organizationId }: DomainManagementProps) {
                                             {form.formState.errors.fqdn.message}
                                         </p>
                                     )}
-                                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                    <p className="text-xs text-muted-foreground">
                                         Enter the root domain (e.g.,
                                         example.com) or subdomain (e.g.,
                                         mail.example.com) where your users
@@ -211,7 +211,7 @@ export function DomainManagement({ organizationId }: DomainManagementProps) {
                                 </div>
                             </form>
                         </div>
-                        <DialogFooter className="mt-8 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                        <DialogFooter className="mt-8 pt-4 border-t border-border dark:border-border">
                             <Button
                                 variant="ghost"
                                 onClick={() => setIsCreateDialogOpen(false)}
@@ -238,25 +238,25 @@ export function DomainManagement({ organizationId }: DomainManagementProps) {
                 <EmptyState
                     title="No domains added yet"
                     description="Add a domain to start configuring SSO."
-                    icon={<GlobeAltIcon className="h-12 w-12 text-zinc-400" />}
+                    icon={<GlobeAltIcon className="h-12 w-12 text-muted-foreground" />}
                 />
             ) : (
                 <div className="flow-root">
                     <ul
                         role="list"
-                        className="-my-5 divide-y divide-zinc-200 dark:divide-zinc-800"
+                        className="-my-5 divide-y divide-border"
                     >
                         {domains?.map((domain) => (
                             <li key={domain.id} className="py-5">
                                 <div className="flex items-center justify-between gap-4">
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-start gap-4">
-                                            <div className="h-10 w-10 flex-shrink-0 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 dark:text-zinc-400">
+                                            <div className="h-10 w-10 flex-shrink-0 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground">
                                                 <GlobeAltIcon className="h-5 w-5" />
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2">
-                                                    <h4 className="text-sm font-normal text-zinc-900 dark:text-zinc-100 truncate">
+                                                    <h4 className="text-sm font-normal text-foreground truncate">
                                                         {domain.fqdn}
                                                     </h4>
                                                     {domain.verified ? (
@@ -278,7 +278,7 @@ export function DomainManagement({ organizationId }: DomainManagementProps) {
                                                     )}
                                                 </div>
                                                 {domain.verified ? (
-                                                    <div className="mt-1 flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                                                    <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                                                         <CheckCircleIcon className="h-3.5 w-3.5 text-green-500" />
                                                         <span>
                                                             Domain verified and
@@ -286,7 +286,7 @@ export function DomainManagement({ organizationId }: DomainManagementProps) {
                                                         </span>
                                                     </div>
                                                 ) : (
-                                                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                                                    <p className="mt-1 text-xs text-muted-foreground">
                                                         Verification required
                                                     </p>
                                                 )}
@@ -313,7 +313,7 @@ export function DomainManagement({ organizationId }: DomainManagementProps) {
                                         )}
                                         <Button
                                             variant="ghost"
-                                            className="p-2 text-zinc-400 hover:text-red-500 transition-colors"
+                                            className="p-2 text-muted-foreground hover:text-red-500 transition-colors"
                                             onClick={() =>
                                                 setDeletingDomainId(domain.id)
                                             }
@@ -326,38 +326,38 @@ export function DomainManagement({ organizationId }: DomainManagementProps) {
 
                                 {!domain.verified && (
                                     <div className="mt-6">
-                                        <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800">
-                                            <h5 className="text-xs font-normal text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
-                                                <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                                        <div className="bg-secondary rounded-lg p-4 border border-border">
+                                            <h5 className="text-xs font-normal text-foreground mb-4 flex items-center gap-2">
+                                                <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
                                                 Verification Required
-                                                <span className="font-normal text-zinc-500 dark:text-zinc-400 ml-auto">
+                                                <span className="font-normal text-muted-foreground ml-auto">
                                                     Add this TXT record to your
                                                     DNS provider
                                                 </span>
                                             </h5>
                                             <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
                                                 <div className="sm:col-span-2 space-y-1.5">
-                                                    <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                                                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                                         Type
                                                     </label>
                                                     <Input
                                                         readOnly
                                                         value="TXT"
-                                                        className="text-xs h-9 bg-white dark:bg-zinc-800"
+                                                        className="text-xs h-9 bg-card"
                                                     />
                                                 </div>
                                                 <div className="sm:col-span-3 space-y-1.5">
-                                                    <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                                                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                                         Name / Host
                                                     </label>
                                                     <Input
                                                         readOnly
                                                         value={`${domain.verification_dns_record_name || "_wacht-verification"}.${domain.fqdn}`}
-                                                        className="text-xs h-9 bg-white dark:bg-zinc-800"
+                                                        className="text-xs h-9 bg-card"
                                                     />
                                                 </div>
                                                 <div className="sm:col-span-7 space-y-1.5">
-                                                    <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                                                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                                         Value
                                                     </label>
                                                     <div className="relative">
@@ -368,12 +368,12 @@ export function DomainManagement({ organizationId }: DomainManagementProps) {
                                                                 domain.verification_token ||
                                                                 ""
                                                             }
-                                                            className="text-xs  h-9 pr-24 bg-white dark:bg-zinc-800"
+                                                            className="text-xs  h-9 pr-24 bg-card"
                                                         />
                                                         <div className="absolute inset-y-0 right-1 flex items-center">
                                                             <Button
                                                                 variant="ghost"
-                                                                className="h-7 text-xs px-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700/50 rounded transition-all"
+                                                                className="h-7 text-xs px-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded transition-all"
                                                                 onClick={() =>
                                                                     copyToClipboard(
                                                                         domain.verification_dns_record_data ||
@@ -409,29 +409,29 @@ export function DomainManagement({ organizationId }: DomainManagementProps) {
                     </DialogHeader>
 
                     <div className="py-4 space-y-4">
-                        <div className="rounded-md bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-3">
+                        <div className="rounded-md bg-secondary border border-border p-3">
                             <div className="flex justify-between items-center mb-1">
-                                <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                     Type
                                 </span>
-                                <span className="text-xs text-zinc-700 dark:text-zinc-300">
+                                <span className="text-xs text-foreground">
                                     TXT
                                 </span>
                             </div>
                             <div className="flex justify-between items-center mb-1">
-                                <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                     Name/Host
                                 </span>
-                                <span className="text-xs text-zinc-700 dark:text-zinc-300">
+                                <span className="text-xs text-foreground">
                                     @
                                 </span>
                             </div>
                             <div className="mt-2">
-                                <div className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">
+                                <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
                                     Value
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <code className="flex-1 p-2 bg-white dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700 text-xs break-all">
+                                    <code className="flex-1 p-2 bg-card rounded border border-border dark:border-border text-xs break-all">
                                         {verificationRecord}
                                     </code>
                                     <Button
@@ -462,7 +462,7 @@ export function DomainManagement({ organizationId }: DomainManagementProps) {
                             </div>
                         </div>
 
-                        <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                        <div className="text-sm text-muted-foreground">
                             DNS propagation may take a few minutes. Click verify
                             once you've added the record.
                         </div>

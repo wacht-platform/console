@@ -316,7 +316,7 @@ export function BillingSetupDialog({
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
             <DialogContent
                 data-tour-id="billing-setup-form"
-                className="sm:max-w-5xl w-[95vw] p-0 overflow-hidden border-none bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl shadow-2xl"
+                className="sm:max-w-5xl w-[95vw] p-0 overflow-hidden border-none bg-card/80 backdrop-blur-xl shadow-2xl"
                 onPointerDownOutside={(e) => {
                     if (
                         (e.target as HTMLElement | null)?.closest(
@@ -367,10 +367,10 @@ export function BillingSetupDialog({
                             </div>
 
                             <div className="max-w-md mx-auto space-y-4">
-                                <h3 className="text-2xl font-light text-zinc-900 dark:text-zinc-100 tracking-tight">
+                                <h3 className="text-2xl font-light text-foreground tracking-tight">
                                     Checkout in Progress
                                 </h3>
-                                <WachtText className="text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                                <WachtText className="text-muted-foreground leading-relaxed">
                                     {checkoutWindowClosed
                                         ? "It looks like the checkout window was closed. Don't worry, we're still double-checking your payment status."
                                         : "Please complete your secure payment in the new window. Your workspace will automatically upgrade the moment it's finished."}
@@ -392,7 +392,7 @@ export function BillingSetupDialog({
                                             );
                                         }}
                                         variant="outline"
-                                        className="rounded-xl border-zinc-200 dark:border-zinc-800"
+                                        className="rounded-xl border-border"
                                     >
                                         Try again
                                     </Button>
@@ -408,12 +408,12 @@ export function BillingSetupDialog({
                             className="grid grid-cols-1 lg:grid-cols-2 min-h-0"
                         >
                             {/* Left Side: Plan Selection */}
-                            <div className="p-6 lg:p-10 border-b lg:border-b-0 lg:border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/10">
+                            <div className="p-6 lg:p-10 border-b lg:border-b-0 lg:border-r border-border bg-secondary">
                                 <div className="mb-6">
-                                    <h2 className="text-2xl font-light text-zinc-900 dark:text-zinc-100 tracking-tight">
+                                    <h2 className="text-2xl font-light text-foreground tracking-tight">
                                         Almost there
                                     </h2>
-                                    <WachtText className="text-zinc-500 dark:text-zinc-400">
+                                    <WachtText className="text-muted-foreground">
                                         Choose a plan that scales with your
                                         growth.
                                     </WachtText>
@@ -430,7 +430,7 @@ export function BillingSetupDialog({
                                                 "w-full text-left p-3 rounded-xl border transition-all duration-300 relative overflow-hidden group",
                                                 selectedPlanId === plan.id
                                                     ? "border-primary bg-primary/10 dark:bg-primary/15 ring-1 ring-primary/45"
-                                                    : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 bg-white/50 dark:bg-zinc-900/40",
+                                                    : "border-border hover:border-border dark:hover:border-border bg-card/50 dark:bg-primary/40",
                                             )}
                                             whileHover={{ y: -1 }}
                                             whileTap={{ scale: 0.995 }}
@@ -442,7 +442,7 @@ export function BillingSetupDialog({
                                                         selectedPlanId ===
                                                             plan.id
                                                             ? "bg-primary text-primary-foreground"
-                                                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500",
+                                                            : "bg-secondary text-muted-foreground",
                                                     )}
                                                 >
                                                     <plan.icon className="w-4 h-4" />
@@ -451,27 +451,27 @@ export function BillingSetupDialog({
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center justify-between mb-0.5">
                                                         <div className="flex items-center gap-2">
-                                                            <span className="font-medium text-zinc-900 dark:text-zinc-100 text-sm">
+                                                            <span className="font-medium text-foreground text-sm">
                                                                 {plan.name}
                                                             </span>
                                                             {plan.popular && (
-                                                                <span className="bg-primary text-[9px] font-medium text-white px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                                                                <span className="bg-primary text-[9px] font-medium text-primary-foreground px-1.5 py-0.5 rounded-full uppercase tracking-wider">
                                                                     Popular
                                                                 </span>
                                                             )}
                                                         </div>
                                                         <div className="flex items-baseline gap-1 ml-4 text-sm">
-                                                            <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                                                            <span className="font-medium text-foreground">
                                                                 {plan.price}
                                                             </span>
                                                             {plan.price !== "Free" && (
-                                                                <span className="text-[9px] text-zinc-500 font-normal lowercase">
+                                                                <span className="text-[9px] text-muted-foreground font-normal lowercase">
                                                                     /mo
                                                                 </span>
                                                             )}
                                                         </div>
                                                     </div>
-                                                    <div className="text-xs text-zinc-500 dark:text-zinc-400 flex flex-wrap gap-x-3 gap-y-0.5">
+                                                    <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3 gap-y-0.5">
                                                         <span className="flex items-center gap-1">
                                                             <CheckBadgeIcon className="w-2.5 h-2.5 text-primary" />
                                                             {plan.mau}
@@ -514,10 +514,10 @@ export function BillingSetupDialog({
                             <div className="p-6 lg:p-10 flex flex-col justify-start">
                                 <div className="space-y-8">
                                     <div>
-                                        <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">
+                                        <h3 className="text-lg font-medium text-foreground mb-2">
                                             Billing Identity
                                         </h3>
-                                        <p className="text-xs text-zinc-500">
+                                        <p className="text-xs text-muted-foreground">
                                             How should we address your invoices?
                                         </p>
                                     </div>
@@ -526,9 +526,9 @@ export function BillingSetupDialog({
                                         checkoutFlowState !== "idle") ||
                                         billingAccount?.status ===
                                             "pending") && (
-                                        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/30 px-4 py-3">
+                                        <div className="rounded-xl border border-border bg-secondary px-4 py-3">
                                             <div className="flex items-center justify-between gap-3">
-                                                <span className="text-[11px] uppercase tracking-wider text-zinc-500">
+                                                <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
                                                     Checkout Progress
                                                 </span>
                                                 <span
@@ -546,7 +546,7 @@ export function BillingSetupDialog({
                                                     {checkoutFlowLabel}
                                                 </span>
                                             </div>
-                                            <div className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+                                            <div className="mt-1 text-xs text-muted-foreground">
                                                 {checkoutFlowMessage ||
                                                     "Waiting for billing webhooks to settle."}
                                                 {billingAccount?.last_checkout_session_created_at
@@ -561,7 +561,7 @@ export function BillingSetupDialog({
                                             className="space-y-1.5"
                                             data-tour-id="billing-legal-name"
                                         >
-                                            <Label className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider ml-1">
+                                            <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider ml-1">
                                                 Entity Name
                                             </Label>
                                             <Input
@@ -574,7 +574,7 @@ export function BillingSetupDialog({
                                                     )
                                                 }
                                                 placeholder="Your legal or company name"
-                                                className="rounded-xl border-zinc-200 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30 focus:ring-primary/20 focus:border-primary h-11"
+                                                className="rounded-xl border-border bg-secondary focus:ring-primary/20 focus:border-primary h-11"
                                             />
                                         </div>
 
@@ -582,7 +582,7 @@ export function BillingSetupDialog({
                                             className="space-y-1.5"
                                             data-tour-id="billing-work-email"
                                         >
-                                            <Label className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider ml-1">
+                                            <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider ml-1">
                                                 Work Email
                                             </Label>
                                             <Input
@@ -596,12 +596,12 @@ export function BillingSetupDialog({
                                                     )
                                                 }
                                                 placeholder="billing@company.com"
-                                                className="rounded-xl border-zinc-200 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30 focus:ring-primary/20 focus:border-primary h-11"
+                                                className="rounded-xl border-border bg-secondary focus:ring-primary/20 focus:border-primary h-11"
                                             />
                                         </div>
 
                                         <div className="space-y-1.5">
-                                            <Label className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider ml-1">
+                                            <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider ml-1">
                                                 Tax ID (Optional)
                                             </Label>
                                             <Input
@@ -613,7 +613,7 @@ export function BillingSetupDialog({
                                                     )
                                                 }
                                                 placeholder="GSTIN, VAT, or EIN"
-                                                className="rounded-xl border-zinc-200 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30 focus:ring-primary/20 focus:border-primary h-11"
+                                                className="rounded-xl border-border bg-secondary focus:ring-primary/20 focus:border-primary h-11"
                                             />
                                         </div>
                                     </div>
@@ -628,10 +628,10 @@ export function BillingSetupDialog({
                                             createCheckout.isPending
                                         }
                                         className={clsx(
-                                            "w-full h-12 rounded-xl text-white font-medium transition-all duration-300 border-none",
+                                            "w-full h-12 rounded-xl text-primary-foreground font-medium transition-all duration-300 border-none",
                                             isFormValid
                                                 ? "bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/30 active:scale-[0.98]"
-                                                : "bg-zinc-200 dark:bg-zinc-800 text-zinc-400",
+                                                : "bg-secondary text-muted-foreground",
                                         )}
                                     >
                                         {createCheckout.isPending ? (
@@ -658,7 +658,7 @@ export function BillingSetupDialog({
                                     </Button>
                                     <button
                                         onClick={onClose}
-                                        className="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors py-2"
+                                        className="text-xs text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground transition-colors py-2"
                                     >
                                         I'll do this later
                                     </button>

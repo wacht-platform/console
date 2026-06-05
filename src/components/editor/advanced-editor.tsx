@@ -32,7 +32,7 @@ export default function AdvancedEditor({ value, onChange, onEditorInit }: Advanc
     const editorRef = useRef<any>(null);
 
     return (
-        <div className="w-full rounded-xl overflow-hidden shadow-sm">
+        <div className="wa-jodit w-full">
             <JoditEditor
                 ref={editorRef}
                 value={value}

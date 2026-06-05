@@ -164,7 +164,7 @@ export function ChangePasswordModal({
                                 onChange={(e) =>
                                     setSkipChecks(e.target.checked)
                                 }
-                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                             />
                             <Label
                                 htmlFor="skipChecks"

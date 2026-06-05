@@ -48,7 +48,9 @@ export function SiteHeader({
                         onDeploymentSelect={(d) => setSelectedDeployment(d)}
                         onCreateProject={onCreateProject}
                     />
-                    <span className="text-zinc-300 dark:text-zinc-700">/</span>
+                    <span className="font-mono text-muted-foreground/50">
+                        /
+                    </span>
                     <DeploymentSwitcher
                         project={selectedProject || undefined}
                         selectedDeployment={selectedDeployment || undefined}

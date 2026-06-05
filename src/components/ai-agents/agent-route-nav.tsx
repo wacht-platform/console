@@ -2,7 +2,6 @@ import { Link, useLocation, useParams } from "react-router";
 import {
   BoltIcon,
   BookOpenIcon,
-  CommandLineIcon,
   CpuChipIcon,
   QueueListIcon,
   ShieldCheckIcon,
@@ -13,16 +12,30 @@ import {
 import { cn } from "@/lib/utils";
 import { buildAgentResourcePath } from "./agent-routes";
 
-const items = [
-  { key: "overview", label: "Overview", icon: Squares2X2Icon, suffix: "" },
-  { key: "skills", label: "Skills", icon: QueueListIcon, suffix: "/skills" },
-  { key: "tools", label: "Tools", icon: WrenchScrewdriverIcon, suffix: "/tools" },
-  { key: "knowledge-bases", label: "Knowledge Bases", icon: BookOpenIcon, suffix: "/knowledge-bases" },
-  { key: "sub-agents", label: "Sub-Agents", icon: UserGroupIcon, suffix: "/sub-agents" },
-  { key: "models", label: "Models", icon: CpuChipIcon, suffix: "/models" },
-  { key: "hooks", label: "Hooks", icon: BoltIcon, suffix: "/hooks" },
-  { key: "approvals", label: "Approvals", icon: ShieldCheckIcon, suffix: "/approvals" },
-  { key: "debug", label: "Debug", icon: CommandLineIcon, suffix: "/debug" },
+const groups = [
+  {
+    group: "Configure",
+    items: [
+      { key: "overview", label: "Overview", icon: Squares2X2Icon, suffix: "" },
+      { key: "skills", label: "Agent Skills", icon: QueueListIcon, suffix: "/skills" },
+      { key: "tools", label: "Agent Tools", icon: WrenchScrewdriverIcon, suffix: "/tools" },
+      {
+        key: "knowledge-bases",
+        label: "Knowledge Bases",
+        icon: BookOpenIcon,
+        suffix: "/knowledge-bases",
+      },
+      { key: "sub-agents", label: "Sub-Agents", icon: UserGroupIcon, suffix: "/sub-agents" },
+      { key: "models", label: "Model Routing", icon: CpuChipIcon, suffix: "/models" },
+    ],
+  },
+  {
+    group: "Controls",
+    items: [
+      { key: "hooks", label: "Execution Hooks", icon: BoltIcon, suffix: "/hooks" },
+      { key: "approvals", label: "Tool Approvals", icon: ShieldCheckIcon, suffix: "/approvals" },
+    ],
+  },
 ] as const;
 
 export function AgentRouteNav() {
@@ -30,29 +43,44 @@ export function AgentRouteNav() {
   const params = useParams();
 
   return (
-    <div className="flex flex-wrap gap-1.5">
-      {items.map((item) => {
-        const href = buildAgentResourcePath(params, item.suffix);
-        const active = location.pathname === href;
-        const Icon = item.icon;
+    <nav className="flex flex-col gap-1.5 lg:sticky lg:top-4">
+      {groups.map((grp) => (
+        <div key={grp.group} className="mb-1">
+          <div className="px-2.5 pb-[7px] pt-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.07em] text-muted-foreground/70">
+            {grp.group}
+          </div>
+          {grp.items.map((item) => {
+            const href = buildAgentResourcePath(params, item.suffix);
+            const active = location.pathname === href;
+            const Icon = item.icon;
 
-        return (
-          <Link
-            key={item.key}
-            to={href}
-            data-tour-id={`agent-tab-${item.key}`}
-            className={cn(
-              "inline-flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-[13px] font-medium transition-colors",
-              active
-                ? "border-primary bg-primary/8 text-foreground"
-                : "border-border/70 bg-background text-muted-foreground hover:border-border hover:text-foreground",
-            )}
-          >
-            <Icon className="h-3.5 w-3.5" />
-            {item.label}
-          </Link>
-        );
-      })}
-    </div>
+            return (
+              <Link
+                key={item.key}
+                to={href}
+                data-tour-id={`agent-tab-${item.key}`}
+                className={cn(
+                  "relative flex h-[34px] items-center gap-2.5 rounded-md px-2.5 text-[13px] transition-colors",
+                  active
+                    ? "bg-primary/10 font-medium text-primary"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                )}
+              >
+                {active ? (
+                  <span className="absolute bottom-[7px] left-[-2px] top-[7px] w-0.5 rounded-full bg-primary" />
+                ) : null}
+                <Icon
+                  className={cn(
+                    "h-[15px] w-[15px] shrink-0",
+                    active ? "opacity-100" : "opacity-75",
+                  )}
+                />
+                <span className="flex-1 truncate">{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      ))}
+    </nav>
   );
 }

@@ -115,7 +115,7 @@ export function CreateProjectDialog({
 	return (
 		<Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
 			<DialogContent
-				className="sm:max-w-4xl p-0 overflow-hidden border-none bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl shadow-2xl"
+				className="sm:max-w-4xl p-0 overflow-hidden border-none bg-card/80 backdrop-blur-xl shadow-2xl"
 				onPointerDownOutside={(e) => {
 					if ((e.target as HTMLElement | null)?.closest("[data-tour-overlay]")) {
 						e.preventDefault();
@@ -137,11 +137,11 @@ export function CreateProjectDialog({
 							<div className="p-2.5 rounded-xl bg-primary/10 dark:bg-primary/15 border border-primary/20 dark:border-primary/25 shadow-sm">
 								<RocketLaunchIcon className="w-6 h-6 text-primary" />
 							</div>
-							<DialogTitle className="text-xl font-normal text-zinc-900 dark:text-zinc-100">
+							<DialogTitle className="text-xl font-normal text-foreground">
 								Create New Project
 							</DialogTitle>
 						</div>
-						<DialogDescription className="text-base text-zinc-500 dark:text-zinc-400 font-normal ml-1">
+						<DialogDescription className="text-base text-muted-foreground font-normal ml-1">
 							Establish your project's identity and security foundation.
 						</DialogDescription>
 					</DialogHeader>
@@ -150,18 +150,18 @@ export function CreateProjectDialog({
 						{/* Project Details Section */}
 						<section className="space-y-4">
 							<div className="flex items-center gap-2">
-								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-800 to-transparent" />
-								<span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Project Details</span>
-								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-800 to-transparent" />
+								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-border dark:via-border to-transparent" />
+								<span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Project Details</span>
+								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-border dark:via-border to-transparent" />
 							</div>
 
 							{/* Project Name */}
 							<Field className="space-y-2" data-tour-id="create-project-name">
-								<Label className="text-sm font-normal text-zinc-600 dark:text-zinc-400">Project Name</Label>
+								<Label className="text-sm font-normal text-muted-foreground">Project Name</Label>
 								<Input
 									type="text"
 									placeholder="e.g., Acme Dashboard"
-									className="w-full bg-zinc-50/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 focus:ring-primary/20 focus:border-primary/50 transition-all rounded-xl py-2.5"
+									className="w-full bg-secondary border-border focus:ring-primary/20 focus:border-primary/50 transition-all rounded-xl py-2.5"
 									value={appName}
 									onChange={(e) => setAppName(e.target.value)}
 									autoFocus
@@ -175,9 +175,9 @@ export function CreateProjectDialog({
 							data-tour-id="create-project-auth-methods"
 						>
 							<div className="flex items-center gap-2">
-								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-800 to-transparent" />
-								<span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Authentication Methods</span>
-								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-800 to-transparent" />
+								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-border dark:via-border to-transparent" />
+								<span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Authentication Methods</span>
+								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-border dark:via-border to-transparent" />
 							</div>
 
 							<div className="space-y-4">
@@ -254,11 +254,11 @@ export function CreateProjectDialog({
 						</section>
 					</div>
 
-					<DialogFooter className="p-8 pt-6 pb-8 border-t border-zinc-100 dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-900/30">
+					<DialogFooter className="p-8 pt-6 pb-8 border-t border-border dark:border-border bg-secondary">
 						<Button
 							variant="ghost"
 							onClick={onClose}
-							className="text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+							className="text-muted-foreground hover:text-foreground dark:text-muted-foreground"
 						>
 							Cancel
 						</Button>
@@ -275,7 +275,7 @@ export function CreateProjectDialog({
 						>
 							{loading ? (
 								<div className="flex items-center gap-2">
-									<Spinner size="sm" className="text-white" />
+									<Spinner size="sm" className="text-primary-foreground" />
 									<span>Creating...</span>
 								</div>
 							) : (
@@ -311,7 +311,7 @@ function AuthMethodCard({
 				compact ? "p-2.5" : "p-3",
 				selected
 					? "bg-primary/10 dark:bg-primary/15 border-primary/35 shadow-[0_0_15px_-3px_color-mix(in_oklab,var(--primary)_30%,transparent)] ring-1 ring-primary/25"
-					: "bg-white dark:bg-zinc-900/40 border-zinc-200/60 dark:border-zinc-800/60 hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 shadow-sm"
+					: "bg-card border-border hover:border-border dark:hover:border-border hover:bg-secondary shadow-sm"
 			)}
 			onClick={onClick}
 		>
@@ -319,15 +319,15 @@ function AuthMethodCard({
 				"flex shrink-0 items-center justify-center rounded-lg transition-colors",
 				compact ? "h-6 w-6" : "h-8 w-8",
 				selected
-					? "bg-white dark:bg-primary/20 text-primary shadow-sm"
-					: "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500"
+					? "bg-card dark:bg-primary/20 text-primary shadow-sm"
+					: "bg-secondary text-muted-foreground"
 			)}>
 				{icon}
 			</span>
 			<span className={clsx(
 				"flex-1 font-medium truncate",
 				compact ? "text-xs" : "text-sm",
-				selected ? "text-primary dark:text-primary-foreground" : "text-zinc-600 dark:text-zinc-400"
+				selected ? "text-primary dark:text-primary-foreground" : "text-muted-foreground"
 			)}>
 				{label}
 			</span>

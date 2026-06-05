@@ -80,25 +80,25 @@ export function ProjectDeploymentSelector({
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 outline-none focus-visible:ring-2 focus-visible:ring-zinc-400">
+                <button className="flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-secondary outline-none focus-visible:ring-2 focus-visible:ring-ring">
                     <div className="flex items-center gap-2">
                         <div className="flex items-center text-sm">
-                            <span className="text-zinc-900 dark:text-zinc-100">
+                            <span className="text-foreground">
                                 {selectedProject
                                     ? selectedProject.name
                                     : "Select Project"}
                             </span>
-                            <span className="mx-1.5 text-zinc-400 dark:text-zinc-600">
+                            <span className="mx-1.5 text-muted-foreground dark:text-muted-foreground">
                                 /
                             </span>
-                            <span className="text-zinc-600 dark:text-zinc-400">
+                            <span className="text-muted-foreground">
                                 {selectedDeployment && selectedProject
                                     ? selectedLabel(selectedDeployment)
                                     : "..."}
                             </span>
                         </div>
                     </div>
-                    <ChevronDownIcon className="h-4 w-4 text-zinc-400 opacity-50" />
+                    <ChevronDownIcon className="h-4 w-4 text-muted-foreground opacity-50" />
                 </button>
             </DropdownMenuTrigger>
 
@@ -119,13 +119,13 @@ export function ProjectDeploymentSelector({
                                     "w-full flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer",
                                     isProjectSelected &&
                                         !isExpanded &&
-                                        "bg-zinc-100 dark:bg-zinc-800/50",
+                                        "bg-secondary",
                                 )}
                             >
                                 {project.deployments.length > 0 && (
                                     <ChevronRightIcon
                                         className={clsx(
-                                            "h-3 w-3 text-zinc-400 transition-transform",
+                                            "h-3 w-3 text-muted-foreground transition-transform",
                                             isExpanded && "rotate-90",
                                         )}
                                     />
@@ -150,7 +150,7 @@ export function ProjectDeploymentSelector({
                                                 "w-full flex items-center pl-9 pr-2 py-1.5 text-sm cursor-pointer",
                                                 selectedDeployment?.id ===
                                                     deployment.id &&
-                                                    "bg-zinc-100 dark:bg-zinc-800/50",
+                                                    "bg-secondary",
                                             )}
                                         >
                                             <div
@@ -162,7 +162,7 @@ export function ProjectDeploymentSelector({
                                                         : "bg-yellow-500",
                                                 )}
                                             />
-                                            <span className="truncate text-zinc-600 dark:text-zinc-400">
+                                            <span className="truncate text-muted-foreground">
                                                 {deploymentLabel(
                                                     project.name,
                                                     deployment,
@@ -180,7 +180,7 @@ export function ProjectDeploymentSelector({
                                                         onSelect={
                                                             onCreateStaging
                                                         }
-                                                        className="pl-9 pr-2 py-1.5 text-xs text-zinc-500"
+                                                        className="pl-9 pr-2 py-1.5 text-xs text-muted-foreground"
                                                     >
                                                         <PlusIcon className="mr-1 h-3 w-3" />{" "}
                                                         Add Staging
@@ -191,7 +191,7 @@ export function ProjectDeploymentSelector({
                                                         onSelect={
                                                             onCreateProduction
                                                         }
-                                                        className="pl-9 pr-2 py-1.5 text-xs text-zinc-500"
+                                                        className="pl-9 pr-2 py-1.5 text-xs text-muted-foreground"
                                                     >
                                                         <PlusIcon className="mr-1 h-3 w-3" />{" "}
                                                         Add Production
@@ -206,7 +206,7 @@ export function ProjectDeploymentSelector({
                 })}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={onCreateProject} className="gap-2">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-md border border-dashed border-zinc-300">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-md border border-dashed border-border">
                         <PlusIcon className="h-3 w-3" />
                     </div>
                     <span>Create new project</span>

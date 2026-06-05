@@ -11,27 +11,34 @@ export default function SavePopup({ isDirty, isSaving, onSave, onCancel }: SaveP
     if (!isDirty) return null;
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-zinc-200 bg-white p-4 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
-            <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
-                    You have unsaved changes.
-                </p>
-                <div className="flex gap-3">
+        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4">
+            <div className="pointer-events-auto flex items-center gap-3 rounded-lg border border-border bg-card/80 py-2 pl-4 pr-2 shadow-xl ring-1 ring-black/5 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-200 dark:ring-white/10">
+                <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                    <span className="relative flex size-2">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500/70" />
+                        <span className="relative inline-flex size-2 rounded-full bg-amber-500" />
+                    </span>
+                    Unsaved changes
+                </span>
+                <div className="flex items-center gap-1">
                     <Button
-                        variant="secondary"
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground hover:text-foreground"
                         onClick={onCancel}
                         disabled={isSaving}
                     >
                         Discard
                     </Button>
                     <Button
+                        size="sm"
                         onClick={onSave}
                         disabled={isSaving}
                     >
-                        {isSaving ? 'Saving...' : 'Save Changes'}
+                        {isSaving ? "Saving…" : "Save changes"}
                     </Button>
                 </div>
             </div>
         </div>
     );
-} 
+}

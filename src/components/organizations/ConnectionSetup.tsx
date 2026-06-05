@@ -37,7 +37,7 @@ import { InlineLoader } from "@/components/ui/loading-screen";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
-    PencilIcon,
+    PencilSquareIcon,
     TrashIcon,
     KeyIcon,
     LockClosedIcon,
@@ -251,10 +251,10 @@ function SCIMSection({
 
     return (
         <>
-            <div className="mt-4 border-t border-zinc-200 dark:border-zinc-800 pt-4">
+            <div className="mt-4 border-t border-border pt-4">
                 <button
                     onClick={() => setExpanded(!expanded)}
-                    className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
+                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
                 >
                     {expanded ? (
                         <ChevronUpIcon className="w-4 h-4" />
@@ -272,11 +272,11 @@ function SCIMSection({
                             <>
                                 {/* SCIM Base URL */}
                                 <div className="space-y-1">
-                                    <label className="text-xs font-medium text-zinc-500">
+                                    <label className="text-xs font-medium text-muted-foreground">
                                         SCIM Base URL
                                     </label>
                                     <div className="flex items-center gap-2">
-                                        <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded flex-1 truncate">
+                                        <code className="text-xs bg-secondary px-2 py-1 rounded flex-1 truncate">
                                             {scimToken?.scim_base_url || "—"}
                                         </code>
                                         <Button
@@ -322,16 +322,16 @@ function SCIMSection({
                                 ) : scimToken?.exists &&
                                   scimToken?.token?.enabled ? (
                                     <div className="space-y-1">
-                                        <label className="text-xs font-medium text-zinc-500">
+                                        <label className="text-xs font-medium text-muted-foreground">
                                             Token
                                         </label>
-                                        <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                             <span className="font-mono">
                                                 {scimToken.token.token_prefix}
                                                 ...
                                             </span>
                                             {scimToken.token.last_used_at && (
-                                                <span className="text-zinc-400">
+                                                <span className="text-muted-foreground">
                                                     Last used:{" "}
                                                     {new Date(
                                                         scimToken.token.last_used_at,
@@ -592,10 +592,10 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
         <div className="space-y-4">
             <div className="flex justify-between items-end">
                 <div>
-                    <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
+                    <h3 className="text-lg font-medium text-foreground">
                         Identity Providers
                     </h3>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                    <p className="text-sm text-muted-foreground">
                         Configure SSO connections for this organization.
                     </p>
                 </div>
@@ -611,7 +611,7 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                     ? "Edit Connection"
                                     : "Add New Connection"}
                             </DialogTitle>
-                            <DialogDescription className="mt-2 text-zinc-500 dark:text-zinc-400">
+                            <DialogDescription className="mt-2 text-muted-foreground">
                                 Configure your Identity Provider (IdP) settings
                                 for SAML or OIDC authentication.
                                 {editingConnection
@@ -630,14 +630,14 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                 {!editingConnection && (
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between">
-                                            <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                            <label className="text-sm font-medium text-foreground">
                                                 Choose Identity Provider
                                             </label>
                                             {selectedTemplate && (
                                                 <button
                                                     type="button"
                                                     onClick={clearTemplate}
-                                                    className="text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 underline"
+                                                    className="text-xs text-muted-foreground hover:text-foreground dark:hover:text-muted-foreground underline"
                                                 >
                                                     Clear selection
                                                 </button>
@@ -653,11 +653,11 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                                     }
                                                     className={`
                             relative flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-all
-                            hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20
+                            hover:border-primary hover:bg-primary dark:hover:bg-primary
                             ${
                                 selectedTemplate?.id === template.id
-                                    ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30 ring-2 ring-blue-500/20"
-                                    : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50"
+                                    ? "border-primary bg-primary dark:bg-primary ring-2 ring-primary"
+                                    : "border-border dark:border-border bg-card"
                             }
                           `}
                                                 >
@@ -673,12 +673,12 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                                             );
                                                         }}
                                                     />
-                                                    <span className="hidden text-lg font-bold text-zinc-600 dark:text-zinc-400">
+                                                    <span className="hidden text-lg font-bold text-muted-foreground">
                                                         {template.name.charAt(
                                                             0,
                                                         )}
                                                     </span>
-                                                    <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300 text-center leading-tight">
+                                                    <span className="text-xs font-medium text-foreground text-center leading-tight">
                                                         {template.name}
                                                     </span>
                                                     <span
@@ -695,9 +695,9 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                                     </span>
                                                     {selectedTemplate?.id ===
                                                         template.id && (
-                                                        <div className="absolute -top-1 -right-1 h-4 w-4 bg-blue-500 rounded-full flex items-center justify-center">
+                                                        <div className="absolute -top-1 -right-1 h-4 w-4 bg-primary rounded-full flex items-center justify-center">
                                                             <svg
-                                                                className="h-2.5 w-2.5 text-white"
+                                                                className="h-2.5 w-2.5 text-primary-foreground"
                                                                 fill="currentColor"
                                                                 viewBox="0 0 20 20"
                                                             >
@@ -713,8 +713,8 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                             ))}
                                         </div>
                                         {selectedTemplate && (
-                                            <div className="flex items-center gap-2 p-2 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
-                                                <span className="text-xs text-blue-700 dark:text-blue-300">
+                                            <div className="flex items-center gap-2 p-2 rounded-md bg-primary dark:bg-primary border border-primary dark:border-primary">
+                                                <span className="text-xs text-primary dark:text-primary">
                                                     📚{" "}
                                                     <a
                                                         href={
@@ -739,10 +739,10 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                         className="absolute inset-0 flex items-center"
                                         aria-hidden="true"
                                     >
-                                        <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
+                                        <div className="w-full border-t border-border" />
                                     </div>
                                     <div className="relative flex justify-center">
-                                        <span className="bg-white dark:bg-zinc-900 px-2 text-xs text-zinc-500 uppercase tracking-wider">
+                                        <span className="bg-card px-2 text-xs text-muted-foreground uppercase tracking-wider">
                                             {selectedTemplate
                                                 ? `${selectedTemplate.name} Configuration`
                                                 : "Manual Configuration"}
@@ -755,7 +755,7 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                         {/* Only show Protocol dropdown when no template selected */}
                                         {!selectedTemplate && (
                                             <div className="space-y-2">
-                                                <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                                <label className="text-sm font-medium text-foreground">
                                                     Protocol
                                                 </label>
                                                 <Select
@@ -789,9 +789,9 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                             </div>
                                         )}
 
-                                        <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                                        <div className="space-y-4 pt-4 border-t border-border dark:border-border">
                                             <div className="space-y-2">
-                                                <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                                <label className="text-sm font-medium text-foreground">
                                                     Template
                                                 </label>
                                                 <Select
@@ -870,7 +870,7 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                     {form.watch("protocol") === "saml" ? (
                                         <div className="space-y-4">
                                             <div className="space-y-3">
-                                                <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                                <label className="block text-sm font-medium text-foreground">
                                                     IdP Entity ID (Issuer)
                                                 </label>
                                                 <Input
@@ -878,16 +878,16 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                                         "idp_entity_id",
                                                     )}
                                                     placeholder="https://idp.example.com/metadata"
-                                                    className="dark:bg-zinc-800/50"
+                                                    className=""
                                                 />
-                                                <p className="text-xs text-zinc-500">
+                                                <p className="text-xs text-muted-foreground">
                                                     The unique identifier for
                                                     your Identity Provider.
                                                 </p>
                                             </div>
 
                                             <div className="space-y-3">
-                                                <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                                <label className="block text-sm font-medium text-foreground">
                                                     IdP SSO URL
                                                 </label>
                                                 <Input
@@ -895,7 +895,7 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                                         "idp_sso_url",
                                                     )}
                                                     placeholder="https://idp.example.com/sso"
-                                                    className="dark:bg-zinc-800/50"
+                                                    className=""
                                                 />
                                                 {form.formState.errors
                                                     .idp_sso_url && (
@@ -908,14 +908,14 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                                         }
                                                     </p>
                                                 )}
-                                                <p className="text-xs text-zinc-500">
+                                                <p className="text-xs text-muted-foreground">
                                                     The endpoint where we'll
                                                     redirect users to sign in.
                                                 </p>
                                             </div>
 
                                             <div className="space-y-3">
-                                                <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                                <label className="block text-sm font-medium text-foreground">
                                                     X.509 Certificate
                                                 </label>
                                                 <Textarea
@@ -923,9 +923,9 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                                         "idp_certificate",
                                                     )}
                                                     placeholder="-----BEGIN CERTIFICATE-----..."
-                                                    className="text-xs h-32 dark:bg-zinc-800/50"
+                                                    className="text-xs h-32"
                                                 />
-                                                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                                <p className="text-xs text-muted-foreground">
                                                     Paste the entire PEM-encoded
                                                     certificate, including
                                                     headers.
@@ -935,7 +935,7 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                     ) : (
                                         <div className="space-y-4">
                                             <div className="space-y-3">
-                                                <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                                <label className="block text-sm font-medium text-foreground">
                                                     Issuer URL
                                                 </label>
                                                 <Input
@@ -943,7 +943,7 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                                         "oidc_issuer_url",
                                                     )}
                                                     placeholder="https://login.example.com"
-                                                    className="dark:bg-zinc-800/50"
+                                                    className=""
                                                 />
                                                 {form.formState.errors
                                                     .oidc_issuer_url && (
@@ -956,7 +956,7 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                                         }
                                                     </p>
                                                 )}
-                                                <p className="text-xs text-zinc-500">
+                                                <p className="text-xs text-muted-foreground">
                                                     The base URL of your OIDC
                                                     provider (e.g.,
                                                     https://login.example.com).
@@ -964,7 +964,7 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                             </div>
 
                                             <div className="space-y-3">
-                                                <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                                <label className="block text-sm font-medium text-foreground">
                                                     Client ID
                                                 </label>
                                                 <Input
@@ -972,16 +972,16 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                                         "oidc_client_id",
                                                     )}
                                                     placeholder="your-client-id"
-                                                    className="dark:bg-zinc-800/50"
+                                                    className=""
                                                 />
-                                                <p className="text-xs text-zinc-500">
+                                                <p className="text-xs text-muted-foreground">
                                                     The OAuth 2.0 client ID for
                                                     your application.
                                                 </p>
                                             </div>
 
                                             <div className="space-y-3">
-                                                <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                                <label className="block text-sm font-medium text-foreground">
                                                     Client Secret
                                                 </label>
                                                 <Input
@@ -990,9 +990,9 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                                     )}
                                                     type="password"
                                                     placeholder="Enter client secret"
-                                                    className="dark:bg-zinc-800/50"
+                                                    className=""
                                                 />
-                                                <p className="text-xs text-zinc-500">
+                                                <p className="text-xs text-muted-foreground">
                                                     {editingConnection
                                                         ? "Leave blank to keep existing secret."
                                                         : "The OAuth 2.0 client secret."}
@@ -1000,7 +1000,7 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                             </div>
 
                                             <div className="space-y-3">
-                                                <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                                <label className="block text-sm font-medium text-foreground">
                                                     Scopes
                                                 </label>
                                                 <Input
@@ -1008,9 +1008,9 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                                         "oidc_scopes",
                                                     )}
                                                     placeholder="openid profile email"
-                                                    className="dark:bg-zinc-800/50"
+                                                    className=""
                                                 />
-                                                <p className="text-xs text-zinc-500">
+                                                <p className="text-xs text-muted-foreground">
                                                     Space-separated list of
                                                     OAuth scopes to request.
                                                 </p>
@@ -1019,20 +1019,20 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                     )}
 
                                     {/* JIT Provisioning Toggle */}
-                                    <div className="pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                                    <div className="pt-4 border-t border-border dark:border-border">
                                         <label className="flex items-center gap-3 cursor-pointer">
                                             <input
                                                 type="checkbox"
                                                 {...form.register(
                                                     "jit_enabled",
                                                 )}
-                                                className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-600"
+                                                className="w-4 h-4 rounded border-border"
                                             />
                                             <span className="font-medium text-sm">
                                                 Enable JIT Provisioning
                                             </span>
                                         </label>
-                                        <p className="text-xs text-zinc-500 mt-1 ml-7">
+                                        <p className="text-xs text-muted-foreground mt-1 ml-7">
                                             When enabled, new users are
                                             automatically created on their first
                                             SSO login.
@@ -1040,20 +1040,20 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                     </div>
 
                                     {/* Attribute Mapping (Collapsible) */}
-                                    <div className="pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                                    <div className="pt-4 border-t border-border dark:border-border">
                                         <details className="group">
-                                            <summary className="text-sm font-medium text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">
+                                            <summary className="text-sm font-medium text-primary dark:text-primary cursor-pointer hover:underline">
                                                 Advanced: Attribute Mapping
                                             </summary>
                                             <div className="mt-4 space-y-4 pl-0.5">
-                                                <p className="text-xs text-zinc-500">
+                                                <p className="text-xs text-muted-foreground">
                                                     Map IdP attribute names to
                                                     Wacht user fields. Leave
                                                     empty to use defaults.
                                                 </p>
                                                 <div className="grid grid-cols-3 gap-4">
                                                     <div>
-                                                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                                                        <label className="block text-sm font-medium text-foreground mb-1">
                                                             First Name
                                                         </label>
                                                         <Input
@@ -1067,11 +1067,11 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                                                     ? "givenName"
                                                                     : "given_name"
                                                             }
-                                                            className="dark:bg-zinc-800/50"
+                                                            className=""
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                                                        <label className="block text-sm font-medium text-foreground mb-1">
                                                             Last Name
                                                         </label>
                                                         <Input
@@ -1085,11 +1085,11 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                                                     ? "surname"
                                                                     : "family_name"
                                                             }
-                                                            className="dark:bg-zinc-800/50"
+                                                            className=""
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                                                        <label className="block text-sm font-medium text-foreground mb-1">
                                                             Email
                                                         </label>
                                                         <Input
@@ -1097,7 +1097,7 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                                                 "attr_email",
                                                             )}
                                                             placeholder="email"
-                                                            className="dark:bg-zinc-800/50"
+                                                            className=""
                                                         />
                                                     </div>
                                                 </div>
@@ -1139,25 +1139,25 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                 <EmptyState
                     title="No connections configured"
                     description="Add an Identity Provider to enable SSO."
-                    icon={<KeyIcon className="h-12 w-12 text-zinc-400" />}
+                    icon={<KeyIcon className="h-12 w-12 text-muted-foreground" />}
                 />
             ) : (
                 <div className="flow-root">
                     <ul
                         role="list"
-                        className="-my-5 divide-y divide-zinc-200 dark:divide-zinc-800"
+                        className="-my-5 divide-y divide-border"
                     >
                         {connections?.map((connection) => (
                             <li key={connection.id} className="py-5 group">
                                 <div className="flex items-center justify-between gap-4">
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-start gap-4">
-                                            <div className="h-10 w-10 flex-shrink-0 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 dark:text-zinc-400">
+                                            <div className="h-10 w-10 flex-shrink-0 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground">
                                                 <LockClosedIcon className="h-5 w-5" />
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2">
-                                                    <h4 className="text-sm font-normal text-zinc-900 dark:text-zinc-100">
+                                                    <h4 className="text-sm font-normal text-foreground">
                                                         {connection.protocol.toUpperCase()}{" "}
                                                         Connection
                                                     </h4>
@@ -1176,12 +1176,12 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                                                 "Unknown Domain"}
                                                         </Badge>
                                                     ) : (
-                                                        <span className="text-xs text-zinc-500">
+                                                        <span className="text-xs text-muted-foreground">
                                                             Unlinked
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="mt-1 flex flex-col sm:flex-row sm:items-center gap-x-6 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
+                                                <div className="mt-1 flex flex-col sm:flex-row sm:items-center gap-x-6 gap-y-1 text-xs text-muted-foreground">
                                                     <div className="flex items-center gap-1">
                                                         <span className="font-medium">
                                                             Entity ID:
@@ -1207,16 +1207,16 @@ export function ConnectionSetup({ organizationId }: ConnectionSetupProps) {
                                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <Button
                                             variant="ghost"
-                                            className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+                                            className="p-2 text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground transition-colors"
                                             onClick={() =>
                                                 handleEdit(connection)
                                             }
                                         >
-                                            <PencilIcon className="w-4 h-4" />
+                                            <PencilSquareIcon className="w-4 h-4" />
                                         </Button>
                                         <Button
                                             variant="ghost"
-                                            className="p-2 text-zinc-400 hover:text-red-500 transition-colors"
+                                            className="p-2 text-muted-foreground hover:text-red-500 transition-colors"
                                             onClick={() =>
                                                 setDeletingConnectionId(
                                                     connection.id,

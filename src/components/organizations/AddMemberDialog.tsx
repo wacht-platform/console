@@ -124,11 +124,11 @@ export function AddMemberDialog({
 						</Field>
 
 						{selectedUser && (
-							<div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-3">
-								<div className="text-sm font-medium text-blue-900 dark:text-blue-100">
+							<div className="rounded-lg border border-primary dark:border-primary bg-primary dark:bg-primary p-3">
+								<div className="text-sm font-medium text-primary dark:text-primary">
 									Selected User
 								</div>
-								<div className="mt-1 text-sm text-blue-700 dark:text-blue-300">
+								<div className="mt-1 text-sm text-primary dark:text-primary">
 									{selectedUser.first_name} {selectedUser.last_name}
 									{selectedUser.primary_email_address && ` • ${selectedUser.primary_email_address}`}
 								</div>

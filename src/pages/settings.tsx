@@ -1,9 +1,6 @@
-import { Heading, Subheading } from "@/components/ui/heading";
-import { Strong, Text } from "@/components/ui/text";
 import { ClipboardIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { Divider } from "@/components/ui/divider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch"
@@ -62,31 +59,31 @@ export default function ApplicationSettingsPage() {
 
   return (
     <div>
-      <Heading>Application Settings</Heading>
+      <h1 className="text-xl font-medium tracking-tight text-foreground">Application Settings</h1>
       <div className="mt-8 space-y-10">
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
           <div className="space-y-1">
-            <div className="w-24 h-24 rounded-full bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center">
+            <div className="w-24 h-24 rounded-full bg-secondary border border-border overflow-hidden flex items-center justify-center">
               <img src="./placeholder.png" alt="Application Logo" className="w-16 h-16 object-contain" />
             </div>
           </div>
           <div className="space-y-1">
-            <Subheading>
-              <Strong>Created Date</Strong>
-            </Subheading>
-            <Text>The date this application was created.</Text>
-            <Text className="mt-2 font-medium">{createdDate}</Text>
+            <h3 className="text-sm font-medium text-foreground">
+              <span className="font-medium text-foreground">Created Date</span>
+            </h3>
+            <p className="text-sm text-muted-foreground">The date this application was created.</p>
+            <p className="text-sm text-muted-foreground mt-2 font-medium">{createdDate}</p>
           </div>
         </section>
 
-        <Divider className="my-8" soft />
+        <div className="my-8 border-t border-border" />
 
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
           <div className="space-y-1">
-            <Subheading>
-              <Strong>Application ID</Strong>
-            </Subheading>
-            <Text>Unique identifier for your application.</Text>
+            <h3 className="text-sm font-medium text-foreground">
+              <span className="font-medium text-foreground">Application ID</span>
+            </h3>
+            <p className="text-sm text-muted-foreground">Unique identifier for your application.</p>
             <div className="relative flex items-center gap-3 mt-2">
               <Input type="text" value={applicationId} readOnly size={25} />
               <Tooltip open={copiedAppId}>
@@ -104,10 +101,10 @@ export default function ApplicationSettingsPage() {
             </div>
           </div>
           <div className="space-y-1">
-            <Subheading>
-              <Strong>Instance ID</Strong>
-            </Subheading>
-            <Text>Unique identifier for your application instance.</Text>
+            <h3 className="text-sm font-medium text-foreground">
+              <span className="font-medium text-foreground">Instance ID</span>
+            </h3>
+            <p className="text-sm text-muted-foreground">Unique identifier for your application instance.</p>
             <div className="relative flex items-center gap-3 mt-2">
               <Input type="text" value={instanceId} readOnly size={25} />
               <Tooltip open={copiedInstanceId}>
@@ -126,14 +123,14 @@ export default function ApplicationSettingsPage() {
           </div>
         </section>
 
-        <Divider className="my-8" soft />
+        <div className="my-8 border-t border-border" />
 
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
           <div className="space-y-1">
-            <Subheading>
-              <Strong>Application Name</Strong>
-            </Subheading>
-            <Text>Customize the name of your application.</Text>
+            <h3 className="text-sm font-medium text-foreground">
+              <span className="font-medium text-foreground">Application Name</span>
+            </h3>
+            <p className="text-sm text-muted-foreground">Customize the name of your application.</p>
             <Input
               type="text"
               value={applicationName}
@@ -144,10 +141,10 @@ export default function ApplicationSettingsPage() {
             />
           </div>
           <div className="space-y-1">
-            <Subheading>
-              <Strong>Support Email</Strong>
-            </Subheading>
-            <Text>The email displayed on Wacht components for your application support channels.</Text>
+            <h3 className="text-sm font-medium text-foreground">
+              <span className="font-medium text-foreground">Support Email</span>
+            </h3>
+            <p className="text-sm text-muted-foreground">The email displayed on Wacht components for your application support channels.</p>
             <Input
               type="email"
               value={supportEmail}
@@ -159,38 +156,38 @@ export default function ApplicationSettingsPage() {
           </div>
         </section>
 
-        <Divider className="my-8" soft />
+        <div className="my-8 border-t border-border" />
 
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
           <div className="space-y-1">
-            <Subheading>
-              <Strong>Logo</Strong>
-            </Subheading>
-            <Text>Upload .jpeg, .png, .gif, or .webp files.</Text>
+            <h3 className="text-sm font-medium text-foreground">
+              <span className="font-medium text-foreground">Logo</span>
+            </h3>
+            <p className="text-sm text-muted-foreground">Upload .jpeg, .png, .gif, or .webp files.</p>
             <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) handleFileUpload('logo', file); }} id="logo-upload" />
             <div className="flex items-center gap-4">
               <Button className="mt-2" variant="outline" onClick={() => document.getElementById('logo-upload')?.click()}>
                 Upload Logo
               </Button>
               {logoPreview && (
-                <div className="mt-2 w-12 h-12 rounded-full overflow-hidden border border-gray-200">
+                <div className="mt-2 w-12 h-12 rounded-full overflow-hidden border border-border">
                   <img src={logoPreview} alt="Logo Preview" className="w-full h-full object-cover" />
                 </div>
               )}
             </div>
           </div>
           <div className="space-y-1">
-            <Subheading>
-              <Strong>Favicon</Strong>
-            </Subheading>
-            <Text>Upload image/x-icon or image/vnd.microsoft.icon files.</Text>
+            <h3 className="text-sm font-medium text-foreground">
+              <span className="font-medium text-foreground">Favicon</span>
+            </h3>
+            <p className="text-sm text-muted-foreground">Upload image/x-icon or image/vnd.microsoft.icon files.</p>
             <input type="file" accept="image/x-icon,image/vnd.microsoft.icon" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) handleFileUpload('favicon', file); }} id="favicon-upload" />
             <div className="flex items-center gap-4">
               <Button className="mt-2" variant="outline" onClick={() => document.getElementById('favicon-upload')?.click()}>
                 Upload Favicon
               </Button>
               {faviconPreview && (
-                <div className="mt-2 w-8 h-8 overflow-hidden border border-gray-200">
+                <div className="mt-2 w-8 h-8 overflow-hidden border border-border">
                   <img src={faviconPreview} alt="Favicon Preview" className="w-full h-full object-cover" />
                 </div>
               )}
@@ -198,14 +195,14 @@ export default function ApplicationSettingsPage() {
           </div>
         </section>
 
-        <Divider className="my-8" soft />
+        <div className="my-8 border-t border-border" />
 
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
           <div className="space-y-1">
-            <Subheading>
-              <Strong>Test Mode</Strong>
-            </Subheading>
-            <Text>Sign in and sign up with test credentials.</Text>
+            <h3 className="text-sm font-medium text-foreground">
+              <span className="font-medium text-foreground">Test Mode</span>
+            </h3>
+            <p className="text-sm text-muted-foreground">Sign in and sign up with test credentials.</p>
             <Switch
               checked={testMode}
               onCheckedChange={setTestMode}
@@ -215,68 +212,68 @@ export default function ApplicationSettingsPage() {
           {testMode && (
             <div className="space-y-4">
               <div className="space-y-1">
-                <Subheading>
-                  <Strong>Test Email :</Strong>
-                  <code className="px-1 ml-2 bg-gray-50 rounded">your_email+wacht_test@example.com</code>
-                </Subheading>
-                <Text>Any email with the +wacht_test subaddress is a test email address.</Text>
+                <h3 className="text-sm font-medium text-foreground">
+                  <span className="font-medium text-foreground">Test Email :</span>
+                  <code className="px-1 ml-2 bg-secondary rounded">your_email+wacht_test@example.com</code>
+                </h3>
+                <p className="text-sm text-muted-foreground">Any email with the +wacht_test subaddress is a test email address.</p>
               </div>
               <div className="space-y-1">
-                <Subheading>
-                  <Strong>Test Verification Code :</Strong>
-                  <code className="px-1 ml-2 bg-gray-50 rounded">442424</code>
-                </Subheading>
-                <Text>No verification emails or SMS will be sent from test emails or test phone numbers. They can be verified with this code.</Text>
+                <h3 className="text-sm font-medium text-foreground">
+                  <span className="font-medium text-foreground">Test Verification Code :</span>
+                  <code className="px-1 ml-2 bg-secondary rounded">442424</code>
+                </h3>
+                <p className="text-sm text-muted-foreground">No verification emails or SMS will be sent from test emails or test phone numbers. They can be verified with this code.</p>
               </div>
               <div className="space-y-1">
-                <Subheading>
-                  <Strong>Test Phone Number</Strong>
-                  <code className="px-1 ml-2 bg-gray-50 rounded">+12345678901</code>
-                </Subheading>
-                <Text>The last three digits of this test phone number can end with a number between 100-199.</Text>
+                <h3 className="text-sm font-medium text-foreground">
+                  <span className="font-medium text-foreground">Test Phone Number</span>
+                  <code className="px-1 ml-2 bg-secondary rounded">+12345678901</code>
+                </h3>
+                <p className="text-sm text-muted-foreground">The last three digits of this test phone number can end with a number between 100-199.</p>
               </div>
             </div>
           )}
         </section>
 
-        <Divider className="my-8" soft />
+        <div className="my-8 border-t border-border" />
 
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
           <div className="space-y-1">
-            <Subheading>
-              <Strong>Transfer Ownership</Strong>
-            </Subheading>
-            <Text>Transfer ownership of this application to another user.</Text>
+            <h3 className="text-sm font-medium text-foreground">
+              <span className="font-medium text-foreground">Transfer Ownership</span>
+            </h3>
+            <p className="text-sm text-muted-foreground">Transfer ownership of this application to another user.</p>
             <Button className="mt-2" variant="outline">
               Transfer Ownership
             </Button>
           </div>
           <div className="space-y-1">
-            <Subheading>
-              <Strong>Delete Application</Strong>
-            </Subheading>
-            <Text>Permanently delete this application and all associated data.</Text>
+            <h3 className="text-sm font-medium text-foreground">
+              <span className="font-medium text-foreground">Delete Application</span>
+            </h3>
+            <p className="text-sm text-muted-foreground">Permanently delete this application and all associated data.</p>
             <Button className="mt-2" color="red">
               Delete Application
             </Button>
           </div>
         </section>
 
-        <Divider className="my-8" soft />
+        <div className="my-8 border-t border-border" />
 
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
           <div className="space-y-1">
-            <Subheading>
-              <Strong>User Exports</Strong>
-            </Subheading>
-            <Text>Export and download your users.</Text>
+            <h3 className="text-sm font-medium text-foreground">
+              <span className="font-medium text-foreground">User Exports</span>
+            </h3>
+            <p className="text-sm text-muted-foreground">Export and download your users.</p>
             <Button className="mt-2" variant="outline">
               Export All Users
             </Button>
           </div>
         </section>
 
-        <Divider className="my-10" soft />
+        <div className="my-10 border-t border-border" />
 
         <div className="flex justify-end gap-4">
           <Button type="reset" variant="ghost">Reset</Button>

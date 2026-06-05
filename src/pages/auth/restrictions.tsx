@@ -1,21 +1,12 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { InlineLoader } from "@/components/ui/loading-screen";
-import { Divider } from "@/components/ui/divider";
-import { Heading, Subheading } from "@/components/ui/heading";
+import { SectionLabel } from "@/components/ui/section-label";
 import { Switch } from "@/components/ui/switch"
-import { Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { RadioGroup, Radio, RadioField } from "@/components/ui/radio";
-import {
-  Description,
-  Field,
-  FieldGroup,
-  Fieldset,
-  Label,
-  Legend,
-} from "@/components/ui/fieldset";
+import { Description, Field, Label } from "@/components/ui/fieldset";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 import { useUpdateDeploymentRestrictions } from "@/lib/api/hooks/use-deployment-restrictions";
 import {
@@ -362,390 +353,332 @@ export default function RestrictionsPage() {
   return (
     <>
       <div className="flex flex-col gap-8 pb-24">
-        <div>
-          <Heading>Restrictions</Heading>
-          <Text>Specify restrictions for this deployment.</Text>
-        </div>
-
-        <div className="space-y-8">
-          <Fieldset>
-            <Legend>Sign-up mode</Legend>
-            <Text>Choose the sign up mode for your application.</Text>
-            <FieldGroup>
-              <RadioGroup
-                value={signUpMode}
-                onValueChange={handleSignUpModeChange}
-                className="space-y-4"
-              >
-                <div className="flex flex-col gap-6">
-                  <Field>
-                    <RadioField>
-                      <Radio value="public" className="mt-1" />
-                      <div className="flex flex-col gap-1">
-                        <Label className="font-normal text-base text-gray-900 dark:text-zinc-100">
-                          Public
-                        </Label>
-                        <Description className="leading-relaxed">
-                          Anyone can sign up to your application.
-                        </Description>
-                      </div>
-                    </RadioField>
-                  </Field>
-                  <Field>
-                    <RadioField>
-                      <Radio value="restricted" className="mt-1" />
-                      <div className="flex flex-col gap-1">
-                        <Label className="font-normal text-base text-gray-900 dark:text-zinc-100">
-                          Restricted
-                        </Label>
-                        <Description className="leading-relaxed">
-                          Sign ups are disabled, and users can only access your
-                          application if they are invited, created manually, or
-                          authenticated through an enterprise SSO connection.
-                        </Description>
-                      </div>
-                    </RadioField>
-                  </Field>
-                  <Field>
-                    <RadioField>
-                      <Radio value="waitlist" className="mt-1" />
-                      <div className="flex flex-col gap-1">
-                        <Label className="font-normal text-base text-gray-900 dark:text-zinc-100">
-                          Waitlist
-                        </Label>
-                        <Description className="leading-relaxed">
-                          Sign ups are disabled, but people can join a waitlist.
-                        </Description>
-                      </div>
-                    </RadioField>
-                  </Field>
-                </div>
-              </RadioGroup>
-            </FieldGroup>
-          </Fieldset>
-
-          {signUpMode === DeploymentRestrictionsSignUpMode.Waitlist && (
-            <>
-              <Divider soft />
-              <section className="space-y-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <Subheading>Waitlist Settings</Subheading>
-                    <Text>
-                      Configure how information is collected from waitlist
-                      users.
-                    </Text>
+        {/* Sign-up mode */}
+        <section className="flex flex-col gap-4">
+          <SectionLabel>Sign-up mode</SectionLabel>
+          <div className="rounded-lg border border-border bg-card p-5">
+            <RadioGroup
+              value={signUpMode}
+              onValueChange={handleSignUpModeChange}
+              className="flex flex-col gap-5"
+            >
+              <Field>
+                <RadioField>
+                  <Radio value="public" className="mt-0.5" />
+                  <div className="flex flex-col gap-0.5">
+                    <Label className="text-sm font-medium text-foreground">
+                      Public
+                    </Label>
+                    <Description className="text-xs leading-relaxed">
+                      Anyone can sign up to your application.
+                    </Description>
                   </div>
-                </div>
-                <Field>
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <Label>Collect first name and last name</Label>
-                      <Description>
-                        When enabled, users joining the waitlist will be
-                        required to provide their first and last name in
-                        addition to their email address.
-                      </Description>
-                    </div>
-                    <Switch
-                      checked={waitlistCollectNames}
-                      onCheckedChange={setWaitlistCollectNames}
-                      className="ml-auto flex-shrink-0"
-                    />
+                </RadioField>
+              </Field>
+              <Field>
+                <RadioField>
+                  <Radio value="restricted" className="mt-0.5" />
+                  <div className="flex flex-col gap-0.5">
+                    <Label className="text-sm font-medium text-foreground">
+                      Restricted
+                    </Label>
+                    <Description className="text-xs leading-relaxed">
+                      Sign-ups are disabled — users get access only via invite,
+                      manual creation, or an enterprise SSO connection.
+                    </Description>
                   </div>
-                </Field>
-              </section>
-            </>
-          )}
-
-          <Divider soft />
-
-          <section className="space-y-4">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <Subheading>Allowlist</Subheading>
-                <Text>
-                  Restrict sign-ups and sign-ins to accounts with pre-approved
-                  identifiers.
-                </Text>
+                </RadioField>
+              </Field>
+              <Field>
+                <RadioField>
+                  <Radio value="waitlist" className="mt-0.5" />
+                  <div className="flex flex-col gap-0.5">
+                    <Label className="text-sm font-medium text-foreground">
+                      Waitlist
+                    </Label>
+                    <Description className="text-xs leading-relaxed">
+                      Sign-ups are disabled, but people can join a waitlist.
+                    </Description>
+                  </div>
+                </RadioField>
+              </Field>
+            </RadioGroup>
+            {signUpMode === DeploymentRestrictionsSignUpMode.Waitlist && (
+              <div className="mt-5 flex items-start justify-between gap-4 border-t border-border pt-4">
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-foreground">
+                    Collect first and last name
+                  </div>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Require waitlist users to provide their name in addition to
+                    their email address.
+                  </p>
+                </div>
+                <Switch
+                  checked={waitlistCollectNames}
+                  onCheckedChange={setWaitlistCollectNames}
+                  className="shrink-0"
+                />
               </div>
-              <div className="flex items-center gap-2">
+            )}
+          </div>
+        </section>
+
+        {/* Allowed & blocked identifiers */}
+        <section className="flex flex-col gap-4">
+          <SectionLabel>Allowed &amp; blocked identifiers</SectionLabel>
+          <div className="flex flex-col gap-5 rounded-lg border border-border bg-card p-5">
+            <div>
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-foreground">
+                    Allowlist
+                  </div>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Restrict sign-ups and sign-ins to accounts with pre-approved
+                    identifiers.
+                  </p>
+                </div>
                 <Switch
                   checked={isAllowlistEnabled}
                   onCheckedChange={setIsAllowlistEnabled}
+                  className="shrink-0"
                 />
               </div>
-            </div>
-            {isAllowlistEnabled && (
-              <FieldGroup className="border-t border-zinc-950/10 pt-4 dark:border-white/10 space-y-4">
-                <Field>
-                  <Label>Identifiers</Label>
-                  <Description>
-                    Enter a domain, email address, phone number, or Web3 wallet
-                    address to add it to the allowlist.
-                  </Description>
-                </Field>
-                <Field>
+              {isAllowlistEnabled && (
+                <div className="mt-4 flex flex-col gap-3">
                   <div className="flex items-center gap-2">
                     <Input
                       type="text"
                       placeholder="Enter phone, email, domain"
-                      className="flex-grow"
+                      className="flex-1"
                       value={newEmail}
                       onChange={handleEmailInputChange}
                       onKeyDown={handleEmailKeyDown}
                     />
-                    <Button variant="ghost" onClick={() => addEmailToAllowlist(newEmail)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addEmailToAllowlist(newEmail)}
+                    >
                       Add
                     </Button>
                   </div>
-                </Field>
-
-                {allowlistedEmails.length > 0 && (
-                  <div className="mt-2">
+                  {allowlistedEmails.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {allowlistedEmails.map((email) => (
                         <span
                           key={email}
-                          className="bg-gray-50 text-gray-700 px-3 py-1 rounded-full text-sm flex items-center space-x-2 border border-gray-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
+                          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2 py-1 text-xs text-secondary-foreground"
                         >
-                          <span>{email}</span>
+                          {email}
                           <button
                             onClick={() => removeEmailFromAllowlist(email)}
                             title="Remove identifier"
-                            className="text-gray-600 hover:text-gray-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                            className="text-muted-foreground transition-colors hover:text-foreground"
                           >
-                            <TrashIcon className="w-4 h-4" />
+                            <TrashIcon className="size-3.5" />
                           </button>
                         </span>
                       ))}
                     </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-border" />
+
+            <div>
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-foreground">
+                    Blocklist
                   </div>
-                )}
-                <Field>
-                  <Description>
-                    ⓘ When enabled, only identifiers on the allowlist will be
-                    able to sign in or sign up.
-                  </Description>
-                </Field>
-              </FieldGroup>
-            )}
-          </section>
-
-          <Divider soft />
-
-          <section className="space-y-4">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <Subheading>Blocklist</Subheading>
-                <Text>Block accounts with certain identifiers.</Text>
-              </div>
-              <div className="flex items-center gap-2">
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Block accounts with certain identifiers from signing in or
+                    up.
+                  </p>
+                </div>
                 <Switch
                   checked={isBlocklistEnabled}
                   onCheckedChange={setIsBlocklistEnabled}
+                  className="shrink-0"
                 />
               </div>
-            </div>
-            {isBlocklistEnabled && (
-              <FieldGroup className="border-t border-zinc-950/10 pt-4 dark:border-white/10 space-y-4">
-                <Field>
-                  <Label>Identifiers</Label>
-                  <Description>
-                    Enter a domain, email address, phone number, or Web3 wallet
-                    address to add it to the blocklist.
-                  </Description>
-                </Field>
-                <Field>
+              {isBlocklistEnabled && (
+                <div className="mt-4 flex flex-col gap-3">
                   <div className="flex items-center gap-2">
                     <Input
                       type="text"
                       placeholder="Enter phone, email, domain"
-                      className="flex-grow"
+                      className="flex-1"
                       value={newBlockedEmail}
                       onChange={handleBlockedEmailInputChange}
                       onKeyDown={handleBlockedEmailKeyDown}
                     />
                     <Button
-                      variant="ghost"
+                      variant="outline"
+                      size="sm"
                       onClick={() => addEmailToBlocklist(newBlockedEmail)}
                     >
                       Add
                     </Button>
                   </div>
-                </Field>
-
-                {blocklistedEmails.length > 0 && (
-                  <div className="mt-2">
+                  {blocklistedEmails.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {blocklistedEmails.map((email) => (
                         <span
                           key={email}
-                          className="bg-gray-50 text-gray-700 px-3 py-1 rounded-full text-sm flex items-center space-x-2 border border-gray-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
+                          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2 py-1 text-xs text-secondary-foreground"
                         >
-                          <span>{email}</span>
+                          {email}
                           <button
                             onClick={() => removeEmailFromBlocklist(email)}
                             title="Remove identifier"
-                            className="text-gray-600 hover:text-gray-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                            className="text-muted-foreground transition-colors hover:text-foreground"
                           >
-                            <TrashIcon className="w-4 h-4" />
+                            <TrashIcon className="size-3.5" />
                           </button>
                         </span>
                       ))}
                     </div>
-                  </div>
-                )}
-              </FieldGroup>
-            )}
-          </section>
-
-          <Divider soft />
-
-          <Fieldset>
-            <Legend>Restrictions</Legend>
-            <Text>Specify restrictions for this application.</Text>
-            <FieldGroup className="space-y-4">
-              <Field>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <Label>Block email subaddresses</Label>
-                    <Description>
-                      Prevent email addresses containing the characters +, =, or
-                      # from signing up or being added to existing accounts.{" "}
-                    </Description>
-                  </div>
-                  <Switch
-                    checked={blockSubaddresses}
-                    onCheckedChange={setBlockSubaddresses}
-                    className="ml-auto flex-shrink-0"
-                  />
+                  )}
                 </div>
-              </Field>
+              )}
+            </div>
+          </div>
+        </section>
 
-              <Field>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <Label>
-                      Block sign-ups that use disposable email addresses
-                    </Label>
-                    <Description>
-                      If enabled, all sign-up attempts using an email address
-                      from a disposable email domain will be rejected.
-                    </Description>
-                  </div>
-                  <Switch
-                    checked={blockDisposableEmails}
-                    onCheckedChange={setBlockDisposableEmails}
-                    className="ml-auto flex-shrink-0"
-                  />
+        {/* Restrictions */}
+        <section className="flex flex-col gap-4">
+          <SectionLabel>Restrictions</SectionLabel>
+          <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+            <div className="flex items-start justify-between gap-4 px-4 py-3.5">
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-foreground">
+                  Block email subaddresses
                 </div>
-              </Field>
-            </FieldGroup>
-          </Fieldset>
-
-          <Divider soft />
-
-          <section className="grid gap-x-8 items-start">
-            <Field>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Prevent email addresses containing +, =, or # from signing up
+                  or being added to existing accounts.
+                </p>
+              </div>
+              <Switch
+                checked={blockSubaddresses}
+                onCheckedChange={setBlockSubaddresses}
+                className="shrink-0"
+              />
+            </div>
+            <div className="flex items-start justify-between gap-4 px-4 py-3.5">
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-foreground">
+                  Block disposable email addresses
+                </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Reject all sign-up attempts using an email from a disposable
+                  email domain.
+                </p>
+              </div>
+              <Switch
+                checked={blockDisposableEmails}
+                onCheckedChange={setBlockDisposableEmails}
+                className="shrink-0"
+              />
+            </div>
+            <div className="flex items-start justify-between gap-4 px-4 py-3.5">
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-foreground">
+                  Block VOIP / virtual numbers
+                </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Block number series associated with VOIP or virtual numbers.
+                </p>
+              </div>
+              <Switch
+                checked={enableVoipRestriction}
+                onCheckedChange={setEnableVoipRestriction}
+                className="shrink-0"
+              />
+            </div>
+            <div className="flex flex-col gap-3 px-4 py-3.5">
               <div className="flex items-start justify-between gap-4">
-                <div>
-                  <Label>Country Restrictions</Label>
-                  <Description>
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-foreground">
+                    Block by country
+                  </div>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     Select countries to block sign-in and sign-up attempts.
-                  </Description>
+                  </p>
                 </div>
                 <Switch
                   checked={isCountryRestrictionEnabled}
                   onCheckedChange={setIsCountryRestrictionEnabled}
                   id="country-restriction-toggle"
+                  className="shrink-0"
                 />
               </div>
-            </Field>
-            {isCountryRestrictionEnabled && (
-              <div className="flex justify-start">
+              {isCountryRestrictionEnabled && (
                 <CountryBanSelector
                   selectedCountries={selectedCountries}
                   onCountriesChange={setSelectedCountries}
                 />
-              </div>
-            )}
-          </section>
-
-          <Divider soft />
-
-          <section className="flex flex-col gap-4">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <Subheading>Banned Keywords</Subheading>
-                <Text>Add keywords that will block usernames and emails.</Text>
-              </div>
-              <div className="flex flex-col items-end w-full max-w-md space-y-2">
-                <div className="flex items-center w-full">
-                  <Input
-                    type="text"
-                    placeholder="Enter keyword"
-                    className="flex-grow"
-                    value={newKeyword}
-                    onChange={handleInputChange}
-                    onKeyDown={handleKeyDown}
-                  />
-                  <Button
-                    variant="ghost"
-                    onClick={() => addKeyword(newKeyword)}
-                    className="ml-2 flex-shrink-0"
-                  >
-                    Add
-                  </Button>
+              )}
+            </div>
+            <div className="flex flex-col gap-3 px-4 py-3.5">
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-foreground">
+                  Banned keywords
                 </div>
-                {bannedKeywords.length > 0 && (
-                  <div className="w-full">
-                    <div className="flex flex-wrap justify-end gap-2">
-                      {bannedKeywords.map((keyword) => (
-                        <span
-                          key={keyword}
-                          className="bg-gray-50 text-gray-700 px-3 py-1 rounded-full text-sm flex items-center space-x-2 border border-gray-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
-                        >
-                          <span>{keyword}</span>
-                          <button
-                            onClick={() => removeKeyword(keyword)}
-                            title="Remove keyword"
-                            className="text-gray-600 hover:text-gray-800 dark:text-zinc-400 dark:hover:text-zinc-200"
-                          >
-                            <TrashIcon className="w-4 h-4" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Add keywords that will block usernames and email addresses.
+                </p>
               </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="text"
+                  placeholder="Enter keyword"
+                  className="flex-1"
+                  value={newKeyword}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => addKeyword(newKeyword)}
+                >
+                  Add
+                </Button>
+              </div>
+              {bannedKeywords.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {bannedKeywords.map((keyword) => (
+                    <span
+                      key={keyword}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2 py-1 text-xs text-secondary-foreground"
+                    >
+                      {keyword}
+                      <button
+                        onClick={() => removeKeyword(keyword)}
+                        title="Remove keyword"
+                        className="text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        <TrashIcon className="size-3.5" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
-          </section>
-
-          <Divider soft />
-
-          <section className="flex items-start justify-between gap-4">
-            <div>
-              <Subheading>VOIP / Virtual Number Restrictions</Subheading>
-              <Text>
-                Block specific number series associated with VOIP or virtual
-                numbers.
-              </Text>
-            </div>
-            <Switch
-              checked={enableVoipRestriction}
-              onCheckedChange={setEnableVoipRestriction}
-              className="ml-auto flex-shrink-0"
-            />
-          </section>
-        </div>
+          </div>
+        </section>
       </div>
 
       {isDirty && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-zinc-200 bg-white p-4 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card p-4 shadow-lg">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 pl-[max(env(safe-area-inset-left),1.5rem)] pr-[max(env(safe-area-inset-right),1.5rem)] lg:pl-8 lg:pr-8">
-            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+            <p className="text-sm font-medium text-foreground">
               You have unsaved changes.
             </p>
             <div className="flex gap-3">
@@ -1090,12 +1023,12 @@ export function CountryBanSelector({
     <div className="relative w-full max-w-xs" ref={dropdownRef}>
       <div className="relative">
         <div
-          className="w-full rounded-md border border-zinc-950/10 bg-white py-1.5 px-3 text-zinc-950 sm:text-sm/6 dark:border-white/10 dark:bg-zinc-900 dark:text-white data-[focus]:border-blue-500 data-[focus]:outline-none data-[focus]:ring-1 data-[focus]:ring-blue-500"
+          className="w-full rounded-md border border-input bg-background py-1.5 px-3 text-foreground sm:text-sm/6 data-[focus]:border-ring data-[focus]:outline-none data-[focus]:ring-1 data-[focus]:ring-ring"
           tabIndex={0}
         >
           <input
             type="text"
-            className="w-full bg-transparent focus:outline-none placeholder:text-zinc-500 dark:placeholder:text-zinc-400"
+            className="w-full bg-transparent focus:outline-none placeholder:text-muted-foreground"
             placeholder={
               selectedCountries.length > 0
                 ? `${selectedCountries.length} countries selected`
@@ -1116,10 +1049,10 @@ export function CountryBanSelector({
           <div
             id="country-listbox"
             role="listbox"
-            className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto dark:bg-zinc-800 dark:border-zinc-700"
+            className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto"
           >
             {filteredCountries.length === 0 ? (
-              <div className="px-4 py-2 text-sm text-gray-500 dark:text-zinc-400">
+              <div className="px-4 py-2 text-sm text-muted-foreground">
                 No countries found
               </div>
             ) : (
@@ -1132,10 +1065,10 @@ export function CountryBanSelector({
                     e.preventDefault();
                     handleCountryToggle(country.code);
                   }}
-                  className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-zinc-700 flex items-center justify-between
+                  className={`w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center justify-between
                     ${selectedCountries.includes(country.code)
-                      ? "bg-indigo-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
-                      : "text-gray-700 dark:text-zinc-200"
+                      ? "bg-primary/10 text-primary"
+                      : "text-foreground"
                     }`}
                 >
                   <div className="flex items-center gap-2">
@@ -1147,7 +1080,7 @@ export function CountryBanSelector({
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 16 16"
                       fill="currentColor"
-                      className="w-4 h-4 text-blue-600 dark:text-blue-500"
+                      className="w-4 h-4 text-primary"
                     >
                       <path
                         fillRule="evenodd"
@@ -1168,13 +1101,13 @@ export function CountryBanSelector({
           return (
             <span
               key={code}
-              className="bg-gray-100 text-gray-700 px-2 py-1 rounded-md text-xs flex items-center space-x-1.5 dark:bg-zinc-700 dark:text-zinc-200"
+              className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-xs flex items-center space-x-1.5"
             >
               <span>{country?.flag}</span>
               <span className="truncate">{country?.name}</span>
               <button
                 onClick={() => removeCountry(code)}
-                className="text-gray-500 hover:text-gray-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                className="text-muted-foreground hover:text-foreground"
                 aria-label={`Remove ${country?.name}`}
               >
                 <TrashIcon className="w-3 h-3" />

@@ -37,22 +37,21 @@ export function ConfirmationDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <div className="flex items-start gap-4">
+          <div className="flex items-center gap-2.5">
             {isDestructive && (
-              <div className="flex-shrink-0 mt-0.5">
-                <ExclamationTriangleIcon className="h-6 w-6 text-red-600 dark:text-red-500" />
-              </div>
+              <ExclamationTriangleIcon className="h-5 w-5 shrink-0 text-destructive" />
             )}
-            <div className="flex-1">
-              <DialogTitle className={isDestructive ? "text-red-900 dark:text-red-400" : ""}>
-                {title}
-              </DialogTitle>
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{message}</p>
-            </div>
+            <DialogTitle className={isDestructive ? "text-destructive" : ""}>
+              {title}
+            </DialogTitle>
           </div>
         </DialogHeader>
+
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {message}
+        </p>
 
         <DialogFooter>
           <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>

@@ -68,11 +68,11 @@ export function OrganizationRolesTab() {
           {roles.length === 0 ? (
             <TableRow>
               <TableCell colSpan={2} className="text-center py-12">
-                <ShieldCheckIcon className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
-                <h3 className="mt-2 text-sm font-normal text-zinc-900 dark:text-zinc-100">
+                <ShieldCheckIcon className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h3 className="mt-2 text-sm font-normal text-foreground">
                   No roles found
                 </h3>
-                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                <p className="mt-1 text-sm text-muted-foreground">
                   Add a role using the form above to get started.
                 </p>
               </TableCell>

@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import * as React from "react";
 
 const noteVariants = {
-    info: "bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100",
+    info: "bg-secondary border-border text-foreground",
     warning: "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/50 text-amber-900 dark:text-amber-100",
     error: "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/50 text-red-900 dark:text-red-100",
     success: "bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900/50 text-green-900 dark:text-green-100",

@@ -63,16 +63,17 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { CodeEditor } from "@/components/code-editor";
 import { SegmentManager } from "@/components/segments/SegmentManager";
-import { EmptyState } from "@/components/ui/empty-state";
+import { TableEmptyRow } from "@/components/ui/table-empty-row";
 import {
-  PencilIcon,
+  PencilSquareIcon,
   TrashIcon,
-  CheckCircleIcon,
   XCircleIcon,
   EnvelopeIcon,
   PhoneIcon,
   PlayCircleIcon
 } from "@heroicons/react/24/outline";
+import { cn } from "@/lib/utils";
+import { Pill } from "@/components/ui/pill";
 
 // Modals
 import { AddEmailModal } from "@/components/modals/add-email-modal";
@@ -278,128 +279,164 @@ export default function UserDetailsPage() {
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Sidebar */}
-        <div className="col-span-1 lg:col-span-4 border-r border-zinc-200 dark:border-zinc-800 pr-8">
-          <div className="flex flex-col items-center mb-6">
-            <Avatar className="h-24 w-24 mb-4 border border-zinc-100 dark:border-zinc-800 shadow-sm">
-              <AvatarImage src={user.profile_picture_url} />
-              <AvatarFallback className="text-2xl bg-zinc-50 dark:bg-zinc-900 font-normal text-zinc-400">
-                {user.first_name?.[0]}{user.last_name?.[0]}
-              </AvatarFallback>
-            </Avatar>
-            <h2 className="text-lg font-normal text-zinc-900 dark:text-zinc-50 tracking-tight">
-              {user.first_name} {user.last_name}
-            </h2>
-            <p className="text-xs text-zinc-500 mt-1 font-normal">
-              Joined {format(new Date(user.created_at), "MMM d, yyyy")}
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <div className="flex justify-between items-center py-2 border-b border-zinc-100 dark:border-zinc-800/50">
-                <span className="text-xs font-normal text-zinc-500 uppercase tracking-wider">Email Addresses</span>
-                <span className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{user.email_addresses?.length || 0}</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-zinc-100 dark:border-zinc-800/50">
-                <span className="text-xs font-normal text-zinc-500 uppercase tracking-wider">Phone Numbers</span>
-                <span className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{user.phone_numbers?.length || 0}</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-zinc-100 dark:border-zinc-800/50">
-                <span className="text-xs font-normal text-zinc-500 uppercase tracking-wider">Social Connections</span>
-                <span className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{user.social_connections?.length || 0}</span>
-              </div>
+      {/* Header */}
+      <div className="mb-3 flex flex-col gap-4 pt-1 sm:flex-row sm:items-center sm:justify-between sm:pt-2">
+        <div className="flex items-center gap-4">
+          <Avatar className="h-16 w-16 shrink-0 border border-border shadow-sm">
+            <AvatarImage src={user.profile_picture_url} />
+            <AvatarFallback className="bg-primary/10 font-mono text-lg font-normal text-primary">
+              {user.first_name?.[0]}{user.last_name?.[0]}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
+              User · {user.id}
             </div>
-
-            <div className="space-y-4 pt-1">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-zinc-500 font-normal">User Status</span>
-                <Switch checked={!user.disabled} onCheckedChange={handleToggleStatus} />
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-zinc-500 font-normal">Password</span>
-                <div className="flex gap-1">
-                  <Button variant="outline" size="sm" className="h-7 text-xs px-2 font-normal" onClick={() => setChangePasswordModalOpen(true)}>
-                    {user.has_password ? "Change" : "Set"}
-                  </Button>
-                  {user.has_password && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs px-2 font-normal text-destructive hover:bg-destructive/10"
-                      onClick={() => handleDeleteItem(userId, "password", "the password")}
-                    >
-                      Remove
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-zinc-500 font-normal">2FA Protection</span>
-                {user.has_otp ? (
-                  <CheckCircleIcon className="h-4 w-4 text-green-500" />
-                ) : (
-                  <XCircleIcon className="h-4 w-4 text-zinc-200 dark:text-zinc-800" />
-                )}
-              </div>
-            </div>
-
-            <div className="pt-2">
-              <h3 className="text-xs font-normal text-zinc-500 uppercase tracking-wider mb-2">Segments</h3>
-              <SegmentManager targetId={user.id} targetType="user" currentSegments={user.segments} />
+            <div className="mt-1 flex flex-wrap items-center gap-2.5">
+              <h1 className="text-xl font-normal tracking-tight text-foreground">
+                {[user.first_name, user.last_name].filter(Boolean).join(" ") ||
+                  user.username ||
+                  user.primary_email_address ||
+                  "Unnamed user"}
+              </h1>
+              <Pill tone={user.disabled ? "mute" : "ok"}>
+                {user.disabled ? "disabled" : "active"}
+              </Pill>
             </div>
           </div>
         </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleImpersonate}
+            disabled={isImpersonating}
+            className="gap-1.5"
+          >
+            <PlayCircleIcon className="size-4" /> Impersonate
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setEditProfileModalOpen(true)}
+            className="gap-1.5"
+          >
+            <PencilSquareIcon className="size-4" /> Edit profile
+          </Button>
+          <Button
+            variant="destructive"
+            size="icon"
+            className="size-9"
+            onClick={() =>
+              handleDeleteItem(
+                user.id,
+                "user",
+                [user.first_name, user.last_name].filter(Boolean).join(" ") ||
+                  "this user",
+              )
+            }
+          >
+            <TrashIcon className="size-4" />
+          </Button>
+        </div>
+      </div>
 
-        {/* Main Content */}
-        <div className="col-span-1 lg:col-span-8 min-w-0">
-          <div className="flex justify-end gap-2 mb-6">
-            <Button variant="outline" size="sm" onClick={handleImpersonate} disabled={isImpersonating} className="h-8 gap-1.5 font-normal">
-              <PlayCircleIcon className="h-4 w-4" /> Impersonate
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setEditProfileModalOpen(true)} className="h-8 gap-1.5 font-normal">
-              <PencilIcon className="h-4 w-4" /> Edit Profile
-            </Button>
-            <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => handleDeleteItem(user.id, "user", `${user.first_name} ${user.last_name}`)}>
-              <TrashIcon className="h-4 w-4" />
-            </Button>
+      {/* Body: facts + tabs */}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[300px_minmax(0,1fr)]">
+        {/* Left — facts */}
+        <div className="h-fit rounded-lg border border-border bg-card p-5">
+          <DefItem
+            label="Primary email"
+            value={user.primary_email_address || "Not provided"}
+            mono
+            muted={!user.primary_email_address}
+          />
+          <DefItem
+            label="Primary phone"
+            value={user.primary_phone_number || "Not provided"}
+            mono={!!user.primary_phone_number}
+            muted={!user.primary_phone_number}
+          />
+          <DefItem
+            label="Username"
+            value={user.username || "Not provided"}
+            muted={!user.username}
+          />
+
+          <div className="my-3 border-t border-border" />
+
+          <DefItem label="Emails" value={user.email_addresses?.length ?? 0} />
+          <DefItem
+            label="Phones"
+            value={user.phone_numbers?.length ?? 0}
+            muted={!user.phone_numbers?.length}
+          />
+          <DefItem
+            label="Social connections"
+            value={user.social_connections?.length ?? 0}
+            muted={!user.social_connections?.length}
+          />
+          <DefItem
+            label="2FA policy"
+            value={user.second_factor_policy || "None"}
+            muted={!user.second_factor_policy}
+          />
+
+          <div className="my-3 border-t border-border" />
+
+          <div className="flex items-center justify-between py-1">
+            <span className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+              User active
+            </span>
+            <Switch
+              checked={!user.disabled}
+              onCheckedChange={handleToggleStatus}
+            />
           </div>
-
-          <div className="mb-6">
-            <h1 className="text-xl font-normal text-zinc-900 dark:text-zinc-50">{user.first_name} {user.last_name}</h1>
-            <p className="text-sm text-zinc-500 mt-1">User ID: {user.id}</p>
-          </div>
-
-          <div className="mb-0 pt-3 border-t border-zinc-100 dark:border-zinc-800/50">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4 gap-x-8">
-              <div className="space-y-0.5">
-                <p className="text-xs text-zinc-500 font-normal uppercase tracking-wider">Primary Email</p>
-                <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{user.primary_email_address || "-"}</p>
-              </div>
-              <div className="space-y-0.5">
-                <p className="text-xs text-zinc-500 font-normal uppercase tracking-wider">Primary Phone</p>
-                <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{user.primary_phone_number || "Not provided"}</p>
-              </div>
-              <div className="space-y-0.5">
-                <p className="text-xs text-zinc-500 font-normal uppercase tracking-wider">Username</p>
-                <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{user.username || "Not provided"}</p>
-              </div>
-              <div className="space-y-0.5">
-                <p className="text-xs text-zinc-500 font-normal uppercase tracking-wider">Created</p>
-                <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal">{format(new Date(user.created_at), "MMM d, yyyy")}</p>
-              </div>
-              <div className="space-y-0.5">
-                <p className="text-xs text-zinc-500 font-normal uppercase tracking-wider">2FA Policy</p>
-                <p className="text-sm text-zinc-900 dark:text-zinc-100 font-normal capitalize">{user.second_factor_policy || "None"}</p>
-              </div>
+          <div className="mt-3 flex items-center justify-between">
+            <span className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+              Password
+            </span>
+            <div className="flex gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-6 px-2 text-[11px]"
+                onClick={() => setChangePasswordModalOpen(true)}
+              >
+                {user.has_password ? "Change" : "Set"}
+              </Button>
+              {user.has_password && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-[11px] text-destructive hover:bg-destructive/10"
+                  onClick={() =>
+                    handleDeleteItem(userId, "password", "the password")
+                  }
+                >
+                  Remove
+                </Button>
+              )}
             </div>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-8">
-            <TabsList>
+          <div className="my-3 border-t border-border" />
+
+          <div className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+            Segments
+          </div>
+          <SegmentManager
+            targetId={user.id}
+            targetType="user"
+            currentSegments={user.segments}
+          />
+        </div>
+
+        {/* Right — tabs */}
+        <div className="min-w-0">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList variant="pill">
               <TabsTrigger value="emails">Emails</TabsTrigger>
               <TabsTrigger value="phones">Phones</TabsTrigger>
               <TabsTrigger value="sessions">Sessions</TabsTrigger>
@@ -412,21 +449,33 @@ export default function UserDetailsPage() {
 
             <TabsContent value="emails" className="mt-4">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-sm font-normal text-zinc-500 uppercase tracking-wider">Email addresses</h3>
+                <h3 className="text-sm font-normal text-muted-foreground uppercase tracking-wider">Email addresses</h3>
                 <Button size="sm" variant="outline" onClick={() => setAddEmailModalOpen(true)} className="h-8 font-normal">Add Email</Button>
               </div>
               {!user.email_addresses?.length ? (
-                <EmptyState
-                  title="No emails"
-                  description="Add an email address."
-                  onAction={() => setAddEmailModalOpen(true)}
-                  icon={<EnvelopeIcon className="h-10 w-10 text-zinc-200" />}
-                />
+                <Table>
+                  <TableHeader className="bg-secondary">
+                    <TableRow>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Email</TableHead>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Status</TableHead>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Added</TableHead>
+                      <TableHead className="text-right font-normal text-xs uppercase tracking-wider">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableEmptyRow
+                      colSpan={4}
+                      icon={<EnvelopeIcon className="h-8 w-8 text-muted-foreground/50" />}
+                      title="No emails"
+                      description="Add an email address."
+                    />
+                  </TableBody>
+                </Table>
               ) : (
                 <div className="max-h-[480px] overflow-y-auto">
                   <Table>
-                    <TableHeader className="sticky top-0 bg-white dark:bg-zinc-950 z-10">
-                      <TableRow className="bg-zinc-50/30 dark:bg-zinc-900/10">
+                    <TableHeader className="sticky top-0 bg-secondary z-10">
+                      <TableRow className="bg-secondary">
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Email</TableHead>
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Status</TableHead>
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Added</TableHead>
@@ -435,21 +484,21 @@ export default function UserDetailsPage() {
                     </TableHeader>
                     <TableBody>
                       {user.email_addresses.map(email => (
-                        <TableRow key={email.id} className="hover:bg-zinc-50/30 dark:hover:bg-zinc-900/10 transition-colors">
+                        <TableRow key={email.id} className="hover:bg-accent transition-colors">
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-normal">{email.email}</span>
                               {email.id === user.primary_email_address_id && (
-                                <Badge variant="secondary" className="font-normal text-xs h-4 bg-zinc-100/80 dark:bg-zinc-800/80 border-none text-zinc-500">Primary</Badge>
+                                <Badge variant="secondary" className="font-normal text-xs h-4 bg-secondary border-none text-muted-foreground">Primary</Badge>
                               )}
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className={email.verified ? "text-green-600 dark:text-green-500 border-green-500/20 bg-green-500/5 font-normal py-0" : "text-zinc-500 border-zinc-500/20 bg-zinc-500/5 font-normal py-0"}>
-                              {email.verified ? "Verified" : "Unverified"}
-                            </Badge>
+                            <Pill tone={email.verified ? "ok" : "warn"}>
+                              {email.verified ? "verified" : "unverified"}
+                            </Pill>
                           </TableCell>
-                          <TableCell className="text-zinc-500 text-xs font-normal">{format(new Date(email.created_at), "MMM d, yyyy")}</TableCell>
+                          <TableCell className="text-muted-foreground text-xs font-normal">{format(new Date(email.created_at), "MMM d, yyyy")}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-1">
                               {email.verified && email.id !== user.primary_email_address_id && (
@@ -458,7 +507,7 @@ export default function UserDetailsPage() {
                                 </Button>
                               )}
                               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setSelectedEmail(email); setEditEmailModalOpen(true); }}>
-                                <PencilIcon className="h-3.5 w-3.5" />
+                                <PencilSquareIcon className="h-3.5 w-3.5" />
                               </Button>
                               <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => handleDeleteItem(email.id, "email", email.email)}>
                                 <TrashIcon className="h-3.5 w-3.5" />
@@ -475,21 +524,33 @@ export default function UserDetailsPage() {
 
             <TabsContent value="phones" className="mt-4">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-sm font-normal text-zinc-500 uppercase tracking-wider">Phone numbers</h3>
+                <h3 className="text-sm font-normal text-muted-foreground uppercase tracking-wider">Phone numbers</h3>
                 <Button size="sm" variant="outline" onClick={() => setAddPhoneModalOpen(true)} className="h-8 font-normal">Add Phone</Button>
               </div>
               {!user.phone_numbers?.length ? (
-                <EmptyState
-                  title="No phone numbers"
-                  description="Add a phone number."
-                  onAction={() => setAddPhoneModalOpen(true)}
-                  icon={<PhoneIcon className="h-10 w-10 text-zinc-200" />}
-                />
+                <Table>
+                  <TableHeader className="bg-secondary">
+                    <TableRow>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Number</TableHead>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Status</TableHead>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Added</TableHead>
+                      <TableHead className="text-right font-normal text-xs uppercase tracking-wider">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableEmptyRow
+                      colSpan={4}
+                      icon={<PhoneIcon className="h-8 w-8 text-muted-foreground/50" />}
+                      title="No phone numbers"
+                      description="Add a phone number."
+                    />
+                  </TableBody>
+                </Table>
               ) : (
                 <div className="max-h-[480px] overflow-y-auto">
                   <Table>
-                    <TableHeader className="sticky top-0 bg-white dark:bg-zinc-950 z-10">
-                      <TableRow className="bg-zinc-50/30 dark:bg-zinc-900/10">
+                    <TableHeader className="sticky top-0 bg-secondary z-10">
+                      <TableRow className="bg-secondary">
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Number</TableHead>
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Status</TableHead>
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Added</TableHead>
@@ -498,21 +559,21 @@ export default function UserDetailsPage() {
                     </TableHeader>
                     <TableBody>
                       {user.phone_numbers.map(phone => (
-                        <TableRow key={phone.id} className="hover:bg-zinc-50/30 dark:hover:bg-zinc-900/10 transition-colors">
+                        <TableRow key={phone.id} className="hover:bg-accent transition-colors">
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-normal">{phone.phone_number}</span>
                               {phone.id === user.primary_phone_number_id && (
-                                <Badge variant="secondary" className="font-normal text-xs h-4 bg-zinc-100/80 dark:bg-zinc-800/80 border-none text-zinc-500">Primary</Badge>
+                                <Badge variant="secondary" className="font-normal text-xs h-4 bg-secondary border-none text-muted-foreground">Primary</Badge>
                               )}
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className={phone.verified ? "text-green-600 dark:text-green-500 border-green-500/20 bg-green-500/5 font-normal py-0" : "text-zinc-500 border-zinc-500/20 bg-zinc-500/5 font-normal py-0"}>
-                              {phone.verified ? "Verified" : "Unverified"}
-                            </Badge>
+                            <Pill tone={phone.verified ? "ok" : "warn"}>
+                              {phone.verified ? "verified" : "unverified"}
+                            </Pill>
                           </TableCell>
-                          <TableCell className="text-zinc-500 text-xs font-normal">{format(new Date(phone.created_at), "MMM d, yyyy")}</TableCell>
+                          <TableCell className="text-muted-foreground text-xs font-normal">{format(new Date(phone.created_at), "MMM d, yyyy")}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-1">
                               {phone.verified && phone.id !== user.primary_phone_number_id && (
@@ -521,7 +582,7 @@ export default function UserDetailsPage() {
                                 </Button>
                               )}
                               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setSelectedPhone(phone); setEditPhoneModalOpen(true); }}>
-                                <PencilIcon className="h-3.5 w-3.5" />
+                                <PencilSquareIcon className="h-3.5 w-3.5" />
                               </Button>
                               <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => handleDeleteItem(phone.id, "phone", phone.phone_number)}>
                                 <TrashIcon className="h-3.5 w-3.5" />
@@ -538,7 +599,7 @@ export default function UserDetailsPage() {
 
             <TabsContent value="sessions" className="mt-4">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-sm font-normal text-zinc-500 uppercase tracking-wider">Active sign-ins</h3>
+                <h3 className="text-sm font-normal text-muted-foreground uppercase tracking-wider">Active sign-ins</h3>
                 {!!signins?.length && (
                   <Button
                     size="sm"
@@ -552,16 +613,29 @@ export default function UserDetailsPage() {
                 )}
               </div>
               {!signins?.length ? (
-                <EmptyState
-                  title="No active sign-ins"
-                  description="This user has no live sessions."
-                  icon={<XCircleIcon className="h-10 w-10 text-zinc-200" />}
-                />
+                <Table>
+                  <TableHeader className="bg-secondary">
+                    <TableRow>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Device</TableHead>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Location</TableHead>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Last active</TableHead>
+                      <TableHead className="text-right font-normal text-xs uppercase tracking-wider">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableEmptyRow
+                      colSpan={4}
+                      icon={<XCircleIcon className="h-8 w-8 text-muted-foreground/50" />}
+                      title="No active sign-ins"
+                      description="This user has no live sessions."
+                    />
+                  </TableBody>
+                </Table>
               ) : (
                 <div className="max-h-[480px] overflow-y-auto">
                   <Table>
-                    <TableHeader className="sticky top-0 bg-white dark:bg-zinc-950 z-10">
-                      <TableRow className="bg-zinc-50/30 dark:bg-zinc-900/10">
+                    <TableHeader className="sticky top-0 bg-secondary z-10">
+                      <TableRow className="bg-secondary">
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Device</TableHead>
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Location</TableHead>
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Last active</TableHead>
@@ -573,12 +647,12 @@ export default function UserDetailsPage() {
                         <TableRow key={s.id}>
                           <TableCell className="text-sm font-normal">
                             {s.browser || s.device || "Unknown"}
-                            <div className="text-xs text-zinc-500">{s.ip_address || "—"}</div>
+                            <div className="text-xs text-muted-foreground">{s.ip_address || "—"}</div>
                           </TableCell>
                           <TableCell className="text-sm font-normal">
                             {[s.city, s.region, s.country].filter(Boolean).join(", ") || "—"}
                           </TableCell>
-                          <TableCell className="text-xs text-zinc-500 font-normal">
+                          <TableCell className="text-xs text-muted-foreground font-normal">
                             {format(new Date(s.last_active_at), "MMM d, yyyy HH:mm")}
                           </TableCell>
                           <TableCell className="text-right">
@@ -600,11 +674,11 @@ export default function UserDetailsPage() {
             </TabsContent>
 
             <TabsContent value="mfa" className="mt-4">
-              <h3 className="text-sm font-normal text-zinc-500 uppercase tracking-wider mb-4">Two-factor methods</h3>
+              <h3 className="text-sm font-normal text-muted-foreground uppercase tracking-wider mb-4">Two-factor methods</h3>
               <div className="max-h-[480px] overflow-y-auto">
                 <Table>
-                  <TableHeader className="sticky top-0 bg-white dark:bg-zinc-950 z-10">
-                    <TableRow className="bg-zinc-50/30 dark:bg-zinc-900/10">
+                  <TableHeader className="sticky top-0 bg-secondary z-10">
+                    <TableRow className="bg-secondary">
                       <TableHead className="font-normal text-xs uppercase tracking-wider">Factor</TableHead>
                       <TableHead className="font-normal text-xs uppercase tracking-wider">Status</TableHead>
                       <TableHead className="font-normal text-xs uppercase tracking-wider">Details</TableHead>
@@ -615,18 +689,11 @@ export default function UserDetailsPage() {
                     <TableRow>
                       <TableCell className="text-sm font-normal">Authenticator app (TOTP)</TableCell>
                       <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={
-                            user.has_otp
-                              ? "text-green-600 dark:text-green-500 border-green-500/20 bg-green-500/5 font-normal py-0"
-                              : "text-zinc-500 border-zinc-500/20 bg-zinc-500/5 font-normal py-0"
-                          }
-                        >
-                          {user.has_otp ? "Enrolled" : "Not enrolled"}
-                        </Badge>
+                        <Pill tone={user.has_otp ? "ok" : "mute"}>
+                          {user.has_otp ? "enrolled" : "not enrolled"}
+                        </Pill>
                       </TableCell>
-                      <TableCell className="text-xs text-zinc-500 font-normal">
+                      <TableCell className="text-xs text-muted-foreground font-normal">
                         {user.has_otp
                           ? "Authenticator app linked. Removing forces re-enrollment."
                           : "Enrollment happens from the user's account portal."}
@@ -647,18 +714,11 @@ export default function UserDetailsPage() {
                     <TableRow>
                       <TableCell className="text-sm font-normal">Backup codes</TableCell>
                       <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={
-                            user.has_backup_codes
-                              ? "text-green-600 dark:text-green-500 border-green-500/20 bg-green-500/5 font-normal py-0"
-                              : "text-zinc-500 border-zinc-500/20 bg-zinc-500/5 font-normal py-0"
-                          }
-                        >
-                          {user.has_backup_codes ? "Active" : "Not generated"}
-                        </Badge>
+                        <Pill tone={user.has_backup_codes ? "ok" : "mute"}>
+                          {user.has_backup_codes ? "active" : "not generated"}
+                        </Pill>
                       </TableCell>
-                      <TableCell className="text-xs text-zinc-500 font-normal">
+                      <TableCell className="text-xs text-muted-foreground font-normal">
                         {user.has_backup_codes
                           ? "Regenerating invalidates any unused codes."
                           : "Single-use fallback codes for when the authenticator is unavailable."}
@@ -681,18 +741,31 @@ export default function UserDetailsPage() {
             </TabsContent>
 
             <TabsContent value="passkeys" className="mt-4">
-              <h3 className="text-sm font-normal text-zinc-500 uppercase tracking-wider mb-4">Registered passkeys</h3>
+              <h3 className="text-sm font-normal text-muted-foreground uppercase tracking-wider mb-4">Registered passkeys</h3>
               {!passkeys?.length ? (
-                <EmptyState
-                  title="No passkeys"
-                  description="User has not registered any passkeys."
-                  icon={<XCircleIcon className="h-10 w-10 text-zinc-200" />}
-                />
+                <Table>
+                  <TableHeader className="bg-secondary">
+                    <TableRow>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Name</TableHead>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Device</TableHead>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Last used</TableHead>
+                      <TableHead className="text-right font-normal text-xs uppercase tracking-wider">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableEmptyRow
+                      colSpan={4}
+                      icon={<XCircleIcon className="h-8 w-8 text-muted-foreground/50" />}
+                      title="No passkeys"
+                      description="User has not registered any passkeys."
+                    />
+                  </TableBody>
+                </Table>
               ) : (
                 <div className="max-h-[480px] overflow-y-auto">
                   <Table>
-                    <TableHeader className="sticky top-0 bg-white dark:bg-zinc-950 z-10">
-                      <TableRow className="bg-zinc-50/30 dark:bg-zinc-900/10">
+                    <TableHeader className="sticky top-0 bg-secondary z-10">
+                      <TableRow className="bg-secondary">
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Name</TableHead>
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Device</TableHead>
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Last used</TableHead>
@@ -706,7 +779,7 @@ export default function UserDetailsPage() {
                             {renamingPasskeyId === p.id ? (
                               <div className="flex gap-1">
                                 <input
-                                  className="flex h-7 w-full rounded-md border border-zinc-200 bg-transparent px-2 text-sm dark:border-zinc-800"
+                                  className="flex h-7 w-full rounded-md border border-border bg-transparent px-2 text-sm dark:border-border"
                                   value={renamingPasskeyValue}
                                   onChange={(e) => setRenamingPasskeyValue(e.target.value)}
                                   autoFocus
@@ -722,8 +795,8 @@ export default function UserDetailsPage() {
                               <span className="text-sm font-normal">{p.name}</span>
                             )}
                           </TableCell>
-                          <TableCell className="text-xs text-zinc-500 font-normal">{p.device_type || "—"}</TableCell>
-                          <TableCell className="text-xs text-zinc-500 font-normal">
+                          <TableCell className="text-xs text-muted-foreground font-normal">{p.device_type || "—"}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground font-normal">
                             {p.last_used_at ? format(new Date(p.last_used_at), "MMM d, yyyy") : "Never"}
                           </TableCell>
                           <TableCell className="text-right">
@@ -737,7 +810,7 @@ export default function UserDetailsPage() {
                                   setRenamingPasskeyValue(p.name);
                                 }}
                               >
-                                <PencilIcon className="h-3.5 w-3.5" />
+                                <PencilSquareIcon className="h-3.5 w-3.5" />
                               </Button>
                               <Button
                                 variant="ghost"
@@ -759,16 +832,32 @@ export default function UserDetailsPage() {
 
             <TabsContent value="organizations" className="mt-4">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-sm font-normal text-zinc-500 uppercase tracking-wider">Organization memberships</h3>
-                <span className="text-xs text-zinc-500">{orgMemberships?.length ?? 0} total</span>
+                <h3 className="text-sm font-normal text-muted-foreground uppercase tracking-wider">Organization memberships</h3>
+                <span className="text-xs text-muted-foreground">{orgMemberships?.length ?? 0} total</span>
               </div>
               {!orgMemberships?.length ? (
-                <EmptyState title="No organizations" description="User is not a member of any organization." icon={<XCircleIcon className="h-10 w-10 text-zinc-200" />} />
+                <Table>
+                  <TableHeader className="bg-secondary">
+                    <TableRow>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Organization</TableHead>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Roles</TableHead>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Joined</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableEmptyRow
+                      colSpan={3}
+                      icon={<XCircleIcon className="h-8 w-8 text-muted-foreground/50" />}
+                      title="No organizations"
+                      description="User is not a member of any organization."
+                    />
+                  </TableBody>
+                </Table>
               ) : (
                 <div className="max-h-[480px] overflow-y-auto">
                   <Table>
-                    <TableHeader className="sticky top-0 bg-white dark:bg-zinc-950 z-10">
-                      <TableRow className="bg-zinc-50/30 dark:bg-zinc-900/10">
+                    <TableHeader className="sticky top-0 bg-secondary z-10">
+                      <TableRow className="bg-secondary">
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Organization</TableHead>
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Roles</TableHead>
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Joined</TableHead>
@@ -781,7 +870,7 @@ export default function UserDetailsPage() {
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
                               {m.roles.length === 0 ? (
-                                <span className="text-xs text-zinc-500">—</span>
+                                <span className="text-xs text-muted-foreground">—</span>
                               ) : (
                                 m.roles.map((r) => (
                                   <Badge key={r.id} variant="secondary" className="font-normal text-xs">
@@ -791,7 +880,7 @@ export default function UserDetailsPage() {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="text-xs text-zinc-500 font-normal">{format(new Date(m.created_at), "MMM d, yyyy")}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground font-normal">{format(new Date(m.created_at), "MMM d, yyyy")}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -802,16 +891,32 @@ export default function UserDetailsPage() {
 
             <TabsContent value="workspaces" className="mt-4">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-sm font-normal text-zinc-500 uppercase tracking-wider">Workspace memberships</h3>
-                <span className="text-xs text-zinc-500">{workspaceMemberships?.length ?? 0} total</span>
+                <h3 className="text-sm font-normal text-muted-foreground uppercase tracking-wider">Workspace memberships</h3>
+                <span className="text-xs text-muted-foreground">{workspaceMemberships?.length ?? 0} total</span>
               </div>
               {!workspaceMemberships?.length ? (
-                <EmptyState title="No workspaces" description="User is not a member of any workspace." icon={<XCircleIcon className="h-10 w-10 text-zinc-200" />} />
+                <Table>
+                  <TableHeader className="bg-secondary">
+                    <TableRow>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Workspace</TableHead>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Roles</TableHead>
+                      <TableHead className="font-normal text-xs uppercase tracking-wider">Joined</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableEmptyRow
+                      colSpan={3}
+                      icon={<XCircleIcon className="h-8 w-8 text-muted-foreground/50" />}
+                      title="No workspaces"
+                      description="User is not a member of any workspace."
+                    />
+                  </TableBody>
+                </Table>
               ) : (
                 <div className="max-h-[480px] overflow-y-auto">
                   <Table>
-                    <TableHeader className="sticky top-0 bg-white dark:bg-zinc-950 z-10">
-                      <TableRow className="bg-zinc-50/30 dark:bg-zinc-900/10">
+                    <TableHeader className="sticky top-0 bg-secondary z-10">
+                      <TableRow className="bg-secondary">
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Workspace</TableHead>
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Roles</TableHead>
                         <TableHead className="font-normal text-xs uppercase tracking-wider">Joined</TableHead>
@@ -824,7 +929,7 @@ export default function UserDetailsPage() {
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
                               {m.roles.length === 0 ? (
-                                <span className="text-xs text-zinc-500">—</span>
+                                <span className="text-xs text-muted-foreground">—</span>
                               ) : (
                                 m.roles.map((r) => (
                                   <Badge key={r.id} variant="secondary" className="font-normal text-xs">
@@ -834,7 +939,7 @@ export default function UserDetailsPage() {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="text-xs text-zinc-500 font-normal">{format(new Date(m.created_at), "MMM d, yyyy")}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground font-normal">{format(new Date(m.created_at), "MMM d, yyyy")}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -847,7 +952,7 @@ export default function UserDetailsPage() {
               <div className="space-y-6 pt-2">
                 <div>
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xs font-normal text-zinc-500 uppercase tracking-widest">Public Metadata</h3>
+                    <h3 className="text-xs font-normal text-muted-foreground uppercase tracking-widest">Public Metadata</h3>
                     {!isEditingPublicMetadata ? (
                       <Button variant="outline" size="sm" onClick={() => setIsEditingPublicMetadata(true)} className="h-7 text-xs font-normal">Edit JSON</Button>
                     ) : (
@@ -857,7 +962,7 @@ export default function UserDetailsPage() {
                       </div>
                     )}
                   </div>
-                  <div className="rounded-lg overflow-hidden border border-zinc-100 dark:border-zinc-800 shadow-sm">
+                  <div className="rounded-lg overflow-hidden border border-border shadow-sm">
                     <CodeEditor
                       language="json"
                       minHeight={180}
@@ -869,7 +974,7 @@ export default function UserDetailsPage() {
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xs font-normal text-zinc-500 uppercase tracking-widest">Private Metadata</h3>
+                    <h3 className="text-xs font-normal text-muted-foreground uppercase tracking-widest">Private Metadata</h3>
                     {!isEditingPrivateMetadata ? (
                       <Button variant="outline" size="sm" onClick={() => setIsEditingPrivateMetadata(true)} className="h-7 text-xs font-normal">Edit JSON</Button>
                     ) : (
@@ -879,7 +984,7 @@ export default function UserDetailsPage() {
                       </div>
                     )}
                   </div>
-                  <div className="rounded-lg overflow-hidden border border-zinc-100 dark:border-zinc-800 shadow-sm">
+                  <div className="rounded-lg overflow-hidden border border-border shadow-sm">
                     <CodeEditor
                       language="json"
                       minHeight={180}
@@ -991,5 +1096,34 @@ export default function UserDetailsPage() {
         />
       )}
     </>
+  );
+}
+
+function DefItem({
+  label,
+  value,
+  mono,
+  muted,
+}: {
+  label: string;
+  value: string | number;
+  mono?: boolean;
+  muted?: boolean;
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 py-[7px]">
+      <span className="shrink-0 font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+        {label}
+      </span>
+      <span
+        className={cn(
+          "truncate text-right text-[12px]",
+          mono && "font-mono",
+          muted ? "text-muted-foreground/60" : "text-foreground",
+        )}
+      >
+        {value}
+      </span>
+    </div>
   );
 }

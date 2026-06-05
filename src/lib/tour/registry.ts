@@ -274,14 +274,6 @@ export const tours = {
                 side: "bottom",
                 align: "center",
             },
-            {
-                target: "agent-tab-debug",
-                navigateTo: "debug",
-                title: "8 · Debug",
-                body: "Run the agent live in a sandboxed thread, see every tool call and hook fire, replay or branch from any step. This is where you validate that the wiring you just did actually works.",
-                side: "bottom",
-                align: "center",
-            },
         ],
     },
     "first-segments": {

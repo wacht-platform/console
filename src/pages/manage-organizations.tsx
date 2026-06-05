@@ -1,15 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useTourController } from "@/lib/tour";
-import { Divider } from "@/components/ui/divider";
-import { Heading, Subheading } from "@/components/ui/heading";
+import { SectionLabel } from "@/components/ui/section-label";
+import { Pill } from "@/components/ui/pill";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch"
-import { Strong, Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox"
-import { CheckboxField } from "@/components/ui/app-checkbox";
-import { Label } from "@/components/ui/fieldset";
-import { Radio, RadioField, RadioGroup } from "@/components/ui/radio";
 import { toast } from "sonner";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 import { useUpdateDeploymentB2bSettings } from "@/lib/api/hooks/use-update-deployment-b2b-settings";
@@ -17,10 +12,9 @@ import { useDeploymentOrgRoles } from "@/lib/api/hooks/use-deployment-org-roles"
 import { InlineLoader } from "@/components/ui/loading-screen";
 import SavePopup from "@/components/save-popup";
 import { DeploymentB2bSettings, DeploymentPermissionCatalogEntry } from "@/types/deployment";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ArchiveBoxIcon, ArrowUturnLeftIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { ArchiveBoxIcon, ArrowUturnLeftIcon } from "@heroicons/react/24/outline";
+import { cn } from "@/lib/utils";
 
 interface B2BSettingsState {
   organizations_enabled: boolean;
@@ -58,6 +52,35 @@ const initialSettingsState: B2BSettingsState = {
 
 const idToSelectValue = (id: string | number | null | undefined) =>
   id == null ? "" : String(id);
+
+function ToggleRow({
+  title,
+  description,
+  enabled,
+  onToggle,
+}: {
+  title: string;
+  description: string;
+  enabled?: boolean;
+  onToggle: (value: boolean) => void;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 px-4 py-3.5">
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-foreground">{title}</span>
+          <Pill tone={enabled ? "ok" : "mute"}>{enabled ? "on" : "off"}</Pill>
+        </div>
+        <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+      </div>
+      <Switch
+        checked={enabled}
+        onCheckedChange={onToggle}
+        className="shrink-0"
+      />
+    </div>
+  );
+}
 
 export default function ManageOrganizationsPage() {
   const { deploymentSettings, isLoading: isLoadingSettings } =
@@ -288,18 +311,18 @@ export default function ManageOrganizationsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-2 mb-2">
-      <Heading className="mb-4">Manage Organizations</Heading>
-
+    <div className="flex flex-col gap-6">
       <div
-        className="flex items-start justify-between"
+        className="flex items-start justify-between gap-4 pr-[17px]"
         data-tour-id="b2b-enable-orgs"
       >
-        <div>
-          <h2 className="text-base font-medium">Enable organizations</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Intended for B2B SaaS products, this feature allows users to create
-            Organizations, invite their team, and assign roles.
+        <div className="min-w-0">
+          <div className="text-sm font-medium text-foreground">
+            Enable organizations
+          </div>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Intended for B2B SaaS products — users can create organizations,
+            invite their team, and assign roles.
           </p>
         </div>
         <Switch
@@ -308,431 +331,355 @@ export default function ManageOrganizationsPage() {
           onCheckedChange={(checked) =>
             handleSettingChange("organizations_enabled", checked)
           }
+          className="shrink-0"
         />
       </div>
 
-      {!settingsState.organizations_enabled && (
-        <div className="h-[80svh]"></div>
-      )}
+      <fieldset
+        disabled={!settingsState.organizations_enabled}
+        className={cn(
+          "m-0 flex min-w-0 flex-col gap-6 border-0 p-0 transition-opacity",
+          !settingsState.organizations_enabled && "opacity-55",
+        )}
+      >
+          <section className="flex flex-col gap-4">
+            <SectionLabel>Features</SectionLabel>
+            <div
+              className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card"
+              data-tour-id="b2b-feature-toggles"
+            >
+              <ToggleRow
+                title="Custom roles"
+                description="Allow organizations to create custom roles themselves."
+                enabled={settingsState.custom_org_role_enabled}
+                onToggle={(checked) =>
+                  handleSettingChange("custom_org_role_enabled", checked)
+                }
+              />
+              <ToggleRow
+                title="IP allowlist"
+                description="Allow organizations to create IP allowlists for their members."
+                enabled={settingsState.ip_allowlist_per_org_enabled}
+                onToggle={(checked) =>
+                  handleSettingChange("ip_allowlist_per_org_enabled", checked)
+                }
+              />
+              <ToggleRow
+                title="Enforce MFA"
+                description="Require all organization members to have multi-factor authentication enabled."
+                enabled={settingsState.enforce_mfa_per_org_enabled}
+                onToggle={(checked) =>
+                  handleSettingChange("enforce_mfa_per_org_enabled", checked)
+                }
+              />
+              <ToggleRow
+                title="Enterprise SSO"
+                description="Allow organizations to configure SAML and OIDC connections for single sign-on."
+                enabled={settingsState.enterprise_sso_enabled}
+                onToggle={(checked) =>
+                  handleSettingChange("enterprise_sso_enabled", checked)
+                }
+              />
+            </div>
+          </section>
 
-      {settingsState.organizations_enabled && (
-        <div className="my-10">
-          <div className="space-y-28">
-            <div className="space-y-6">
-              <div className="space-y-10" data-tour-id="b2b-feature-toggles">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h2 className="text-base font-medium">
-                      Enable custom roles
-                    </h2>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Allow organization to create custom roles by themselves.
-                    </p>
+          <section
+            className="flex flex-col gap-4"
+            data-tour-id="b2b-roles-permissions"
+          >
+            <SectionLabel>Roles &amp; permissions</SectionLabel>
+            <div className="flex flex-col gap-5 rounded-lg border border-border bg-card p-5">
+              <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                <div className="min-w-0 sm:max-w-md">
+                  <div className="text-sm font-medium text-foreground">
+                    Default role for members
                   </div>
-                  <Switch
-                    name="custom_org_role_enabled"
-                    checked={settingsState.custom_org_role_enabled}
-                    onCheckedChange={(checked) =>
-                      handleSettingChange("custom_org_role_enabled", checked)
-                    }
-                  />
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Role assigned to users when they join an organization.
+                  </p>
                 </div>
-
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h2 className="text-base font-medium">
-                      Enable IP allowlist
-                    </h2>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Allow organizations to create ip allowlists for their
-                      members.
-                    </p>
-                  </div>
-                  <Switch
-                    name="ip_allowlist_per_org_enabled"
-                    checked={settingsState.ip_allowlist_per_org_enabled}
-                    onCheckedChange={(checked) =>
-                      handleSettingChange(
-                        "ip_allowlist_per_org_enabled",
-                        checked
-                      )
-                    }
-                  />
-                </div>
-
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h2 className="text-base font-medium">
-                      Enforce MFA for Organizations
-                    </h2>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Require all organization members to have Multi-Factor Authentication enabled.
-                    </p>
-                  </div>
-                  <Switch
-                    name="enforce_mfa_per_org_enabled"
-                    checked={settingsState.enforce_mfa_per_org_enabled}
-                    onCheckedChange={(checked) =>
-                      handleSettingChange(
-                        "enforce_mfa_per_org_enabled",
-                        checked
-                      )
-                    }
-                  />
-                </div>
-
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h2 className="text-base font-medium">
-                      Enable Enterprise SSO
-                    </h2>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Allow organizations to configure SAML and OIDC connections for single sign-on.
-                    </p>
-                  </div>
-                  <Switch
-                    name="enterprise_sso_enabled"
-                    checked={settingsState.enterprise_sso_enabled}
-                    onCheckedChange={(checked) =>
-                      handleSettingChange(
-                        "enterprise_sso_enabled",
-                        checked
-                      )
-                    }
-                  />
-                </div>
+                <Select
+                  name="roles"
+                  value={settingsState.default_org_member_role_id}
+                  onValueChange={(value) =>
+                    handleSettingChange("default_org_member_role_id", value)
+                  }
+                  disabled={isLoadingRoles || !!rolesError}
+                >
+                  <SelectTrigger className="w-full sm:w-64">
+                    <SelectValue
+                      placeholder={
+                        isLoadingRoles ? "Loading roles..." : "Select a role"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {!isLoadingRoles &&
+                      !rolesError &&
+                      orgRoles?.map((role) => (
+                        <SelectItem key={role.id} value={String(role.id)}>
+                          {role.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              <Divider className="my-10" soft />
-
-              <div className="space-y-10" data-tour-id="b2b-roles-permissions">
-                <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
-                  <div className="space-y-1">
-                    <Subheading>
-                      <Strong>Default role for members</Strong>
-                    </Subheading>
-                    <Text>
-                      Choose the role that users are initially assigned as a new
-                      organization member.
-                    </Text>
+              <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                <div className="min-w-0 sm:max-w-md">
+                  <div className="text-sm font-medium text-foreground">
+                    Creator's initial role
                   </div>
-                  <div>
-                    <Select
-                      name="roles"
-                      value={settingsState.default_org_member_role_id}
-                      onValueChange={(value) =>
-                        handleSettingChange("default_org_member_role_id", value)
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Role assigned to a user after they create an organization.
+                  </p>
+                </div>
+                <Select
+                  name="roles"
+                  value={settingsState.default_org_creator_role_id}
+                  onValueChange={(value) =>
+                    handleSettingChange("default_org_creator_role_id", value)
+                  }
+                  disabled={isLoadingRoles || !!rolesError}
+                >
+                  <SelectTrigger className="w-full sm:w-64">
+                    <SelectValue
+                      placeholder={
+                        isLoadingRoles ? "Loading roles..." : "Select a role"
                       }
-                      disabled={isLoadingRoles || !!rolesError}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder={isLoadingRoles ? "Loading roles..." : "Select a role"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {!isLoadingRoles &&
-                          !rolesError &&
-                          orgRoles?.map((role) => (
-                            <SelectItem key={role.id} value={String(role.id)}>
-                              {role.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </section>
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {!isLoadingRoles &&
+                      !rolesError &&
+                      orgRoles?.map((role) => (
+                        <SelectItem key={role.id} value={String(role.id)}>
+                          {role.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-                <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
-                  <div className="space-y-1">
-                    <Subheading>
-                      <Strong>Creator's initial role</Strong>
-                    </Subheading>
-                    <Text>
-                      Choose the role that users are initially assigned after
-                      creating an organization.
-                    </Text>
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                  <div className="min-w-0 sm:max-w-sm">
+                    <div className="text-sm font-medium text-foreground">
+                      Available permissions
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Permissions that can be assigned when creating custom
+                      roles.
+                    </p>
                   </div>
-                  <div>
-                    <Select
-                      name="roles"
-                      value={settingsState.default_org_creator_role_id}
-                      onValueChange={(value) =>
-                        handleSettingChange("default_org_creator_role_id", value)
+                  <Input
+                    type="text"
+                    placeholder="Add a permission, then press Enter"
+                    value={newPermission}
+                    onChange={(e) => setNewPermission(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        upsertOrganizationPermission(newPermission);
+                        setNewPermission("");
                       }
-                      disabled={isLoadingRoles || !!rolesError}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder={isLoadingRoles ? "Loading roles..." : "Select a role"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {!isLoadingRoles &&
-                          !rolesError &&
-                          orgRoles?.map((role) => (
-                            <SelectItem key={role.id} value={String(role.id)}>
-                              {role.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </section>
-
-                <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-start">
-                  <div className="space-y-1">
-                    <Subheading>
-                      <Strong>Available Permissions</Strong>
-                    </Subheading>
-                    <Text>
-                      Define the permissions that can be assigned to organization roles.
-                      These permissions will be available when creating custom roles.
-                    </Text>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex gap-2">
-                      <Input
-                        type="text"
-                        placeholder="e.g., organization:billing"
-                        value={newPermission}
-                        onChange={(e) => setNewPermission(e.target.value)}
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            upsertOrganizationPermission(newPermission);
-                            setNewPermission("");
-                          }
-                        }}
-                        className="flex-1"
-                      />
-                      <Button
-                        onClick={() => {
-                          upsertOrganizationPermission(newPermission);
-                          setNewPermission("");
-                        }}
-                        variant="outline"
+                    }}
+                    className="w-full sm:w-64"
+                  />
+                </div>
+                {organizationActivePermissions.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {organizationActivePermissions.map((entry) => (
+                      <span
+                        key={entry.key}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2 py-1 font-mono text-[11px] text-secondary-foreground"
                       >
-                        <PlusIcon className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {organizationActivePermissions.length === 0 ? (
-                        <span className="text-sm text-gray-500 dark:text-gray-400 italic">
-                          No permissions configured
-                        </span>
-                      ) : (
-                        organizationActivePermissions.map((entry) => (
-                          <Badge
-                            key={entry.key}
-                            color="blue"
-                            className="flex items-center gap-1"
-                          >
-                            {entry.key}
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setOrganizationPermissionArchived(entry.key, true);
-                                  }}
-                                  className="ml-1 hover:text-red-500"
-                                  aria-label="Archive permission"
-                                >
-                                  <ArchiveBoxIcon className="h-3 w-3" />
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent>Archive permission</TooltipContent>
-                            </Tooltip>
-                          </Badge>
-                        ))
-                      )}
-                    </div>
-                    {organizationArchivedPermissions.length > 0 && (
-                      <div className="space-y-2">
-                        <Text>Archived</Text>
-                        <div className="flex flex-wrap gap-2">
-                          {organizationArchivedPermissions.map((entry) => (
-                            <Badge
-                              key={entry.key}
-                              color="zinc"
-                              className="flex items-center gap-1"
+                        {entry.key}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setOrganizationPermissionArchived(
+                                  entry.key,
+                                  true,
+                                )
+                              }
+                              className="text-muted-foreground transition-colors hover:text-destructive"
+                              aria-label="Archive permission"
                             >
-                              {entry.key}
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      setOrganizationPermissionArchived(entry.key, false)
-                                    }
-                                    className="ml-1 hover:text-green-600"
-                                    aria-label="Unarchive permission"
-                                  >
-                                    <ArrowUturnLeftIcon className="h-3 w-3" />
-                                  </button>
-                                </TooltipTrigger>
-                                <TooltipContent>Unarchive permission</TooltipContent>
-                              </Tooltip>
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                              <ArchiveBoxIcon className="h-3 w-3" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>Archive permission</TooltipContent>
+                        </Tooltip>
+                      </span>
+                    ))}
                   </div>
-                </section>
+                )}
+                {organizationArchivedPermissions.length > 0 && (
+                  <div className="flex flex-col gap-2">
+                    <span className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                      Archived
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {organizationArchivedPermissions.map((entry) => (
+                        <span
+                          key={entry.key}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2 py-1 font-mono text-[11px] text-muted-foreground"
+                        >
+                          {entry.key}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setOrganizationPermissionArchived(
+                                    entry.key,
+                                    false,
+                                  )
+                                }
+                                className="text-muted-foreground transition-colors hover:text-foreground"
+                                aria-label="Unarchive permission"
+                              >
+                                <ArrowUturnLeftIcon className="h-3 w-3" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Unarchive permission
+                            </TooltipContent>
+                          </Tooltip>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
+            </div>
+          </section>
 
-              <Divider className="my-10" soft />
-
-              <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
-                <div className="space-y-1">
-                  <Subheading>
-                    <Strong>Default membership limit</Strong>
-                  </Subheading>
-                  <Text>
-                    Set the default number of users allowed in an organization.
-                  </Text>
-                </div>
-                <div className="space-y-4">
-                  <RadioGroup
-                    className="space-y-2"
-                    value={settingsState.membership_limit_type}
-                    onValueChange={(value) =>
-                      handleSettingChange("membership_limit_type", value)
+          <section className="flex flex-col gap-4">
+            <SectionLabel>Membership &amp; creation</SectionLabel>
+            <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+              <div className="flex flex-col gap-3 px-4 py-3.5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">
+                        Limit members per organization
+                      </span>
+                      <Pill
+                        tone={
+                          settingsState.membership_limit_type === "limited"
+                            ? "ok"
+                            : "mute"
+                        }
+                      >
+                        {settingsState.membership_limit_type === "limited"
+                          ? "on"
+                          : "off"}
+                      </Pill>
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Cap how many members (including pending invites) an
+                      organization can have.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settingsState.membership_limit_type === "limited"}
+                    onCheckedChange={(checked) =>
+                      handleSettingChange(
+                        "membership_limit_type",
+                        checked ? "limited" : "unlimited",
+                      )
                     }
-                  >
-                    <RadioField>
-                      <Radio value="unlimited" />
-                      <Label>Unlimited membership</Label>
-                    </RadioField>
-                    <Text>
-                      Organizations can have an unlimited number of members and
-                      pending invitations.
-                    </Text>
-                    <RadioField>
-                      <Radio value="limited" />
-                      <Label>Limited membership</Label>
-                    </RadioField>
-                    <Text>
-                      Organizations are limited to the following number of
-                      members, including pending invitations.
-                    </Text>
-                    <Input
-                      type="number"
-                      value={settingsState.max_allowed_org_members}
-                      onChange={(e) =>
-                        handleSettingChange("max_allowed_org_members", e)
-                      }
-                      placeholder="Enter limit"
-                      size={7}
-                      disabled={
-                        settingsState.membership_limit_type === "unlimited"
-                      }
-                    />
-                  </RadioGroup>
-                </div>
-              </section>
-
-              <Divider className="my-10" soft />
-
-              <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
-                <div className="space-y-1">
-                  <Subheading>
-                    <Strong>Default ability to delete</Strong>
-                  </Subheading>
-                  <Text>
-                    If organizations are deletable, any member with the{" "}
-                    <Strong>"Delete organization"</Strong> permission can
-                    self-serve delete the organization.
-                  </Text>
-                </div>
-
-                <CheckboxField>
-                  <Checkbox
-                    name="deletable"
-                    checked={settingsState.allow_org_deletion}
-                    onCheckedChange={(checked: boolean) =>
-                      handleSettingChange("allow_org_deletion", checked)
-                    }
+                    className="shrink-0"
                   />
-                  <Label className="text-sm/7">
-                    Upon creation, organizations are deletable by any member
-                    with the Delete organization permission
-                  </Label>
-                </CheckboxField>
-              </section>
-
-              <Divider className="my-10" soft />
-
-              <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
-                <div className="space-y-1">
-                  <Subheading>
-                    <Strong>Limit creation</Strong>
-                  </Subheading>
-                  <Text>
-                    Configure whether new users are able to create new
-                    organizations.
-                  </Text>
                 </div>
-                <div className="space-y-4">
-                  <CheckboxField>
-                    <Checkbox
-                      name="allow_creation_org"
-                      checked={settingsState.allow_users_to_create_orgs}
-                      onCheckedChange={(checked: boolean) =>
-                        handleSettingChange(
-                          "allow_users_to_create_orgs",
-                          checked
-                        )
-                      }
-                    />
-                    <Label>Allow users to create organizations</Label>
-                  </CheckboxField>
-
-                  <RadioGroup
-                    className="space-y-4"
-                    value={settingsState.creation_limit_type}
-                    onValueChange={(value: "unlimited" | "limited") =>
-                      handleSettingChange("creation_limit_type", value)
-                    }
-                  >
-                    <RadioField>
-                      <Radio
-                        value="unlimited"
-                        disabled={!settingsState.allow_users_to_create_orgs}
-                      />
-                      <Label className="font-normal">
-                        Users can create unlimited organizations
-                      </Label>
-                    </RadioField>
-                    <RadioField>
-                      <Radio
-                        value="limited"
-                        disabled={!settingsState.allow_users_to_create_orgs}
-                      />
-                      <Label>
-                        Users can create a limited number of organizations
-                      </Label>
-                    </RadioField>
-                  </RadioGroup>
-
+                {settingsState.membership_limit_type === "limited" && (
                   <Input
                     type="number"
-                    placeholder="Number of organizations"
-                    size={19}
-                    disabled={
-                      !settingsState.allow_users_to_create_orgs ||
-                      settingsState.creation_limit_type !== "limited"
-                    }
-                    value={settingsState.org_creation_per_user_count}
+                    min="1"
+                    value={settingsState.max_allowed_org_members}
                     onChange={(e) =>
-                      handleSettingChange("org_creation_per_user_count", e)
+                      handleSettingChange("max_allowed_org_members", e)
                     }
+                    placeholder="Maximum members per organization"
+                    className="w-full"
+                  />
+                )}
+              </div>
+
+              <ToggleRow
+                title="Self-service deletion"
+                description='Members with the "Delete organization" permission can delete the organization.'
+                enabled={settingsState.allow_org_deletion}
+                onToggle={(checked) =>
+                  handleSettingChange("allow_org_deletion", checked)
+                }
+              />
+
+              <ToggleRow
+                title="Allow organization creation"
+                description="Let users create their own organizations."
+                enabled={settingsState.allow_users_to_create_orgs}
+                onToggle={(checked) =>
+                  handleSettingChange("allow_users_to_create_orgs", checked)
+                }
+              />
+
+              <div className="flex flex-col gap-3 px-4 py-3.5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">
+                        Limit organizations per user
+                      </span>
+                      <Pill
+                        tone={
+                          settingsState.creation_limit_type === "limited"
+                            ? "ok"
+                            : "mute"
+                        }
+                      >
+                        {settingsState.creation_limit_type === "limited"
+                          ? "on"
+                          : "off"}
+                      </Pill>
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Cap how many organizations each user can create.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settingsState.creation_limit_type === "limited"}
+                    disabled={!settingsState.allow_users_to_create_orgs}
+                    onCheckedChange={(checked) =>
+                      handleSettingChange(
+                        "creation_limit_type",
+                        checked ? "limited" : "unlimited",
+                      )
+                    }
+                    className="shrink-0"
                   />
                 </div>
-              </section>
-
+                {settingsState.creation_limit_type === "limited" &&
+                  settingsState.allow_users_to_create_orgs && (
+                    <Input
+                      type="number"
+                      min="1"
+                      placeholder="Maximum organizations per user"
+                      className="w-full"
+                      value={settingsState.org_creation_per_user_count}
+                      onChange={(e) =>
+                        handleSettingChange("org_creation_per_user_count", e)
+                      }
+                    />
+                  )}
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </section>
+      </fieldset>
 
       <SavePopup
         isDirty={isDirty}

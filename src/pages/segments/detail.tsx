@@ -4,16 +4,21 @@ import {
     useAnalyzeSegments,
     useDeleteSegment,
 } from "@/lib/api/hooks/use-segments";
-import { Heading } from "@/components/ui/heading";
-import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 import {
-    PencilIcon,
+    PencilSquareIcon,
     TrashIcon,
     MagnifyingGlassIcon,
+    FunnelIcon,
+    UsersIcon,
 } from "@heroicons/react/24/outline";
 import { IconUser, IconBuilding, IconBriefcase } from "@tabler/icons-react";
 import { Input } from "@/components/ui/input";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import {
     Table,
     TableBody,
@@ -22,6 +27,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/app-table";
+import { TableEmptyRow } from "@/components/ui/table-empty-row";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SkeletonTableRows } from "@/components/ui/app-skeleton";
 import { useState, useEffect } from "react";
@@ -148,7 +154,7 @@ export default function SegmentDetailsPage() {
     if (!segment) {
         return (
             <div className="flex flex-col items-center justify-center py-12">
-                <Text>Segment not found.</Text>
+                <p className="text-sm text-muted-foreground">Segment not found.</p>
                 <Button
                     className="mt-4"
                     onClick={() => navigate("..")}
@@ -182,16 +188,19 @@ export default function SegmentDetailsPage() {
             <div className="space-y-6">
                 {/* Header */}
                 <div
-                    className="flex flex-col gap-4 pt-4"
+                    className="flex flex-col gap-4 pt-1 sm:pt-2"
                     data-tour-id="segment-header"
                 >
                     <div className="flex justify-between items-start">
                         <div>
-                            <div className="flex items-center gap-3">
-                                <Heading>{segment.name}</Heading>
-                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-xs font-medium capitalize">
+                            <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
+                                Segment
+                            </div>
+                            <div className="mt-1 flex items-center gap-3">
+                                <h1 className="text-xl font-medium tracking-tight text-foreground">{segment.name}</h1>
+                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-border bg-secondary text-xs font-medium capitalize">
                                     {segment.type === "user" && (
-                                        <IconUser className="size-3 text-blue-500" />
+                                        <IconUser className="size-3 text-primary" />
                                     )}
                                     {segment.type === "organization" && (
                                         <IconBuilding className="size-3 text-emerald-500" />
@@ -202,11 +211,11 @@ export default function SegmentDetailsPage() {
                                     {segment.type}
                                 </div>
                             </div>
-                            <Text className="text-zinc-500 mt-2 max-w-2xl">
+                            <p className="text-sm text-muted-foreground text-muted-foreground mt-2 max-w-2xl">
                                 {segment.description ||
                                     "No description provided."}
-                            </Text>
-                            <div className="mt-2 text-xs text-zinc-400">
+                            </p>
+                            <div className="mt-2 text-xs text-muted-foreground">
                                 Created{" "}
                                 {format(
                                     new Date(segment.created_at),
@@ -224,7 +233,7 @@ export default function SegmentDetailsPage() {
                                 onClick={() => setCreateModalOpen(true)}
                                 className="h-8 gap-1.5 font-normal"
                             >
-                                <PencilIcon className="h-4 w-4" />
+                                <PencilSquareIcon className="h-4 w-4" />
                                 Edit
                             </Button>
                             <Button
@@ -240,21 +249,39 @@ export default function SegmentDetailsPage() {
                 </div>
 
                 {/* Content */}
-                <div className="space-y-4">
-                    <div className="flex justify-between items-center gap-4">
-                        <div className="relative flex-1 max-w-lg">
-                            <MagnifyingGlassIcon className="absolute left-3 top-1/4 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder={`Search ${segment.type}s...`}
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="pl-9"
-                            />
-                        </div>
-
-                        <div className="text-sm text-zinc-500">
-                            {entities.length} results
-                        </div>
+                <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between gap-4">
+                        <h3 className="text-sm font-medium text-foreground">
+                            Members{" "}
+                            <span className="text-muted-foreground">
+                                ({entities.length})
+                            </span>
+                        </h3>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-1.5"
+                                >
+                                    <FunnelIcon className="size-4" />
+                                    Filter
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent align="end" className="w-64 p-3">
+                                <div className="relative">
+                                    <MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        placeholder={`Search ${segment.type}s…`}
+                                        value={search}
+                                        onChange={(e) =>
+                                            setSearch(e.target.value)
+                                        }
+                                        className="h-8 bg-secondary pl-8 text-[13px]"
+                                    />
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                     </div>
 
                     <Table data-tour-id="segment-members-table">
@@ -273,21 +300,27 @@ export default function SegmentDetailsPage() {
                         </TableHeader>
                         <TableBody>
                             {isAnalyzing ? (
-                                <SkeletonTableRows rows={5} columns={3} />
+                                <SkeletonTableRows
+                                    rows={5}
+                                    columns={segment.type === "user" ? 3 : 2}
+                                />
                             ) : entities.length === 0 ? (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={3}
-                                        className="text-center py-12 text-zinc-500"
-                                    >
-                                        No members found in this segment
-                                        matching your search.
-                                    </TableCell>
-                                </TableRow>
+                                <TableEmptyRow
+                                    colSpan={segment.type === "user" ? 3 : 2}
+                                    icon={
+                                        <UsersIcon className="h-8 w-8 text-muted-foreground/50" />
+                                    }
+                                    title="No members found"
+                                    description={
+                                        search
+                                            ? "Try adjusting your search."
+                                            : "No entities match this segment yet."
+                                    }
+                                />
                             ) : (
                                 entities.map((entity) => (
                                     <TableRow key={entity.id}>
-                                        <TableCell className="text-xs text-zinc-500">
+                                        <TableCell className="text-xs text-muted-foreground">
                                             {entity.id}
                                         </TableCell>
                                         {segment.type === "user" ? (

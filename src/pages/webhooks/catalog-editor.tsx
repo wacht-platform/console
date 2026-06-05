@@ -7,8 +7,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox"
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
     Select,
     SelectContent,
@@ -16,13 +16,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { SectionLabel } from "@/components/ui/section-label";
+import { FieldRow, FieldCard } from "@/components/ui/field-row";
+import { Tag } from "@/components/ui/tag";
+import { cn } from "@/lib/utils";
 import { InlineLoader } from "@/components/ui/loading-screen";
-import { Divider } from "@/components/ui/divider";
 import {
     useWebhookEventCatalogs,
     useCreateWebhookEventCatalog,
@@ -425,21 +423,24 @@ export default function CatalogEditorPage() {
 
     return (
         <div className="flex flex-col gap-6">
-            {/* Header */}
             <div className="flex items-start justify-between gap-4">
-                <div>
-                    <h1 className="text-xl font-normal tracking-tight">
+                <div className="min-w-0">
+                    {isEditMode ? (
+                        <p className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                            Webhook catalog · {slug}
+                        </p>
+                    ) : null}
+                    <h1 className="mt-1 text-xl font-medium tracking-tight text-foreground">
                         {isEditMode
-                            ? "Edit Event Catalog"
-                            : "Create Event Catalog"}
+                            ? "Edit event catalog"
+                            : "Create event catalog"}
                     </h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        {isEditMode
-                            ? "Update your event catalog and its events."
-                            : "Define a new event catalog with its events and schema."}
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        A catalog groups related events into a schema your
+                        subscribers can validate against.
                     </p>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex shrink-0 items-center gap-2">
                     <Button
                         type="button"
                         variant="outline"
@@ -454,11 +455,11 @@ export default function CatalogEditorPage() {
                     >
                         {isSaving
                             ? isEditMode
-                                ? "Saving..."
-                                : "Creating..."
+                                ? "Saving…"
+                                : "Creating…"
                             : isEditMode
-                              ? "Save Changes"
-                              : "Create Catalog"}
+                              ? "Save changes"
+                              : "Create catalog"}
                     </Button>
                 </div>
             </div>
@@ -468,259 +469,350 @@ export default function CatalogEditorPage() {
                 onSubmit={handleSubmit}
                 className="flex flex-col gap-8"
             >
-                {/* Catalog Details */}
-                <section className="space-y-4">
-                    <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                        Catalog Details
-                    </h2>
-                    <div className="grid gap-4 lg:grid-cols-2">
-                        <div className="space-y-2">
-                            <Label>Slug</Label>
+                <section className="space-y-3">
+                    <SectionLabel>Catalog details</SectionLabel>
+                    <FieldCard>
+                        <FieldRow
+                            label="Slug"
+                            desc="Unique identifier used by subscribers. Cannot be changed after creation."
+                        >
                             <Input
-                                className="px-3"
+                                className="font-mono text-xs"
                                 placeholder="user-events"
                                 value={slug}
                                 onChange={(e) => setSlug(e.target.value)}
                                 disabled={isEditMode}
                                 required={!isEditMode}
                             />
-                            <p className="text-xs text-muted-foreground">
-                                Unique identifier. Cannot be changed after
-                                creation.
-                            </p>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Name</Label>
+                        </FieldRow>
+                        <FieldRow
+                            label="Name"
+                            desc="Human-readable label shown in the dashboard."
+                        >
                             <Input
-                                className="px-3"
                                 placeholder="User Lifecycle Events"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 required
                             />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Description</Label>
-                        <Input
-                            className="px-3"
-                            placeholder="Describe what this catalog is for..."
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                        />
-                    </div>
+                        </FieldRow>
+                        <FieldRow
+                            label="Description"
+                            desc="Optional context for downstream developers."
+                            align="start"
+                        >
+                            <Textarea
+                                placeholder="Describe what this catalog is for…"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                rows={3}
+                            />
+                        </FieldRow>
+                    </FieldCard>
                 </section>
 
-                <Divider />
-
-                {/* Events */}
                 <section className="space-y-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-end justify-between gap-3">
                         <div>
-                            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                            <h3 className="text-sm font-medium text-foreground">
                                 Events
-                            </h2>
-                            <p className="text-xs text-muted-foreground mt-1">
+                            </h3>
+                            <p className="mt-1 text-xs text-muted-foreground">
                                 Define the events that belong to this catalog.
                             </p>
                         </div>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={addEvent}
-                        >
-                            <PlusIcon className="mr-1.5 h-4 w-4" /> Add Event
+                        <Button type="button" size="sm" onClick={addEvent}>
+                            <PlusIcon className="h-4 w-4" />
+                            Add event
                         </Button>
                     </div>
 
-                    <div className="divide-y">
+                    <div className="flex flex-col gap-3">
                         {events.map((event) => (
-                            <Collapsible
+                            <div
                                 key={event.id}
-                                open={event.isExpanded}
-                                onOpenChange={() => toggleEventExpanded(event.id)}
+                                className="overflow-hidden rounded-lg border border-border bg-card"
                             >
-                                <CollapsibleTrigger className="flex items-center justify-between w-full py-3 hover:bg-muted/30 -mx-3 px-3 rounded transition-colors">
-                                    <div className="flex items-center gap-3 min-w-0">
+                                <div
+                                    className={cn(
+                                        "flex items-center gap-3 px-4 py-3",
+                                        event.isExpanded &&
+                                            "border-b border-border",
+                                    )}
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            toggleEventExpanded(event.id)
+                                        }
+                                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                                    >
                                         <ChevronDownIcon
-                                            className={`h-4 w-4 text-muted-foreground transition-transform shrink-0 ${event.isExpanded ? "rotate-180" : ""}`}
+                                            className={cn(
+                                                "h-4 w-4 transition-transform",
+                                                !event.isExpanded &&
+                                                    "-rotate-90",
+                                            )}
                                         />
-                                        <div className="flex items-center gap-2 min-w-0">
-                                            <span className="text-sm font-medium truncate">
-                                                {event.name.trim() || "Untitled Event"}
-                                            </span>
-                                            {event.group.trim() && (
-                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 shrink-0">
-                                                    {event.group.trim()}
-                                                </span>
-                                            )}
-                                            {!event.isExpanded && event.description.trim() && (
-                                                <span className="text-xs text-muted-foreground truncate hidden md:block">
-                                                    — {event.description.trim()}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 shrink-0 ml-4">
-                                        <span className="text-xs text-muted-foreground tabular-nums">
-                                            {event.fields.length} field{event.fields.length !== 1 ? "s" : ""}
+                                    </button>
+                                    <span className="truncate font-mono text-[13px] font-medium text-foreground">
+                                        {event.name.trim() || "Untitled event"}
+                                    </span>
+                                    {event.group.trim() ? (
+                                        <Tag>{event.group.trim()}</Tag>
+                                    ) : null}
+                                    {!event.isExpanded &&
+                                    event.description.trim() ? (
+                                        <span className="hidden truncate text-xs text-muted-foreground md:block">
+                                            — {event.description.trim()}
                                         </span>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-7 w-7"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                removeEvent(event.id);
-                                            }}
-                                            disabled={events.length === 1}
-                                        >
-                                            <TrashIcon className="h-4 w-4 text-muted-foreground" />
-                                        </Button>
-                                    </div>
-                                </CollapsibleTrigger>
+                                    ) : null}
+                                    <div className="flex-1" />
+                                    <span className="shrink-0 font-mono text-[11px] text-muted-foreground tabular-nums">
+                                        {event.fields.length} field
+                                        {event.fields.length === 1 ? "" : "s"}
+                                    </span>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                        onClick={() => removeEvent(event.id)}
+                                        disabled={events.length === 1}
+                                    >
+                                        <TrashIcon className="h-4 w-4" />
+                                    </Button>
+                                </div>
 
-                                <CollapsibleContent>
-                                    <div className="pb-5 pt-3 space-y-4">
-                                        {/* Event Info */}
-                                        <div className="space-y-3">
-                                            <div className="flex gap-3">
-                                                <div className="flex-1 space-y-2">
-                                                    <Label>Event Name</Label>
-                                                    <Input
-                                                        className="px-3"
-                                                        value={event.name}
-                                                        onChange={(e) =>
-                                                            updateEvent(event.id, { name: e.target.value })
-                                                        }
-                                                        placeholder="user.created"
-                                                    />
-                                                </div>
-                                                <div className="w-40 space-y-2 shrink-0">
-                                                    <Label>Group</Label>
-                                                    <Input
-                                                        className="px-3"
-                                                        value={event.group}
-                                                        onChange={(e) =>
-                                                            updateEvent(event.id, { group: e.target.value })
-                                                        }
-                                                        placeholder="user"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label>Description</Label>
+                                {event.isExpanded ? (
+                                    <div className="space-y-4 px-5 py-5">
+                                        <div className="grid gap-4 sm:grid-cols-[1fr_180px]">
+                                            <div>
+                                                <label className="mb-1.5 block text-xs font-medium text-foreground">
+                                                    Event name
+                                                </label>
                                                 <Input
-                                                    className="px-3"
-                                                    value={event.description}
+                                                    className="font-mono text-xs"
+                                                    value={event.name}
                                                     onChange={(e) =>
-                                                        updateEvent(event.id, { description: e.target.value })
+                                                        updateEvent(event.id, {
+                                                            name: e.target.value,
+                                                        })
                                                     }
-                                                    placeholder="Emitted when a user is created"
+                                                    placeholder="user.created"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="mb-1.5 block text-xs font-medium text-foreground">
+                                                    Group
+                                                </label>
+                                                <Input
+                                                    className="font-mono text-xs"
+                                                    value={event.group}
+                                                    onChange={(e) =>
+                                                        updateEvent(event.id, {
+                                                            group: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="user"
                                                 />
                                             </div>
                                         </div>
+                                        <div>
+                                            <label className="mb-1.5 block text-xs font-medium text-foreground">
+                                                Description
+                                            </label>
+                                            <Input
+                                                value={event.description}
+                                                onChange={(e) =>
+                                                    updateEvent(event.id, {
+                                                        description:
+                                                            e.target.value,
+                                                    })
+                                                }
+                                                placeholder="Emitted when a user is created"
+                                            />
+                                        </div>
 
-                                        {/* Schema Fields */}
-                                        <div className="space-y-3">
-                                            <div className="flex items-center justify-between">
-                                                <Label className="text-sm">Schema Fields</Label>
+                                        <div>
+                                            <div className="mb-2 flex items-center justify-between">
+                                                <label className="text-xs font-medium text-foreground">
+                                                    Schema fields
+                                                </label>
                                                 <Button
                                                     type="button"
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => addField(event.id)}
+                                                    className="h-7 px-2.5 text-[11px]"
+                                                    onClick={() =>
+                                                        addField(event.id)
+                                                    }
                                                 >
-                                                    <PlusIcon className="mr-1 h-3 w-3" /> Add Field
+                                                    <PlusIcon className="h-3 w-3" />
+                                                    Add field
                                                 </Button>
                                             </div>
-
-                                            {/* Column headers */}
-                                            <div className="grid grid-cols-[1fr_120px_1fr_1fr_64px_36px] gap-x-2 px-1">
-                                                <span className="text-xs font-medium text-muted-foreground">Field Name</span>
-                                                <span className="text-xs font-medium text-muted-foreground">Type</span>
-                                                <span className="text-xs font-medium text-muted-foreground">Description</span>
-                                                <span className="text-xs font-medium text-muted-foreground">Example</span>
-                                                <span className="text-xs font-medium text-muted-foreground text-center">Required</span>
-                                                <span />
-                                            </div>
-
-                                            <div className="space-y-2">
-                                                {event.fields.map((field) => (
-                                                    <div
-                                                        key={field.id}
-                                                        className="grid grid-cols-[1fr_120px_1fr_1fr_64px_36px] gap-x-2 items-center"
-                                                    >
-                                                        <Input
-                                                            className="h-8 text-sm px-3"
-                                                            value={field.name}
-                                                            onChange={(e) =>
-                                                                updateField(event.id, field.id, { name: e.target.value })
-                                                            }
-                                                            placeholder="field_name"
-                                                        />
-                                                        <Select
-                                                            value={field.type}
-                                                            onValueChange={(value: SchemaFieldType) =>
-                                                                updateField(event.id, field.id, { type: value })
-                                                            }
+                                            <div className="overflow-hidden rounded-lg border border-border">
+                                                <div className="grid grid-cols-[1fr_120px_1fr_1fr_64px_36px] gap-x-2 border-b border-border bg-secondary px-3 py-2">
+                                                    <span className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                                                        Field
+                                                    </span>
+                                                    <span className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                                                        Type
+                                                    </span>
+                                                    <span className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                                                        Description
+                                                    </span>
+                                                    <span className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                                                        Example
+                                                    </span>
+                                                    <span className="text-center font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                                                        Req'd
+                                                    </span>
+                                                    <span />
+                                                </div>
+                                                <div className="divide-y divide-border">
+                                                    {event.fields.map((field) => (
+                                                        <div
+                                                            key={field.id}
+                                                            className="grid grid-cols-[1fr_120px_1fr_1fr_64px_36px] items-center gap-x-2 px-3 py-2"
                                                         >
-                                                            <SelectTrigger className="h-8 text-sm pl-3">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {FIELD_TYPES.map((item) => (
-                                                                    <SelectItem key={item.value} value={item.value}>
-                                                                        {item.label}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                        <Input
-                                                            className="h-8 text-sm px-3"
-                                                            value={field.description}
-                                                            onChange={(e) =>
-                                                                updateField(event.id, field.id, { description: e.target.value })
-                                                            }
-                                                            placeholder="Description"
-                                                        />
-                                                        <Input
-                                                            className="h-8 text-sm font-mono text-xs px-3"
-                                                            value={field.example}
-                                                            onChange={(e) =>
-                                                                updateField(event.id, field.id, { example: e.target.value })
-                                                            }
-                                                            placeholder="example"
-                                                        />
-                                                        <div className="flex justify-center">
-                                                            <Checkbox
-                                                                checked={field.required}
-                                                                onCheckedChange={(checked) =>
-                                                                    updateField(event.id, field.id, {
-                                                                        required: checked === true,
-                                                                    })
+                                                            <Input
+                                                                className="h-8 px-2.5 font-mono text-xs"
+                                                                value={field.name}
+                                                                onChange={(e) =>
+                                                                    updateField(
+                                                                        event.id,
+                                                                        field.id,
+                                                                        {
+                                                                            name: e
+                                                                                .target
+                                                                                .value,
+                                                                        },
+                                                                    )
                                                                 }
+                                                                placeholder="field_name"
                                                             />
+                                                            <Select
+                                                                value={field.type}
+                                                                onValueChange={(
+                                                                    value: SchemaFieldType,
+                                                                ) =>
+                                                                    updateField(
+                                                                        event.id,
+                                                                        field.id,
+                                                                        {
+                                                                            type: value,
+                                                                        },
+                                                                    )
+                                                                }
+                                                            >
+                                                                <SelectTrigger className="h-8 pl-2.5 text-xs">
+                                                                    <SelectValue />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {FIELD_TYPES.map(
+                                                                        (item) => (
+                                                                            <SelectItem
+                                                                                key={
+                                                                                    item.value
+                                                                                }
+                                                                                value={
+                                                                                    item.value
+                                                                                }
+                                                                            >
+                                                                                {
+                                                                                    item.label
+                                                                                }
+                                                                            </SelectItem>
+                                                                        ),
+                                                                    )}
+                                                                </SelectContent>
+                                                            </Select>
+                                                            <Input
+                                                                className="h-8 px-2.5 text-sm"
+                                                                value={
+                                                                    field.description
+                                                                }
+                                                                onChange={(e) =>
+                                                                    updateField(
+                                                                        event.id,
+                                                                        field.id,
+                                                                        {
+                                                                            description:
+                                                                                e
+                                                                                    .target
+                                                                                    .value,
+                                                                        },
+                                                                    )
+                                                                }
+                                                                placeholder="Description"
+                                                            />
+                                                            <Input
+                                                                className="h-8 px-2.5 font-mono text-xs"
+                                                                value={
+                                                                    field.example
+                                                                }
+                                                                onChange={(e) =>
+                                                                    updateField(
+                                                                        event.id,
+                                                                        field.id,
+                                                                        {
+                                                                            example:
+                                                                                e
+                                                                                    .target
+                                                                                    .value,
+                                                                        },
+                                                                    )
+                                                                }
+                                                                placeholder="example"
+                                                            />
+                                                            <div className="flex justify-center">
+                                                                <Switch
+                                                                    checked={
+                                                                        field.required
+                                                                    }
+                                                                    onCheckedChange={(
+                                                                        checked,
+                                                                    ) =>
+                                                                        updateField(
+                                                                            event.id,
+                                                                            field.id,
+                                                                            {
+                                                                                required:
+                                                                                    checked,
+                                                                            },
+                                                                        )
+                                                                    }
+                                                                />
+                                                            </div>
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                                                onClick={() =>
+                                                                    removeField(
+                                                                        event.id,
+                                                                        field.id,
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    event.fields
+                                                                        .length ===
+                                                                    1
+                                                                }
+                                                            >
+                                                                <TrashIcon className="h-3.5 w-3.5" />
+                                                            </Button>
                                                         </div>
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-7 w-7"
-                                                            onClick={() => removeField(event.id, field.id)}
-                                                            disabled={event.fields.length === 1}
-                                                        >
-                                                            <TrashIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                                                        </Button>
-                                                    </div>
-                                                ))}
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </CollapsibleContent>
-                            </Collapsible>
+                                ) : null}
+                            </div>
                         ))}
                     </div>
                 </section>

@@ -41,6 +41,8 @@ export interface Agent {
   tools_count: number;
   knowledge_bases_count: number;
   sub_agents?: Array<string | number>;
+  reviewer_agent_id?: string | null;
+  conversation_agent_id?: string | null;
   strong_model?: AgentModelOverride;
   weak_model?: AgentModelOverride;
   hooks?: AgentHooksConfig;

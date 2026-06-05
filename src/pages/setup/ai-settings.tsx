@@ -10,10 +10,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { apiClient } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
-import { Heading } from "@/components/ui/heading";
-import { Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { PageHead } from "@/components/ui/page-head";
+import { SectionLabel } from "@/components/ui/section-label";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Tag } from "@/components/ui/tag";
 import {
     Select,
     SelectContent,
@@ -34,7 +36,9 @@ import {
 import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
 import { ExclamationTriangleIcon } from "@heroicons/react/20/solid";
 import {
-    PencilIcon,
+    CpuChipIcon,
+    KeyIcon,
+    PencilSquareIcon,
     PlusIcon,
     TrashIcon,
 } from "@heroicons/react/24/outline";
@@ -557,15 +561,11 @@ export default function AISettingsPage() {
 
     return (
         <div className="w-full pb-20" data-tour-id="llm-ai-settings-page">
-            <div className="mb-5">
-                <Heading className="text-xl font-semibold tracking-[-0.01em]">
-                    Configuration
-                </Heading>
-                <Text className="mt-1.5 text-[12.5px] leading-5 text-muted-foreground">
-                    Bring your own LLM, embedding, and storage credentials. Keys
-                    here bypass platform billing.
-                </Text>
-            </div>
+            <PageHead
+                eyebrow="Agents platform"
+                title="Configuration"
+                sub="Bring your own LLM, embedding, and storage credentials. Keys here bypass platform billing."
+            />
 
             <SavePopup
                 isDirty={isDirty}
@@ -574,38 +574,49 @@ export default function AISettingsPage() {
                 onCancel={handleCancel}
             />
 
-            <div className="divide-y divide-border/70">
-                <section className="pb-5" data-tour-id="ai-settings-storage">
+            <div className="space-y-7">
+                <section data-tour-id="ai-settings-storage">
                     <SectionHeader
                         title="Storage"
                         description="S3-compatible bucket."
                     />
-                    <div className="grid gap-x-3.5 gap-y-3 sm:grid-cols-2">
-                        <CompactField label="Bucket">
-                            <CompactInput
-                                placeholder={
-                                    settings?.storage.bucket ??
-                                    "customer-ai-storage"
-                                }
-                                value={storageBucket}
-                                onChange={(e) =>
-                                    setStorageBucket(e.target.value)
-                                }
-                            />
-                        </CompactField>
-                        <CompactField label="Region">
-                            <CompactInput
-                                placeholder={
-                                    settings?.storage.region ??
-                                    "Optional, for example us-east-1"
-                                }
-                                value={storageRegion}
-                                onChange={(e) =>
-                                    setStorageRegion(e.target.value)
-                                }
-                            />
-                        </CompactField>
-                        <CompactField label="Endpoint" full>
+                    <div className="rounded-lg border border-border bg-card px-5">
+                        <FieldRow
+                            title="Bucket"
+                            description="Where agent artifacts, run logs and generated files are persisted."
+                        >
+                            <div className="grid gap-3.5 sm:grid-cols-2">
+                                <CompactField label="Bucket name">
+                                    <CompactInput
+                                        placeholder={
+                                            settings?.storage.bucket ??
+                                            "customer-ai-storage"
+                                        }
+                                        value={storageBucket}
+                                        onChange={(e) =>
+                                            setStorageBucket(e.target.value)
+                                        }
+                                    />
+                                </CompactField>
+                                <CompactField label="Region">
+                                    <CompactInput
+                                        placeholder={
+                                            settings?.storage.region ??
+                                            "Optional, e.g. us-east-1"
+                                        }
+                                        value={storageRegion}
+                                        onChange={(e) =>
+                                            setStorageRegion(e.target.value)
+                                        }
+                                    />
+                                </CompactField>
+                            </div>
+                        </FieldRow>
+
+                        <FieldRow
+                            title="Endpoint"
+                            description="Provider-specific URL. Leave default to use AWS."
+                        >
                             <CompactInput
                                 placeholder={
                                     settings?.storage.endpoint ??
@@ -616,59 +627,83 @@ export default function AISettingsPage() {
                                     setStorageEndpoint(e.target.value)
                                 }
                             />
-                        </CompactField>
-                        <CompactField label="Root prefix" full>
+                        </FieldRow>
+
+                        <FieldRow
+                            title="Root prefix"
+                            description="Optional path under which agent files are nested."
+                        >
                             <CompactInput
                                 placeholder={
                                     settings?.storage.root_prefix ??
-                                    "Optional, for example /agents"
+                                    "Optional, e.g. /agents"
                                 }
                                 value={storageRootPrefix}
                                 onChange={(e) =>
                                     setStorageRootPrefix(e.target.value)
                                 }
                             />
-                        </CompactField>
-                        <CompactField label="Access key ID">
-                            <CompactInput
-                                type="password"
-                                autoComplete="new-password"
-                                placeholder={
-                                    settings?.storage.access_key_id_set
-                                        ? "••••••••••••••••"
-                                        : "Enter access key ID"
-                                }
-                                value={storageAccessKeyId}
-                                onChange={(e) =>
-                                    setStorageAccessKeyId(e.target.value)
-                                }
-                            />
-                        </CompactField>
-                        <CompactField label="Secret access key">
-                            <CompactInput
-                                type="password"
-                                autoComplete="new-password"
-                                placeholder={
-                                    settings?.storage.secret_access_key_set
-                                        ? "••••••••••••••••"
-                                        : "Enter secret access key"
-                                }
-                                value={storageSecretAccessKey}
-                                onChange={(e) =>
-                                    setStorageSecretAccessKey(e.target.value)
-                                }
-                            />
-                        </CompactField>
+                        </FieldRow>
+
+                        <FieldRow
+                            title="Credentials"
+                            description="Access key + secret. Stored encrypted; never returned in plain text."
+                        >
+                            <div className="grid gap-3.5 sm:grid-cols-2">
+                                <CompactField label="Access key ID">
+                                    <CompactInput
+                                        type="password"
+                                        autoComplete="new-password"
+                                        placeholder={
+                                            settings?.storage.access_key_id_set
+                                                ? "••••••••••••••••"
+                                                : "Enter access key ID"
+                                        }
+                                        value={storageAccessKeyId}
+                                        onChange={(e) =>
+                                            setStorageAccessKeyId(e.target.value)
+                                        }
+                                    />
+                                </CompactField>
+                                <CompactField label="Secret access key">
+                                    <CompactInput
+                                        type="password"
+                                        autoComplete="new-password"
+                                        placeholder={
+                                            settings?.storage
+                                                .secret_access_key_set
+                                                ? "••••••••••••••••"
+                                                : "Enter secret access key"
+                                        }
+                                        value={storageSecretAccessKey}
+                                        onChange={(e) =>
+                                            setStorageSecretAccessKey(
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                </CompactField>
+                            </div>
+                        </FieldRow>
+
+                        <FieldRow
+                            title="Force path-style requests"
+                            description="Enable for providers that expect path-style bucket addressing."
+                        >
+                            <div className="flex items-center gap-2.5 pt-1.5">
+                                <Switch
+                                    checked={forcePathStyle}
+                                    onCheckedChange={setForcePathStyle}
+                                />
+                                <span className="font-mono text-[12px] text-muted-foreground">
+                                    {forcePathStyle ? "on" : "off"}
+                                </span>
+                            </div>
+                        </FieldRow>
                     </div>
-                    <ToggleRow
-                        title="Force path-style requests"
-                        description="Enable for providers that expect path-style bucket addressing."
-                        checked={forcePathStyle}
-                        onCheckedChange={setForcePathStyle}
-                    />
                 </section>
 
-                <section className="py-5" data-tour-id="ai-settings-models">
+                <section data-tour-id="ai-settings-models">
                     <SectionHeader
                         title="Model routing"
                         description="Strong for planning, weak for tool calls."
@@ -689,47 +724,79 @@ export default function AISettingsPage() {
                         </div>
                     )}
 
-                    <div className="grid gap-x-3.5 gap-y-3 sm:grid-cols-2">
-                        <CompactField label="Strong provider">
-                            <ProviderSelect
-                                value={strongLlmProvider}
-                                onValueChange={(v) =>
-                                    setStrongLlmProvider(v as LlmProvider)
-                                }
-                            />
-                        </CompactField>
-                        <CompactField label="Strong model">
-                            <CompactInput
-                                placeholder={
-                                    settings?.strong_model ??
-                                    "provider/strong-model"
-                                }
-                                value={strongModel}
-                                onChange={(e) => setStrongModel(e.target.value)}
-                            />
-                        </CompactField>
-                        <CompactField label="Weak provider">
-                            <ProviderSelect
-                                value={weakLlmProvider}
-                                onValueChange={(v) =>
-                                    setWeakLlmProvider(v as LlmProvider)
-                                }
-                            />
-                        </CompactField>
-                        <CompactField label="Weak model">
-                            <CompactInput
-                                placeholder={
-                                    settings?.weak_model ??
-                                    "provider/weak-model"
-                                }
-                                value={weakModel}
-                                onChange={(e) => setWeakModel(e.target.value)}
-                            />
-                        </CompactField>
+                    <div className="grid gap-3.5 sm:grid-cols-2">
+                        <div className="rounded-lg border border-border bg-card p-4">
+                            <div className="mb-3.5 flex items-center gap-2">
+                                <span className="flex size-6 items-center justify-center rounded-md bg-primary/10 text-primary">
+                                    <CpuChipIcon className="h-3.5 w-3.5" />
+                                </span>
+                                <h4 className="text-[13px] font-medium text-foreground">
+                                    Strong
+                                </h4>
+                                <Tag>planner</Tag>
+                            </div>
+                            <div className="grid gap-x-3.5 gap-y-3 sm:grid-cols-2">
+                                <CompactField label="Provider">
+                                    <ProviderSelect
+                                        value={strongLlmProvider}
+                                        onValueChange={(v) =>
+                                            setStrongLlmProvider(
+                                                v as LlmProvider,
+                                            )
+                                        }
+                                    />
+                                </CompactField>
+                                <CompactField label="Model">
+                                    <CompactInput
+                                        placeholder={
+                                            settings?.strong_model ??
+                                            "provider/strong-model"
+                                        }
+                                        value={strongModel}
+                                        onChange={(e) =>
+                                            setStrongModel(e.target.value)
+                                        }
+                                    />
+                                </CompactField>
+                            </div>
+                        </div>
+                        <div className="rounded-lg border border-border bg-card p-4">
+                            <div className="mb-3.5 flex items-center gap-2">
+                                <span className="flex size-6 items-center justify-center rounded-md bg-primary/10 text-primary">
+                                    <CpuChipIcon className="h-3.5 w-3.5" />
+                                </span>
+                                <h4 className="text-[13px] font-medium text-foreground">
+                                    Weak
+                                </h4>
+                                <Tag>executor</Tag>
+                            </div>
+                            <div className="grid gap-x-3.5 gap-y-3 sm:grid-cols-2">
+                                <CompactField label="Provider">
+                                    <ProviderSelect
+                                        value={weakLlmProvider}
+                                        onValueChange={(v) =>
+                                            setWeakLlmProvider(v as LlmProvider)
+                                        }
+                                    />
+                                </CompactField>
+                                <CompactField label="Model">
+                                    <CompactInput
+                                        placeholder={
+                                            settings?.weak_model ??
+                                            "provider/weak-model"
+                                        }
+                                        value={weakModel}
+                                        onChange={(e) =>
+                                            setWeakModel(e.target.value)
+                                        }
+                                    />
+                                </CompactField>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
-                <section className="py-5" data-tour-id="ai-settings-embeddings">
+                <section data-tour-id="ai-settings-embeddings">
                     <SectionHeader
                         title="Embeddings"
                         description="Semantic search over knowledge bases."
@@ -747,6 +814,7 @@ export default function AISettingsPage() {
                             )
                         }
                     />
+                    <div className="rounded-lg border border-border bg-card p-5">
                     <div className="grid gap-x-3.5 gap-y-3 sm:grid-cols-3">
                         <CompactField label="Provider">
                             <Select
@@ -817,14 +885,15 @@ export default function AISettingsPage() {
                             </Select>
                         </CompactField>
                     </div>
+                    </div>
                 </section>
 
-                <section className="py-5" data-tour-id="ai-settings-provider-keys">
+                <section data-tour-id="ai-settings-provider-keys">
                     <SectionHeader
                         title="Provider keys"
                         description="Leave blank to keep saved value."
                     />
-                    <div className="space-y-4">
+                    <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
                         <ProviderKeyRow
                             logo={<GeminiProviderLogo />}
                             name="Google Gemini"
@@ -903,7 +972,7 @@ export default function AISettingsPage() {
                     </div>
                 </section>
 
-                <section className="py-5" data-tour-id="ai-settings-openai-profiles">
+                <section data-tour-id="ai-settings-openai-profiles">
                     <SectionHeader
                         title="OpenAI profiles"
                         description="Per-agent keys and endpoints."
@@ -924,11 +993,11 @@ export default function AISettingsPage() {
                     {profilesLoading ? (
                         <InlineLoader />
                     ) : providerProfiles.length > 0 ? (
-                        <div className="space-y-3">
+                        <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
                             {providerProfiles.map((profile) => (
                                 <div
                                     key={profile.id}
-                                    className="grid gap-2 sm:grid-cols-[1fr_auto]"
+                                    className="grid gap-2 p-4 sm:grid-cols-[1fr_auto]"
                                 >
                                     <div className="min-w-0">
                                         <div className="flex min-w-0 items-center gap-2">
@@ -961,7 +1030,7 @@ export default function AISettingsPage() {
                                                 setProfileDialogOpen(true);
                                             }}
                                         >
-                                            <PencilIcon className="h-3.5 w-3.5" />
+                                            <PencilSquareIcon className="h-3.5 w-3.5" />
                                         </Button>
                                         <Button
                                             type="button"
@@ -978,10 +1047,13 @@ export default function AISettingsPage() {
                             ))}
                         </div>
                     ) : (
-                        <div className="flex items-center gap-3 py-1">
-                            <div className="text-[11.5px] text-muted-foreground">
-                                No profiles yet.
-                            </div>
+                        <div className="rounded-lg border border-border bg-card">
+                            <EmptyState
+                                compact
+                                icon={<KeyIcon />}
+                                title="No profiles yet"
+                                description="Add a profile to give specific agents their own OpenAI key, base URL or default model."
+                            />
                         </div>
                     )}
                 </section>
@@ -1021,22 +1093,37 @@ export default function AISettingsPage() {
 
 function SectionHeader({
     title,
-    description,
     action,
 }: {
     title: string;
-    description: string;
+    description?: string;
     action?: ReactNode;
 }) {
     return (
-        <div className="mb-3.5 flex items-baseline gap-2.5">
-            <h3 className="m-0 text-sm font-semibold leading-5 tracking-[-0.005em] text-foreground">
-                {title}
-            </h3>
-            <p className="m-0 text-xs leading-5 text-muted-foreground">
-                {description}
-            </p>
-            {action && <div className="ml-auto shrink-0">{action}</div>}
+        <div className="mb-4">
+            <SectionLabel action={action}>{title}</SectionLabel>
+        </div>
+    );
+}
+
+function FieldRow({
+    title,
+    description,
+    children,
+}: {
+    title: string;
+    description: string;
+    children: ReactNode;
+}) {
+    return (
+        <div className="grid items-start gap-x-8 gap-y-3 border-b border-border py-5 last:border-0 sm:grid-cols-[minmax(0,320px)_1fr]">
+            <div>
+                <h4 className="text-sm font-medium text-foreground">{title}</h4>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    {description}
+                </p>
+            </div>
+            <div className="min-w-0">{children}</div>
         </div>
     );
 }
@@ -1057,7 +1144,7 @@ function CompactField({
                 full && "sm:col-span-full",
             )}
         >
-            <span className="text-[11.5px] font-medium leading-none text-foreground">
+            <span className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
                 {label}
             </span>
             {children}
@@ -1154,9 +1241,9 @@ function ProviderKeyRow({
     children: ReactNode;
 }) {
     return (
-        <div className="space-y-2">
+        <div className="space-y-2 p-5">
             <div className="flex min-w-0 items-center gap-2.5">
-                <div className="grid h-6 w-6 shrink-0 place-items-center rounded-[5px] border border-border/60 bg-white">
+                <div className="grid h-6 w-6 shrink-0 place-items-center rounded-[5px] border border-border/60 bg-card">
                     {logo}
                 </div>
                 <div className="min-w-0">
@@ -1420,12 +1507,12 @@ function ProviderProfileDialog({
                         </Field>
                     </div>
 
-                    <div className="flex items-center justify-between gap-4 rounded-md border border-zinc-200 px-4 py-3 dark:border-zinc-800">
+                    <div className="flex items-center justify-between gap-4 rounded-md border border-border px-4 py-3 dark:border-border">
                         <div>
-                            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                            <div className="text-sm font-medium text-foreground">
                                 Enabled
                             </div>
-                            <div className="text-xs text-zinc-500">
+                            <div className="text-xs text-muted-foreground">
                                 Disabled profiles cannot be selected by agents.
                             </div>
                         </div>
@@ -1437,12 +1524,12 @@ function ProviderProfileDialog({
                         />
                     </div>
 
-                    <div className="flex items-center justify-between gap-4 rounded-md border border-zinc-200 px-4 py-3 dark:border-zinc-800">
+                    <div className="flex items-center justify-between gap-4 rounded-md border border-border px-4 py-3 dark:border-border">
                         <div>
-                            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                            <div className="text-sm font-medium text-foreground">
                                 Disable prompt caching
                             </div>
-                            <div className="text-xs text-zinc-500">
+                            <div className="text-xs text-muted-foreground">
                                 Skips the prompt_cache_key sent to this endpoint.
                                 Turn on for OpenAI-compatible base URLs that
                                 reject it.

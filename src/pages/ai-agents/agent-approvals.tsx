@@ -5,11 +5,14 @@ import {
   ArrowDownIcon,
   ArrowUpIcon,
   PlusIcon,
+  ShieldCheckIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { SectionLabel } from "@/components/ui/section-label";
+import { EmptyState } from "@/components/ui/empty-state";
+import SavePopup from "@/components/save-popup";
 import {
   Select,
   SelectContent,
@@ -128,77 +131,89 @@ export default function AgentApprovalsPage() {
     });
 
   return (
-    <div className="space-y-8">
-      <p className="text-[13px] leading-5 text-muted-foreground">
-        Resolution order: regex rules → MCP/virtual toggle → per-tool action → allow.
-        First match wins.{" "}
-        <a
-          href="https://wacht.dev/docs/guides/agents/approval-policy"
-          className="underline underline-offset-2"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Docs
-        </a>
-        .
-      </p>
+    <div>
+      <div className="mb-6">
+        <h3 className="text-base font-medium tracking-tight text-foreground">
+          Approvals
+        </h3>
+        <p className="mt-1 max-w-[640px] text-[13px] leading-6 text-muted-foreground">
+          Resolution order: regex rules → MCP/virtual toggle → per-tool action →
+          allow. The first match wins.{" "}
+          <a
+            href="https://wacht.dev/docs/guides/agents/approval-policy"
+            className="text-primary underline-offset-2 hover:underline"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Docs
+          </a>
+          .
+        </p>
+      </div>
 
-      <ToggleRow
-        title="Require approval for MCP tools"
-        description="Every mcp_* tool call goes through review unless overridden by a regex rule."
-        checked={form.require_approval_mcp}
-        onChange={(checked) =>
-          setForm((prev) => ({ ...prev, require_approval_mcp: checked }))
-        }
-      />
-
-      <div className="border-t border-border/40" />
-
-      <ToggleRow
-        title="Require approval for virtual tools"
-        description="Every v_* tool (Composio etc.) goes through review unless overridden by a regex rule."
-        checked={form.require_approval_virtual}
-        onChange={(checked) =>
-          setForm((prev) => ({ ...prev, require_approval_virtual: checked }))
-        }
-      />
-
-      <div className="border-t border-border/40" />
-
-      <div className="space-y-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="text-[14px] font-medium leading-5">Regex rules</div>
-            <p className="mt-0.5 text-[13px] leading-5 text-muted-foreground">
-              Match tool names with a regex; first matching rule wins.
-            </p>
+      <div className="flex flex-col gap-10">
+        <section className="flex flex-col gap-4">
+          <SectionLabel>Tool approval</SectionLabel>
+          <div className="divide-y divide-border">
+            <ToggleRow
+              title="Require approval for MCP tools"
+              description="Every mcp_* tool call goes through review unless overridden by a regex rule."
+              checked={form.require_approval_mcp}
+              onChange={(checked) =>
+                setForm((prev) => ({ ...prev, require_approval_mcp: checked }))
+              }
+            />
+            <ToggleRow
+              title="Require approval for virtual tools"
+              description="Every v_* tool (Composio etc.) goes through review unless overridden by a regex rule."
+              checked={form.require_approval_virtual}
+              onChange={(checked) =>
+                setForm((prev) => ({
+                  ...prev,
+                  require_approval_virtual: checked,
+                }))
+              }
+            />
           </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() =>
-              setForm((prev) => ({
-                ...prev,
-                rules: [...prev.rules, { pattern: "", action: "review" }],
-              }))
+        </section>
+
+        <section className="flex flex-col gap-4">
+          <SectionLabel
+            action={
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  setForm((prev) => ({
+                    ...prev,
+                    rules: [...prev.rules, { pattern: "", action: "review" }],
+                  }))
+                }
+              >
+                <PlusIcon className="mr-1 h-3.5 w-3.5" />
+                Add rule
+              </Button>
             }
           >
-            <PlusIcon className="mr-1 h-3.5 w-3.5" />
-            Add rule
-          </Button>
-        </div>
+            Regex rules
+          </SectionLabel>
 
-        {form.rules.length === 0 ? (
-          <p className="text-[13px] text-muted-foreground">No rules configured.</p>
-        ) : (
-          <ol className="space-y-2">
-            {form.rules.map((rule, index) => {
-              const invalid = isInvalidRegex(rule.pattern);
-              return (
-                <li key={index} className="flex items-center gap-2">
-                  <span className="font-mono text-[12px] text-muted-foreground">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
+          {form.rules.length === 0 ? (
+            <EmptyState
+              compact
+              icon={<ShieldCheckIcon />}
+              title="No rules yet"
+              description="Add a regex rule to override the approval action for tools matching a pattern. The first matching rule wins."
+            />
+          ) : (
+            <ol className="space-y-2.5">
+              {form.rules.map((rule, index) => {
+                const invalid = isInvalidRegex(rule.pattern);
+                return (
+                  <li key={index} className="flex items-center gap-3">
+                    <span className="font-mono text-[12px] text-muted-foreground">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
                   <Input
                     value={rule.pattern}
                     placeholder="^mcp_linear_"
@@ -229,6 +244,7 @@ export default function AgentApprovalsPage() {
                   <Button
                     size="icon"
                     variant="ghost"
+                    className="h-9 w-9 text-muted-foreground"
                     disabled={index === 0}
                     onClick={() => moveRule(index, -1)}
                   >
@@ -237,6 +253,7 @@ export default function AgentApprovalsPage() {
                   <Button
                     size="icon"
                     variant="ghost"
+                    className="h-9 w-9 text-muted-foreground"
                     disabled={index === form.rules.length - 1}
                     onClick={() => moveRule(index, 1)}
                   >
@@ -245,6 +262,7 @@ export default function AgentApprovalsPage() {
                   <Button
                     size="icon"
                     variant="ghost"
+                    className="h-9 w-9 text-muted-foreground hover:text-destructive"
                     onClick={() =>
                       setForm((prev) => ({
                         ...prev,
@@ -252,30 +270,22 @@ export default function AgentApprovalsPage() {
                       }))
                     }
                   >
-                    <TrashIcon className="h-3.5 w-3.5 text-destructive" />
+                    <TrashIcon className="h-3.5 w-3.5" />
                   </Button>
                 </li>
               );
             })}
-          </ol>
-        )}
+            </ol>
+          )}
+        </section>
       </div>
 
-      <div className="flex items-center justify-end gap-2 border-t border-border/40 pt-5">
-        <Button
-          variant="outline"
-          onClick={() => setForm(original)}
-          disabled={!isDirty || updateAgent.isPending}
-        >
-          Reset
-        </Button>
-        <Button
-          onClick={onSave}
-          disabled={!isDirty || ruleHasInvalidRegex || updateAgent.isPending}
-        >
-          {updateAgent.isPending ? "Saving…" : "Save"}
-        </Button>
-      </div>
+      <SavePopup
+        isDirty={isDirty}
+        isSaving={updateAgent.isPending}
+        onSave={onSave}
+        onCancel={() => setForm(original)}
+      />
     </div>
   );
 }
@@ -292,14 +302,20 @@ function ToggleRow({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <div className="flex items-start justify-between gap-3">
+    <div className="flex items-start justify-between gap-4 py-3.5">
       <div className="min-w-0">
-        <Label className="text-[14px] font-medium leading-5">{title}</Label>
-        <p className="mt-0.5 text-[13px] leading-5 text-muted-foreground">
+        <h3 className="text-sm font-medium leading-tight text-foreground">
+          {title}
+        </h3>
+        <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
           {description}
         </p>
       </div>
-      <Switch checked={checked} onCheckedChange={onChange} />
+      <Switch
+        checked={checked}
+        onCheckedChange={onChange}
+        className="mt-0.5 shrink-0"
+      />
     </div>
   );
 }

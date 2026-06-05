@@ -1,7 +1,4 @@
-import { Heading } from "@/components/ui/heading";
-import { Text } from "@/components/ui/text";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
-import { CodeEditor as SharedCodeEditor, type CodeLanguage } from "@/components/code-editor";
 import {
   IconCopy,
   IconCheck,
@@ -14,32 +11,42 @@ import {
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { PageHead } from "@/components/ui/page-head";
+import { Segmented } from "@/components/ui/segmented";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  CodeEditor as SharedCodeEditor,
+  type CodeLanguage,
+} from "@/components/code-editor";
 import { getCodeSnippets } from "./getting-started-snippets";
 
-function StepWrapper({
+function Step({
   number,
+  title,
+  body,
   children,
 }: {
   number: number;
+  title: React.ReactNode;
+  body: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-border/70 bg-card/70 p-5 md:p-6">
-      <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-7 w-7 items-center justify-center rounded-full border border-border/70 bg-muted/50 text-[11px] text-foreground">
-          {number}
+    <div className="grid grid-cols-[44px_1fr] gap-4 border-b border-border py-7 first:pt-0 last:border-b-0 md:gap-5">
+      <div className="pt-0.5">
+        <div className="flex size-8 items-center justify-center rounded-md bg-primary/10 font-mono text-[12px] font-medium text-primary">
+          {String(number).padStart(2, "0")}
         </div>
-        <div className="h-px flex-1 bg-border/60" />
       </div>
-      {children}
-    </section>
+      <div className="min-w-0">
+        <h3 className="text-base font-medium tracking-tight text-foreground">
+          {title}
+        </h3>
+        <p className="mt-1.5 mb-4 max-w-xl text-[13px] leading-relaxed text-muted-foreground">
+          {body}
+        </p>
+        {children}
+      </div>
+    </div>
   );
 }
 
@@ -57,6 +64,12 @@ function PackageManagerSwitcher({ command }: { command: string }) {
     return command;
   };
 
+  const fullCommand = getCommand();
+  const commandPkg = fullCommand.split(" ").pop() ?? "";
+  const commandHead = fullCommand
+    .slice(0, fullCommand.length - commandPkg.length)
+    .trimEnd();
+
   const handleCopy = () => {
     navigator.clipboard.writeText(getCommand());
     setCopied(true);
@@ -64,8 +77,8 @@ function PackageManagerSwitcher({ command }: { command: string }) {
   };
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border/70 bg-background">
-      <div className="flex items-center justify-between border-b border-border/70 bg-muted/30 px-2 py-1.5">
+    <div className="overflow-hidden rounded-lg border border-border bg-secondary">
+      <div className="flex items-center justify-between border-b border-border bg-secondary px-2 py-1.5">
         <div className="flex gap-1">
           {managers.map((m) => (
             <button
@@ -74,8 +87,8 @@ function PackageManagerSwitcher({ command }: { command: string }) {
               className={cn(
                 "px-2.5 py-1 text-xs font-medium rounded-md transition-all",
                 active === m
-                  ? "bg-background dark:bg-white/10 text-foreground dark:text-white shadow-sm"
-                  : "text-muted-foreground hover:text-foreground dark:hover:text-white",
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               {m}
@@ -95,9 +108,10 @@ function PackageManagerSwitcher({ command }: { command: string }) {
           )}
         </Button>
       </div>
-      <div className="p-3 text-[12px]">
-        <span className="select-none text-muted-foreground/50">$</span>{" "}
-        <span className="text-foreground">{getCommand()}</span>
+      <div className="p-3 font-mono text-[12px] leading-relaxed">
+        <span className="select-none text-muted-foreground">$</span>{" "}
+        <span style={{ color: "var(--code-keyword)" }}>{commandHead}</span>{" "}
+        <span style={{ color: "var(--code-string)" }}>{commandPkg}</span>
       </div>
     </div>
   );
@@ -137,7 +151,7 @@ function CodeEditor({
   };
 
   const lineCount = activeFile.code.split("\n").length;
-  const height = Math.min(Math.max(lineCount * 22, 100), 500);
+  const height = Math.min(lineCount * 20 + 24, 480);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(activeFile.code);
@@ -146,76 +160,73 @@ function CodeEditor({
   };
 
   return (
-    <div
-      className={cn(
-        "flex flex-col rounded-lg border border-border/30 overflow-hidden shadow-sm group bg-background",
-      )}
-    >
-      <div
-        className={cn(
-          "flex items-center justify-between border-b",
-          displayFiles.length > 1 ? "pr-3 pt-2" : "px-3 py-2.5",
-          "bg-muted/30 border-border/70",
-        )}
-      >
-        <div
-          className={cn(
-            "flex items-center no-scrollbar overflow-x-auto",
-            displayFiles.length > 1 ? "gap-1 px-2" : "gap-2",
-          )}
-        >
-          {displayFiles.length > 1 ? (
-            displayFiles.map((f, idx) => (
+    <div className="overflow-hidden rounded-lg border border-border bg-card">
+      <div className="flex items-center gap-2 border-b border-border bg-secondary pr-2 pl-3.5">
+        {displayFiles.length > 1 ? (
+          <div className="no-scrollbar -mb-px flex items-center gap-1 self-end overflow-x-auto pt-1.5">
+            {displayFiles.map((f, idx) => (
               <button
                 key={idx}
                 onClick={() => setActiveIndex(idx)}
                 className={cn(
-                  "px-3 py-[6px] text-[11px] font-medium tracking-tight whitespace-nowrap border-b-[2px] transition-colors relative top-[1px]",
+                  "whitespace-nowrap rounded-t-md border border-b-0 px-3 py-1.5 font-mono text-[11px] transition-colors",
                   activeIndex === idx
-                    ? "border-foreground/70 text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border/50",
+                    ? "border-border bg-card text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground",
                 )}
               >
                 {f.filename}
               </button>
-            ))
+            ))}
+          </div>
+        ) : (
+          <span className="py-2.5 font-mono text-[11px] text-muted-foreground">
+            {activeFile.filename}
+          </span>
+        )}
+        <div className="flex-1" />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleCopy}
+          className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground"
+        >
+          {copied ? (
+            <IconCheck className="h-3 w-3 text-emerald-500" />
           ) : (
-            <span
-              className={cn(
-                "text-[11px] font-medium tracking-tight text-muted-foreground",
-              )}
-            >
-              {activeFile.filename}
-            </span>
+            <IconCopy className="h-3 w-3" />
           )}
-        </div>
-        <div className="flex items-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              "h-5 w-5 transition-all flex-shrink-0",
-              "text-muted-foreground hover:text-foreground",
-            )}
-            onClick={handleCopy}
-          >
-            {copied ? (
-              <IconCheck className="h-3 w-3 text-emerald-500" />
-            ) : (
-              <IconCopy className="h-3 w-3" />
-            )}
-          </Button>
-        </div>
+        </Button>
       </div>
-      <div className="relative">
+      {activeFile.language === "ini" ? (
+        <pre className="no-scrollbar overflow-x-auto px-4 py-3 font-mono text-[12px] leading-relaxed">
+          {activeFile.code.split("\n").map((line, i) => {
+            const eq = line.indexOf("=");
+            if (eq === -1) {
+              return <div key={i}>{line || " "}</div>;
+            }
+            return (
+              <div key={i}>
+                <span style={{ color: "var(--code-keyword)" }}>
+                  {line.slice(0, eq)}
+                </span>
+                <span className="text-muted-foreground">=</span>
+                <span style={{ color: "var(--code-string)" }}>
+                  {line.slice(eq + 1)}
+                </span>
+              </div>
+            );
+          })}
+        </pre>
+      ) : (
         <SharedCodeEditor
           value={activeFile.code}
-          language={((activeFile.language === "ini" ? "text" : activeFile.language) || "typescript") as CodeLanguage}
+          language={(activeFile.language || "typescript") as CodeLanguage}
           readOnly
-          minHeight={height}
           chrome="flush"
+          minHeight={height}
         />
-      </div>
+      )}
     </div>
   );
 }
@@ -266,7 +277,7 @@ export default function GettingStartedPage() {
             id: "nodejs",
             name: "Node.js",
             icon: IconBrandNodejs,
-            pkg: "@wacht/node-sdk",
+            pkg: "@wacht/backend",
           },
         ],
     [frameworkCategory],
@@ -302,219 +313,169 @@ export default function GettingStartedPage() {
     framework,
   });
 
+  const exampleOptions: { value: string; label: string }[] =
+    frameworkCategory === "frontend"
+      ? [
+          { value: "auth", label: "Authentication" },
+          { value: "tenancy", label: "Multi-tenancy" },
+          { value: "notifications", label: "Notifications" },
+          { value: "api-keys", label: "API Keys" },
+          { value: "webhooks", label: "Webhooks" },
+        ]
+      : [{ value: "verification", label: "Verify Token" }];
+
   return (
     <div className="animate-in fade-in duration-300">
-      <div className="mb-8 space-y-5">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <Heading className="text-3xl tracking-tight md:text-2xl">
-            Quickstart
-          </Heading>
-          <div className="min-w-42.5">
-            <Select value={activeExample} onValueChange={setActiveExample}>
-              <SelectTrigger className="h-9 border-border/70 bg-background text-[12px] w-full">
-                <SelectValue placeholder="Select mode" />
-              </SelectTrigger>
-              <SelectContent align="end">
-                {frameworkCategory === "frontend" ? (
-                  <>
-                    <SelectItem value="auth">Authentication</SelectItem>
-                    <SelectItem value="tenancy">Multi-tenancy</SelectItem>
-                    <SelectItem value="notifications">Notifications</SelectItem>
-                    <SelectItem value="api-keys">API Keys</SelectItem>
-                    <SelectItem value="webhooks">Webhooks</SelectItem>
-                  </>
-                ) : (
-                  <>
-                    <SelectItem value="verification">Verify Token</SelectItem>
-                  </>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+      <PageHead
+        eyebrow="Integration"
+        title="Quickstart"
+        sub="Secure your application with Wacht in minutes. Pick a framework and follow the steps."
+        actions={
+          <Segmented
+            value={frameworkCategory}
+            onChange={(v) => setFrameworkCategory(v as "frontend" | "backend")}
+            options={[
+              { value: "frontend", label: "Frontend" },
+              { value: "backend", label: "Backend" },
+            ]}
+          />
+        }
+      />
 
-        <Text className="max-w-3xl text-[14px] leading-relaxed text-muted-foreground">
-          Secure your application with Wacht in minutes. Select your framework
-          and follow the steps to complete the integration.
-        </Text>
-
-        <div className="flex flex-col items-start gap-4 rounded-xl border border-border/70 bg-muted/20 p-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex rounded-lg border border-border/70 bg-background p-0.5">
-            <button
-              onClick={() => setFrameworkCategory("frontend")}
-              className={cn(
-                "rounded-md px-3.5 py-1 text-[12px] transition-all",
-                frameworkCategory === "frontend"
-                  ? "bg-muted text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              Frontend
-            </button>
-            <button
-              onClick={() => setFrameworkCategory("backend")}
-              className={cn(
-                "rounded-md px-3.5 py-1 text-[12px] transition-all",
-                frameworkCategory === "backend"
-                  ? "bg-muted text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              Backend
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {frameworks.map((f) => (
-              <button
-                key={f.id}
-                onClick={() => setFramework(f.id)}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 transition-all",
-                  activeFramework.id === f.id
-                    ? "border-border bg-muted text-foreground shadow-sm"
-                    : "border-border/60 bg-background text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <f.icon className="h-3.5 w-3.5" />
-                <span className="text-[12px] font-medium">{f.name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+      <div className="mb-7 flex flex-wrap items-center gap-3">
+        <Segmented
+          value={framework}
+          onChange={setFramework}
+          options={frameworks.map((f) => ({ value: f.id, label: f.name }))}
+        />
+        <div className="flex-1" />
+        <Segmented
+          value={activeExample}
+          onChange={setActiveExample}
+          options={exampleOptions}
+        />
       </div>
 
-      <div className="w-full space-y-4">
-        <StepWrapper number={1}>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-10">
-            <div className="space-y-2">
-              <h3 className="text-lg tracking-tight">
-                Install {activeFramework.name} SDK
-              </h3>
-              <p className="text-[13px] leading-relaxed text-muted-foreground">
-                Run the following command in your terminal to install the
-                official {activeFramework.name} library for Wacht.
-              </p>
-            </div>
-            <PackageManagerSwitcher command={code.installCmd} />
-          </div>
-        </StepWrapper>
+      <div className="w-full">
+        <Step
+          number={1}
+          title={`Install ${activeFramework.name} SDK`}
+          body={`Run the following command in your terminal to install the official ${activeFramework.name} library for Wacht.`}
+        >
+          <PackageManagerSwitcher command={code.installCmd} />
+        </Step>
 
-        <StepWrapper number={2}>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-10">
-            <div className="space-y-2">
-              <h3 className="text-lg tracking-tight">Configure API Keys</h3>
-              <p className="text-[13px] leading-relaxed text-muted-foreground">
-                Create a{" "}
-                <code className="px-1 py-0 bg-muted/50 rounded text-[11px]">
-                  .env
-                </code>{" "}
-                file in your project root and add your{" "}
-                {frameworkCategory === "frontend" ? "publishable" : "secret"}{" "}
-                key.
-              </p>
-            </div>
-            <CodeEditor
-              filename=".env"
-              language="ini"
-              code={
-                frameworkCategory === "frontend"
-                  ? `${framework === "nextjs" ? "NEXT_PUBLIC_WACHT_PUBLISHABLE_KEY" : "VITE_WACHT_PUBLISHABLE_KEY"}=${publishableKey}`
-                  : `WACHT_PUBLISHABLE_KEY=${publishableKey}\nWACHT_API_KEY=${secretKey}`
-              }
-            />
-          </div>
-        </StepWrapper>
+        <Step
+          number={2}
+          title="Configure API keys"
+          body={
+            <>
+              Create a{" "}
+              <code className="rounded bg-secondary px-1 font-mono text-[11px]">
+                .env
+              </code>{" "}
+              file in your project root and add your{" "}
+              {frameworkCategory === "frontend" ? "publishable" : "secret"} key.
+            </>
+          }
+        >
+          <CodeEditor
+            filename=".env"
+            language="ini"
+            code={
+              frameworkCategory === "frontend"
+                ? `${framework === "nextjs" ? "NEXT_PUBLIC_WACHT_PUBLISHABLE_KEY" : "VITE_WACHT_PUBLISHABLE_KEY"}=${publishableKey}`
+                : `WACHT_PUBLISHABLE_KEY=${publishableKey}\nWACHT_API_KEY=${secretKey}`
+            }
+          />
+        </Step>
 
-        <StepWrapper number={3}>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-10">
-            <div className="space-y-2">
-              <h3 className="text-lg tracking-tight">Initialize the Client</h3>
-              <p className="text-[13px] leading-relaxed text-muted-foreground">
-                {frameworkCategory === "frontend"
-                  ? "Wrap your application with the DeploymentProvider to provide auth context."
-                  : "Initialize the Wacht client in your backend application."}
-              </p>
-            </div>
+        <Step
+          number={3}
+          title="Initialize the client"
+          body={
+            frameworkCategory === "frontend"
+              ? "Wrap your application with the DeploymentProvider to provide auth context."
+              : "Initialize the Wacht client in your backend application."
+          }
+        >
+          <CodeEditor
+            filename={
+              frameworkCategory === "frontend"
+                ? activeFramework.id === "nextjs"
+                  ? "app/layout.tsx"
+                  : "main.tsx"
+                : activeFramework.id === "rust"
+                  ? "main.rs"
+                  : "src/index.ts"
+            }
+            language={activeFramework.id === "rust" ? "rust" : "typescript"}
+            code={code.setup}
+          />
+        </Step>
+
+        <Step
+          number={4}
+          title={
+            activeExample === "auth"
+              ? "Add Authentication UI"
+              : activeExample === "tenancy"
+                ? "Access Tenant Data"
+                : activeExample === "notifications"
+                  ? "Add Notification UI"
+                  : activeExample === "api-keys"
+                    ? "Manage API Keys"
+                    : activeExample === "webhooks" &&
+                        frameworkCategory === "frontend"
+                      ? "Monitor Webhooks"
+                      : activeExample === "verification"
+                        ? "Verify Session"
+                        : "Handle Events"
+          }
+          body={
+            activeExample === "auth"
+              ? "Protect your routes using the SignedIn and SignedOut components to control access."
+              : activeExample === "tenancy"
+                ? "Access organization and tenant context anywhere in your application."
+                : activeExample === "notifications"
+                  ? "Display a notification bell with unread badge and dropdown management."
+                  : activeExample === "api-keys"
+                    ? "Empower users to generate and revoke API keys with a ready-made UI."
+                    : activeExample === "webhooks" &&
+                        frameworkCategory === "frontend"
+                      ? "View webhook integrations, deliveries, and analytics directly in your app."
+                      : activeExample === "verification"
+                        ? "Verify incoming requests and retrieve session details in your API."
+                        : "Securely handle asynchronous events from Wacht using webhooks."
+          }
+        >
+          {Array.isArray(code.usage) ? (
+            <CodeEditor files={code.usage} />
+          ) : (
             <CodeEditor
               filename={
-                frameworkCategory === "frontend"
-                  ? activeFramework.id === "nextjs"
-                    ? "app/layout.tsx"
-                    : "main.tsx"
-                  : activeFramework.id === "rust"
-                    ? "main.rs"
-                    : "src/index.ts"
+                activeExample === "notifications"
+                  ? "navbar.tsx"
+                  : activeExample === "tenancy"
+                    ? "profile.tsx"
+                    : activeExample === "api-keys"
+                      ? "api-keys.tsx"
+                      : activeExample === "webhooks" &&
+                          frameworkCategory === "frontend"
+                        ? "webhooks.tsx"
+                        : activeExample === "verification"
+                          ? activeFramework.id === "rust"
+                            ? "middleware.rs"
+                            : "middleware.ts"
+                          : activeFramework.id === "nextjs"
+                            ? "page.tsx"
+                            : "App.tsx"
               }
               language={activeFramework.id === "rust" ? "rust" : "typescript"}
-              code={code.setup}
+              code={code.usage as string}
             />
-          </div>
-        </StepWrapper>
-
-        <StepWrapper number={4}>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-10">
-            <div className="space-y-2">
-              <h3 className="text-lg tracking-tight">
-                {activeExample === "auth"
-                  ? "Add Authentication UI"
-                  : activeExample === "tenancy"
-                    ? "Access Tenant Data"
-                    : activeExample === "notifications"
-                      ? "Add Notification UI"
-                      : activeExample === "api-keys"
-                        ? "Manage API Keys"
-                        : activeExample === "webhooks" &&
-                          frameworkCategory === "frontend"
-                          ? "Monitor Webhooks"
-                          : activeExample === "verification"
-                            ? "Verify Session"
-                            : "Handle Events"}
-              </h3>
-              <p className="text-[13px] leading-relaxed text-muted-foreground">
-                {activeExample === "auth"
-                  ? "Protect your routes using the SignedIn and SignedOut components to control access."
-                  : activeExample === "tenancy"
-                    ? "Access organization and tenant context anywhere in your application."
-                    : activeExample === "notifications"
-                      ? "Display a notification bell with unread badge and dropdown management."
-                      : activeExample === "api-keys"
-                        ? "Empower users to generate and revoke API keys with a ready-made UI."
-                        : activeExample === "webhooks" &&
-                          frameworkCategory === "frontend"
-                          ? "View webhook integrations, deliveries, and analytics directly in your app."
-                          : activeExample === "verification"
-                            ? "Verify incoming requests and retrieve session details in your API."
-                            : "Securely handle asynchronous events from Wacht using webhooks."}
-              </p>
-            </div>
-            {Array.isArray(code.usage) ? (
-              <CodeEditor files={code.usage} />
-            ) : (
-              <CodeEditor
-                filename={
-                  activeExample === "notifications"
-                    ? "navbar.tsx"
-                    : activeExample === "tenancy"
-                      ? "profile.tsx"
-                      : activeExample === "api-keys"
-                        ? "api-keys.tsx"
-                        : activeExample === "webhooks" &&
-                          frameworkCategory === "frontend"
-                          ? "webhooks.tsx"
-                          : activeExample === "verification"
-                            ? activeFramework.id === "rust"
-                              ? "middleware.rs"
-                              : "middleware.ts"
-                            : activeFramework.id === "nextjs"
-                              ? "page.tsx"
-                              : "App.tsx"
-                }
-                language={activeFramework.id === "rust" ? "rust" : "typescript"}
-                code={code.usage as string}
-              />
-            )}
-          </div>
-        </StepWrapper>
+          )}
+        </Step>
       </div>
     </div>
   );

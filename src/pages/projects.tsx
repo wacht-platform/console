@@ -23,6 +23,8 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { PageHead } from "@/components/ui/page-head";
+import { Pill } from "@/components/ui/pill";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { SkeletonTableRows } from "@/components/ui/app-skeleton";
 import {
@@ -33,7 +35,6 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/app-table";
-import { Text } from "@/components/ui/text";
 import { BillingSetupDialog } from "@/components/billing-setup-dialog";
 import { CreateProjectDialog } from "@/components/create-project-dialog";
 import { useBillingAccount } from "@/lib/api/hooks/use-billing";
@@ -41,7 +42,6 @@ import { useProjects } from "@/lib/api/hooks/use-projects";
 import { useProjectStore } from "@/lib/store/project";
 import { cn } from "@/lib/utils";
 import type { ProjectWithDeployments } from "@/types/project";
-import type { Deployment } from "@/types/deployment";
 import { useTour, useTourCompletion } from "@/lib/tour";
 
 type Mode = "all" | "production" | "staging";
@@ -166,28 +166,47 @@ export default function ProjectsPage() {
             </Navbar>
 
             <main className="mx-auto max-w-7xl px-6 pt-14 pb-20 lg:px-8">
-                <header className="mt-10 mb-6 flex flex-col gap-1">
-                    <h1 className="text-2xl font-normal tracking-tight text-foreground">
-                        Projects
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        Manage your projects and jump into a deployment.
-                    </p>
-                </header>
+                <PageHead
+                    className="mt-10"
+                    eyebrow="Workspace"
+                    title="Projects"
+                    sub="Manage your projects and jump into a deployment."
+                    actions={
+                        <Button
+                            data-tour-id="projects-create-button"
+                            onClick={handleCreateProject}
+                            className="gap-2"
+                        >
+                            <PlusIcon className="h-4 w-4" />
+                            New project
+                        </Button>
+                    }
+                />
 
                 <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    <StatTile label="Total" value={allProjects.length} />
+                    <StatTile
+                        label="Total"
+                        value={allProjects.length}
+                        foot="all environments"
+                    />
                     <StatTile
                         label="Production"
                         value={productionCount}
                         tone="emerald"
+                        foot="live, accepting traffic"
                     />
                     <StatTile
                         label="Staging"
                         value={stagingCount}
                         tone="sky"
+                        foot="pre-production"
                     />
-                    <StatTile label="New this month" value={createdThisMonth} />
+                    <StatTile
+                        label="New this month"
+                        value={createdThisMonth}
+                        tone="amber"
+                        foot="created in this period"
+                    />
                 </div>
 
                 <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -207,27 +226,26 @@ export default function ProjectsPage() {
                         onValueChange={(value) => {
                             if (value) setMode(value as Mode);
                         }}
-                        variant="outline"
+                        variant="default"
                         size="sm"
-                        className="*:data-[slot=toggle-group-item]:!px-3.5 *:data-[slot=toggle-group-item]:!text-[13px]"
+                        className="gap-0.5! rounded-md border border-border bg-secondary p-0.5 sm:ml-auto"
                     >
-                        <ToggleGroupItem value="all">All</ToggleGroupItem>
-                        <ToggleGroupItem value="production">
-                            Production
-                        </ToggleGroupItem>
-                        <ToggleGroupItem value="staging">
-                            Staging
-                        </ToggleGroupItem>
+                        {(
+                            [
+                                ["all", "All"],
+                                ["production", "Production"],
+                                ["staging", "Staging"],
+                            ] as const
+                        ).map(([value, label]) => (
+                            <ToggleGroupItem
+                                key={value}
+                                value={value}
+                                className="h-6! rounded-sm! px-3! text-[13px]! font-medium text-muted-foreground hover:bg-transparent hover:text-foreground data-[state=on]:bg-card! data-[state=on]:text-foreground! data-[state=on]:shadow-[0_0_0_0.5px_var(--input),0_1px_2px_rgba(0,0,0,0.06)]"
+                            >
+                                {label}
+                            </ToggleGroupItem>
+                        ))}
                     </ToggleGroup>
-
-                    <Button
-                        data-tour-id="projects-create-button"
-                        onClick={handleCreateProject}
-                        className="gap-2 sm:ml-auto"
-                    >
-                        <PlusIcon className="h-4 w-4" />
-                        New project
-                    </Button>
                 </div>
 
                 <ProjectsTable
@@ -265,11 +283,11 @@ export default function ProjectsPage() {
                             <DialogTitle>Subscription Not Complete</DialogTitle>
                         </div>
                         <DialogDescription>
-                            <Text>
+                            <p className="text-sm text-muted-foreground">
                                 Your billing account has been created but the
                                 subscription payment has not been completed yet.
-                            </Text>
-                            <ul className="mt-3 list-inside list-disc space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                            </p>
+                            <ul className="mt-3 list-inside list-disc space-y-1 text-sm text-muted-foreground">
                                 <li>
                                     You closed checkout before finishing payment
                                 </li>
@@ -307,26 +325,35 @@ function StatTile({
     label,
     value,
     tone,
+    foot,
 }: {
     label: string;
     value: number;
-    tone?: "emerald" | "sky";
+    tone?: "emerald" | "sky" | "amber";
+    foot?: string;
 }) {
     const dotColor =
         tone === "emerald"
             ? "bg-emerald-500"
             : tone === "sky"
               ? "bg-sky-500"
-              : "bg-muted-foreground/40";
+              : tone === "amber"
+                ? "bg-amber-500"
+                : "bg-muted-foreground/40";
     return (
-        <div className="rounded-lg border border-border/70 bg-card px-4 py-3">
-            <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
-                <span className={cn("h-1.5 w-1.5 rounded-full", dotColor)} />
+        <div className="flex flex-col gap-2 rounded-lg border border-border bg-card px-4 py-4">
+            <div className="flex items-center gap-2 font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                <span className={cn("size-1.5 rounded-full", dotColor)} />
                 {label}
             </div>
-            <div className="mt-1 text-2xl font-normal tabular-nums text-foreground">
+            <div className="text-[28px] leading-none font-medium tracking-tight tabular-nums text-foreground">
                 {value}
             </div>
+            {foot ? (
+                <div className="font-mono text-[11px] text-muted-foreground/70">
+                    {foot}
+                </div>
+            ) : null}
         </div>
     );
 }
@@ -445,7 +472,10 @@ function ProjectRow({
 
     const lastTouched = mostRecentDeploymentTime(project);
     const initials = project.name.slice(0, 2).toUpperCase();
-    const hostSummary = hostsLabel(production, staging);
+    const hosts = [
+        production?.frontend_host,
+        staging?.frontend_host,
+    ].filter(Boolean) as string[];
 
     return (
         <TableRow
@@ -471,19 +501,34 @@ function ProjectRow({
             </TableCell>
             <TableCell className="hidden md:table-cell">
                 <div className="flex items-center gap-1.5">
-                    {production ? <EnvPill tone="emerald" label="Production" /> : null}
-                    {staging ? <EnvPill tone="sky" label="Staging" /> : null}
+                    {production ? <Pill tone="ok">production</Pill> : null}
+                    {staging ? <Pill tone="info">staging</Pill> : null}
                     {!production && !staging ? (
                         <span className="text-xs text-muted-foreground">—</span>
                     ) : null}
                 </div>
             </TableCell>
-            <TableCell className="hidden max-w-[280px] lg:table-cell">
-                <span className="block truncate font-mono text-xs text-muted-foreground">
-                    {hostSummary}
-                </span>
+            <TableCell className="hidden max-w-[320px] lg:table-cell">
+                {hosts.length === 0 ? (
+                    <span className="font-mono text-xs text-muted-foreground/60">
+                        No deployment yet
+                    </span>
+                ) : (
+                    <div className="flex flex-col gap-0.5 font-mono text-xs text-secondary-foreground">
+                        {hosts.map((host, index) => (
+                            <span key={host} className="truncate">
+                                {index > 0 ? (
+                                    <span className="text-muted-foreground/50">
+                                        ↳{" "}
+                                    </span>
+                                ) : null}
+                                {host}
+                            </span>
+                        ))}
+                    </div>
+                )}
             </TableCell>
-            <TableCell className="hidden text-xs text-muted-foreground sm:table-cell">
+            <TableCell className="hidden font-mono text-xs text-muted-foreground sm:table-cell">
                 {relativeTime(new Date(lastTouched).toISOString())}
             </TableCell>
             <TableCell className="w-10 text-muted-foreground">
@@ -493,29 +538,3 @@ function ProjectRow({
     );
 }
 
-function hostsLabel(
-    production: Deployment | undefined,
-    staging: Deployment | undefined,
-) {
-    const parts: string[] = [];
-    if (production?.frontend_host) parts.push(production.frontend_host);
-    if (staging?.frontend_host) parts.push(staging.frontend_host);
-    if (parts.length === 0) return "No deployment yet";
-    return parts.join("  ·  ");
-}
-
-function EnvPill({
-    tone,
-    label,
-}: {
-    tone: "emerald" | "sky";
-    label: string;
-}) {
-    const dotColor = tone === "emerald" ? "bg-emerald-500" : "bg-sky-500";
-    return (
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-background px-2 py-0.5 text-[11px] text-foreground/80">
-            <span className={cn("h-1.5 w-1.5 rounded-full", dotColor)} />
-            {label}
-        </span>
-    );
-}

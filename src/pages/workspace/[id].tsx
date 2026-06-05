@@ -14,7 +14,6 @@ import { InputGroup } from "@/components/ui/input-group";
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
 import {
     Table,
     TableHeader,
@@ -33,15 +32,16 @@ import { EditWorkspaceMemberDialog } from "@/components/workspaces/EditWorkspace
 import { useDeleteWorkspaceRole } from "@/lib/api/hooks/use-workspace-role-mutations";
 import { useRemoveWorkspaceMember } from "@/lib/api/hooks/use-workspace-mutations";
 import { SegmentManager } from "@/components/segments/SegmentManager";
-import { EmptyState } from "@/components/ui/empty-state";
+import { Tag } from "@/components/ui/tag";
+import { TableEmptyRow } from "@/components/ui/table-empty-row";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { WorkspaceRole } from "@/types/organization";
 import { toast } from "sonner";
 
 import {
-    PencilIcon,
+    PencilSquareIcon,
     TrashIcon,
-    PlusIcon,
+    UsersIcon,
     MagnifyingGlassIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
@@ -53,7 +53,7 @@ export default function WorkspaceDetailsPage() {
     const workspaceId = id;
 
     // Tab state
-    const [activeTab, setActiveTab] = useState("overview");
+    const [activeTab, setActiveTab] = useState("members");
 
     // Member search and sort state
     const [search, setSearch] = useState("");
@@ -262,174 +262,125 @@ export default function WorkspaceDetailsPage() {
     };
 
     return (
-        <div className="space-y-6">
-            {/* Header with Stats */}
-            <div className="space-y-6">
-                <div className="flex flex-col gap-6 sm:flex-row sm:justify-between sm:items-start">
-                    <div className="flex items-start gap-4">
-                        <Avatar className="h-16 w-16 rounded-none border border-zinc-200 dark:border-zinc-800">
-                            <AvatarImage
-                                src={workspace.image_url}
-                                alt={workspace.name}
-                                className="object-cover"
-                            />
-                            <AvatarFallback className="rounded-none text-lg">
-                                {workspace.name.substring(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <h1 className="text-2xl font-normal text-zinc-900 dark:text-zinc-50">
-                                {workspace.name}
-                            </h1>
-                            <div className="mt-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-                                <span>Workspace ID: {workspace.id}</span>
-                                <span>•</span>
-                                <span>
-                                    Created{" "}
-                                    {format(
-                                        new Date(workspace.created_at),
-                                        "MMM d, yyyy",
-                                    )}
-                                </span>
-                            </div>
-                            {workspace.description && (
-                                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 max-w-2xl">
-                                    {workspace.description}
-                                </p>
-                            )}
+        <div className="flex flex-col gap-6">
+            {/* Header */}
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-start gap-4">
+                    <Avatar className="size-14">
+                        <AvatarImage
+                            src={workspace.image_url}
+                            alt={workspace.name}
+                            className="object-cover"
+                        />
+                        <AvatarFallback>
+                            {workspace.name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                        <div className="mb-1.5 truncate font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                            Workspace · {workspace.id}
                         </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <Button
-                            variant="outline"
-                            onClick={() => setEditModalOpen(true)}
-                        >
-                            <PencilIcon className="mr-2 h-4 w-4" />
-                            Edit Workspace
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={() => setDeleteModalOpen(true)}
-                        >
-                            <TrashIcon className="mr-2 h-4 w-4" />
-                            Delete
-                        </Button>
+                        <h1 className="text-2xl font-medium tracking-tight text-foreground">
+                            {workspace.name}
+                        </h1>
+                        {workspace.description && (
+                            <p className="mt-1.5 max-w-xl text-sm text-muted-foreground">
+                                {workspace.description}
+                            </p>
+                        )}
                     </div>
                 </div>
-
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <Card>
-                        <CardContent className="pt-6">
-                            <div className="text-2xl font-normal text-zinc-900 dark:text-zinc-50">
-                                {workspace.member_count ?? 0}
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                Total Members
-                            </p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="pt-6">
-                            <div className="text-2xl font-normal text-zinc-900 dark:text-zinc-50">
-                                {workspace.roles ? workspace.roles.length : 0}
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                Roles
-                            </p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="pt-6">
-                            <div className="text-2xl font-normal text-zinc-900 dark:text-zinc-50">
-                                {workspace.organization_name}
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                Organization
-                            </p>
-                        </CardContent>
-                    </Card>
+                <div className="flex shrink-0 items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => setEditModalOpen(true)}
+                    >
+                        <PencilSquareIcon className="h-4 w-4" />
+                        Edit workspace
+                    </Button>
+                    <Button
+                        variant="destructive"
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => setDeleteModalOpen(true)}
+                    >
+                        <TrashIcon className="h-4 w-4" />
+                        Delete
+                    </Button>
                 </div>
             </div>
 
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+                {/* Left rail — facts */}
+                <div className="lg:col-span-4">
+                    <div className="rounded-lg border border-border bg-card p-5">
+                        <DefItem label="Workspace ID" value={workspace.id} mono />
+                        <DefItem
+                            label="Parent org"
+                            value={workspace.organization_name || "—"}
+                        />
+                        <DefItem
+                            label="Created"
+                            value={
+                                workspace.created_at
+                                    ? format(
+                                          new Date(workspace.created_at),
+                                          "MMM d, yyyy",
+                                      )
+                                    : "—"
+                            }
+                        />
+                        <DefItem
+                            label="Last updated"
+                            value={
+                                workspace.updated_at
+                                    ? format(
+                                          new Date(workspace.updated_at),
+                                          "MMM d, yyyy",
+                                      )
+                                    : "—"
+                            }
+                        />
+                        <hr className="my-3 border-border" />
+                        <DefItem
+                            label="Members"
+                            value={workspace.member_count ?? 0}
+                        />
+                        <DefItem
+                            label="Roles"
+                            value={workspace.roles?.length ?? 0}
+                        />
+                        <hr className="my-3 border-border" />
+                        <div className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                            Segments
+                        </div>
+                        <SegmentManager
+                            targetId={workspace.id}
+                            targetType="workspace"
+                            currentSegments={workspace.segments}
+                        />
+                    </div>
+                </div>
+
+                {/* Right — tabs */}
+                <div className="min-w-0 lg:col-span-8">
             <Tabs
                 value={activeTab}
                 onValueChange={setActiveTab}
                 className="w-full"
             >
-                <TabsList>
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsList variant="pill">
                     <TabsTrigger value="members">Members</TabsTrigger>
                     <TabsTrigger value="roles">Roles</TabsTrigger>
                     <TabsTrigger value="metadata">Metadata</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="overview" className="mt-6">
-                    <div className="pt-6">
-                        <div className="mb-8">
-                            <h3 className="text-base text-zinc-900 dark:text-zinc-100 mb-4">
-                                Workspace Details
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                <div className="space-y-1">
-                                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                        Workspace ID
-                                    </p>
-                                    <p className="text-sm text-zinc-900 dark:text-zinc-100 font-mono">
-                                        {workspace.id}
-                                    </p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                        Parent Organization
-                                    </p>
-                                    <p className="text-sm text-zinc-900 dark:text-zinc-100">
-                                        {workspace.organization_name}
-                                    </p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                        Created
-                                    </p>
-                                    <p className="text-sm text-zinc-900 dark:text-zinc-100">
-                                        {format(
-                                            new Date(workspace.created_at),
-                                            "MMM d, yyyy",
-                                        )}
-                                    </p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                        Last Updated
-                                    </p>
-                                    <p className="text-sm text-zinc-900 dark:text-zinc-100">
-                                        {format(
-                                            new Date(workspace.updated_at),
-                                            "MMM d, yyyy",
-                                        )}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Segments Section */}
-                        <div className="pt-6 border-t border-gray-100 dark:border-zinc-800">
-                            <h3 className="text-sm text-zinc-900 dark:text-zinc-100 mb-3">
-                                Segments
-                            </h3>
-                            <SegmentManager
-                                targetId={workspace.id}
-                                targetType="workspace"
-                                currentSegments={workspace.segments}
-                            />
-                        </div>
-                    </div>
-                </TabsContent>
-
-                <TabsContent value="members" className="mt-6">
-                    <div className="pt-6">
+                <TabsContent value="members">
+                    <div className="pt-4">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-base text-zinc-900 dark:text-zinc-100">
+                            <h3 className="text-base font-medium text-foreground">
                                 Workspace Members
                             </h3>
                             <Button onClick={() => setAddMemberModalOpen(true)}>
@@ -441,27 +392,40 @@ export default function WorkspaceDetailsPage() {
                             <InlineLoader />
                         ) : !membersData?.data ||
                           membersData.data.length === 0 ? (
-                            <EmptyState
-                                title={
-                                    search
-                                        ? "No members found"
-                                        : "No members added yet"
-                                }
-                                description={
-                                    search
-                                        ? "Try adjusting your search terms."
-                                        : "Get started by adding your first workspace member."
-                                }
-                                actionLabel={search ? undefined : "Add Member"}
-                                onAction={
-                                    search
-                                        ? undefined
-                                        : () => setAddMemberModalOpen(true)
-                                }
-                                icon={
-                                    <PlusIcon className="h-10 w-10 text-zinc-400" />
-                                }
-                            />
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Email</TableHead>
+                                        <TableHead>Roles</TableHead>
+                                        <TableHead className="text-right">
+                                            Actions
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={4}
+                                            className="h-32 text-center"
+                                        >
+                                            <div className="flex flex-col items-center justify-center gap-1.5 py-6">
+                                                <UsersIcon className="size-8 text-muted-foreground" />
+                                                <p className="text-sm font-medium text-foreground">
+                                                    {search
+                                                        ? "No members found"
+                                                        : "No members added yet"}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {search
+                                                        ? "Try adjusting your search."
+                                                        : "Add your first member from the button above."}
+                                                </p>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
                         ) : (
                             <>
                                 {/* Search and Sort Controls */}
@@ -545,7 +509,7 @@ export default function WorkspaceDetailsPage() {
                                     </div>
                                 </div>
 
-                                <div className="border rounded-md">
+                                <div className="contents">
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
@@ -585,22 +549,37 @@ export default function WorkspaceDetailsPage() {
                                                             member.primary_email_address
                                                         }
                                                     </TableCell>
-                                                    <TableCell className="text-sm text-muted-foreground">
+                                                    <TableCell>
                                                         {member.roles &&
-                                                        member.roles.length > 0
-                                                            ? member.roles
-                                                                  .map(
-                                                                      (role) =>
-                                                                          role.name,
-                                                                  )
-                                                                  .join(", ")
-                                                            : "No roles"}
+                                                        member.roles.length >
+                                                            0 ? (
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {member.roles.map(
+                                                                    (role) => (
+                                                                        <Tag
+                                                                            key={
+                                                                                role.id
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                role.name
+                                                                            }
+                                                                        </Tag>
+                                                                    ),
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-muted-foreground">
+                                                                No roles
+                                                            </span>
+                                                        )}
                                                     </TableCell>
                                                     <TableCell className="text-right">
-                                                        <div className="flex items-center justify-end gap-2">
+                                                        <div className="flex items-center justify-end gap-1">
                                                             <Button
                                                                 variant="ghost"
-                                                                size="icon"
+                                                                size="icon-sm"
+                                                                className="text-muted-foreground hover:text-foreground"
                                                                 onClick={() => {
                                                                     setSelectedMember(
                                                                         member,
@@ -610,14 +589,14 @@ export default function WorkspaceDetailsPage() {
                                                                     );
                                                                 }}
                                                             >
-                                                                <PencilIcon className="h-4 w-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
+                                                                <PencilSquareIcon className="size-4" />
                                                                 <span className="sr-only">
                                                                     Edit
                                                                 </span>
                                                             </Button>
                                                             <Button
                                                                 variant="ghost"
-                                                                size="icon"
+                                                                size="icon-sm"
                                                                 onClick={() => {
                                                                     setSelectedMember(
                                                                         member,
@@ -626,9 +605,9 @@ export default function WorkspaceDetailsPage() {
                                                                         true,
                                                                     );
                                                                 }}
-                                                                className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                                                             >
-                                                                <TrashIcon className="h-4 w-4" />
+                                                                <TrashIcon className="size-4" />
                                                                 <span className="sr-only">
                                                                     Remove
                                                                 </span>
@@ -642,8 +621,8 @@ export default function WorkspaceDetailsPage() {
                                 </div>
 
                                 {/* Pagination Controls */}
-                                <div className="flex items-center justify-between mt-6 border-gray-100 dark:border-zinc-800">
-                                    <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                                <div className="flex items-center justify-between mt-6 border-border">
+                                    <div className="text-sm text-muted-foreground">
                                         Showing {page * pageSize + 1} to{" "}
                                         {Math.min(
                                             (page + 1) * pageSize,
@@ -681,10 +660,10 @@ export default function WorkspaceDetailsPage() {
                     </div>
                 </TabsContent>
 
-                <TabsContent value="roles" className="mt-6">
-                    <div className="pt-6">
+                <TabsContent value="roles">
+                    <div className="pt-4">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-base text-zinc-900 dark:text-zinc-100">
+                            <h3 className="text-base font-medium text-foreground">
                                 Workspace Roles
                             </h3>
                             {workspace.roles && workspace.roles.length > 0 && (
@@ -696,17 +675,38 @@ export default function WorkspaceDetailsPage() {
                             )}
                         </div>
                         {!workspace.roles || workspace.roles.length === 0 ? (
-                            <EmptyState
-                                title="No custom roles created yet"
-                                description="Create custom roles to manage permissions within your workspace."
-                                actionLabel="Create Role"
-                                onAction={() => setCreateRoleModalOpen(true)}
-                                icon={
-                                    <PlusIcon className="h-10 w-10 text-zinc-400" />
-                                }
-                            />
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Permissions</TableHead>
+                                        <TableHead className="text-right">
+                                            Actions
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    <TableEmptyRow
+                                        colSpan={3}
+                                        icon={
+                                            <UsersIcon className="h-8 w-8 text-muted-foreground/50" />
+                                        }
+                                        title="No custom roles created yet"
+                                        description="Create custom roles to manage permissions within your workspace."
+                                        action={
+                                            <Button
+                                                onClick={() =>
+                                                    setCreateRoleModalOpen(true)
+                                                }
+                                            >
+                                                Create Role
+                                            </Button>
+                                        }
+                                    />
+                                </TableBody>
+                            </Table>
                         ) : (
-                            <div className="border rounded-md">
+                            <div className="contents">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
@@ -721,52 +721,63 @@ export default function WorkspaceDetailsPage() {
                                         {workspace.roles.map((role) => (
                                             <TableRow key={role.id}>
                                                 <TableCell>
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-sm">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-medium text-foreground">
                                                             {role.name}
                                                         </span>
                                                         {role.is_deployment_level && (
-                                                            <span className="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-900/20 px-2 py-1 text-xs font-normal text-blue-700 dark:text-blue-400 ring-1 ring-inset ring-blue-700/10 dark:ring-blue-400/20">
-                                                                Default
-                                                            </span>
+                                                            <Tag>default</Tag>
                                                         )}
                                                     </div>
                                                 </TableCell>
-                                                <TableCell className="text-sm text-muted-foreground">
-                                                    {role.permissions.length}{" "}
-                                                    permissions
-                                                    {role.is_deployment_level &&
-                                                        " • Cannot be edited or deleted"}
+                                                <TableCell>
+                                                    <span className="text-secondary-foreground">
+                                                        {
+                                                            role.permissions
+                                                                .length
+                                                        }{" "}
+                                                        permission
+                                                        {role.permissions
+                                                            .length === 1
+                                                            ? ""
+                                                            : "s"}
+                                                    </span>
+                                                    {role.is_deployment_level && (
+                                                        <span className="ml-2 text-muted-foreground">
+                                                            · locked
+                                                        </span>
+                                                    )}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <div className="flex items-center justify-end gap-2">
+                                                    <div className="flex items-center justify-end gap-1">
                                                         {!role.is_deployment_level && (
                                                             <>
                                                                 <Button
                                                                     variant="ghost"
-                                                                    size="icon"
+                                                                    size="icon-sm"
+                                                                    className="text-muted-foreground hover:text-foreground"
                                                                     onClick={() =>
                                                                         handleEditRole(
                                                                             role,
                                                                         )
                                                                     }
                                                                 >
-                                                                    <PencilIcon className="h-4 w-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
+                                                                    <PencilSquareIcon className="size-4" />
                                                                     <span className="sr-only">
                                                                         Edit
                                                                     </span>
                                                                 </Button>
                                                                 <Button
                                                                     variant="ghost"
-                                                                    size="icon"
+                                                                    size="icon-sm"
                                                                     onClick={() =>
                                                                         handleDeleteRole(
                                                                             role,
                                                                         )
                                                                     }
-                                                                    className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                                                                 >
-                                                                    <TrashIcon className="h-4 w-4" />
+                                                                    <TrashIcon className="size-4" />
                                                                     <span className="sr-only">
                                                                         Delete
                                                                     </span>
@@ -784,12 +795,12 @@ export default function WorkspaceDetailsPage() {
                     </div>
                 </TabsContent>
 
-                <TabsContent value="metadata" className="mt-6">
+                <TabsContent value="metadata">
                     <div className="px-4 py-6 space-y-8">
                         {/* Public Metadata */}
                         <div>
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-base text-zinc-900 dark:text-zinc-100">
+                                <h3 className="text-base font-medium text-foreground">
                                     Public Metadata
                                 </h3>
                                 <div className="flex gap-2">
@@ -819,13 +830,13 @@ export default function WorkspaceDetailsPage() {
                                                 setIsEditingPublicMetadata(true)
                                             }
                                         >
-                                            <PencilIcon className="mr-2 h-4 w-4" />
+                                            <PencilSquareIcon className="mr-2 h-4 w-4" />
                                             Edit Public Metadata
                                         </Button>
                                     )}
                                 </div>
                             </div>
-                            <div className="border border-gray-200 dark:border-zinc-800 rounded-lg overflow-hidden">
+                            <div className="border border-border rounded-lg overflow-hidden">
                                 <CodeEditor
                                     language="json"
                                     minHeight={200}
@@ -841,7 +852,7 @@ export default function WorkspaceDetailsPage() {
                         {/* Private Metadata */}
                         <div>
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg text-zinc-900 dark:text-zinc-100">
+                                <h3 className="text-base font-medium text-foreground">
                                     Private Metadata
                                 </h3>
                                 <div className="flex gap-2">
@@ -873,13 +884,13 @@ export default function WorkspaceDetailsPage() {
                                                 )
                                             }
                                         >
-                                            <PencilIcon className="mr-2 h-4 w-4" />
+                                            <PencilSquareIcon className="mr-2 h-4 w-4" />
                                             Edit Private Metadata
                                         </Button>
                                     )}
                                 </div>
                             </div>
-                            <div className="border border-gray-200 dark:border-zinc-800 rounded-lg overflow-hidden">
+                            <div className="border border-border rounded-lg overflow-hidden">
                                 <CodeEditor
                                     language="json"
                                     minHeight={200}
@@ -894,6 +905,8 @@ export default function WorkspaceDetailsPage() {
                     </div>
                 </TabsContent>
             </Tabs>
+                </div>
+            </div>
 
             {/* Edit Workspace Dialog */}
             <EditWorkspaceDialog
@@ -993,6 +1006,35 @@ export default function WorkspaceDetailsPage() {
                 confirmText="Remove Member"
                 isLoading={removeMember.isPending}
             />
+        </div>
+    );
+}
+
+function DefItem({
+    label,
+    value,
+    mono = false,
+    muted = false,
+}: {
+    label: string;
+    value: string | number;
+    mono?: boolean;
+    muted?: boolean;
+}) {
+    return (
+        <div className="flex items-baseline justify-between gap-3 py-1.5">
+            <span className="shrink-0 font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                {label}
+            </span>
+            <span
+                className={
+                    "truncate text-right text-xs " +
+                    (mono ? "font-mono " : "") +
+                    (muted ? "text-muted-foreground" : "text-foreground")
+                }
+            >
+                {value}
+            </span>
         </div>
     );
 }

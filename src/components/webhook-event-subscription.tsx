@@ -51,8 +51,8 @@ export function WebhookEventSubscription({
   };
 
   return (
-    <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
-      <div className="px-4 py-3 bg-white dark:bg-zinc-900">
+    <div className="border border-border rounded-lg overflow-hidden">
+      <div className="px-4 py-3 bg-card">
         <div className="flex items-start gap-3">
           <Checkbox
             checked={isSubscribed}
@@ -64,7 +64,7 @@ export function WebhookEventSubscription({
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                  <span className="text-sm font-medium text-foreground">
                     {event.event_name}
                   </span>
                   {hasFilters && (
@@ -75,7 +75,7 @@ export function WebhookEventSubscription({
                   )}
                 </div>
                 {event.description && (
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {event.description}
                   </p>
                 )}
@@ -106,7 +106,7 @@ export function WebhookEventSubscription({
       </div>
 
       {isSubscribed && expanded && (
-        <div className="px-4 py-3 bg-zinc-50 dark:bg-zinc-900/50 border-t border-zinc-200 dark:border-zinc-800">
+        <div className="px-4 py-3 bg-secondary border-t border-border">
           <WebhookFilterBuilder
             value={subscription.filter_rules}
             onChange={handleFilterChange}

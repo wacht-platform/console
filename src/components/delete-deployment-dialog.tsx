@@ -102,7 +102,7 @@ export function DeleteDeploymentDialog({
 
           <Field>
             <Label>
-              Type <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm">
+              Type <code className="bg-secondary px-1 py-0.5 rounded text-sm">
                 {expectedText}
               </code> to confirm deletion
             </Label>

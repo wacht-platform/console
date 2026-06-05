@@ -48,7 +48,6 @@ export function ApplicationLayout() {
         // of which tab the user happens to be on right now.
         const agentTabs = new Set([
             "approvals",
-            "debug",
             "hooks",
             "knowledge-bases",
             "models",
@@ -141,11 +140,11 @@ export function ApplicationLayout() {
 
     if (notFound) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-zinc-50 dark:bg-zinc-900">
-                <h1 className="text-2xl font-normal text-zinc-900 dark:text-zinc-50 mb-2 tracking-tight">
+            <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-secondary">
+                <h1 className="text-2xl font-normal text-foreground dark:text-foreground mb-2 tracking-tight">
                     Project Not Found
                 </h1>
-                <p className="text-zinc-500 dark:text-zinc-400 mb-6 max-w-md font-normal">
+                <p className="text-muted-foreground mb-6 max-w-md font-normal">
                     The requested project or deployment doesn't exist or you
                     don't have access to it.
                 </p>
@@ -158,13 +157,12 @@ export function ApplicationLayout() {
         return <AppLoading />;
     }
 
-    const isUsersRoute = location.pathname.includes("/users");
-    const isB2BRoute = location.pathname.includes("/b2b-settings");
-    const isSetupRoute = location.pathname.includes("/setup");
-    const isAuthRoute =
-        location.pathname.includes("/auth/") ||
-        location.pathname.endsWith("/auth");
     const isLLMRoute = location.pathname.includes("/llms/");
+    // Inside an agent detail page the section tabs give way to the agent's own
+    // sub-tab nav, so the section strip is hidden there (matches the design).
+    const isAgentDetailRoute = /\/llms\/ai-agents\/[^/]+/.test(
+        location.pathname,
+    );
     const isBillingRoute = location.pathname.includes("/billing");
     const llmsBasePath = `/project/${params.projectId}/deployment/${params.deploymentId}/llms`;
     const llmsToolsPath = `${llmsBasePath}/tools`;
@@ -174,35 +172,7 @@ export function ApplicationLayout() {
     const llmsExtensionsPath = `${llmsBasePath}/extensions`;
 
     let currentTab = "";
-    if (isUsersRoute) {
-        currentTab = location.pathname.includes("/users/invited")
-            ? "invited"
-            : location.pathname.includes("/users/waitlist")
-              ? "waitlist"
-              : "active";
-    } else if (isB2BRoute) {
-        currentTab = location.pathname.includes("/b2b-settings/workspaces")
-            ? "workspaces"
-            : "organizations";
-    } else if (isSetupRoute) {
-        currentTab = location.pathname.includes("/setup/emails")
-            ? "emails"
-            : location.pathname.includes("/setup/webhook-catalogs")
-              ? "webhook-catalogs"
-              : location.pathname.includes("/setup/rate-limit-schemes")
-                ? "rate-limit-schemes"
-                : "deployment-settings";
-    } else if (isAuthRoute) {
-        currentTab = location.pathname.includes("/auth/sso")
-            ? "sso"
-            : location.pathname.includes("/auth/sessions")
-              ? "sessions"
-              : location.pathname.includes("/auth/restrictions")
-                ? "restrictions"
-                : location.pathname.includes("/auth/jwt-templates")
-                  ? "jwt-templates"
-                  : "schema-factors";
-    } else if (isLLMRoute) {
+    if (isLLMRoute) {
         currentTab =
             location.pathname === llmsToolsPath ||
             location.pathname.startsWith(`${llmsToolsPath}/`)
@@ -228,21 +198,7 @@ export function ApplicationLayout() {
 
     const handleTabChange = (value: string) => {
         const basePath = `/project/${params.projectId}/deployment/${params.deploymentId}`;
-        if (isUsersRoute) {
-            navigate(
-                `${basePath}/users${value === "active" ? "" : `/${value}`}`,
-            );
-        } else if (isB2BRoute) {
-            navigate(
-                `${basePath}/b2b-settings${value === "organizations" ? "" : `/${value}`}`,
-            );
-        } else if (isSetupRoute) {
-            navigate(
-                `${basePath}/setup${value === "deployment-settings" ? "" : `/${value}`}`,
-            );
-        } else if (isAuthRoute) {
-            navigate(`${basePath}/auth/${value}`);
-        } else if (isLLMRoute) {
+        if (isLLMRoute) {
             navigate(`${basePath}/llms/${value}`);
         } else if (isBillingRoute) {
             navigate(`${basePath}/billing/${value}`);
@@ -278,13 +234,13 @@ export function ApplicationLayout() {
         <SidebarProvider
             style={
                 {
-                    "--sidebar-width": "calc(var(--spacing) * 72)",
+                    "--sidebar-width": "calc(var(--spacing) * 68)",
                     "--header-height": "calc(var(--spacing) * 12)",
                 } as React.CSSProperties
             }
             className="h-svh overflow-hidden"
         >
-            <AppSidebar variant="inset" />
+            <AppSidebar />
             <SidebarInset className="h-full overflow-hidden">
                 <SiteHeader
                     onCreateProject={() =>
@@ -301,109 +257,14 @@ export function ApplicationLayout() {
                 />
                 <div className="flex flex-1 flex-col overflow-y-auto">
                     <div className="@container/main flex flex-1 flex-col gap-2">
-                        {(isUsersRoute ||
-                            isB2BRoute ||
-                            isSetupRoute ||
-                            isAuthRoute ||
-                            isLLMRoute ||
+                        {((isLLMRoute && !isAgentDetailRoute) ||
                             isBillingRoute) && (
                             <div className="px-4 pt-4 lg:px-6 lg:pt-6">
                                 <Tabs
                                     value={currentTab}
                                     onValueChange={handleTabChange}
                                 >
-                                    <TabsList>
-                                        {isUsersRoute && (
-                                            <>
-                                                <TabsTrigger value="active">
-                                                    Active
-                                                </TabsTrigger>
-                                                <TabsTrigger value="invited">
-                                                    Invited
-                                                </TabsTrigger>
-                                                <TabsTrigger value="waitlist">
-                                                    Waitlist
-                                                </TabsTrigger>
-                                            </>
-                                        )}
-                                        {isB2BRoute && (
-                                            <>
-                                                <TabsTrigger
-                                                    value="organizations"
-                                                    data-tour-id="b2b-tab-organizations"
-                                                >
-                                                    Organizations
-                                                </TabsTrigger>
-                                                <TabsTrigger
-                                                    value="workspaces"
-                                                    data-tour-id="b2b-tab-workspaces"
-                                                >
-                                                    Workspaces
-                                                </TabsTrigger>
-                                            </>
-                                        )}
-                                        {isSetupRoute && (
-                                            <>
-                                                <TabsTrigger
-                                                    value="deployment-settings"
-                                                    data-tour-id="setup-tab-deployment-settings"
-                                                >
-                                                    Deployment Settings
-                                                </TabsTrigger>
-                                                <TabsTrigger
-                                                    value="emails"
-                                                    data-tour-id="setup-tab-emails"
-                                                >
-                                                    Email Settings
-                                                </TabsTrigger>
-                                                <TabsTrigger
-                                                    value="webhook-catalogs"
-                                                    data-tour-id="setup-tab-webhook-catalogs"
-                                                >
-                                                    Webhook Catalogs
-                                                </TabsTrigger>
-                                                <TabsTrigger
-                                                    value="rate-limit-schemes"
-                                                    data-tour-id="setup-tab-rate-limit-schemes"
-                                                >
-                                                    Rate Limit Schemes
-                                                </TabsTrigger>
-                                            </>
-                                        )}
-                                        {isAuthRoute && (
-                                            <>
-                                                <TabsTrigger
-                                                    value="schema-factors"
-                                                    data-tour-id="auth-tab-schema-factors"
-                                                >
-                                                    Schema & Factors
-                                                </TabsTrigger>
-                                                <TabsTrigger
-                                                    value="sso"
-                                                    data-tour-id="auth-tab-sso"
-                                                >
-                                                    SSO
-                                                </TabsTrigger>
-                                                <TabsTrigger
-                                                    value="sessions"
-                                                    data-tour-id="auth-tab-sessions"
-                                                >
-                                                    Sessions
-                                                </TabsTrigger>
-                                                <TabsTrigger
-                                                    value="restrictions"
-                                                    data-tour-id="auth-tab-restrictions"
-                                                >
-                                                    Restrictions
-                                                </TabsTrigger>
-                                                <TabsTrigger
-                                                    value="jwt-templates"
-                                                    data-tour-id="auth-tab-jwt-templates"
-                                                >
-                                                    JWT Templates
-                                                </TabsTrigger>
-                                            </>
-                                        )}
+                                    <TabsList variant="pill">
                                         {isLLMRoute && (
                                             <>
                                                 <TabsTrigger
@@ -505,7 +366,7 @@ export function ApplicationLayout() {
                                 Your billing account has been created but the
                                 subscription payment has not been completed yet.
                             </Text>
-                            <ul className="list-disc list-inside mt-3 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                            <ul className="list-disc list-inside mt-3 space-y-1 text-sm text-muted-foreground">
                                 <li>
                                     You closed the payment page before
                                     completing checkout

@@ -1,9 +1,9 @@
 import {
-    MagnifyingGlassIcon,
     UserGroupIcon,
+    ChevronLeftIcon,
+    ChevronRightIcon,
 } from "@heroicons/react/24/outline";
-import { useNavigate, useParams } from "react-router";
-import { Input } from "@/components/ui/input";
+import { useNavigate, useOutletContext, useParams } from "react-router";
 import {
     Select,
     SelectTrigger,
@@ -22,98 +22,39 @@ import {
 } from "@/components/ui/app-table";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useDeploymentUsers } from "@/lib/api/hooks/use-deployment-users";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
-import { CreateUserModal } from "@/components/users/CreateUserModal";
 import { SkeletonTableRows } from "@/components/ui/app-skeleton";
-import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
+import type { UsersListContext } from "./layout";
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
 
 export default function ActiveUsersPage() {
-    const [sortKey, setSortKey] = useState<string>("created_at");
-    const [sortOrder, setSortOrder] = useState<string>("desc");
+    const { search, sortKey, sortOrder } = useOutletContext<UsersListContext>();
     const [page, setPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_OPTIONS[0]);
-    const [search, setSearch] = useState("");
-    const debouncedSearch = useDebouncedValue(search, 500);
-    const [createUserModalOpen, setCreateUserModalOpen] = useState(false);
 
     const { projectId, deploymentId } = useParams();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        setPage(1);
+    }, [search, sortKey, sortOrder]);
+
     const { data, isLoading } = useDeploymentUsers({
         offset: (page - 1) * itemsPerPage,
         limit: itemsPerPage,
         sort_key: sortKey,
         sort_order: sortOrder,
-        search: debouncedSearch,
+        search,
         enabled: true,
     });
 
     const hasNextPage = data?.has_more ?? false;
     const hasPrevPage = page > 1;
 
-    const handleSortChange = (value: string) => {
-        const [key, order] = value.split("-");
-        setSortKey(key);
-        setSortOrder(order);
-        setPage(1);
-    };
-
-    const handleItemsPerPageChange = (value: string) => {
-        setItemsPerPage(Number.parseInt(value, 10));
-        setPage(1);
-    };
-
     return (
         <div className="flex flex-col gap-6">
-            {/* Heading */}
-            <h1 className="text-xl font-normal tracking-tight">Active Users</h1>
-
-            {/* Filters and Action Button */}
-            <div className="flex items-center gap-2">
-                <div className="relative sm:w-80">
-                    <MagnifyingGlassIcon className="absolute left-3 top-1/4 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search users..."
-                        value={search}
-                        onChange={(e) => {
-                            setSearch(e.target.value);
-                            setPage(1);
-                        }}
-                        className="pl-9"
-                    />
-                </div>
-
-                <Select
-                    value={`${sortKey}-${sortOrder}`}
-                    onValueChange={handleSortChange}
-                >
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="created_at-desc">
-                            Newest first
-                        </SelectItem>
-                        <SelectItem value="created_at-asc">
-                            Oldest first
-                        </SelectItem>
-                        <SelectItem value="email-asc">Email (A-Z)</SelectItem>
-                        <SelectItem value="email-desc">Email (Z-A)</SelectItem>
-                    </SelectContent>
-                </Select>
-
-                <Button
-                    onClick={() => setCreateUserModalOpen(true)}
-                    className="ml-auto"
-                >
-                    Create User
-                </Button>
-            </div>
-
-            {/* Table */}
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -122,18 +63,19 @@ export default function ActiveUsersPage() {
                         <TableHead>Username</TableHead>
                         <TableHead>Phone</TableHead>
                         <TableHead>Created</TableHead>
+                        <TableHead className="w-10" />
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {isLoading || !data ? (
                         <SkeletonTableRows
                             rows={10}
-                            columns={5}
+                            columns={6}
                             withAvatar={false}
                         />
                     ) : data.data.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={5} className="h-24 text-center">
+                            <TableCell colSpan={6} className="h-24 text-center">
                                 <div className="flex flex-col items-center justify-center gap-1">
                                     <UserGroupIcon className="h-8 w-8 text-muted-foreground" />
                                     <p className="text-sm text-muted-foreground">
@@ -153,7 +95,7 @@ export default function ActiveUsersPage() {
                         data.data.map((user) => (
                             <TableRow
                                 key={user.id}
-                                className="cursor-pointer hover:bg-muted/50"
+                                className="cursor-pointer hover:bg-accent"
                                 onClick={() =>
                                     navigate(
                                         `/project/${projectId}/deployment/${deploymentId}/users/${user.id}`,
@@ -177,33 +119,36 @@ export default function ActiveUsersPage() {
                                                 {user.last_name?.[0]}
                                             </AvatarFallback>
                                         </Avatar>
-                                        <div>
-                                            <div className="font-medium">
+                                        <div className="min-w-0">
+                                            <div className="font-medium text-foreground">
                                                 {user.first_name}{" "}
                                                 {user.last_name}
                                             </div>
-                                            <div className="text-xs text-muted-foreground">
-                                                {user.primary_email_address}
+                                            <div className="truncate font-mono text-[11px] text-muted-foreground">
+                                                {user.id}
                                             </div>
                                         </div>
                                     </div>
                                 </TableCell>
-                                <TableCell className="text-muted-foreground">
-                                    {user.primary_email_address || "-"}
+                                <TableCell className="font-mono text-xs text-secondary-foreground">
+                                    {user.primary_email_address || "—"}
                                 </TableCell>
                                 <TableCell className="text-muted-foreground">
-                                    {user.username || "-"}
+                                    {user.username || "—"}
                                 </TableCell>
-                                <TableCell className="text-muted-foreground">
-                                    {user.primary_phone_number || "-"}
+                                <TableCell className="font-mono text-xs text-muted-foreground">
+                                    {user.primary_phone_number || "—"}
                                 </TableCell>
-                                <TableCell className="text-muted-foreground">
+                                <TableCell className="font-mono text-xs text-muted-foreground">
                                     {user.created_at
                                         ? format(
                                               new Date(user.created_at),
                                               "MMM d, yyyy",
                                           )
-                                        : "-"}
+                                        : "—"}
+                                </TableCell>
+                                <TableCell className="w-10 text-muted-foreground">
+                                    <ChevronRightIcon className="size-4" />
                                 </TableCell>
                             </TableRow>
                         ))
@@ -211,14 +156,16 @@ export default function ActiveUsersPage() {
                 </TableBody>
             </Table>
 
-            {/* Pagination */}
             {!isLoading && (data?.data.length ?? 0) > 0 && (
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <span>Show</span>
                         <Select
                             value={itemsPerPage.toString()}
-                            onValueChange={handleItemsPerPageChange}
+                            onValueChange={(value) => {
+                                setItemsPerPage(Number.parseInt(value, 10));
+                                setPage(1);
+                            }}
                         >
                             <SelectTrigger className="w-[70px]">
                                 <SelectValue />
@@ -257,12 +204,6 @@ export default function ActiveUsersPage() {
                     </div>
                 </div>
             )}
-
-            {/* Modal */}
-            <CreateUserModal
-                isOpen={createUserModalOpen}
-                onClose={() => setCreateUserModalOpen(false)}
-            />
         </div>
     );
 }

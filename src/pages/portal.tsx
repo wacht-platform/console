@@ -1,12 +1,9 @@
-import { Heading, Subheading } from "@/components/ui/heading";
-import { Strong, Text } from "@/components/ui/text";
 import {
   ArrowTopRightOnSquareIcon,
   ClipboardIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useRef, useState, useMemo } from "react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { Divider } from "@/components/ui/divider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
@@ -713,7 +710,7 @@ export default function PortalPage() {
         style={{ display: "none" }}
       />
 
-      <Heading>UI Settings</Heading>
+      <h1 className="text-xl font-medium tracking-tight text-foreground">UI Settings</h1>
 
       <SavePopup
         isDirty={isDirty}
@@ -724,8 +721,8 @@ export default function PortalPage() {
       <div className="mt-8 space-y-10">
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>App Name</Subheading>
-            <Text>The name of your application displayed to users.</Text>
+            <h3 className="text-sm font-medium text-foreground">App Name</h3>
+            <p className="text-sm text-muted-foreground">The name of your application displayed to users.</p>
           </div>
           <div className="space-y-1">
             <Input
@@ -750,8 +747,8 @@ export default function PortalPage() {
         {/* Added Privacy Policy URL */}
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>Privacy Policy URL</Subheading>
-            <Text>Link to your application's privacy policy.</Text>
+            <h3 className="text-sm font-medium text-foreground">Privacy Policy URL</h3>
+            <p className="text-sm text-muted-foreground">Link to your application's privacy policy.</p>
           </div>
           <div className="space-y-1">
             <Input
@@ -782,8 +779,8 @@ export default function PortalPage() {
         {/* Added Terms of Service URL */}
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>Terms of Service URL</Subheading>
-            <Text>Link to your application's terms of service.</Text>
+            <h3 className="text-sm font-medium text-foreground">Terms of Service URL</h3>
+            <p className="text-sm text-muted-foreground">Link to your application's terms of service.</p>
           </div>
           <div className="space-y-1">
             <Input
@@ -810,8 +807,8 @@ export default function PortalPage() {
         {/* Added Logo & Favicon URLs */}
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>Logo</Subheading>
-            <Text>Logo displayed on hosted pages.</Text>
+            <h3 className="text-sm font-medium text-foreground">Logo</h3>
+            <p className="text-sm text-muted-foreground">Logo displayed on hosted pages.</p>
           </div>
           <div className="flex justify-end items-center">
             <div className="flex items-center gap-4">
@@ -823,7 +820,7 @@ export default function PortalPage() {
                     className="max-w-full max-h-full object-contain"
                   />
                 ) : (
-                  <div className="w-15 h-15 border border-gray-200 rounded-full flex items-center justify-center bg-gray-50 overflow-hidden">
+                  <div className="w-15 h-15 border border-border rounded-full flex items-center justify-center bg-secondary overflow-hidden">
                     {" "}
                   </div>
                 )}
@@ -844,8 +841,8 @@ export default function PortalPage() {
         </section>
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>Favicon</Subheading>
-            <Text>Favicon used by hosted pages.</Text>
+            <h3 className="text-sm font-medium text-foreground">Favicon</h3>
+            <p className="text-sm text-muted-foreground">Favicon used by hosted pages.</p>
           </div>
           <div className="flex justify-end items-center">
             <div className="flex items-center gap-4">
@@ -857,7 +854,7 @@ export default function PortalPage() {
                     className="max-w-full max-h-full object-contain"
                   />
                 ) : (
-                  <div className="w-15 h-15 border border-gray-200 rounded-full flex items-center justify-center bg-gray-50 overflow-hidden">
+                  <div className="w-15 h-15 border border-border rounded-full flex items-center justify-center bg-secondary overflow-hidden">
                     {" "}
                   </div>
                 )}
@@ -877,24 +874,24 @@ export default function PortalPage() {
           </div>
         </section>
 
-        <Divider className="my-8" soft />
+        <div className="my-8 border-t border-border" />
 
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
           <div className="space-y-1 col-span-2">
-            <Subheading>
-              <Strong>Page Previews</Strong>
-            </Subheading>
-            <Text>
+            <h3 className="text-sm font-medium text-foreground">
+              <span className="font-medium text-foreground">Page Previews</span>
+            </h3>
+            <p className="text-sm text-muted-foreground">
               Preview the hosted pages for your application. These links use
               your configured settings.
-            </Text>
+            </p>
           </div>
         </section>
         {data.map((item, index) => (
           <section key={index} className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
             <div className="space-y-1">
-              <Subheading>{item.title}</Subheading>
-              <Text>{item.desc}</Text>
+              <h3 className="text-sm font-medium text-foreground">{item.title}</h3>
+              <p className="text-sm text-muted-foreground">{item.desc}</p>
             </div>
             <div className="relative flex items-center gap-3">
               <Input
@@ -928,30 +925,30 @@ export default function PortalPage() {
           </section>
         ))}
 
-        <Divider className="my-8" soft />
+        <div className="my-8 border-t border-border" />
 
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
           <div className="space-y-1 col-span-2">
-            <Subheading>
-              <Strong>User redirects</Strong>
-            </Subheading>
-            <Text>
+            <h3 className="text-sm font-medium text-foreground">
+              <span className="font-medium text-foreground">User redirects</span>
+            </h3>
+            <p className="text-sm text-muted-foreground">
               The Account Portal requires a destination to redirect your users
               after they complete key actions. By default, we've set your
               development host, but you can customize the paths to suit your
               needs.
-            </Text>
+            </p>
           </div>
         </section>
 
         {/* Mapped User Redirects */}
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>After sign-up fallback</Subheading>
-            <Text>
+            <h3 className="text-sm font-medium text-foreground">After sign-up fallback</h3>
+            <p className="text-sm text-muted-foreground">
               Specify where to send a user if it cannot be determined from the
               redirect_url query parameter.
-            </Text>
+            </p>
           </div>
           <div className="space-y-1">
             <Input
@@ -981,11 +978,11 @@ export default function PortalPage() {
         </section>
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>After sign-in fallback</Subheading>
-            <Text>
+            <h3 className="text-sm font-medium text-foreground">After sign-in fallback</h3>
+            <p className="text-sm text-muted-foreground">
               Specify where to send a user if it cannot be determined from the
               redirect_url query parameter.
-            </Text>
+            </p>
           </div>
           <div className="space-y-1">
             <Input
@@ -1015,11 +1012,11 @@ export default function PortalPage() {
         </section>
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>After logo click</Subheading>
-            <Text>
+            <h3 className="text-sm font-medium text-foreground">After logo click</h3>
+            <p className="text-sm text-muted-foreground">
               Specify where to send a user after they click your application's
               logo.
-            </Text>
+            </p>
           </div>
           <div className="space-y-1">
             <Input
@@ -1048,11 +1045,11 @@ export default function PortalPage() {
         </section>
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>After sign-out (one session)</Subheading>
-            <Text>
+            <h3 className="text-sm font-medium text-foreground">After sign-out (one session)</h3>
+            <p className="text-sm text-muted-foreground">
               Specify where to send a user after they sign out of the current
               session.
-            </Text>
+            </p>
           </div>
           <div className="space-y-1">
             <Input
@@ -1082,10 +1079,10 @@ export default function PortalPage() {
         </section>
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>After sign-out (all sessions)</Subheading>
-            <Text>
+            <h3 className="text-sm font-medium text-foreground">After sign-out (all sessions)</h3>
+            <p className="text-sm text-muted-foreground">
               Specify where to send a user after they sign out of all sessions.
-            </Text>
+            </p>
           </div>
           <div className="space-y-1">
             <Input
@@ -1117,11 +1114,11 @@ export default function PortalPage() {
         {/* Mapped Organization Redirects */}
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>After create organization</Subheading>
-            <Text>
+            <h3 className="text-sm font-medium text-foreground">After create organization</h3>
+            <p className="text-sm text-muted-foreground">
               Specify where to send a user after they create an organization.
               (Leave blank to redirect to the host's root.)
-            </Text>
+            </p>
           </div>
           <div className="space-y-1">
             <Input
@@ -1152,21 +1149,21 @@ export default function PortalPage() {
         </section>
         {/* Removed "After leave organization" section */}
 
-        <Divider className="my-8" soft />
+        <div className="my-8 border-t border-border" />
 
         {/* Profile Images Section */}
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
           <div className="space-y-1 col-span-2">
-            <Subheading>
-              <Strong>Profile Images</Strong>
-            </Subheading>
-            <Text>Configure default profile images and fallback behavior.</Text>
+            <h3 className="text-sm font-medium text-foreground">
+              <span className="font-medium text-foreground">Profile Images</span>
+            </h3>
+            <p className="text-sm text-muted-foreground">Configure default profile images and fallback behavior.</p>
           </div>
         </section>
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>Use Initials for User Profile Image</Subheading>
-            <Text>Fallback to user initials if no image is available.</Text>
+            <h3 className="text-sm font-medium text-foreground">Use Initials for User Profile Image</h3>
+            <p className="text-sm text-muted-foreground">Fallback to user initials if no image is available.</p>
           </div>
           <div className="flex justify-end items-center gap-3">
             <Switch
@@ -1181,8 +1178,8 @@ export default function PortalPage() {
         {!useInitialsForUserProfileImage && (
           <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
             <div className="space-y-1">
-              <Subheading>Default User Profile Image</Subheading>
-              <Text>Image used when initials are disabled.</Text>
+              <h3 className="text-sm font-medium text-foreground">Default User Profile Image</h3>
+              <p className="text-sm text-muted-foreground">Image used when initials are disabled.</p>
             </div>
             <div className="flex justify-end items-center">
               <div className="flex items-center gap-4">
@@ -1194,7 +1191,7 @@ export default function PortalPage() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-15 h-15 border border-gray-200 rounded-full flex items-center justify-center bg-gray-50 overflow-hidden">
+                    <div className="w-15 h-15 border border-border rounded-full flex items-center justify-center bg-secondary overflow-hidden">
                       {" "}
                     </div>
                   )}
@@ -1217,10 +1214,10 @@ export default function PortalPage() {
 
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>Use Initials for Org Profile Image</Subheading>
-            <Text>
+            <h3 className="text-sm font-medium text-foreground">Use Initials for Org Profile Image</h3>
+            <p className="text-sm text-muted-foreground">
               Fallback to organization initials if no image is available.
-            </Text>
+            </p>
           </div>
           <div className="flex justify-end items-center gap-3">
             <Switch
@@ -1235,8 +1232,8 @@ export default function PortalPage() {
         {!useInitialsForOrganizationProfileImage && (
           <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
             <div className="space-y-1">
-              <Subheading>Default Organization Profile Image</Subheading>
-              <Text>Image used when initials are disabled.</Text>
+              <h3 className="text-sm font-medium text-foreground">Default Organization Profile Image</h3>
+              <p className="text-sm text-muted-foreground">Image used when initials are disabled.</p>
             </div>
             <div className="flex justify-end items-center">
               <div className="flex items-center gap-4">
@@ -1248,7 +1245,7 @@ export default function PortalPage() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-15 h-15 border border-gray-200 rounded-full flex items-center justify-center bg-gray-50 overflow-hidden">
+                    <div className="w-15 h-15 border border-border rounded-full flex items-center justify-center bg-secondary overflow-hidden">
                       {" "}
                     </div>
                   )}
@@ -1269,23 +1266,23 @@ export default function PortalPage() {
           </section>
         )}
 
-        <Divider className="my-8" soft />
+        <div className="my-8 border-t border-border" />
 
         {/* Signup Terms Section */}
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
           <div className="space-y-1 col-span-2">
-            <Subheading>
-              <Strong>Sign-up Terms</Strong>
-            </Subheading>
-            <Text>Customize the terms statement shown during sign-up.</Text>
+            <h3 className="text-sm font-medium text-foreground">
+              <span className="font-medium text-foreground">Sign-up Terms</span>
+            </h3>
+            <p className="text-sm text-muted-foreground">Customize the terms statement shown during sign-up.</p>
           </div>
         </section>
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>Sign-up Terms Statement</Subheading>
-            <Text>
+            <h3 className="text-sm font-medium text-foreground">Sign-up Terms Statement</h3>
+            <p className="text-sm text-muted-foreground">
               The text displayed (links to ToS/Privacy Policy are automatic).
-            </Text>
+            </p>
           </div>
           <div className="space-y-1">
             <Input
@@ -1314,8 +1311,8 @@ export default function PortalPage() {
         </section>
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
           <div className="space-y-1">
-            <Subheading>Show Sign-up Terms Statement</Subheading>
-            <Text>Whether to display the terms statement during sign-up.</Text>
+            <h3 className="text-sm font-medium text-foreground">Show Sign-up Terms Statement</h3>
+            <p className="text-sm text-muted-foreground">Whether to display the terms statement during sign-up.</p>
           </div>
           <div className="flex justify-end items-center gap-3">
             <Switch
@@ -1327,23 +1324,23 @@ export default function PortalPage() {
           </div>
         </section>
 
-        <Divider className="my-8" soft />
+        <div className="my-8 border-t border-border" />
 
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
           <div className="space-y-1 col-span-2">
-            <Subheading>
-              <Strong>Colors (Light / Dark Mode)</Strong>
-            </Subheading>
-            <Text>
+            <h3 className="text-sm font-medium text-foreground">
+              <span className="font-medium text-foreground">Colors (Light / Dark Mode)</span>
+            </h3>
+            <p className="text-sm text-muted-foreground">
               Set colors for both light and dark mode versions of your Account
               Portal.
-            </Text>
+            </p>
           </div>
         </section>
 
         <div className="grid gap-x-8 gap-y-10 sm:grid-cols-2">
           <section className="space-y-3">
-            <Subheading>Primary Color (Light)</Subheading>
+            <h3 className="text-sm font-medium text-foreground">Primary Color (Light)</h3>
             <div className="flex items-center gap-4">
               <div
                 style={{ backgroundColor: primaryColor }}
@@ -1382,7 +1379,7 @@ export default function PortalPage() {
           </section>
 
           <section className="space-y-3">
-            <Subheading>Primary Color (Dark)</Subheading>
+            <h3 className="text-sm font-medium text-foreground">Primary Color (Dark)</h3>
             <div className="flex items-center gap-4">
               <div
                 style={{ backgroundColor: darkModePrimaryColor }}
@@ -1427,11 +1424,11 @@ export default function PortalPage() {
           </section>
 
           <section className="space-y-3">
-            <Subheading>Background Color (Light)</Subheading>
+            <h3 className="text-sm font-medium text-foreground">Background Color (Light)</h3>
             <div className="flex items-center gap-4">
               <div
                 style={{ backgroundColor: backgroundColor }}
-                className="h-10 w-10 shrink-0 cursor-pointer border border-gray-200 rounded-md p-0"
+                className="h-10 w-10 shrink-0 cursor-pointer border border-border rounded-md p-0"
                 onClick={() => backgroundColorInputRef.current?.click()}
               />
               <input
@@ -1470,7 +1467,7 @@ export default function PortalPage() {
           </section>
 
           <section className="space-y-3">
-            <Subheading>Background Color (Dark)</Subheading>
+            <h3 className="text-sm font-medium text-foreground">Background Color (Dark)</h3>
             <div className="flex items-center gap-4">
               <div
                 style={{ backgroundColor: darkModeBackgroundColor }}

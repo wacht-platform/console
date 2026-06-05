@@ -58,7 +58,7 @@ export function SkeletonList({ items = 5 }: { items?: number }) {
 
 export function SkeletonCard() {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="rounded-xl border border-border bg-card p-6 shadow-sm dark:border-border">
       <div className="space-y-3">
         <Skeleton className="h-6 w-2/3" />
         <Skeleton className="h-4 w-full" />
@@ -74,7 +74,7 @@ export function SkeletonCard() {
 
 export function SkeletonProjectCard() {
   return (
-    <Card className="flex h-full flex-col overflow-hidden border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+    <Card className="flex h-full flex-col overflow-hidden border-border bg-card dark:border-border dark:bg-primary">
       <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-4">
         <Skeleton className="h-10 w-10 rounded-lg" />
         <div className="flex-1 space-y-2">
@@ -88,7 +88,7 @@ export function SkeletonProjectCard() {
           <Skeleton className="h-5 w-20 rounded-full" />
         </div>
       </CardContent>
-      <CardFooter className="flex items-center justify-between border-t border-zinc-100 bg-zinc-50/50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-800/30">
+      <CardFooter className="flex items-center justify-between border-t border-border bg-secondary/50 px-6 py-4 dark:border-border">
         <Skeleton className="h-3 w-24" />
         <Skeleton className="h-4 w-4 rounded-full" />
       </CardFooter>

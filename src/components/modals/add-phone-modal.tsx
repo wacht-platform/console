@@ -119,10 +119,10 @@ export function AddPhoneModal({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <label className="text-sm font-medium text-foreground">
                     Verified
                   </label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     Mark this phone number as verified
                   </p>
                 </div>
@@ -131,10 +131,10 @@ export function AddPhoneModal({
 
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <label className="text-sm font-medium text-foreground">
                     Primary
                   </label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     Set as primary phone number
                   </p>
                 </div>

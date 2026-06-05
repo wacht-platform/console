@@ -170,19 +170,19 @@ export function CreateStagingDeploymentDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-4xl p-0 overflow-hidden border-zinc-200 dark:border-zinc-800">
+			<DialogContent className="sm:max-w-4xl p-0 overflow-hidden border-border">
 				<div className="relative">
 					<div className="absolute -right-20 -top-20 h-52 w-52 rounded-full bg-orange-500/10 blur-3xl pointer-events-none" />
 					<div className="absolute -left-20 -bottom-20 h-52 w-52 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
 
-					<DialogHeader className="px-6 pb-4 pt-6 border-b border-zinc-200/80 dark:border-zinc-800/70">
+					<DialogHeader className="mx-0 mt-0 border-b border-border px-6 pb-4 pt-6">
 						<div className="flex items-start justify-between gap-4">
 							<div>
 								<DialogTitle className="flex items-center gap-2 text-base">
 									<BeakerIcon className="h-5 w-5 text-orange-600 dark:text-orange-400" />
 									Create Staging Deployment
 								</DialogTitle>
-								<DialogDescription className="mt-1 text-zinc-500 dark:text-zinc-400">
+								<DialogDescription className="mt-1 text-muted-foreground">
 									Set up a controlled test environment before shipping to production.
 								</DialogDescription>
 							</div>
@@ -196,18 +196,18 @@ export function CreateStagingDeploymentDialog({
 
 						<section className="space-y-3">
 							<div className="flex items-center justify-between">
-								<h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+								<h3 className="text-sm font-medium text-foreground">
 									Authentication Configuration
 								</h3>
 								<div className="flex items-center gap-3">
-									<span className="text-xs text-zinc-500">
+									<span className="text-xs text-muted-foreground">
 										{selectedMethods.length} selected
 									</span>
 									<Button
 										type="button"
 										size="sm"
 										variant="ghost"
-										className="h-7 px-2 text-xs text-zinc-600 dark:text-zinc-400"
+										className="h-7 px-2 text-xs text-muted-foreground"
 										onClick={resetToDefault}
 										disabled={!canResetToDefault || isLoading}
 									>
@@ -218,7 +218,7 @@ export function CreateStagingDeploymentDialog({
 							</div>
 
 							<div className="space-y-2">
-								<div className="ml-1 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+								<div className="ml-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
 									Identity Providers
 								</div>
 								<div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -237,7 +237,7 @@ export function CreateStagingDeploymentDialog({
 							</div>
 
 							<div className="space-y-2 pt-1">
-								<div className="ml-1 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+								<div className="ml-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
 									Social Providers
 								</div>
 								<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
@@ -266,14 +266,14 @@ export function CreateStagingDeploymentDialog({
 					</div>
 				</div>
 
-				<DialogFooter className="border-t border-zinc-200/80 px-6 py-4 dark:border-zinc-800/70">
+				<DialogFooter className="mx-0 mb-0 rounded-none border-t border-border bg-secondary px-6 py-4">
 					<Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
 						Cancel
 					</Button>
 					<Button
 						onClick={handleCreate}
 						disabled={isLoading || selectedMethods.length === 0}
-						className="min-w-[140px] bg-orange-600 hover:bg-orange-700 text-white"
+						className="min-w-[140px] bg-orange-600 hover:bg-orange-700 text-primary-foreground"
 					>
 						{isLoading ? (
 							<div className="flex items-center gap-2">
@@ -312,7 +312,7 @@ function AuthMethodCard({
 				compact ? "p-2.5" : "p-3",
 				selected
 					? "bg-orange-50/50 dark:bg-orange-500/10 border-orange-500 dark:border-orange-500/50 shadow-sm ring-1 ring-orange-500/20"
-					: "bg-white dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+					: "bg-card border-border dark:border-border hover:border-border hover:bg-secondary"
 			)}
 			onClick={onClick}
 		>
@@ -320,22 +320,22 @@ function AuthMethodCard({
 				"flex shrink-0 items-center justify-center rounded-md transition-colors",
 				compact ? "h-6 w-6" : "h-8 w-8",
 				selected
-					? "bg-white dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 shadow-sm"
-					: "bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400"
+					? "bg-card dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 shadow-sm"
+					: "bg-secondary text-muted-foreground"
 			)}>
 				{icon}
 			</span>
 			<span className={clsx(
 				"flex-1 font-medium truncate",
 				compact ? "text-xs" : "text-sm",
-				selected ? "text-orange-900 dark:text-orange-100" : "text-zinc-700 dark:text-zinc-300"
+				selected ? "text-orange-900 dark:text-orange-100" : "text-foreground"
 			)}>
 				{label}
 			</span>
 
 			{selected && (
 				<div className="absolute top-0 right-0 -mt-1 -mr-1">
-					<div className="bg-orange-500 text-white rounded-full p-0.5 shadow-sm">
+					<div className="bg-orange-500 text-primary-foreground rounded-full p-0.5 shadow-sm">
 						<CheckCircleIcon className="h-3 w-3" />
 					</div>
 				</div>

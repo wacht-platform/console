@@ -1,16 +1,16 @@
-import { Heading, Subheading } from "@/components/ui/heading";
-import { Text } from "@/components/ui/text";
 import {
   ArrowTopRightOnSquareIcon,
   ClipboardIcon,
-  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useRef, useState, useMemo } from "react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { Divider } from "@/components/ui/divider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch"
+import { SectionLabel } from "@/components/ui/section-label";
+import { Segmented } from "@/components/ui/segmented";
+import { FieldRow, FieldCard } from "@/components/ui/field-row";
+import { cn } from "@/lib/utils";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 
 import { InlineLoader } from "@/components/ui/loading-screen";
@@ -456,6 +456,7 @@ export default function DeploymentSettingsPage() {
   const updateDisplaySettings = useUpdateDeploymentDisplaySettings();
   const [isSaving, setIsSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [themeMode, setThemeMode] = useState<"light" | "dark">("light");
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [appName, setAppName] = useState("");
   const [privacyPolicyUrl, setPrivacyPolicyUrl] = useState("");
@@ -684,7 +685,7 @@ export default function DeploymentSettingsPage() {
     return "#000000";
   };
 
-  const renderColorInput = (
+  const renderColorSwatch = (
     value: string | undefined,
     onChange: (value: string) => void,
   ) => {
@@ -693,11 +694,11 @@ export default function DeploymentSettingsPage() {
 
     return (
       <div
-        className="relative h-10 w-16 shrink-0 overflow-hidden rounded border border-zinc-200 bg-[linear-gradient(45deg,#e4e4e7_25%,transparent_25%),linear-gradient(-45deg,#e4e4e7_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e4e4e7_75%),linear-gradient(-45deg,transparent_75%,#e4e4e7_75%)] bg-[length:12px_12px] bg-[position:0_0,0_6px,6px_-6px,-6px_0] p-1 dark:border-zinc-700 dark:bg-[linear-gradient(45deg,#3f3f46_25%,transparent_25%),linear-gradient(-45deg,#3f3f46_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#3f3f46_75%),linear-gradient(-45deg,transparent_75%,#3f3f46_75%)]"
+        className="relative size-6 shrink-0 overflow-hidden rounded border border-border bg-[linear-gradient(45deg,#e4e4e7_25%,transparent_25%),linear-gradient(-45deg,#e4e4e7_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e4e4e7_75%),linear-gradient(-45deg,transparent_75%,#e4e4e7_75%)] bg-[length:10px_10px] bg-[position:0_0,0_5px,5px_-5px,-5px_0] dark:bg-[linear-gradient(45deg,#3f3f46_25%,transparent_25%),linear-gradient(-45deg,#3f3f46_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#3f3f46_75%),linear-gradient(-45deg,transparent_75%,#3f3f46_75%)]"
         title={swatchValue || "Pick color"}
       >
         <div
-          className="h-full w-full rounded-sm border border-black/10 dark:border-white/10"
+          className="h-full w-full"
           style={{ backgroundColor: canPreview ? swatchValue : "transparent" }}
         />
         <Input
@@ -995,33 +996,43 @@ export default function DeploymentSettingsPage() {
     const errorKey = `${mode}_${String(field.key)}`;
     const tokenKey = field.key as ThemeTokenKey;
 
+    const invalid = validationErrors[errorKey] && showValidationErrors;
+
     return (
-      <div key={`${mode}-${field.key}`} className="space-y-3 min-w-0">
-        <div className="space-y-1">
-          <Subheading>{field.label}</Subheading>
-          <Text>{field.description}</Text>
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            {field.kind === "color" && (
-              renderColorInput(values[tokenKey], (value) =>
+      <div
+        key={`${mode}-${field.key}`}
+        className={cn(
+          "min-w-0 rounded-md border bg-card p-2.5",
+          invalid ? "border-destructive" : "border-border",
+        )}
+      >
+        <div className="flex items-center gap-2.5">
+          {field.kind === "color"
+            ? renderColorSwatch(values[tokenKey], (value) =>
                 updateTokenField(mode, tokenKey, value),
               )
-            )}
-            <Input
+            : null}
+          <div className="min-w-0 flex-1">
+            <p
+              className="truncate text-[11px] font-medium text-foreground"
+              title={field.description}
+            >
+              {field.label}
+            </p>
+            <input
               type="text"
               placeholder={defaults[tokenKey] || ""}
               value={values[tokenKey] || ""}
               onChange={(e) => updateTokenField(mode, tokenKey, e.target.value)}
-              className={`flex-1 ${validationErrors[errorKey] && showValidationErrors ? "border-red-500" : ""}`}
+              className="mt-0.5 w-full border-0 bg-transparent p-0 font-mono text-[11px] text-muted-foreground placeholder:text-muted-foreground/50 focus:text-foreground focus:outline-none"
             />
           </div>
-          {validationErrors[errorKey] && showValidationErrors && (
-            <span className="text-red-500 text-sm">
-              {validationErrors[errorKey]}
-            </span>
-          )}
         </div>
+        {invalid && (
+          <span className="mt-1.5 block text-[10px] text-destructive">
+            {validationErrors[errorKey]}
+          </span>
+        )}
       </div>
     );
   };
@@ -1030,37 +1041,40 @@ export default function DeploymentSettingsPage() {
     const errorKey = `global_${String(field.key)}`;
     const tokenKey = field.key as GlobalTokenKey;
 
+    const invalid = validationErrors[errorKey] && showValidationErrors;
+
     return (
-      <div key={`global-${field.key}`} className="space-y-3 min-w-0">
-        <div className="space-y-1">
-          <Subheading>{field.label}</Subheading>
-          <Text>{field.description}</Text>
-        </div>
-        <div className="space-y-2">
-          <Input
-            type="text"
-            placeholder={SDK_GLOBAL_TOKEN_DEFAULTS[tokenKey] || ""}
-            value={globalTokenOverrides[tokenKey] || ""}
-            onChange={(e) => updateGlobalTokenField(tokenKey, e.target.value)}
-            className={`flex-1 ${validationErrors[errorKey] && showValidationErrors ? "border-red-500" : ""}`}
-          />
-          {validationErrors[errorKey] && showValidationErrors && (
-            <span className="text-red-500 text-sm">
-              {validationErrors[errorKey]}
-            </span>
-          )}
-        </div>
+      <div
+        key={`global-${field.key}`}
+        className={cn(
+          "min-w-0 rounded-md border bg-card p-2.5",
+          invalid ? "border-destructive" : "border-border",
+        )}
+      >
+        <p
+          className="truncate text-[11px] font-medium text-foreground"
+          title={field.description}
+        >
+          {field.label}
+        </p>
+        <input
+          type="text"
+          placeholder={SDK_GLOBAL_TOKEN_DEFAULTS[tokenKey] || ""}
+          value={globalTokenOverrides[tokenKey] || ""}
+          onChange={(e) => updateGlobalTokenField(tokenKey, e.target.value)}
+          className="mt-0.5 w-full border-0 bg-transparent p-0 font-mono text-[11px] text-muted-foreground placeholder:text-muted-foreground/50 focus:text-foreground focus:outline-none"
+        />
+        {invalid && (
+          <span className="mt-1.5 block text-[10px] text-destructive">
+            {validationErrors[errorKey]}
+          </span>
+        )}
       </div>
     );
   };
 
   return (
     <div>
-      <Heading>Deployment Settings</Heading>
-      <Text className="mt-2 text-zinc-500">
-        Customize your deployment's UI settings and manage deployment options.
-      </Text>
-
       <SavePopup
         isDirty={isDirty}
         isSaving={isSaving}
@@ -1068,886 +1082,787 @@ export default function DeploymentSettingsPage() {
         onCancel={handleResetSettings}
       />
 
-      <div className="mt-8 space-y-10">
-        <section
-          className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center"
-          data-tour-id="setup-app-name"
-        >
-          <div className="space-y-1">
-            <Subheading>App Name</Subheading>
-            <Text>The name of your application displayed to users.</Text>
-          </div>
-          <div className="space-y-1">
-            <Input
-              type="text"
-              placeholder="My Awesome App"
-              value={appName}
-              onChange={(e) =>
-                updateField(setAppName, e.target.value, "appName")
-              }
-              className={
-                validationErrors.appName && showValidationErrors
-                  ? "border-red-500"
-                  : ""
-              }
-            />
-            {validationErrors.appName && showValidationErrors && (
-              <span className="text-red-500 text-sm px-2">
-                {validationErrors.appName}
-              </span>
-            )}
-          </div>
-        </section>
+      <div className="space-y-8">
+        <section className="space-y-3">
+          <SectionLabel>Branding</SectionLabel>
+          <FieldCard>
+            <FieldRow
+              label="App name"
+              desc="Displayed to users on the sign-in, sign-up and consent screens."
+              tour="setup-app-name"
+            >
+              <Input
+                type="text"
+                placeholder="My Awesome App"
+                value={appName}
+                onChange={(e) =>
+                  updateField(setAppName, e.target.value, "appName")
+                }
+                className={cn(
+                  validationErrors.appName &&
+                    showValidationErrors &&
+                    "border-destructive",
+                )}
+              />
+              {validationErrors.appName && showValidationErrors && (
+                <span className="mt-1 block text-xs text-destructive">
+                  {validationErrors.appName}
+                </span>
+              )}
+            </FieldRow>
 
-        <Divider className="my-8" soft />
-
-        <section
-          className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center"
-          data-tour-id="setup-logo"
-        >
-          <div className="space-y-1">
-            <Subheading>Application Logo</Subheading>
-            <Text>Upload your application's logo image.</Text>
-          </div>
-          <div className="space-y-1">
-            <ImageUpload
-              label=""
-              imageType="logo"
-              currentImageUrl={
-                logoImageUrl !== null
-                  ? logoImageUrl
-                  : deploymentSettings?.ui_settings?.logo_image_url
-              }
-              onImageUploaded={(url) => {
-                setLogoImageUrl(url);
-                setIsDirty(true);
-              }}
-              variant="avatar"
-              required={true}
-            />
-          </div>
-        </section>
-
-        <section
-          className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center"
-          data-tour-id="setup-favicon"
-        >
-          <div className="space-y-1">
-            <Subheading>Favicon</Subheading>
-            <Text>Upload your application's favicon image.</Text>
-          </div>
-          <div className="space-y-1">
-            <ImageUpload
-              label=""
-              imageType="favicon"
-              currentImageUrl={
-                faviconImageUrl !== null
-                  ? faviconImageUrl
-                  : deploymentSettings?.ui_settings?.favicon_image_url
-              }
-              onImageUploaded={(url) => {
-                setFaviconImageUrl(url);
-                setIsDirty(true);
-              }}
-              variant="avatar"
-              required={true}
-            />
-          </div>
-        </section>
-
-        <Divider className="my-8" soft />
-
-        <section
-          className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center"
-          data-tour-id="setup-privacy-url"
-        >
-          <div className="space-y-1">
-            <Subheading>Privacy Policy URL</Subheading>
-            <Text>Link to your application's privacy policy.</Text>
-          </div>
-          <div className="space-y-1">
-            <Input
-              type="url"
-              placeholder="https://example.com/privacy"
-              value={privacyPolicyUrl}
-              onChange={(e) =>
-                updateField(
-                  setPrivacyPolicyUrl,
-                  e.target.value,
-                  "privacyPolicyUrl",
-                )
-              }
-              className={
-                validationErrors.privacyPolicyUrl && showValidationErrors
-                  ? "border-red-500"
-                  : ""
-              }
-            />
-            {validationErrors.privacyPolicyUrl && showValidationErrors && (
-              <span className="text-red-500 text-sm px-2">
-                {validationErrors.privacyPolicyUrl}
-              </span>
-            )}
-          </div>
-        </section>
-
-        <section
-          className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center"
-          data-tour-id="setup-terms-url"
-        >
-          <div className="space-y-1">
-            <Subheading>Terms of Service URL</Subheading>
-            <Text>Link to your application's terms of service.</Text>
-          </div>
-          <div className="space-y-1">
-            <Input
-              type="url"
-              placeholder="https://example.com/terms"
-              value={tosPageUrl}
-              onChange={(e) =>
-                updateField(setTosPageUrl, e.target.value, "tosPageUrl")
-              }
-              className={
-                validationErrors.tosPageUrl && showValidationErrors
-                  ? "border-red-500"
-                  : ""
-              }
-            />
-            {validationErrors.tosPageUrl && showValidationErrors && (
-              <span className="text-red-500 text-sm px-2">
-                {validationErrors.tosPageUrl}
-              </span>
-            )}
-          </div>
-        </section>
-
-        <Divider className="my-8" soft />
-
-        <section className="space-y-6" data-tour-id="setup-theme">
-          <div className="space-y-1">
-            <Subheading>Theme Tokens</Subheading>
-            <Text>
-              Configure token overrides under light and dark mode. Unchanged
-              values continue using the React SDK defaults.
-            </Text>
-          </div>
-
-          <details className="group rounded-xl border border-zinc-200 dark:border-zinc-800/60 bg-white dark:bg-[#111113]" open>
-            <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/20 transition-colors">
-              <div className="space-y-1">
-                <Subheading>Global Tokens</Subheading>
-                <Text>
-                  Shared design controls applied across both light and dark
-                  themes.
-                </Text>
+            <FieldRow
+              label="Application logo"
+              desc="Used on auth screens. Square SVG, PNG or JPG."
+              tour="setup-logo"
+            >
+              <div className="flex">
+                <ImageUpload
+                  label=""
+                  imageType="logo"
+                  currentImageUrl={
+                    logoImageUrl !== null
+                      ? logoImageUrl
+                      : deploymentSettings?.ui_settings?.logo_image_url
+                  }
+                  onImageUploaded={(url) => {
+                    setLogoImageUrl(url);
+                    setIsDirty(true);
+                  }}
+                  variant="avatar"
+                  shape="square"
+                  required={true}
+                />
               </div>
-              <ChevronDownIcon className="size-4 text-zinc-500 dark:text-zinc-400 transition-transform group-open:rotate-180" />
-            </summary>
-            <div className="border-t border-zinc-200 dark:border-zinc-800/60 px-4 py-4">
-              <div className="space-y-8">
-                <div className="space-y-3 min-w-0">
-                  <div className="space-y-1">
-                    <Subheading>Spacing Unit</Subheading>
-                    <Text>
-                      Changes the amount of spacing used throughout the UI,
-                      including padding, gaps, and control spacing. Increase it
-                      to make the interface feel roomier, or reduce it to make
-                      things tighter.
-                    </Text>
-                  </div>
-                  <div className="space-y-2">
-                    <Input
-                      type="text"
-                      placeholder={SDK_GLOBAL_TOKEN_DEFAULTS.space_unit}
-                      value={globalTokenOverrides.space_unit || ""}
-                      onChange={(e) =>
-                        updateGlobalTokenField("space_unit", e.target.value)
-                      }
-                      className={`flex-1 ${validationErrors["global_space_unit"] && showValidationErrors ? "border-red-500" : ""}`}
-                    />
-                    {validationErrors["global_space_unit"] &&
-                      showValidationErrors && (
-                        <span className="text-red-500 text-sm">
-                          {validationErrors["global_space_unit"]}
-                        </span>
-                      )}
+            </FieldRow>
+
+            <FieldRow
+              label="Favicon"
+              desc="Shown in the browser tab on the hosted pages."
+              tour="setup-favicon"
+            >
+              <div className="flex">
+                <ImageUpload
+                  label=""
+                  imageType="favicon"
+                  currentImageUrl={
+                    faviconImageUrl !== null
+                      ? faviconImageUrl
+                      : deploymentSettings?.ui_settings?.favicon_image_url
+                  }
+                  onImageUploaded={(url) => {
+                    setFaviconImageUrl(url);
+                    setIsDirty(true);
+                  }}
+                  variant="avatar"
+                  shape="square"
+                  required={true}
+                />
+              </div>
+            </FieldRow>
+
+            <FieldRow
+              label="Privacy policy URL"
+              desc="Linked on the consent screen."
+              tour="setup-privacy-url"
+            >
+              <Input
+                type="url"
+                placeholder="https://example.com/privacy"
+                value={privacyPolicyUrl}
+                onChange={(e) =>
+                  updateField(
+                    setPrivacyPolicyUrl,
+                    e.target.value,
+                    "privacyPolicyUrl",
+                  )
+                }
+                className={cn(
+                  "font-mono text-xs",
+                  validationErrors.privacyPolicyUrl &&
+                    showValidationErrors &&
+                    "border-destructive",
+                )}
+              />
+              {validationErrors.privacyPolicyUrl && showValidationErrors && (
+                <span className="mt-1 block text-xs text-destructive">
+                  {validationErrors.privacyPolicyUrl}
+                </span>
+              )}
+            </FieldRow>
+
+            <FieldRow
+              label="Terms of service URL"
+              desc="Linked on the consent screen."
+              tour="setup-terms-url"
+            >
+              <Input
+                type="url"
+                placeholder="https://example.com/terms"
+                value={tosPageUrl}
+                onChange={(e) =>
+                  updateField(setTosPageUrl, e.target.value, "tosPageUrl")
+                }
+                className={cn(
+                  "font-mono text-xs",
+                  validationErrors.tosPageUrl &&
+                    showValidationErrors &&
+                    "border-destructive",
+                )}
+              />
+              {validationErrors.tosPageUrl && showValidationErrors && (
+                <span className="mt-1 block text-xs text-destructive">
+                  {validationErrors.tosPageUrl}
+                </span>
+              )}
+            </FieldRow>
+          </FieldCard>
+        </section>
+
+
+        <section className="space-y-3" data-tour-id="setup-theme">
+          <SectionLabel>Theme tokens</SectionLabel>
+          <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">
+            Override SDK tokens under light and dark mode. Unset values continue
+            to use the React SDK defaults. Changes apply to all auth surfaces.
+          </p>
+
+          {/* Global tokens — shared across both modes */}
+          <div className="overflow-hidden rounded-lg border border-border bg-card">
+            <div className="border-b border-border px-5 py-4">
+              <p className="text-sm font-medium text-foreground">
+                Global tokens
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Shape, typography, sizing and effects shared across both themes.
+              </p>
+            </div>
+            <div className="space-y-7 px-5 py-5">
+              <div className="space-y-2.5">
+                <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                  Spacing
+                </p>
+                <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                  {renderGlobalTokenField({
+                    key: "space_unit",
+                    label: "Spacing unit",
+                    description:
+                      "Base spacing unit used for padding, gaps and control spacing across the UI.",
+                    kind: "length",
+                  })}
+                </div>
+              </div>
+
+              {GLOBAL_TOKEN_GROUPS.map((group) => (
+                <div key={group.title} className="space-y-2.5">
+                  <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                    {group.title}
+                  </p>
+                  <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                    {group.keys
+                      .map((key) =>
+                        GLOBAL_TOKEN_FIELDS.find((field) => field.key === key),
+                      )
+                      .filter((field): field is (typeof GLOBAL_TOKEN_FIELDS)[number] =>
+                        Boolean(field),
+                      )
+                      .map((field) => renderGlobalTokenField(field))}
                   </div>
                 </div>
-
-                {GLOBAL_TOKEN_GROUPS.map((group) => (
-                  <div key={group.title} className="space-y-4">
-                    <div className="space-y-1">
-                      <Subheading>{group.title}</Subheading>
-                      <Text>{group.description}</Text>
-                    </div>
-                    <div className="grid gap-x-5 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">
-                      {group.keys
-                        .map((key) =>
-                          GLOBAL_TOKEN_FIELDS.find((field) => field.key === key),
-                        )
-                        .filter((field): field is (typeof GLOBAL_TOKEN_FIELDS)[number] =>
-                          Boolean(field),
-                        )
-                        .map((field) => renderGlobalTokenField(field))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              ))}
             </div>
-          </details>
+          </div>
 
-          <details className="group rounded-xl border border-zinc-200 dark:border-zinc-800/60 bg-white dark:bg-[#111113]" open>
-            <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/20 transition-colors">
-              <div className="space-y-1">
-                <Subheading>Light Mode</Subheading>
-                <Text>Token overrides for the light theme surface.</Text>
+          {/* Theme colors — switched per mode via Segmented */}
+          <div className="overflow-hidden rounded-lg border border-border bg-card">
+            <div className="flex items-center justify-between gap-4 border-b border-border px-5 py-4">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground">
+                  Theme colors
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Surface, border, input and status colors for the selected
+                  mode.
+                </p>
               </div>
-              <ChevronDownIcon className="size-4 text-zinc-500 dark:text-zinc-400 transition-transform group-open:rotate-180" />
-            </summary>
-            <div className="border-t border-zinc-200 dark:border-zinc-800/60 px-4 py-4">
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <Subheading>Core Theme</Subheading>
-                    <Text>Primary brand color, page background, and default text.</Text>
-                  </div>
-                  <div className="grid gap-x-5 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">
-                    {[
-                  {
-                    key: "primaryColor",
-                    label: "Primary Color",
-                    description: "The primary color for your application's light mode UI.",
-                    value: primaryColor,
-                    placeholder: "oklch(0.205 0 0)",
-                    onChange: (value: string) =>
-                      updateField(setPrimaryColor, value, "primaryColor"),
-                  },
-                  {
-                    key: "backgroundColor",
-                    label: "Background Color",
-                    description: "The background color for your application's light mode UI.",
-                    value: backgroundColor,
-                    placeholder: "oklch(1 0 0)",
-                    onChange: (value: string) =>
-                      updateField(setBackgroundColor, value, "backgroundColor"),
-                  },
-                  {
-                    key: "lightModeTextColor",
-                    label: "Text Color",
-                    description: "The default text color for your application's light mode UI.",
-                    value: lightModeTextColor,
-                    placeholder: SDK_LIGHT_THEME_DEFAULTS.text_color,
-                    onChange: (value: string) =>
-                      updateField(setLightModeTextColor, value, "lightModeTextColor"),
-                  },
-                    ].map((field) => (
-                      <div key={field.key} className="space-y-3 min-w-0">
-                        <div className="space-y-1">
-                          <Subheading>{field.label}</Subheading>
-                          <Text>{field.description}</Text>
+              <Segmented
+                value={themeMode}
+                onChange={setThemeMode}
+                options={[
+                  { value: "light", label: "Light" },
+                  { value: "dark", label: "Dark" },
+                ]}
+              />
+            </div>
+            <div className="space-y-7 px-5 py-5">
+              <div className="space-y-2.5">
+                <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                  Core
+                </p>
+                <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                  {(themeMode === "light"
+                    ? [
+                        {
+                          key: "primaryColor",
+                          label: "Primary color",
+                          description:
+                            "The primary color for light mode UI.",
+                          value: primaryColor,
+                          placeholder: "oklch(0.205 0 0)",
+                          onChange: (value: string) =>
+                            updateField(setPrimaryColor, value, "primaryColor"),
+                        },
+                        {
+                          key: "backgroundColor",
+                          label: "Background color",
+                          description:
+                            "The background color for light mode UI.",
+                          value: backgroundColor,
+                          placeholder: "oklch(1 0 0)",
+                          onChange: (value: string) =>
+                            updateField(
+                              setBackgroundColor,
+                              value,
+                              "backgroundColor",
+                            ),
+                        },
+                        {
+                          key: "lightModeTextColor",
+                          label: "Text color",
+                          description:
+                            "The default text color for light mode UI.",
+                          value: lightModeTextColor,
+                          placeholder: SDK_LIGHT_THEME_DEFAULTS.text_color,
+                          onChange: (value: string) =>
+                            updateField(
+                              setLightModeTextColor,
+                              value,
+                              "lightModeTextColor",
+                            ),
+                        },
+                      ]
+                    : [
+                        {
+                          key: "darkModePrimaryColor",
+                          label: "Primary color",
+                          description:
+                            "The primary color for dark mode UI.",
+                          value: darkModePrimaryColor,
+                          placeholder: "oklch(0.87 0 0)",
+                          onChange: (value: string) =>
+                            updateField(
+                              setDarkModePrimaryColor,
+                              value,
+                              "darkModePrimaryColor",
+                            ),
+                        },
+                        {
+                          key: "darkModeBackgroundColor",
+                          label: "Background color",
+                          description:
+                            "The background color for dark mode UI.",
+                          value: darkModeBackgroundColor,
+                          placeholder: "oklch(0.205 0 0)",
+                          onChange: (value: string) =>
+                            updateField(
+                              setDarkModeBackgroundColor,
+                              value,
+                              "darkModeBackgroundColor",
+                            ),
+                        },
+                        {
+                          key: "darkModeTextColor",
+                          label: "Text color",
+                          description:
+                            "The default text color for dark mode UI.",
+                          value: darkModeTextColor,
+                          placeholder: SDK_DARK_THEME_DEFAULTS.text_color,
+                          onChange: (value: string) =>
+                            updateField(
+                              setDarkModeTextColor,
+                              value,
+                              "darkModeTextColor",
+                            ),
+                        },
+                      ]
+                  ).map((field) => {
+                    const invalid =
+                      validationErrors[field.key] && showValidationErrors;
+                    return (
+                      <div
+                        key={field.key}
+                        className={cn(
+                          "min-w-0 rounded-md border bg-card p-2.5",
+                          invalid ? "border-destructive" : "border-border",
+                        )}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          {renderColorSwatch(field.value, field.onChange)}
+                          <div className="min-w-0 flex-1">
+                            <p
+                              className="truncate text-[11px] font-medium text-foreground"
+                              title={field.description}
+                            >
+                              {field.label}
+                            </p>
+                            <input
+                              type="text"
+                              placeholder={field.placeholder}
+                              value={field.value}
+                              onChange={(e) => field.onChange(e.target.value)}
+                              className="mt-0.5 w-full border-0 bg-transparent p-0 font-mono text-[11px] text-muted-foreground placeholder:text-muted-foreground/50 focus:text-foreground focus:outline-none"
+                            />
+                          </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          {renderColorInput(field.value, field.onChange)}
-                          <Input
-                            type="text"
-                            placeholder={field.placeholder}
-                            value={field.value}
-                            onChange={(e) => field.onChange(e.target.value)}
-                            className={`flex-1 ${validationErrors[field.key] && showValidationErrors ? "border-red-500" : ""}`}
-                          />
-                        </div>
+                        {invalid && (
+                          <span className="mt-1.5 block text-[10px] text-destructive">
+                            {validationErrors[field.key]}
+                          </span>
+                        )}
                       </div>
-                    ))}
+                    );
+                  })}
+                </div>
+              </div>
+
+              {THEME_TOKEN_GROUPS.map((group) => (
+                <div key={`${themeMode}-${group.title}`} className="space-y-2.5">
+                  <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                    {group.title}
+                  </p>
+                  <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                    {group.keys
+                      .map((key) =>
+                        TOKEN_OVERRIDE_FIELDS.find((field) => field.key === key),
+                      )
+                      .filter((field): field is (typeof TOKEN_OVERRIDE_FIELDS)[number] =>
+                        Boolean(field),
+                      )
+                      .map((field) => renderThemeTokenField(themeMode, field))}
                   </div>
                 </div>
-
-                {THEME_TOKEN_GROUPS.map((group) => (
-                  <div key={`light-${group.title}`} className="space-y-4">
-                    <div className="space-y-1">
-                      <Subheading>{group.title}</Subheading>
-                      <Text>{group.description}</Text>
-                    </div>
-                    <div className="grid gap-x-5 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">
-                      {group.keys
-                        .map((key) =>
-                          TOKEN_OVERRIDE_FIELDS.find((field) => field.key === key),
-                        )
-                        .filter((field): field is (typeof TOKEN_OVERRIDE_FIELDS)[number] =>
-                          Boolean(field),
-                        )
-                        .map((field) => renderThemeTokenField("light", field))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              ))}
             </div>
-          </details>
+          </div>
+        </section>
 
-          <details className="group rounded-xl border border-zinc-200 dark:border-zinc-800/60 bg-white dark:bg-[#111113]">
-            <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/20 transition-colors">
-              <div className="space-y-1">
-                <Subheading>Dark Mode</Subheading>
-                <Text>Token overrides for the dark theme surface.</Text>
+
+        <section className="space-y-3" data-tour-id="setup-redirects">
+          <SectionLabel>User redirects</SectionLabel>
+          <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">
+            The Account Portal redirects users after they complete key actions.
+            Defaults point at your development host — customize the paths to
+            suit your needs.
+          </p>
+          <FieldCard>
+            <FieldRow
+              label="After sign-up fallback"
+              desc="Where to send a user if it can't be determined from the redirect_url query parameter."
+            >
+              <Input
+                type="text"
+                placeholder="/path"
+                value={afterSignupRedirectUrl}
+                onChange={(e) =>
+                  updateField(
+                    setAfterSignupRedirectUrl,
+                    e.target.value,
+                    "afterSignupRedirectUrl",
+                  )
+                }
+                className={cn(
+                  "font-mono text-xs",
+                  validationErrors.afterSignupRedirectUrl &&
+                    showValidationErrors &&
+                    "border-destructive",
+                )}
+              />
+              {validationErrors.afterSignupRedirectUrl &&
+                showValidationErrors && (
+                  <span className="mt-1 block text-xs text-destructive">
+                    {validationErrors.afterSignupRedirectUrl}
+                  </span>
+                )}
+            </FieldRow>
+
+            <FieldRow
+              label="After sign-in fallback"
+              desc="Where to send a user if it can't be determined from the redirect_url query parameter."
+            >
+              <Input
+                type="text"
+                placeholder="/path"
+                value={afterSigninRedirectUrl}
+                onChange={(e) =>
+                  updateField(
+                    setAfterSigninRedirectUrl,
+                    e.target.value,
+                    "afterSigninRedirectUrl",
+                  )
+                }
+                className={cn(
+                  "font-mono text-xs",
+                  validationErrors.afterSigninRedirectUrl &&
+                    showValidationErrors &&
+                    "border-destructive",
+                )}
+              />
+              {validationErrors.afterSigninRedirectUrl &&
+                showValidationErrors && (
+                  <span className="mt-1 block text-xs text-destructive">
+                    {validationErrors.afterSigninRedirectUrl}
+                  </span>
+                )}
+            </FieldRow>
+
+            <FieldRow
+              label="After logo click"
+              desc="Where to send a user after they click your application's logo."
+            >
+              <Input
+                type="text"
+                placeholder="/path"
+                value={afterLogoClickUrl}
+                onChange={(e) =>
+                  updateField(
+                    setAfterLogoClickUrl,
+                    e.target.value,
+                    "afterLogoClickUrl",
+                  )
+                }
+                className={cn(
+                  "font-mono text-xs",
+                  validationErrors.afterLogoClickUrl &&
+                    showValidationErrors &&
+                    "border-destructive",
+                )}
+              />
+              {validationErrors.afterLogoClickUrl && showValidationErrors && (
+                <span className="mt-1 block text-xs text-destructive">
+                  {validationErrors.afterLogoClickUrl}
+                </span>
+              )}
+            </FieldRow>
+
+            <FieldRow
+              label="After sign-out (one session)"
+              desc="Where to send a user after they sign out of the current session."
+            >
+              <Input
+                type="text"
+                placeholder="/path"
+                value={afterSignOutOnePageUrl}
+                onChange={(e) =>
+                  updateField(
+                    setAfterSignOutOnePageUrl,
+                    e.target.value,
+                    "afterSignOutOnePageUrl",
+                  )
+                }
+                className={cn(
+                  "font-mono text-xs",
+                  validationErrors.afterSignOutOnePageUrl &&
+                    showValidationErrors &&
+                    "border-destructive",
+                )}
+              />
+              {validationErrors.afterSignOutOnePageUrl &&
+                showValidationErrors && (
+                  <span className="mt-1 block text-xs text-destructive">
+                    {validationErrors.afterSignOutOnePageUrl}
+                  </span>
+                )}
+            </FieldRow>
+
+            <FieldRow
+              label="After sign-out (all sessions)"
+              desc="Where to send a user after they sign out of all sessions."
+            >
+              <Input
+                type="text"
+                placeholder="/path"
+                value={afterSignOutAllPageUrl}
+                onChange={(e) =>
+                  updateField(
+                    setAfterSignOutAllPageUrl,
+                    e.target.value,
+                    "afterSignOutAllPageUrl",
+                  )
+                }
+                className={cn(
+                  "font-mono text-xs",
+                  validationErrors.afterSignOutAllPageUrl &&
+                    showValidationErrors &&
+                    "border-destructive",
+                )}
+              />
+              {validationErrors.afterSignOutAllPageUrl &&
+                showValidationErrors && (
+                  <span className="mt-1 block text-xs text-destructive">
+                    {validationErrors.afterSignOutAllPageUrl}
+                  </span>
+                )}
+            </FieldRow>
+
+            <FieldRow
+              label="After create organization"
+              desc="Where to send a user after they create an organization. Leave blank to redirect to the host's root."
+            >
+              <Input
+                type="text"
+                placeholder="/path"
+                value={afterCreateOrganizationUrl}
+                onChange={(e) =>
+                  updateField(
+                    setAfterCreateOrganizationUrl,
+                    e.target.value,
+                    "afterCreateOrganizationUrl",
+                  )
+                }
+                className={cn(
+                  "font-mono text-xs",
+                  validationErrors.afterCreateOrganizationUrl &&
+                    showValidationErrors &&
+                    "border-destructive",
+                )}
+              />
+              {validationErrors.afterCreateOrganizationUrl &&
+                showValidationErrors && (
+                  <span className="mt-1 block text-xs text-destructive">
+                    {validationErrors.afterCreateOrganizationUrl}
+                  </span>
+                )}
+            </FieldRow>
+          </FieldCard>
+        </section>
+
+
+        <section className="space-y-3" data-tour-id="setup-default-images">
+          <SectionLabel>Default profile images</SectionLabel>
+          <FieldCard>
+            <FieldRow
+              label="Default user profile image"
+              desc="Default profile image for users who haven't uploaded one."
+            >
+              <div className="flex">
+                <ImageUpload
+                  label=""
+                  imageType="user-profile"
+                  currentImageUrl={
+                    userProfileImageUrl !== null
+                      ? userProfileImageUrl
+                      : deploymentSettings?.ui_settings
+                          ?.default_user_profile_image_url
+                  }
+                  onImageUploaded={(url) => {
+                    setUserProfileImageUrl(url);
+                    setIsDirty(true);
+                  }}
+                  variant="avatar"
+                  required={true}
+                />
               </div>
-              <ChevronDownIcon className="size-4 text-zinc-500 dark:text-zinc-400 transition-transform group-open:rotate-180" />
-            </summary>
-            <div className="border-t border-zinc-200 dark:border-zinc-800/60 px-4 py-4">
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <Subheading>Core Theme</Subheading>
-                    <Text>Primary brand color, page background, and default text.</Text>
-                  </div>
-                  <div className="grid gap-x-5 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">
-                    {[
-                  {
-                    key: "darkModePrimaryColor",
-                    label: "Primary Color",
-                    description: "The primary color for your application's dark mode UI.",
-                    value: darkModePrimaryColor,
-                    placeholder: "oklch(0.87 0 0)",
-                    onChange: (value: string) =>
-                      updateField(setDarkModePrimaryColor, value, "darkModePrimaryColor"),
-                  },
-                  {
-                    key: "darkModeBackgroundColor",
-                    label: "Background Color",
-                    description: "The background color for your application's dark mode UI.",
-                    value: darkModeBackgroundColor,
-                    placeholder: "oklch(0.205 0 0)",
-                    onChange: (value: string) =>
-                      updateField(setDarkModeBackgroundColor, value, "darkModeBackgroundColor"),
-                  },
-                  {
-                    key: "darkModeTextColor",
-                    label: "Text Color",
-                    description: "The default text color for your application's dark mode UI.",
-                    value: darkModeTextColor,
-                    placeholder: SDK_DARK_THEME_DEFAULTS.text_color,
-                    onChange: (value: string) =>
-                      updateField(setDarkModeTextColor, value, "darkModeTextColor"),
-                  },
-                    ].map((field) => (
-                      <div key={field.key} className="space-y-3 min-w-0">
-                        <div className="space-y-1">
-                          <Subheading>{field.label}</Subheading>
-                          <Text>{field.description}</Text>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          {renderColorInput(field.value, field.onChange)}
-                          <Input
-                            type="text"
-                            placeholder={field.placeholder}
-                            value={field.value}
-                            onChange={(e) => field.onChange(e.target.value)}
-                            className={`flex-1 ${validationErrors[field.key] && showValidationErrors ? "border-red-500" : ""}`}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            </FieldRow>
 
-                {THEME_TOKEN_GROUPS.map((group) => (
-                  <div key={`dark-${group.title}`} className="space-y-4">
-                    <div className="space-y-1">
-                      <Subheading>{group.title}</Subheading>
-                      <Text>{group.description}</Text>
-                    </div>
-                    <div className="grid gap-x-5 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">
-                      {group.keys
-                        .map((key) =>
-                          TOKEN_OVERRIDE_FIELDS.find((field) => field.key === key),
-                        )
-                        .filter((field): field is (typeof TOKEN_OVERRIDE_FIELDS)[number] =>
-                          Boolean(field),
-                        )
-                        .map((field) => renderThemeTokenField("dark", field))}
-                    </div>
-                  </div>
-                ))}
+            <FieldRow
+              label="Default organization profile image"
+              desc="Default profile image for organizations that haven't uploaded one."
+            >
+              <div className="flex">
+                <ImageUpload
+                  label=""
+                  imageType="org-profile"
+                  currentImageUrl={
+                    orgProfileImageUrl !== null
+                      ? orgProfileImageUrl
+                      : deploymentSettings?.ui_settings
+                          ?.default_organization_profile_image_url
+                  }
+                  onImageUploaded={(url) => {
+                    setOrgProfileImageUrl(url);
+                    setIsDirty(true);
+                  }}
+                  variant="avatar"
+                  required={true}
+                />
               </div>
-            </div>
-          </details>
+            </FieldRow>
+
+            <FieldRow
+              label="Default workspace profile image"
+              desc="Default profile image for workspaces that haven't uploaded one."
+            >
+              <div className="flex">
+                <ImageUpload
+                  label=""
+                  imageType="workspace-profile"
+                  currentImageUrl={
+                    workspaceProfileImageUrl !== null
+                      ? workspaceProfileImageUrl
+                      : deploymentSettings?.ui_settings
+                          ?.default_workspace_profile_image_url
+                  }
+                  onImageUploaded={(url) => {
+                    setWorkspaceProfileImageUrl(url);
+                    setIsDirty(true);
+                  }}
+                  variant="avatar"
+                />
+              </div>
+            </FieldRow>
+
+            <FieldRow
+              label="Use initials for user profile images"
+              desc="Show user initials when no profile image is available."
+              endAlign
+            >
+              <Switch
+                name="use_initials_for_user_profile_image"
+                checked={useInitialsForUserProfileImage}
+                onCheckedChange={(checked) =>
+                  updateBooleanField(setUseInitialsForUserProfileImage, checked)
+                }
+              />
+            </FieldRow>
+
+            <FieldRow
+              label="Use initials for organization profile images"
+              desc="Show organization initials when no profile image is available."
+              endAlign
+            >
+              <Switch
+                name="use_initials_for_organization_profile_image"
+                checked={useInitialsForOrganizationProfileImage}
+                onCheckedChange={(checked) =>
+                  updateBooleanField(
+                    setUseInitialsForOrganizationProfileImage,
+                    checked,
+                  )
+                }
+              />
+            </FieldRow>
+          </FieldCard>
         </section>
 
-        <Divider className="my-8" soft />
+        <section className="space-y-3" data-tour-id="setup-signup-terms">
+          <SectionLabel>Signup &amp; pages</SectionLabel>
+          <FieldCard>
+            <FieldRow
+              label="Signup terms statement"
+              desc="Custom terms statement shown during the signup process."
+            >
+              <Input
+                type="text"
+                placeholder="By signing up, you agree to our terms..."
+                value={signupTermsStatement}
+                onChange={(e) =>
+                  updateField(
+                    setSignupTermsStatement,
+                    e.target.value,
+                    "signupTermsStatement",
+                  )
+                }
+                className={cn(
+                  validationErrors.signupTermsStatement &&
+                    showValidationErrors &&
+                    "border-destructive",
+                )}
+              />
+              {validationErrors.signupTermsStatement &&
+                showValidationErrors && (
+                  <span className="mt-1 block text-xs text-destructive">
+                    {validationErrors.signupTermsStatement}
+                  </span>
+                )}
+            </FieldRow>
 
-        <section
-          className="grid gap-x-8 gap-y-6 sm:grid-cols-3"
-          data-tour-id="setup-redirects"
-        >
-          <div className="space-y-1 col-span-2">
-            <Subheading>User Redirects</Subheading>
-            <Text>
-              The Account Portal requires a destination to redirect your users
-              after they complete key actions. By default, we've set your
-              development host, but you can customize the paths to suit your
-              needs.
-            </Text>
-          </div>
-        </section>
+            <FieldRow
+              label="Show signup terms statement"
+              desc="Display the terms statement during the signup process."
+              endAlign
+            >
+              <Switch
+                name="signup_terms_statement_shown"
+                checked={signupTermsStatementShown}
+                onCheckedChange={(checked) =>
+                  updateBooleanField(setSignupTermsStatementShown, checked)
+                }
+              />
+            </FieldRow>
 
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
-          <div className="space-y-1">
-            <Subheading>After sign-up fallback</Subheading>
-            <Text>
-              Specify where to send a user if it cannot be determined from the
-              redirect_url query parameter.
-            </Text>
-          </div>
-          <div className="space-y-1">
-            <Input
-              type="text"
-              placeholder="/path"
-              value={afterSignupRedirectUrl}
-              onChange={(e) =>
-                updateField(
-                  setAfterSignupRedirectUrl,
-                  e.target.value,
-                  "afterSignupRedirectUrl",
-                )
-              }
-              className={
-                validationErrors.afterSignupRedirectUrl && showValidationErrors
-                  ? "border-red-500"
-                  : ""
-              }
-            />
-            {validationErrors.afterSignupRedirectUrl &&
-              showValidationErrors && (
-                <span className="text-red-500 text-sm px-2">
-                  {validationErrors.afterSignupRedirectUrl}
+            <FieldRow
+              label="Waitlist page URL"
+              desc="URL for your application's waitlist page."
+            >
+              <Input
+                type="url"
+                placeholder="https://example.com/waitlist"
+                value={waitlistPageUrl}
+                onChange={(e) =>
+                  updateField(
+                    setWaitlistPageUrl,
+                    e.target.value,
+                    "waitlistPageUrl",
+                  )
+                }
+                className={cn(
+                  "font-mono text-xs",
+                  validationErrors.waitlistPageUrl &&
+                    showValidationErrors &&
+                    "border-destructive",
+                )}
+              />
+              {validationErrors.waitlistPageUrl && showValidationErrors && (
+                <span className="mt-1 block text-xs text-destructive">
+                  {validationErrors.waitlistPageUrl}
                 </span>
               )}
-          </div>
-        </section>
+            </FieldRow>
 
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
-          <div className="space-y-1">
-            <Subheading>After sign-in fallback</Subheading>
-            <Text>
-              Specify where to send a user if it cannot be determined from the
-              redirect_url query parameter.
-            </Text>
-          </div>
-          <div className="space-y-1">
-            <Input
-              type="text"
-              placeholder="/path"
-              value={afterSigninRedirectUrl}
-              onChange={(e) =>
-                updateField(
-                  setAfterSigninRedirectUrl,
-                  e.target.value,
-                  "afterSigninRedirectUrl",
-                )
-              }
-              className={
-                validationErrors.afterSigninRedirectUrl && showValidationErrors
-                  ? "border-red-500"
-                  : ""
-              }
-            />
-            {validationErrors.afterSigninRedirectUrl &&
-              showValidationErrors && (
-                <span className="text-red-500 text-sm px-2">
-                  {validationErrors.afterSigninRedirectUrl}
+            <FieldRow
+              label="Support page URL"
+              desc="URL for your application's support or help page."
+            >
+              <Input
+                type="url"
+                placeholder="https://example.com/support"
+                value={supportPageUrl}
+                onChange={(e) =>
+                  updateField(
+                    setSupportPageUrl,
+                    e.target.value,
+                    "supportPageUrl",
+                  )
+                }
+                className={cn(
+                  "font-mono text-xs",
+                  validationErrors.supportPageUrl &&
+                    showValidationErrors &&
+                    "border-destructive",
+                )}
+              />
+              {validationErrors.supportPageUrl && showValidationErrors && (
+                <span className="mt-1 block text-xs text-destructive">
+                  {validationErrors.supportPageUrl}
                 </span>
               )}
-          </div>
+            </FieldRow>
+          </FieldCard>
         </section>
 
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
-          <div className="space-y-1">
-            <Subheading>After logo click</Subheading>
-            <Text>
-              Specify where to send a user after they click your application's
-              logo.
-            </Text>
-          </div>
-          <div className="space-y-1">
-            <Input
-              type="text"
-              placeholder="/path"
-              value={afterLogoClickUrl}
-              onChange={(e) =>
-                updateField(
-                  setAfterLogoClickUrl,
-                  e.target.value,
-                  "afterLogoClickUrl",
-                )
-              }
-              className={
-                validationErrors.afterLogoClickUrl && showValidationErrors
-                  ? "border-red-500"
-                  : ""
-              }
-            />
-            {validationErrors.afterLogoClickUrl && showValidationErrors && (
-              <span className="text-red-500 text-sm px-2">
-                {validationErrors.afterLogoClickUrl}
-              </span>
-            )}
-          </div>
-        </section>
-
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
-          <div className="space-y-1">
-            <Subheading>After sign-out (one session)</Subheading>
-            <Text>
-              Specify where to send a user after they sign out of the current
-              session.
-            </Text>
-          </div>
-          <div className="space-y-1">
-            <Input
-              type="text"
-              placeholder="/path"
-              value={afterSignOutOnePageUrl}
-              onChange={(e) =>
-                updateField(
-                  setAfterSignOutOnePageUrl,
-                  e.target.value,
-                  "afterSignOutOnePageUrl",
-                )
-              }
-              className={
-                validationErrors.afterSignOutOnePageUrl && showValidationErrors
-                  ? "border-red-500"
-                  : ""
-              }
-            />
-            {validationErrors.afterSignOutOnePageUrl &&
-              showValidationErrors && (
-                <span className="text-red-500 text-sm px-2">
-                  {validationErrors.afterSignOutOnePageUrl}
-                </span>
-              )}
-          </div>
-        </section>
-
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
-          <div className="space-y-1">
-            <Subheading>After sign-out (all sessions)</Subheading>
-            <Text>
-              Specify where to send a user after they sign out of all sessions.
-            </Text>
-          </div>
-          <div className="space-y-1">
-            <Input
-              type="text"
-              placeholder="/path"
-              value={afterSignOutAllPageUrl}
-              onChange={(e) =>
-                updateField(
-                  setAfterSignOutAllPageUrl,
-                  e.target.value,
-                  "afterSignOutAllPageUrl",
-                )
-              }
-              className={
-                validationErrors.afterSignOutAllPageUrl && showValidationErrors
-                  ? "border-red-500"
-                  : ""
-              }
-            />
-            {validationErrors.afterSignOutAllPageUrl &&
-              showValidationErrors && (
-                <span className="text-red-500 text-sm px-2">
-                  {validationErrors.afterSignOutAllPageUrl}
-                </span>
-              )}
-          </div>
-        </section>
-
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
-          <div className="space-y-1">
-            <Subheading>After create organization</Subheading>
-            <Text>
-              Specify where to send a user after they create an organization.
-              (Leave blank to redirect to the host's root.)
-            </Text>
-          </div>
-          <div className="space-y-1">
-            <Input
-              type="text"
-              placeholder="/path"
-              value={afterCreateOrganizationUrl}
-              onChange={(e) =>
-                updateField(
-                  setAfterCreateOrganizationUrl,
-                  e.target.value,
-                  "afterCreateOrganizationUrl",
-                )
-              }
-              className={
-                validationErrors.afterCreateOrganizationUrl &&
-                  showValidationErrors
-                  ? "border-red-500"
-                  : ""
-              }
-            />
-            {validationErrors.afterCreateOrganizationUrl &&
-              showValidationErrors && (
-                <span className="text-red-500 text-sm px-2">
-                  {validationErrors.afterCreateOrganizationUrl}
-                </span>
-              )}
-          </div>
-        </section>
-
-        <Divider className="my-8" soft />
-
-        <section
-          className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center"
-          data-tour-id="setup-default-images"
-        >
-          <div className="space-y-1">
-            <Subheading>Default User Profile Image</Subheading>
-            <Text>
-              Default profile image for users who haven't uploaded one.
-            </Text>
-          </div>
-          <div className="space-y-1 flex justify-end">
-            <ImageUpload
-              label=""
-              imageType="user-profile"
-              currentImageUrl={
-                userProfileImageUrl !== null
-                  ? userProfileImageUrl
-                  : deploymentSettings?.ui_settings
-                    ?.default_user_profile_image_url
-              }
-              onImageUploaded={(url) => {
-                setUserProfileImageUrl(url);
-                setIsDirty(true);
-              }}
-              variant="avatar"
-              required={true}
-            />
-          </div>
-        </section>
-
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
-          <div className="space-y-1">
-            <Subheading>Default Organization Profile Image</Subheading>
-            <Text>
-              Default profile image for organizations that haven't uploaded one.
-            </Text>
-          </div>
-          <div className="space-y-1 flex justify-end">
-            <ImageUpload
-              label=""
-              imageType="org-profile"
-              currentImageUrl={
-                orgProfileImageUrl !== null
-                  ? orgProfileImageUrl
-                  : deploymentSettings?.ui_settings
-                    ?.default_organization_profile_image_url
-              }
-              onImageUploaded={(url) => {
-                setOrgProfileImageUrl(url);
-                setIsDirty(true);
-              }}
-              variant="avatar"
-              required={true}
-            />
-          </div>
-        </section>
-
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
-          <div className="space-y-1">
-            <Subheading>Default Workspace Profile Image</Subheading>
-            <Text>
-              Default profile image for workspaces that haven't uploaded one.
-            </Text>
-          </div>
-          <div className="space-y-1 flex justify-end">
-            <ImageUpload
-              label=""
-              imageType="workspace-profile"
-              currentImageUrl={
-                workspaceProfileImageUrl !== null
-                  ? workspaceProfileImageUrl
-                  : deploymentSettings?.ui_settings
-                    ?.default_workspace_profile_image_url
-              }
-              onImageUploaded={(url) => {
-                setWorkspaceProfileImageUrl(url);
-                setIsDirty(true);
-              }}
-              variant="avatar"
-            />
-          </div>
-        </section>
-
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
-          <div className="space-y-1">
-            <Subheading>Use Initials for User Profile Images</Subheading>
-            <Text>Show user initials when no profile image is available.</Text>
-          </div>
-          <div className="space-y-1 flex justify-end">
-            <Switch
-              name="use_initials_for_user_profile_image"
-              checked={useInitialsForUserProfileImage}
-              onCheckedChange={(checked) =>
-                updateBooleanField(setUseInitialsForUserProfileImage, checked)
-              }
-            />
-          </div>
-        </section>
-
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
-          <div className="space-y-1">
-            <Subheading>
-              Use Initials for Organization Profile Images
-            </Subheading>
-            <Text>
-              Show organization initials when no profile image is available.
-            </Text>
-          </div>
-          <div className="space-y-1 flex justify-end">
-            <Switch
-              name="use_initials_for_organization_profile_image"
-              checked={useInitialsForOrganizationProfileImage}
-              onCheckedChange={(checked) =>
-                updateBooleanField(
-                  setUseInitialsForOrganizationProfileImage,
-                  checked,
-                )
-              }
-            />
-          </div>
-        </section>
-
-        <section
-          className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center"
-          data-tour-id="setup-signup-terms"
-        >
-          <div className="space-y-1">
-            <Subheading>Signup Terms Statement</Subheading>
-            <Text>Custom terms statement shown during signup process.</Text>
-          </div>
-          <div className="space-y-1">
-            <Input
-              type="text"
-              placeholder="By signing up, you agree to our terms..."
-              value={signupTermsStatement}
-              onChange={(e) =>
-                updateField(
-                  setSignupTermsStatement,
-                  e.target.value,
-                  "signupTermsStatement",
-                )
-              }
-              className={
-                validationErrors.signupTermsStatement && showValidationErrors
-                  ? "border-red-500"
-                  : ""
-              }
-            />
-            {validationErrors.signupTermsStatement && showValidationErrors && (
-              <span className="text-red-500 text-sm px-2">
-                {validationErrors.signupTermsStatement}
-              </span>
-            )}
-          </div>
-        </section>
-
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
-          <div className="space-y-1">
-            <Subheading>Show Signup Terms Statement</Subheading>
-            <Text>Display the terms statement during the signup process.</Text>
-          </div>
-          <div className="space-y-1 flex justify-end">
-            <Switch
-              name="signup_terms_statement_shown"
-              checked={signupTermsStatementShown}
-              onCheckedChange={(checked) =>
-                updateBooleanField(setSignupTermsStatementShown, checked)
-              }
-            />
-          </div>
-        </section>
-
-        <section
-          className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center"
-          data-tour-id="setup-waitlist-support"
-        >
-          <div className="space-y-1">
-            <Subheading>Waitlist Page URL</Subheading>
-            <Text>URL for your application's waitlist page.</Text>
-          </div>
-          <div className="space-y-1">
-            <Input
-              type="url"
-              placeholder="https://example.com/waitlist"
-              value={waitlistPageUrl}
-              onChange={(e) =>
-                updateField(
-                  setWaitlistPageUrl,
-                  e.target.value,
-                  "waitlistPageUrl",
-                )
-              }
-              className={
-                validationErrors.waitlistPageUrl && showValidationErrors
-                  ? "border-red-500"
-                  : ""
-              }
-            />
-            {validationErrors.waitlistPageUrl && showValidationErrors && (
-              <span className="text-red-500 text-sm px-2">
-                {validationErrors.waitlistPageUrl}
-              </span>
-            )}
-          </div>
-        </section>
-
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2 items-center">
-          <div className="space-y-1">
-            <Subheading>Support Page URL</Subheading>
-            <Text>URL for your application's support or help page.</Text>
-          </div>
-          <div className="space-y-1">
-            <Input
-              type="url"
-              placeholder="https://example.com/support"
-              value={supportPageUrl}
-              onChange={(e) =>
-                updateField(setSupportPageUrl, e.target.value, "supportPageUrl")
-              }
-              className={
-                validationErrors.supportPageUrl && showValidationErrors
-                  ? "border-red-500"
-                  : ""
-              }
-            />
-            {validationErrors.supportPageUrl && showValidationErrors && (
-              <span className="text-red-500 text-sm px-2">
-                {validationErrors.supportPageUrl}
-              </span>
-            )}
-          </div>
-        </section>
-
-        <Divider className="my-8" soft />
-
-        <section>
-          <Subheading className="mb-4">Preview Links</Subheading>
-          <Text className="mb-6">
-            Preview your application's hosted authentication flows.
-          </Text>
-          <div className="grid gap-4 sm:grid-cols-2">
+        <section className="space-y-3">
+          <SectionLabel>Preview links</SectionLabel>
+          <div className="grid gap-3 sm:grid-cols-2">
             {data.map((item) => (
               <div
                 key={item.index}
-                className="flex items-center justify-between p-4 border border-zinc-200 dark:border-zinc-700 rounded-lg"
+                className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-4"
               >
-                <div className="flex-1">
-                  <h3 className="font-medium text-sm">{item.title}</h3>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-foreground">
+                    {item.title}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     {item.desc}
                   </p>
                 </div>
@@ -1957,7 +1872,9 @@ export default function DeploymentSettingsPage() {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => copyToClipboard(item.demoLink, item.index)}
+                        onClick={() =>
+                          copyToClipboard(item.demoLink, item.index)
+                        }
                         disabled={!item.demoLink}
                       >
                         <ClipboardIcon className="h-4 w-4" />

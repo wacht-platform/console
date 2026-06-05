@@ -1,7 +1,7 @@
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button";
 import { InlineLoader } from "@/components/ui/loading-screen";
-import { Heading, Subheading } from "@/components/ui/heading";
+import { Pill } from "@/components/ui/pill";
 import { usePostHog } from "@posthog/react";
 import {
   Dialog,
@@ -300,7 +300,7 @@ function ProviderSettingsDialog({
           )}
 
           {useCustomCredentials && (
-            <FieldGroup className="border-t border-zinc-200 dark:border-zinc-700 pt-4 mt-4 space-y-3">
+            <FieldGroup className="border-t border-border pt-4 mt-4 space-y-3">
               <Field>
                 <Label>Client ID</Label>
                 <Input
@@ -370,7 +370,7 @@ function ProviderSettingsDialog({
                 <Label>Scopes</Label>
                 <p
                   id="scopes-description"
-                  className="text-sm text-zinc-500 dark:text-zinc-400"
+                  className="text-sm text-muted-foreground"
                 >
                   Enter required OAuth scopes one by one.
                 </p>
@@ -398,7 +398,7 @@ function ProviderSettingsDialog({
                       <button
                         onClick={() => handleRemoveScope(scope)}
                         disabled={isSaving}
-                        className="rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-600 p-0.5"
+                        className="rounded-full hover:bg-accent p-0.5"
                         aria-label={`Remove ${scope} scope`}
                       >
                         <XMarkIcon className="w-3 h-3" />
@@ -565,49 +565,49 @@ export default function SSOConnectionsPage() {
         }}
       />
 
-      <div>
-        <Heading>Social Connections</Heading>
-        <Subheading>
-          Configure social login providers for your application
-        </Subheading>
-
-        <div className="space-y-6 mt-8">
-          <div className="space-y-6">
-            {providerConnections.map((provider) => (
-              <div
-                key={provider.name}
-                className="flex items-start justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <img
-                    src={provider.icon}
-                    alt={`${provider.name} icon`}
-                    className="w-6 h-6"
-                  />
-
-                  <div>
-                    <h3 className="text-sm font-medium">{provider.name}</h3>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Allow users to sign in with {provider.name}
-                    </p>
-                  </div>
-                </div>
+      <div className="flex flex-col gap-4">
+        <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+          {providerConnections.map((provider) => (
+            <div
+              key={provider.name}
+              className="flex items-center gap-4 px-4 py-3.5"
+            >
+              <img
+                src={provider.icon}
+                alt={`${provider.name} icon`}
+                className="h-7 w-7 shrink-0"
+              />
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" onClick={() => handleOpenSettings(provider)}>
-                    <Cog6ToothIcon />
-                  </Button>
-                  <Switch
-                    name={`${provider.name.toLowerCase()}_enabled`}
-                    checked={provider.connection?.enabled ?? false}
-                    onCheckedChange={(checked: boolean) =>
-                      handleSwitchToggle(provider, checked)
-                    }
-                    disabled={isTogglingConnection}
-                  />
+                  <span className="text-sm font-medium text-foreground">
+                    {provider.name}
+                  </span>
+                  <Pill tone={provider.connection?.enabled ? "ok" : "mute"}>
+                    {provider.connection?.enabled ? "on" : "off"}
+                  </Pill>
                 </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Allow users to sign in with {provider.name}
+                </p>
               </div>
-            ))}
-          </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 shrink-0 text-muted-foreground"
+                onClick={() => handleOpenSettings(provider)}
+              >
+                <Cog6ToothIcon className="size-4" />
+              </Button>
+              <Switch
+                name={`${provider.name.toLowerCase()}_enabled`}
+                checked={provider.connection?.enabled ?? false}
+                onCheckedChange={(checked: boolean) =>
+                  handleSwitchToggle(provider, checked)
+                }
+                disabled={isTogglingConnection}
+              />
+            </div>
+          ))}
         </div>
       </div>
     </>

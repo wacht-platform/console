@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api/client";
+import SavePopup from "@/components/save-popup";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tag } from "@/components/ui/tag";
+import { Segmented } from "@/components/ui/segmented";
+import { SectionLabel } from "@/components/ui/section-label";
 import {
   Select,
   SelectContent,
@@ -12,10 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { RadioGroup, Radio } from "@/components/ui/radio";
-import { SimpleCombobox } from "@/components/ui/simple-combobox";
 import { InlineLoader } from "@/components/ui/loading-screen";
-import { cn } from "@/lib/utils";
 import { useAiProviderProfiles } from "@/lib/api/hooks/use-ai-provider-profiles";
 import {
   type AgentModelOverride,
@@ -67,11 +69,31 @@ function fromOverride(override?: AgentModelOverride): ModelFormState {
   };
 }
 
+type ProfileOption = {
+  id: string;
+  name: string;
+  slug: string;
+  default_model?: string | null;
+};
+
 export default function AgentModelsPage() {
-  const { agentId } = useParams<{ agentId: string }>();
+  const { agentId, deploymentId } = useParams<{
+    agentId: string;
+    deploymentId: string;
+  }>();
   const { data: agent, isLoading, error } = useAgentById(agentId || "");
-  const { data: profiles = [], isLoading: profilesLoading } =
-    useAiProviderProfiles();
+  const { data: profiles = [] } = useAiProviderProfiles();
+  const { data: aiDefaults } = useQuery({
+    queryKey: ["ai-settings", deploymentId],
+    queryFn: async () => {
+      const { data } = await apiClient.get<{
+        strong_model: string | null;
+        weak_model: string | null;
+      }>(`/deployments/${deploymentId}/ai/settings`);
+      return data;
+    },
+    enabled: !!deploymentId,
+  });
   const updateAgent = useUpdateAgent();
 
   const [strong, setStrong] = useState<ModelFormState>(EMPTY_FORM);
@@ -104,12 +126,15 @@ export default function AgentModelsPage() {
   const isDirty =
     !sameModelState(original.strong, strong) ||
     !sameModelState(original.weak, weak);
-
-  const formInvalid =
-    isModelStateInvalid(strong) || isModelStateInvalid(weak);
+  const formInvalid = isModelStateInvalid(strong) || isModelStateInvalid(weak);
 
   const onSave = async () => {
-    if (formInvalid) return;
+    if (formInvalid) {
+      toast.error(
+        "Enabled overrides need a provider + model, or a selected profile.",
+      );
+      return;
+    }
     const update: Parameters<typeof updateAgent.mutate>[0]["agent"] = {};
     if (strong.enabled) {
       update.strong_model = toOverride(strong);
@@ -135,264 +160,207 @@ export default function AgentModelsPage() {
   };
 
   return (
-    <div className="space-y-8">
-      <p className="text-[13px] leading-5 text-muted-foreground">
-        Falls back to deployment defaults when unset. Overrides can use a direct
-        provider/model pair or an OpenAI profile defined in deployment settings.
-      </p>
-
-      <ModelOverrideRow
-        id="strong"
-        title="Strong model"
-        description="Main reasoning loop and high-quality calls."
-        state={strong}
-        onChange={setStrong}
-        profiles={enabledProfiles}
-        profilesLoading={profilesLoading}
-      />
-
-      <div className="border-t border-border/40" />
-
-      <ModelOverrideRow
-        id="weak"
-        title="Weak model"
-        description="Cheap/fast calls: terminal review, summarisation, classification."
-        state={weak}
-        onChange={setWeak}
-        profiles={enabledProfiles}
-        profilesLoading={profilesLoading}
-      />
-
-      <div className="flex items-center justify-end gap-2 border-t border-border/40 pt-5">
-        <Button
-          variant="outline"
-          onClick={() => {
-            setStrong(fromOverride(agent.strong_model));
-            setWeak(fromOverride(agent.weak_model));
-          }}
-          disabled={!isDirty || updateAgent.isPending}
-        >
-          Reset
-        </Button>
-        <Button
-          onClick={onSave}
-          disabled={!isDirty || formInvalid || updateAgent.isPending}
-        >
-          {updateAgent.isPending ? "Saving..." : "Save"}
-        </Button>
+    <div>
+      <div className="mb-2">
+        <h3 className="text-base font-medium tracking-tight text-foreground">
+          Model overrides
+        </h3>
+        <p className="mt-1 max-w-[640px] text-[13px] leading-6 text-muted-foreground">
+          This agent uses the deployment's default models unless you override
+          them here. Each override accepts a direct provider/model pair or a
+          saved profile.
+        </p>
       </div>
+
+      <div className="mt-6 flex flex-col gap-10">
+        <ModelRow
+          id="strong"
+          title="Strong model"
+          badge="planner"
+          description="Main reasoning loop and high-quality calls."
+          state={strong}
+          onChange={setStrong}
+          profiles={enabledProfiles}
+          defaultModel={aiDefaults?.strong_model}
+        />
+        <ModelRow
+          id="weak"
+          title="Weak model"
+          badge="executor"
+          description="Cheap, fast calls — review, summarisation, classification."
+          state={weak}
+          onChange={setWeak}
+          profiles={enabledProfiles}
+          defaultModel={aiDefaults?.weak_model}
+        />
+      </div>
+
+      <SavePopup
+        isDirty={isDirty}
+        isSaving={updateAgent.isPending}
+        onSave={onSave}
+        onCancel={() => {
+          setStrong(fromOverride(agent.strong_model));
+          setWeak(fromOverride(agent.weak_model));
+        }}
+      />
     </div>
   );
 }
 
-function ModelOverrideRow({
+function ModelRow({
   id,
   title,
+  badge,
   description,
   state,
   onChange,
   profiles,
-  profilesLoading,
+  defaultModel,
 }: {
   id: string;
   title: string;
+  badge: string;
   description: string;
   state: ModelFormState;
   onChange: (next: ModelFormState) => void;
-  profiles: Array<{
-    id: string;
-    name: string;
-    slug: string;
-    default_model?: string | null;
-  }>;
-  profilesLoading: boolean;
+  profiles: ProfileOption[];
+  defaultModel?: string | null;
 }) {
-  const selectedProfile = profiles.find(
-    (profile) => profile.id === state.profileId,
-  );
-
-  const profileOptions = useMemo(
-    () =>
-      profiles.map((profile) => ({
-        value: profile.id,
-        label: profile.name,
-        keywords: [profile.slug, profile.default_model ?? ""].filter(Boolean),
-      })),
-    [profiles],
-  );
-
-  const renderProfileOption = (option: { value: string; label: string }) => {
-    const profile = profiles.find((p) => p.id === option.value);
-    const subtitle = profile?.default_model
-      ? `${profile.default_model} · ${profile.slug}`
-      : profile?.slug;
-    return (
-      <span className="flex min-w-0 items-center gap-1.5">
-        <span className="truncate text-[13px]">{option.label}</span>
-        {subtitle ? (
-          <span className="truncate text-[11.5px] text-muted-foreground">
-            {subtitle}
-          </span>
-        ) : null}
-      </span>
-    );
-  };
+  const selectedProfile = profiles.find((p) => p.id === state.profileId);
+  const modelPlaceholder =
+    state.mode === "profile"
+      ? selectedProfile?.default_model || "Use profile default"
+      : providerModelPlaceholder(state.provider);
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-start justify-between gap-3">
+    <section className="flex flex-col gap-4">
+      <SectionLabel>{title}</SectionLabel>
+      <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <div className="text-[14px] font-medium leading-5">{title}</div>
-          <p className="mt-0.5 text-[13px] leading-5 text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-foreground">
+              Override default model
+            </span>
+            <Tag>{badge}</Tag>
+          </div>
+          <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
             {description}
           </p>
         </div>
-        <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
-          <span>Override</span>
-          <Switch
-            checked={state.enabled}
-            onCheckedChange={(checked) =>
-              onChange({ ...state, enabled: checked })
-            }
-          />
-        </div>
+        <Switch
+          checked={state.enabled}
+          onCheckedChange={(checked) =>
+            onChange({ ...state, enabled: checked })
+          }
+          className="mt-0.5 shrink-0"
+        />
       </div>
 
       {state.enabled ? (
-        <RadioGroup
-          value={state.mode}
-          onValueChange={(value) =>
-            onChange({
-              ...state,
-              mode: value as ModelMode,
-              provider: value === "profile" ? "" : state.provider,
-              profileId: value === "provider" ? "" : state.profileId,
-            })
-          }
-          className="gap-2"
-        >
-          <div className="rounded-lg border border-border p-3">
-            <label
-              htmlFor={`${id}-mode-provider`}
-              className="flex cursor-pointer items-center gap-2"
-            >
-              <Radio id={`${id}-mode-provider`} value="provider" />
-              <span className="text-[13px] font-medium leading-none">
-                Provider and model
-              </span>
-            </label>
-            {state.mode === "provider" ? (
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor={`${id}-provider`}>Provider</Label>
-                  <Select
-                    value={state.provider}
-                    onValueChange={(value) =>
-                      onChange({ ...state, provider: value })
-                    }
-                  >
-                    <SelectTrigger id={`${id}-provider`} className="w-full">
-                      <SelectValue placeholder="Pick a provider" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PROVIDER_CHOICES.map((p) => (
-                        <SelectItem key={p.value} value={p.value}>
-                          {p.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor={`${id}-provider-model`}>Model</Label>
-                  <Input
-                    id={`${id}-provider-model`}
-                    value={state.model}
-                    placeholder={modelPlaceholder(state.provider)}
-                    onChange={(e) =>
-                      onChange({ ...state, model: e.target.value })
-                    }
-                  />
-                  <p className="text-[12px] leading-4 text-muted-foreground">
-                    Exact identifier accepted by the provider API.
-                  </p>
-                </div>
-              </div>
-            ) : null}
-          </div>
+        <div className="space-y-3">
+          <Segmented
+            value={state.mode}
+            onChange={(mode) =>
+              onChange({
+                ...state,
+                mode: mode as ModelMode,
+                provider: mode === "profile" ? "" : state.provider,
+                profileId: mode === "provider" ? "" : state.profileId,
+              })
+            }
+            options={[
+              { value: "provider", label: "Provider & model" },
+              { value: "profile", label: "Profile" },
+            ]}
+          />
 
-          <div className="rounded-lg border border-border p-3">
-            <label
-              htmlFor={`${id}-mode-profile`}
-              className={cn(
-                "flex items-center gap-2",
-                profiles.length
-                  ? "cursor-pointer"
-                  : "cursor-not-allowed opacity-50",
-              )}
-            >
-              <Radio
-                id={`${id}-mode-profile`}
-                value="profile"
-                disabled={!profiles.length}
-              />
-              <span className="text-[13px] font-medium leading-none">
-                Profile
-              </span>
-            </label>
-            {state.mode === "profile" ? (
-              <div className="mt-3 space-y-3">
-                <div className="space-y-1.5">
-                  <Label>Profile</Label>
-                  <SimpleCombobox
-                    options={profileOptions}
-                    value={state.profileId}
-                    onChange={(value) =>
-                      onChange({
-                        ...state,
-                        profileId: value,
-                        model:
-                          state.model ||
-                          profiles.find((profile) => profile.id === value)
-                            ?.default_model ||
-                          "",
-                      })
-                    }
-                    placeholder={
-                      profilesLoading
-                        ? "Loading profiles"
-                        : "Search by name or slug"
-                    }
-                    emptyText="No matching profile."
-                    renderItem={renderProfileOption}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor={`${id}-profile-model`}>Model override</Label>
-                  <Input
-                    id={`${id}-profile-model`}
-                    value={state.model}
-                    placeholder={
-                      selectedProfile?.default_model || "Use profile default"
-                    }
-                    onChange={(e) =>
-                      onChange({ ...state, model: e.target.value })
-                    }
-                  />
-                  <p className="text-[12px] leading-4 text-muted-foreground">
-                    Leave blank to use the profile default model.
-                  </p>
-                </div>
+          {state.mode === "provider" ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor={`${id}-provider`}>Provider</Label>
+                <Select
+                  value={state.provider}
+                  onValueChange={(v) => onChange({ ...state, provider: v })}
+                >
+                  <SelectTrigger id={`${id}-provider`} className="w-full">
+                    <SelectValue placeholder="Pick a provider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROVIDER_CHOICES.map((p) => (
+                      <SelectItem key={p.value} value={p.value}>
+                        {p.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            ) : null}
-          </div>
-        </RadioGroup>
+              <div className="space-y-1.5">
+                <Label htmlFor={`${id}-model`}>Model</Label>
+                <Input
+                  id={`${id}-model`}
+                  value={state.model}
+                  placeholder={modelPlaceholder}
+                  className="font-mono"
+                  onChange={(e) => onChange({ ...state, model: e.target.value })}
+                />
+              </div>
+            </div>
+          ) : profiles.length === 0 ? (
+            <p className="text-[13px] leading-6 text-muted-foreground">
+              No provider profiles defined yet — create one under{" "}
+              <span className="font-medium text-foreground">Configuration</span>.
+            </p>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor={`${id}-profile`}>Profile</Label>
+                <Select
+                  value={state.profileId}
+                  onValueChange={(v) => {
+                    const profile = profiles.find((p) => p.id === v);
+                    onChange({
+                      ...state,
+                      profileId: v,
+                      model: state.model || profile?.default_model || "",
+                    });
+                  }}
+                >
+                  <SelectTrigger id={`${id}-profile`} className="w-full">
+                    <SelectValue placeholder="Pick a profile" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {profiles.map((profile) => (
+                      <SelectItem key={profile.id} value={profile.id}>
+                        {profile.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor={`${id}-model`}>Model override</Label>
+                <Input
+                  id={`${id}-model`}
+                  value={state.model}
+                  placeholder={modelPlaceholder}
+                  className="font-mono"
+                  onChange={(e) => onChange({ ...state, model: e.target.value })}
+                />
+              </div>
+            </div>
+          )}
+        </div>
       ) : (
-        <p className="text-[13px] text-muted-foreground">
-          Using deployment default.
-        </p>
+        <div className="flex flex-wrap items-center gap-1.5 font-mono text-[12px] leading-5 text-muted-foreground">
+          <span className="size-1.5 rounded-full bg-muted-foreground/60" />
+          deployment default
+          {defaultModel ? (
+            <span className="text-foreground">· {defaultModel}</span>
+          ) : null}
+        </div>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -425,7 +393,7 @@ function toOverride(state: ModelFormState): AgentModelOverride {
   };
 }
 
-function modelPlaceholder(provider: string): string {
+function providerModelPlaceholder(provider: string): string {
   switch (provider) {
     case "openai":
       return "gpt-5.1";

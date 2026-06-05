@@ -57,7 +57,7 @@ export const RecentSignupsTable: React.FC<RecentSignupsTableProps> = ({
           ))
         ) : (
           <TableRow>
-            <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+            <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
               No recent signups found
             </TableCell>
           </TableRow>

@@ -18,7 +18,6 @@ import { Input } from "@/components/ui/input";
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
 import {
     Table,
     TableHeader,
@@ -37,7 +36,7 @@ import { CreateRoleDialog } from "@/components/organizations/CreateRoleDialog";
 import { EditRoleDialog } from "@/components/organizations/EditRoleDialog";
 import { DeleteConfirmationDialog } from "@/components/organizations/DeleteConfirmationDialog";
 import { InlineLoader } from "@/components/ui/loading-screen";
-import { EmptyState } from "@/components/ui/empty-state";
+import { TableEmptyRow } from "@/components/ui/table-empty-row";
 import type {
     OrganizationMemberDetails,
     OrganizationRole,
@@ -48,14 +47,15 @@ import { EnterpriseSSO } from "@/components/organizations/EnterpriseSSO";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 
 import {
-    PencilIcon,
+    PencilSquareIcon,
     TrashIcon,
     UsersIcon,
+    BuildingOffice2Icon,
     ChevronLeftIcon,
     ChevronRightIcon,
     MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-import { Badge } from "@/components/ui/badge";
+import { Tag } from "@/components/ui/tag";
 
 // Helper function to convert OrganizationRole to OrganizationRoleSimple
 const convertToSimpleRoles = (
@@ -344,9 +344,9 @@ export default function OrganizationDetailsPage() {
             )}
 
             {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center gap-4">
-                    <Avatar className="h-16 w-16">
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-start gap-4">
+                    <Avatar className="size-14">
                         <AvatarImage
                             src={organization.image_url}
                             alt={`${organization.name} logo`}
@@ -355,86 +355,100 @@ export default function OrganizationDetailsPage() {
                             {organization.name.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                     </Avatar>
-                    <div>
-                        <h1 className="text-2xl font-normal text-zinc-900 dark:text-zinc-100">
+                    <div className="min-w-0">
+                        <div className="mb-1.5 truncate font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                            Organization · {organization.id}
+                        </div>
+                        <h1 className="text-2xl font-medium tracking-tight text-foreground">
                             {organization.name}
                         </h1>
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                            Organization ID: {organization.id}
-                        </p>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex shrink-0 items-center gap-2">
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setEditOrganizationModalOpen(true)}
-                        className="h-8 gap-1.5 font-normal"
+                        className="gap-1.5"
                     >
-                        <PencilIcon className="h-4 w-4" />
-                        Edit
+                        <PencilSquareIcon className="h-4 w-4" />
+                        Edit organization
                     </Button>
                     <Button
                         variant="destructive"
-                        size="icon"
-                        className="h-8 w-8"
+                        size="sm"
+                        className="gap-1.5"
                         onClick={() => setDeleteOrganizationModalOpen(true)}
                     >
                         <TrashIcon className="h-4 w-4" />
+                        Delete
                     </Button>
                 </div>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <Card>
-                    <CardContent className="pt-6">
-                        <div className="text-2xl font-normal">
-                            {organization.member_count}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+                {/* Left rail — facts */}
+                <div className="lg:col-span-4">
+                    <div className="rounded-lg border border-border bg-card p-5">
+                        <DefItem
+                            label="Organization ID"
+                            value={organization.id}
+                            mono
+                        />
+                        <DefItem
+                            label="Created"
+                            value={
+                                organization.created_at
+                                    ? format(
+                                          new Date(organization.created_at),
+                                          "MMM d, yyyy",
+                                      )
+                                    : "—"
+                            }
+                        />
+                        <DefItem
+                            label="Last updated"
+                            value={
+                                organization.updated_at
+                                    ? format(
+                                          new Date(organization.updated_at),
+                                          "MMM d, yyyy",
+                                      )
+                                    : "—"
+                            }
+                        />
+                        <hr className="my-3 border-border" />
+                        <DefItem
+                            label="Members"
+                            value={organization.member_count ?? 0}
+                        />
+                        <DefItem
+                            label="Roles"
+                            value={organization.roles?.length || 0}
+                        />
+                        <DefItem
+                            label="Workspaces"
+                            value={organization.workspaces?.length || 0}
+                        />
+                        <hr className="my-3 border-border" />
+                        <div className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                            Segments
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                            Total Members
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="pt-6">
-                        <div className="text-2xl font-normal">
-                            {organization.roles?.length || 0}
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                            Roles
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="pt-6">
-                        <div className="text-2xl font-normal">
-                            {organization.workspaces?.length || 0}
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                            Workspaces
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="pt-6">
-                        <div className="text-2xl font-normal">
-                            {organization.roles?.length || 0}
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                            Roles
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
+                        <SegmentManager
+                            targetId={organization.id}
+                            targetType="organization"
+                            currentSegments={organization.segments}
+                        />
+                    </div>
+                </div>
 
+                {/* Right — tabs */}
+                <div className="min-w-0 lg:col-span-8">
             {/* Tabs */}
             <Tabs
-                defaultValue="overview"
+                defaultValue="members"
                 onValueChange={(value) => {
                     const tabIndex = [
-                        "overview",
                         "members",
                         "roles",
                         "workspaces",
@@ -444,8 +458,7 @@ export default function OrganizationDetailsPage() {
                     setActiveTab(tabIndex);
                 }}
             >
-                <TabsList>
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsList variant="pill">
                     <TabsTrigger value="members">Members</TabsTrigger>
                     <TabsTrigger value="roles">Roles</TabsTrigger>
                     <TabsTrigger value="workspaces">Workspaces</TabsTrigger>
@@ -456,98 +469,58 @@ export default function OrganizationDetailsPage() {
                     )}
                 </TabsList>
 
-                <TabsContent value="overview">
-                    <div className="pt-4">
-                        <div className="mb-8">
-                            <h3 className="text-base text-zinc-900 dark:text-zinc-100 mb-4">
-                                Organization Details
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                <div className="space-y-1">
-                                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                        Organization ID
-                                    </p>
-                                    <p className="text-sm text-zinc-900 dark:text-zinc-100 font-mono">
-                                        {organization.id}
-                                    </p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                        Created
-                                    </p>
-                                    <p className="text-sm text-zinc-900 dark:text-zinc-100">
-                                        {format(
-                                            new Date(organization.created_at),
-                                            "MMM d, yyyy",
-                                        )}
-                                    </p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                        Last Updated
-                                    </p>
-                                    <p className="text-sm text-zinc-900 dark:text-zinc-100">
-                                        {format(
-                                            new Date(organization.updated_at),
-                                            "MMM d, yyyy",
-                                        )}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Segments Section */}
-                    <div className="pt-4 border-t border-gray-100 dark:border-zinc-800">
-                        <h3 className="text-sm text-zinc-900 dark:text-zinc-100 mb-3">
-                            Segments
-                        </h3>
-                        <SegmentManager
-                            targetId={organization.id}
-                            targetType="organization"
-                            currentSegments={organization.segments}
-                        />
-                    </div>
-                </TabsContent>
 
                 <TabsContent value="members">
                     <div className="pt-4">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-base text-zinc-900 dark:text-zinc-100">
+                            <h3 className="text-base font-medium text-foreground">
                                 Organization Members
                             </h3>
-                            {membersData?.data && (
-                                <Button
-                                    onClick={() => setAddMemberModalOpen(true)}
-                                >
-                                    Add Member
-                                </Button>
-                            )}
+                            <Button
+                                onClick={() => setAddMemberModalOpen(true)}
+                            >
+                                Add Member
+                            </Button>
                         </div>
 
                         {membersLoading ? (
                             <InlineLoader />
                         ) : !membersData?.data ||
                           membersData.data.length === 0 ? (
-                            <EmptyState
-                                title={
-                                    search
-                                        ? "No members found"
-                                        : "No members added yet"
-                                }
-                                description={
-                                    search
-                                        ? "Try adjusting your search terms."
-                                        : "Get started by adding your first organization member."
-                                }
-                                actionLabel={search ? undefined : "Add Member"}
-                                onAction={
-                                    search
-                                        ? undefined
-                                        : () => setAddMemberModalOpen(true)
-                                }
-                                icon={<UsersIcon />}
-                            />
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Email</TableHead>
+                                        <TableHead>Roles</TableHead>
+                                        <TableHead className="text-right">
+                                            Actions
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={4}
+                                            className="h-32 text-center"
+                                        >
+                                            <div className="flex flex-col items-center justify-center gap-1.5 py-6">
+                                                <UsersIcon className="size-8 text-muted-foreground" />
+                                                <p className="text-sm font-medium text-foreground">
+                                                    {search
+                                                        ? "No members found"
+                                                        : "No members added yet"}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {search
+                                                        ? "Try adjusting your search."
+                                                        : "Add your first member from the button above."}
+                                                </p>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
                         ) : (
                             <>
                                 {/* Search and Sort Controls */}
@@ -664,47 +637,62 @@ export default function OrganizationDetailsPage() {
                                                         member.primary_email_address
                                                     }
                                                 </TableCell>
-                                                <TableCell className="text-sm text-muted-foreground">
+                                                <TableCell>
                                                     {member.roles &&
-                                                    member.roles.length > 0
-                                                        ? member.roles
-                                                              .map(
-                                                                  (role) =>
-                                                                      role.name,
-                                                              )
-                                                              .join(", ")
-                                                        : "No roles"}
+                                                    member.roles.length > 0 ? (
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {member.roles.map(
+                                                                (role) => (
+                                                                    <Tag
+                                                                        key={
+                                                                            role.id
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            role.name
+                                                                        }
+                                                                    </Tag>
+                                                                ),
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-muted-foreground">
+                                                            No roles
+                                                        </span>
+                                                    )}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <button
-                                                            type="button"
-                                                            className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                                    <div className="flex items-center justify-end gap-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon-sm"
+                                                            className="text-muted-foreground hover:text-foreground"
                                                             onClick={() =>
                                                                 handleEditMember(
                                                                     member,
                                                                 )
                                                             }
                                                         >
-                                                            <PencilIcon className="h-4 w-4" />
+                                                            <PencilSquareIcon className="size-4" />
                                                             <span className="sr-only">
                                                                 Edit
                                                             </span>
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon-sm"
+                                                            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                                                             onClick={() =>
                                                                 handleDeleteMember(
                                                                     member,
                                                                 )
                                                             }
                                                         >
-                                                            <TrashIcon className="h-4 w-4" />
+                                                            <TrashIcon className="size-4" />
                                                             <span className="sr-only">
                                                                 Remove
                                                             </span>
-                                                        </button>
+                                                        </Button>
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
@@ -714,7 +702,7 @@ export default function OrganizationDetailsPage() {
 
                                 {/* Pagination Controls */}
                                 <div className="flex items-center justify-between mt-6">
-                                    <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                                    <div className="text-sm text-muted-foreground">
                                         Showing {page * pageSize + 1} to{" "}
                                         {Math.min(
                                             (page + 1) * pageSize,
@@ -755,7 +743,7 @@ export default function OrganizationDetailsPage() {
                 <TabsContent value="roles">
                     <div className="pt-4">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-base text-zinc-900 dark:text-zinc-100">
+                            <h3 className="text-base font-medium text-foreground">
                                 Organization Roles
                             </h3>
                             {organization.roles &&
@@ -772,27 +760,36 @@ export default function OrganizationDetailsPage() {
 
                         {!organization.roles ||
                         organization.roles.length === 0 ? (
-                            <EmptyState
-                                title="No custom roles created yet"
-                                description="Create custom roles to manage permissions within your organization."
-                                actionLabel="Create Role"
-                                onAction={() => setCreateRoleModalOpen(true)}
-                                icon={
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth={1.5}
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
-                                        />
-                                    </svg>
-                                }
-                            />
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Permissions</TableHead>
+                                        <TableHead className="text-right">
+                                            Actions
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    <TableEmptyRow
+                                        colSpan={3}
+                                        icon={
+                                            <UsersIcon className="h-8 w-8 text-muted-foreground/50" />
+                                        }
+                                        title="No custom roles created yet"
+                                        description="Create custom roles to manage permissions within your organization."
+                                        action={
+                                            <Button
+                                                onClick={() =>
+                                                    setCreateRoleModalOpen(true)
+                                                }
+                                            >
+                                                Create Role
+                                            </Button>
+                                        }
+                                    />
+                                </TableBody>
+                            </Table>
                         ) : (
                             <Table>
                                 <TableHeader>
@@ -808,53 +805,60 @@ export default function OrganizationDetailsPage() {
                                     {organization.roles.map((role) => (
                                         <TableRow key={role.id}>
                                             <TableCell>
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-sm">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-medium text-foreground">
                                                         {role.name}
                                                     </span>
                                                     {role.is_deployment_level && (
-                                                        <span className="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-900/20 px-2 py-1 text-xs font-normal text-blue-700 dark:text-blue-400 ring-1 ring-inset ring-blue-700/10 dark:ring-blue-400/20">
-                                                            Default
-                                                        </span>
+                                                        <Tag>default</Tag>
                                                     )}
                                                 </div>
                                             </TableCell>
-                                            <TableCell className="text-sm text-muted-foreground">
-                                                {role.permissions.length}{" "}
-                                                permissions
-                                                {role.is_deployment_level &&
-                                                    " • Cannot be edited or deleted"}
+                                            <TableCell>
+                                                <span className="text-secondary-foreground">
+                                                    {role.permissions.length}{" "}
+                                                    permission
+                                                    {role.permissions.length ===
+                                                    1
+                                                        ? ""
+                                                        : "s"}
+                                                </span>
+                                                {role.is_deployment_level && (
+                                                    <span className="ml-2 text-muted-foreground">
+                                                        · locked
+                                                    </span>
+                                                )}
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <div className="flex items-center justify-end gap-2">
+                                                <div className="flex items-center justify-end gap-1">
                                                     {!role.is_deployment_level && (
                                                         <>
                                                             <Button
                                                                 variant="ghost"
-                                                                size="icon"
-                                                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                                                size="icon-sm"
+                                                                className="text-muted-foreground hover:text-foreground"
                                                                 onClick={() =>
                                                                     handleEditRole(
                                                                         role,
                                                                     )
                                                                 }
                                                             >
-                                                                <PencilIcon className="h-4 w-4" />
+                                                                <PencilSquareIcon className="size-4" />
                                                                 <span className="sr-only">
                                                                     Edit
                                                                 </span>
                                                             </Button>
                                                             <Button
                                                                 variant="ghost"
-                                                                size="icon"
-                                                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                                                size="icon-sm"
+                                                                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                                                                 onClick={() =>
                                                                     handleDeleteRole(
                                                                         role,
                                                                     )
                                                                 }
                                                             >
-                                                                <TrashIcon className="h-4 w-4" />
+                                                                <TrashIcon className="size-4" />
                                                                 <span className="sr-only">
                                                                     Delete
                                                                 </span>
@@ -874,7 +878,7 @@ export default function OrganizationDetailsPage() {
                 <TabsContent value="workspaces">
                     <div className="pt-4">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-base text-zinc-900 dark:text-zinc-100">
+                            <h3 className="text-base font-medium text-foreground">
                                 Organization Workspaces
                             </h3>
                             <div className="flex gap-2">
@@ -895,34 +899,45 @@ export default function OrganizationDetailsPage() {
 
                         {!organization.workspaces ||
                         organization.workspaces.length === 0 ? (
-                            <EmptyState
-                                title="No workspaces created yet"
-                                description="Create workspaces to organize your projects and teams."
-                                actionLabel="Create Workspace"
-                                onAction={() =>
-                                    setCreateWorkspaceModalOpen(true)
-                                }
-                                icon={
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth={1.5}
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
-                                        />
-                                    </svg>
-                                }
-                            />
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Workspace</TableHead>
+                                        <TableHead>Members</TableHead>
+                                        <TableHead>Segments</TableHead>
+                                        <TableHead className="text-right">
+                                            Actions
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    <TableEmptyRow
+                                        colSpan={4}
+                                        icon={
+                                            <BuildingOffice2Icon className="h-8 w-8 text-muted-foreground/50" />
+                                        }
+                                        title="No workspaces created yet"
+                                        description="Create workspaces to organize your projects and teams."
+                                        action={
+                                            <Button
+                                                onClick={() =>
+                                                    setCreateWorkspaceModalOpen(
+                                                        true,
+                                                    )
+                                                }
+                                            >
+                                                Create Workspace
+                                            </Button>
+                                        }
+                                    />
+                                </TableBody>
+                            </Table>
                         ) : (
                             <Table>
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Workspace</TableHead>
+                                        <TableHead>Members</TableHead>
                                         <TableHead>Segments</TableHead>
                                         <TableHead className="text-right">
                                             Actions
@@ -959,35 +974,33 @@ export default function OrganizationDetailsPage() {
                                                                     .toUpperCase()}
                                                             </AvatarFallback>
                                                         </Avatar>
-                                                        <div>
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="font-medium text-sm text-zinc-900 dark:text-zinc-100">
-                                                                    {
-                                                                        workspace.name
-                                                                    }
-                                                                </span>
-                                                            </div>
-                                                            <span className="text-xs text-muted-foreground">
-                                                                {
-                                                                    workspace.member_count
-                                                                }{" "}
-                                                                members
-                                                            </span>
-                                                        </div>
+                                                        <span className="font-medium text-foreground">
+                                                            {workspace.name}
+                                                        </span>
                                                     </div>
+                                                </TableCell>
+                                                <TableCell className="text-secondary-foreground tabular-nums">
+                                                    {workspace.member_count}
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex gap-1 flex-wrap">
-                                                        {workspace.segments?.map(
-                                                            (s) => (
-                                                                <Badge
-                                                                    key={s.id}
-                                                                    variant="secondary"
-                                                                    className="text-xs px-1 py-0 h-5"
-                                                                >
-                                                                    {s.name}
-                                                                </Badge>
-                                                            ),
+                                                        {workspace.segments
+                                                            ?.length ? (
+                                                            workspace.segments.map(
+                                                                (s) => (
+                                                                    <Tag
+                                                                        key={
+                                                                            s.id
+                                                                        }
+                                                                    >
+                                                                        {s.name}
+                                                                    </Tag>
+                                                                ),
+                                                            )
+                                                        ) : (
+                                                            <span className="text-muted-foreground">
+                                                                —
+                                                            </span>
                                                         )}
                                                     </div>
                                                 </TableCell>
@@ -1004,7 +1017,7 @@ export default function OrganizationDetailsPage() {
                                                                 );
                                                             }}
                                                         >
-                                                            <PencilIcon className="h-4 w-4" />
+                                                            <PencilSquareIcon className="h-4 w-4" />
                                                             <span className="sr-only">
                                                                 Edit
                                                             </span>
@@ -1012,7 +1025,7 @@ export default function OrganizationDetailsPage() {
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                                            className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 handleDeleteWorkspace(
@@ -1047,7 +1060,7 @@ export default function OrganizationDetailsPage() {
                         {/* Public Metadata */}
                         <div>
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-base text-zinc-900 dark:text-zinc-100">
+                                <h3 className="text-base font-medium text-foreground">
                                     Public Metadata
                                 </h3>
                                 {!isEditingPublicMetadata ? (
@@ -1076,7 +1089,7 @@ export default function OrganizationDetailsPage() {
                                 )}
                             </div>
 
-                            <div className="rounded-lg overflow-hidden bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800">
+                            <div className="rounded-lg overflow-hidden border border-border bg-card">
                                 <CodeEditor
                                     language="json"
                                     minHeight={120}
@@ -1092,7 +1105,7 @@ export default function OrganizationDetailsPage() {
                         {/* Private Metadata */}
                         <div>
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-base text-zinc-900 dark:text-zinc-100">
+                                <h3 className="text-base font-medium text-foreground">
                                     Private Metadata
                                 </h3>
                                 {!isEditingPrivateMetadata ? (
@@ -1123,7 +1136,7 @@ export default function OrganizationDetailsPage() {
                                 )}
                             </div>
 
-                            <div className="rounded-lg overflow-hidden bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800">
+                            <div className="rounded-lg overflow-hidden border border-border bg-card">
                                 <CodeEditor
                                     language="json"
                                     minHeight={120}
@@ -1138,6 +1151,8 @@ export default function OrganizationDetailsPage() {
                     </div>
                 </TabsContent>
             </Tabs>
+                </div>
+            </div>
 
             {/* All Modals */}
             <EditOrganizationDialog
@@ -1219,6 +1234,35 @@ export default function OrganizationDetailsPage() {
                 confirmText="Delete Workspace"
                 isLoading={deleteWorkspace.isPending}
             />
+        </div>
+    );
+}
+
+function DefItem({
+    label,
+    value,
+    mono = false,
+    muted = false,
+}: {
+    label: string;
+    value: string | number;
+    mono?: boolean;
+    muted?: boolean;
+}) {
+    return (
+        <div className="flex items-baseline justify-between gap-3 py-1.5">
+            <span className="shrink-0 font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                {label}
+            </span>
+            <span
+                className={
+                    "truncate text-right text-xs " +
+                    (mono ? "font-mono " : "") +
+                    (muted ? "text-muted-foreground" : "text-foreground")
+                }
+            >
+                {value}
+            </span>
         </div>
     );
 }

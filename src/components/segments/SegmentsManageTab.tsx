@@ -10,21 +10,35 @@ import {
     TableRow,
 } from "@/components/ui/app-table";
 import { Input } from "@/components/ui/input";
-import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
+import { PageHead } from "@/components/ui/page-head";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { useSegments } from "@/lib/api/hooks/use-segments";
 import { CreateSegmentModal } from "@/components/segments/CreateSegmentModal";
 import { Segment } from "@/types/segment";
 import { SkeletonTableRows } from "@/components/ui/app-skeleton";
+import { TableEmptyRow } from "@/components/ui/table-empty-row";
 import { format } from "date-fns";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import {
-    IconUser,
-    IconBuilding,
-    IconBriefcase,
-    IconSearch,
-    IconPlus,
-} from "@tabler/icons-react";
+    MagnifyingGlassIcon,
+    FunnelIcon,
+    CheckIcon,
+    PlusIcon,
+    ChevronRightIcon,
+} from "@heroicons/react/24/outline";
+import { IconUser, IconBuilding, IconBriefcase } from "@tabler/icons-react";
+
+const SORT_OPTIONS = [
+    ["created_at-desc", "Newest first"],
+    ["created_at-asc", "Oldest first"],
+    ["name-asc", "Name (A–Z)"],
+    ["name-desc", "Name (Z–A)"],
+] as const;
 
 export function SegmentsManageTab() {
     const navigate = useNavigate();
@@ -58,175 +72,183 @@ export function SegmentsManageTab() {
     };
 
     return (
-        <div>
+        <div className="flex flex-col gap-6">
             <CreateSegmentModal
                 isOpen={createModalOpen}
                 onClose={() => setCreateModalOpen(false)}
                 segmentToEdit={segmentToEdit}
             />
 
-            {/* Show controls if there is data OR if searching */}
-            {((segments?.length ?? 0) > 0 || search) && (
-                <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-                    <div className="sm:flex-1">
-                        <div className="flex max-w-md gap-2">
-                            <div className="flex-1">
-                                <div className="relative w-64">
-                                    <MagnifyingGlassIcon className="absolute left-3 top-1/4 h-4 w-4 text-muted-foreground" />
+            <PageHead
+                className="mb-0"
+                eyebrow="Management"
+                title="Segments"
+                sub="Group users, organizations, and workspaces for targeting and rollouts."
+                actions={
+                    <>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-1.5"
+                                >
+                                    <FunnelIcon className="size-4" />
+                                    Filter
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                                align="end"
+                                className="w-64 space-y-3 p-3"
+                            >
+                                <div className="relative">
+                                    <MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                                     <Input
-                                        name="search"
-                                        placeholder="Search segments..."
+                                        placeholder="Search segments…"
                                         value={search}
                                         onChange={(e) =>
                                             setSearch(e.target.value)
                                         }
-                                        className="pl-9"
+                                        className="h-8 bg-secondary pl-8 text-[13px]"
                                     />
                                 </div>
-                            </div>
-                            <div className="flex-1">
-                                <Listbox
-                                    onChange={(value) =>
-                                        handleSortChange(value)
-                                    }
-                                    value={`${sortKey}-${sortOrder}`}
-                                >
-                                    <ListboxOption value="created_at-asc">
-                                        <ListboxLabel>
-                                            Sort by date (newest)
-                                        </ListboxLabel>
-                                    </ListboxOption>
-                                    <ListboxOption value="created_at-desc">
-                                        <ListboxLabel>
-                                            Sort by date (oldest)
-                                        </ListboxLabel>
-                                    </ListboxOption>
-                                    <ListboxOption value="name-asc">
-                                        <ListboxLabel>
-                                            Sort by name (A-Z)
-                                        </ListboxLabel>
-                                    </ListboxOption>
-                                    <ListboxOption value="name-desc">
-                                        <ListboxLabel>
-                                            Sort by name (Z-A)
-                                        </ListboxLabel>
-                                    </ListboxOption>
-                                </Listbox>
-                            </div>
-                        </div>
-                    </div>
-                    <Button
-                        data-tour-id="segments-create-button"
-                        onClick={handleCreate}
-                    >
-                        <IconPlus className="mr-2 h-4 w-4" />
-                        Create Segment
-                    </Button>
-                </div>
-            )}
+                                <div className="space-y-0.5">
+                                    <div className="px-1 pb-1 font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                                        Sort by
+                                    </div>
+                                    {SORT_OPTIONS.map(([value, label]) => {
+                                        const active =
+                                            `${sortKey}-${sortOrder}` === value;
+                                        return (
+                                            <button
+                                                key={value}
+                                                type="button"
+                                                onClick={() =>
+                                                    handleSortChange(value)
+                                                }
+                                                className={cn(
+                                                    "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-[13px] transition-colors",
+                                                    active
+                                                        ? "bg-accent text-foreground"
+                                                        : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                                                )}
+                                            >
+                                                {label}
+                                                {active && (
+                                                    <CheckIcon className="size-3.5 text-primary" />
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                        <Button
+                            className="gap-1.5"
+                            data-tour-id="segments-create-button"
+                            onClick={handleCreate}
+                        >
+                            <PlusIcon className="size-4" />
+                            Create segment
+                        </Button>
+                    </>
+                }
+            />
 
-            <div className="mt-6">
-                <Table>
-                    <TableHeader>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead className="w-10" />
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {isLoading ? (
+                        <SkeletonTableRows rows={5} columns={5} />
+                    ) : isError ? (
                         <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Created At</TableHead>
+                            <TableCell
+                                colSpan={5}
+                                className="text-center text-red-500"
+                            >
+                                Failed to load segments.
+                            </TableCell>
                         </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
-                            <SkeletonTableRows rows={5} columns={4} />
-                        ) : isError ? (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={4}
-                                    className="text-center text-red-500"
-                                >
-                                    Failed to load segments.
-                                </TableCell>
-                            </TableRow>
-                        ) : segments?.length === 0 ? null : ( // Handled by Empty State below
-                            segments?.map((segment) => (
-                                <TableRow
-                                    key={segment.id}
-                                    onClick={() => navigate(segment.id)}
-                                    className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                                >
-                                    <TableCell className="font-medium">
-                                        <div className="flex items-center gap-2">
-                                            {segment.name}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            {segment.type === "user" && (
-                                                <IconUser className="size-4 text-blue-500" />
-                                            )}
-                                            {segment.type ===
-                                                "organization" && (
-                                                <IconBuilding className="size-4 text-emerald-500" />
-                                            )}
-                                            {segment.type === "workspace" && (
-                                                <IconBriefcase className="size-4 text-amber-500" />
-                                            )}
-                                            <span className="capitalize">
-                                                {segment.type}
-                                            </span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-zinc-500 dark:text-zinc-400">
-                                        {segment.description || "-"}
-                                    </TableCell>
-                                    <TableCell className="text-zinc-500 dark:text-zinc-400">
-                                        {format(
-                                            new Date(segment.created_at),
-                                            "MMM d, yyyy",
-                                        )}
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-
-                {/* Empty State */}
-                {!isLoading && (segments?.length ?? 0) === 0 && (
-                    <div className="text-center py-12">
-                        {search ? (
-                            <>
-                                <IconSearch className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
-                                <h3 className="mt-2 text-sm font-normal text-zinc-900 dark:text-zinc-100">
-                                    No results found
-                                </h3>
-                                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                                    Try adjusting your search terms.
-                                </p>
-                            </>
+                    ) : segments?.length === 0 ? (
+                        search ? (
+                            <TableEmptyRow
+                                colSpan={5}
+                                icon={
+                                    <MagnifyingGlassIcon className="h-8 w-8 text-muted-foreground/50" />
+                                }
+                                title="No results found"
+                                description="Try adjusting your search terms."
+                            />
                         ) : (
-                            <>
-                                <IconBriefcase className="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500" />
-                                <h3 className="mt-2 text-sm font-normal text-zinc-900 dark:text-zinc-100">
-                                    No segments
-                                </h3>
-                                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                                    Get started by creating your first segment.
-                                </p>
-                                <div className="mt-6">
+                            <TableEmptyRow
+                                colSpan={5}
+                                icon={
+                                    <IconBriefcase className="h-8 w-8 text-muted-foreground/50" />
+                                }
+                                title="No segments"
+                                description="Get started by creating your first segment."
+                                action={
                                     <Button
                                         data-tour-id="segments-create-button"
                                         onClick={handleCreate}
                                     >
-                                        <IconPlus className="mr-2 h-4 w-4" />
-                                        Create Segment
+                                        <PlusIcon className="mr-2 h-4 w-4" />
+                                        Create segment
                                     </Button>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                )}
-            </div>
+                                }
+                            />
+                        )
+                    ) : (
+                        segments?.map((segment) => (
+                            <TableRow
+                                key={segment.id}
+                                onClick={() => navigate(segment.id)}
+                                className="cursor-pointer"
+                            >
+                                <TableCell className="font-medium text-foreground">
+                                    {segment.name}
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-2">
+                                        {segment.type === "user" && (
+                                            <IconUser className="size-4 text-primary" />
+                                        )}
+                                        {segment.type === "organization" && (
+                                            <IconBuilding className="size-4 text-emerald-500" />
+                                        )}
+                                        {segment.type === "workspace" && (
+                                            <IconBriefcase className="size-4 text-amber-500" />
+                                        )}
+                                        <span className="capitalize">
+                                            {segment.type}
+                                        </span>
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-muted-foreground">
+                                    {segment.description || "—"}
+                                </TableCell>
+                                <TableCell className="font-mono text-xs text-muted-foreground">
+                                    {format(
+                                        new Date(segment.created_at),
+                                        "MMM d, yyyy",
+                                    )}
+                                </TableCell>
+                                <TableCell className="w-10 text-muted-foreground">
+                                    <ChevronRightIcon className="size-4" />
+                                </TableCell>
+                            </TableRow>
+                        ))
+                    )}
+                </TableBody>
+            </Table>
         </div>
     );
 }

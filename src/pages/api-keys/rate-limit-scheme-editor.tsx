@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router";
 import { PlusIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
     Select,
     SelectContent,
@@ -11,8 +11,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { SectionLabel } from "@/components/ui/section-label";
+import { FieldRow, FieldCard } from "@/components/ui/field-row";
+import { Tag } from "@/components/ui/tag";
 import { InlineLoader } from "@/components/ui/loading-screen";
-import { Divider } from "@/components/ui/divider";
 import {
     useRateLimitSchemes,
     useCreateRateLimitScheme,
@@ -160,12 +162,12 @@ function EndpointTags({
             {value.map((ep) => (
                 <span
                     key={ep}
-                    className="inline-flex items-center gap-1 rounded bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-xs font-mono"
+                    className="inline-flex items-center gap-1 rounded bg-primary/10 py-0.5 pl-2 pr-1 font-mono text-[11px] font-medium text-primary"
                 >
                     {ep}
                     <button
                         type="button"
-                        className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                        className="text-primary/60 hover:text-primary"
                         onClick={(e) => {
                             e.stopPropagation();
                             onChange(value.filter((v) => v !== ep));
@@ -202,116 +204,163 @@ function RuleRow({
     onDelete: () => void;
 }) {
     const currentMode = RATE_LIMIT_MODES.find((m) => m.value === rule.mode);
+    const unitLabel = (
+        RATE_LIMIT_UNITS.find((u) => u.value === rule.unit)?.label ?? rule.unit
+    ).toLowerCase();
+    const plural = rule.duration === "1" ? "" : "s";
 
     return (
-        <div className="pt-4 first:pt-0 space-y-4">
-            <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        <div className="overflow-hidden rounded-lg border border-border bg-card">
+            <div className="flex flex-wrap items-center gap-3 border-b border-border bg-secondary px-4 py-2.5">
+                <span className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
                     Rule {index + 1}
+                </span>
+                {currentMode ? <Tag>{currentMode.label}</Tag> : null}
+                <span className="font-mono text-xs text-secondary-foreground">
+                    {rule.max_requests || "0"} req · per {rule.duration || "1"}{" "}
+                    {unitLabel}
+                    {plural}
+                </span>
+                <div className="flex-1" />
+                <span className="font-mono text-[11px] text-muted-foreground">
+                    priority {rule.priority || "0"}
                 </span>
                 <Button
                     type="button"
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    className="h-7 px-2 text-muted-foreground hover:text-destructive"
+                    className="h-7 px-2.5 text-[11px] text-destructive hover:text-destructive"
                     onClick={onDelete}
                     disabled={!canDelete}
                 >
-                    <TrashIcon className="h-3.5 w-3.5 mr-1" />
+                    <TrashIcon className="h-3 w-3" />
                     Remove
                 </Button>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-start">
-                <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Window</Label>
-                    <div className="flex gap-2">
+            <div className="space-y-4 px-5 py-5">
+                <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-medium text-foreground">
+                            Window
+                        </label>
                         <Input
                             type="number"
                             min={1}
-                            className="h-9 w-16 text-sm"
+                            className="font-mono"
                             value={rule.duration}
-                            onChange={(e) => onUpdate({ duration: e.target.value })}
+                            onChange={(e) =>
+                                onUpdate({ duration: e.target.value })
+                            }
                             placeholder="1"
                         />
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-medium text-foreground">
+                            Unit
+                        </label>
                         <Select
                             value={rule.unit}
-                            onValueChange={(v: RateLimitUnit) => onUpdate({ unit: v })}
+                            onValueChange={(v: RateLimitUnit) =>
+                                onUpdate({ unit: v })
+                            }
                         >
-                            <SelectTrigger className="h-9 flex-1 text-sm">
+                            <SelectTrigger className="w-full">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                                 {RATE_LIMIT_UNITS.map((item) => (
-                                    <SelectItem key={item.value} value={item.value}>
+                                    <SelectItem
+                                        key={item.value}
+                                        value={item.value}
+                                    >
                                         {item.label}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-medium text-foreground">
+                            Max requests
+                        </label>
+                        <Input
+                            type="number"
+                            min={1}
+                            className="font-mono"
+                            value={rule.max_requests}
+                            onChange={(e) =>
+                                onUpdate({ max_requests: e.target.value })
+                            }
+                            placeholder="120"
+                        />
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-medium text-foreground">
+                            Mode
+                        </label>
+                        <Select
+                            value={rule.mode}
+                            onValueChange={(v: RateLimitMode) =>
+                                onUpdate({ mode: v })
+                            }
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {RATE_LIMIT_MODES.map((item) => (
+                                    <SelectItem
+                                        key={item.value}
+                                        value={item.value}
+                                    >
+                                        {item.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-medium text-foreground">
+                            Priority
+                        </label>
+                        <Input
+                            type="number"
+                            min={0}
+                            className="font-mono"
+                            value={rule.priority}
+                            onChange={(e) =>
+                                onUpdate({ priority: e.target.value })
+                            }
+                            placeholder="0"
+                        />
+                    </div>
                 </div>
 
+                {currentMode ? (
+                    <p className="text-xs leading-relaxed text-muted-foreground">
+                        {currentMode.description}. Higher priority is checked
+                        first.
+                    </p>
+                ) : null}
+
                 <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Max Requests</Label>
-                    <Input
-                        type="number"
-                        min={1}
-                        className="h-9 text-sm"
-                        value={rule.max_requests}
-                        onChange={(e) => onUpdate({ max_requests: e.target.value })}
-                        placeholder="120"
+                    <label className="block text-xs font-medium text-foreground">
+                        Endpoints
+                    </label>
+                    <EndpointTags
+                        value={rule.endpoints}
+                        onChange={(v) => onUpdate({ endpoints: v })}
                     />
+                    <p className="font-mono text-[11px] text-muted-foreground">
+                        Press{" "}
+                        <kbd className="rounded bg-secondary px-1">Enter</kbd> or{" "}
+                        <kbd className="rounded bg-secondary px-1">,</kbd> to add.
+                        Use{" "}
+                        <code className="rounded bg-secondary px-1">*</code> for
+                        all endpoints.
+                    </p>
                 </div>
-
-                <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Mode</Label>
-                    <Select
-                        value={rule.mode}
-                        onValueChange={(v: RateLimitMode) => onUpdate({ mode: v })}
-                    >
-                        <SelectTrigger className="h-9 text-sm w-full">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {RATE_LIMIT_MODES.map((item) => (
-                                <SelectItem key={item.value} value={item.value}>
-                                    {item.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    {currentMode && (
-                        <p className="text-xs text-muted-foreground">{currentMode.description}</p>
-                    )}
-                </div>
-
-                <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Priority</Label>
-                    <Input
-                        type="number"
-                        min={0}
-                        className="h-9 text-sm"
-                        value={rule.priority}
-                        onChange={(e) => onUpdate({ priority: e.target.value })}
-                        placeholder="0"
-                    />
-                    <p className="text-xs text-muted-foreground">Higher = checked first.</p>
-                </div>
-            </div>
-
-            <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Endpoints</Label>
-                <EndpointTags
-                    value={rule.endpoints}
-                    onChange={(v) => onUpdate({ endpoints: v })}
-                />
-                <p className="text-xs text-muted-foreground">
-                    Press{" "}
-                    <kbd className="rounded bg-muted px-1 text-xs">Enter</kbd> or{" "}
-                    <kbd className="rounded bg-muted px-1 text-xs">,</kbd> to add.
-                    Use <code className="bg-muted px-1 rounded text-xs">*</code> for all.
-                </p>
             </div>
         </div>
     );
@@ -401,88 +450,108 @@ export default function RateLimitSchemeEditorPage() {
     return (
         <div className="flex flex-col gap-6">
             <div className="flex items-start justify-between gap-4">
-                <div>
-                    <h1 className="text-xl font-normal tracking-tight">
-                        {isEditMode ? "Edit Rate Limit Scheme" : "Create Rate Limit Scheme"}
-                    </h1>
-                    <p className="text-sm text-muted-foreground mt-1">
+                <div className="min-w-0">
+                    {isEditMode ? (
+                        <p className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                            Rate limit scheme · {slug}
+                        </p>
+                    ) : null}
+                    <h1 className="mt-1 text-xl font-medium tracking-tight text-foreground">
                         {isEditMode
-                            ? "Update your rate limit scheme and its rules."
-                            : "Define a new rate limit scheme with rules for API throttling."}
+                            ? "Edit rate limit scheme"
+                            : "Create rate limit scheme"}
+                    </h1>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Define how requests are throttled. Multiple rules are
+                        evaluated in priority order — higher priority is checked
+                        first.
                     </p>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                    <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+                <div className="flex shrink-0 items-center gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => navigate(-1)}
+                    >
                         Cancel
                     </Button>
                     <Button type="submit" form="scheme-form" disabled={isSaving}>
                         {isSaving
-                            ? isEditMode ? "Saving..." : "Creating..."
-                            : isEditMode ? "Save Changes" : "Create Scheme"}
+                            ? isEditMode
+                                ? "Saving…"
+                                : "Creating…"
+                            : isEditMode
+                              ? "Save changes"
+                              : "Create scheme"}
                     </Button>
                 </div>
             </div>
 
-            <form id="scheme-form" onSubmit={handleSubmit} className="flex flex-col gap-8">
-                <section className="space-y-4">
-                    <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                        Scheme Details
-                    </h2>
-                    <div className="grid gap-4 lg:grid-cols-2">
-                        <div className="space-y-2">
-                            <Label>Slug</Label>
+            <form
+                id="scheme-form"
+                onSubmit={handleSubmit}
+                className="flex flex-col gap-8"
+            >
+                <section className="space-y-3">
+                    <SectionLabel>Scheme details</SectionLabel>
+                    <FieldCard>
+                        <FieldRow
+                            label="Slug"
+                            desc="Unique identifier. Cannot be changed after creation."
+                        >
                             <Input
-                                className="px-3"
+                                className="font-mono text-xs"
                                 placeholder="public-api-default"
                                 value={slug}
                                 onChange={(e) => setSlug(e.target.value)}
                                 disabled={isEditMode}
                                 required={!isEditMode}
                             />
-                            <p className="text-xs text-muted-foreground">
-                                Unique identifier. Cannot be changed after creation.
-                            </p>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Name</Label>
+                        </FieldRow>
+                        <FieldRow
+                            label="Name"
+                            desc="Shown in the dashboard. Slugged automatically if changed."
+                        >
                             <Input
-                                className="px-3"
                                 placeholder="Public API Defaults"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 required
                             />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Description</Label>
-                        <Input
-                            className="px-3"
-                            placeholder="Describe what this scheme is for..."
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                        />
-                    </div>
+                        </FieldRow>
+                        <FieldRow
+                            label="Description"
+                            desc="Optional. Useful when many schemes exist."
+                            align="start"
+                        >
+                            <Textarea
+                                placeholder="Describe what this scheme is for…"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                rows={3}
+                            />
+                        </FieldRow>
+                    </FieldCard>
                 </section>
 
-                <Divider />
-
                 <section className="space-y-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-end justify-between gap-3">
                         <div>
-                            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                            <h3 className="text-sm font-medium text-foreground">
                                 Rules
-                            </h2>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                Evaluated in priority order. Higher priority values are checked first.
+                            </h3>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                Evaluated in priority order. Higher priority
+                                values are checked first.
                             </p>
                         </div>
-                        <Button type="button" variant="outline" onClick={addRule}>
-                            <PlusIcon className="mr-1.5 h-4 w-4" /> Add Rule
+                        <Button type="button" size="sm" onClick={addRule}>
+                            <PlusIcon className="h-4 w-4" />
+                            Add rule
                         </Button>
                     </div>
 
-                    <div className="divide-y">
+                    <div className="flex flex-col gap-3">
                         {rules.map((rule, index) => (
                             <RuleRow
                                 key={rule.id}

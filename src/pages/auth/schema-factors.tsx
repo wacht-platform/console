@@ -2,7 +2,9 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { InlineLoader } from "@/components/ui/loading-screen";
-import { Divider } from "@/components/ui/divider";
+import { Pill } from "@/components/ui/pill";
+import { Tag } from "@/components/ui/tag";
+import { SectionLabel } from "@/components/ui/section-label";
 import {
     Dialog,
     DialogContent,
@@ -19,8 +21,6 @@ import {
     FieldGroup,
     Label,
 } from "@/components/ui/fieldset";
-import { SwitchField } from "@/components/ui/app-switch";
-import { Heading } from "@/components/ui/heading";
 import {
     Cog6ToothIcon,
     NoSymbolIcon,
@@ -1083,11 +1083,11 @@ function FirstFactorDialog({
                 <div className="space-y-4 pt-2">
                     {availableOptions.length === 0 ? (
                         <div className="py-8 text-center">
-                            <NoSymbolIcon className="mx-auto h-6 w-6 text-zinc-400 mb-2" />
-                            <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                            <NoSymbolIcon className="mx-auto h-6 w-6 text-muted-foreground mb-2" />
+                            <p className="text-sm font-medium text-foreground">
                                 No methods enabled
                             </p>
-                            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+                            <p className="text-xs text-muted-foreground mt-1">
                                 Enable at least one method to continue
                             </p>
                         </div>
@@ -1106,7 +1106,7 @@ function FirstFactorDialog({
                                         <span className="block text-sm font-medium">
                                             {option.label}
                                         </span>
-                                        <span className="block text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                                        <span className="block text-xs text-muted-foreground mt-0.5">
                                             {option.description}
                                         </span>
                                     </div>
@@ -1126,7 +1126,7 @@ function FirstFactorDialog({
                                             "w-4 h-4 rounded-full border-2 transition-colors",
                                             isSelected
                                                 ? "border-primary bg-primary"
-                                                : "border-zinc-300 dark:border-zinc-600",
+                                                : "border-input",
                                         )}
                                     />
                                 </label>
@@ -1193,7 +1193,7 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
                                     <span className="block text-sm font-medium">
                                         {policy.label}
                                     </span>
-                                    <span className="block text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                                    <span className="block text-xs text-muted-foreground mt-0.5">
                                         {policy.description}
                                     </span>
                                 </div>
@@ -1211,7 +1211,7 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
                                         "w-4 h-4 rounded-full border-2 transition-colors",
                                         isSelected
                                             ? "border-primary bg-primary"
-                                            : "border-zinc-300 dark:border-zinc-600",
+                                            : "border-input",
                                     )}
                                 />
                             </label>
@@ -1220,6 +1220,97 @@ function SecondFactorPolicyDialog({ open, onClose }: DialogProps) {
                 </div>
             </DialogContent>
         </Dialog>
+    );
+}
+
+function SchemaRow({
+    title,
+    description,
+    enabled,
+    required,
+    onToggle,
+    onConfigure,
+}: {
+    title: string;
+    description: string;
+    enabled?: boolean;
+    required?: boolean;
+    onToggle: (value: boolean) => void;
+    onConfigure?: () => void;
+}) {
+    return (
+        <div className="flex items-center gap-4 px-4 py-3.5">
+            <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-foreground">
+                        {title}
+                    </span>
+                    {required ? <Tag>required</Tag> : null}
+                    <Pill tone={enabled ? "ok" : "mute"}>
+                        {enabled ? "on" : "off"}
+                    </Pill>
+                </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                    {description}
+                </p>
+            </div>
+            {onConfigure ? (
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 shrink-0 text-muted-foreground"
+                    onClick={onConfigure}
+                >
+                    <Cog6ToothIcon className="size-4" />
+                </Button>
+            ) : null}
+            <Switch checked={enabled} onCheckedChange={onToggle} />
+        </div>
+    );
+}
+
+function MethodCard({
+    title,
+    description,
+    enabled,
+    isDefault,
+    onToggle,
+    onConfigure,
+}: {
+    title: string;
+    description: string;
+    enabled?: boolean;
+    isDefault?: boolean;
+    onToggle: (value: boolean) => void;
+    onConfigure?: () => void;
+}) {
+    return (
+        <div className="rounded-lg border border-border bg-card p-4">
+            <div className="mb-1.5 flex items-center gap-2">
+                <span className="text-sm font-medium text-foreground">
+                    {title}
+                </span>
+                {isDefault ? <Tag>default</Tag> : null}
+                <Pill tone={enabled ? "ok" : "mute"}>
+                    {enabled ? "on" : "off"}
+                </Pill>
+                <div className="flex-1" />
+                {onConfigure ? (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-7 shrink-0 text-muted-foreground"
+                        onClick={onConfigure}
+                    >
+                        <Cog6ToothIcon className="size-4" />
+                    </Button>
+                ) : null}
+                <Switch checked={enabled} onCheckedChange={onToggle} />
+            </div>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+                {description}
+            </p>
+        </div>
     );
 }
 
@@ -1410,510 +1501,249 @@ export default function SchemaFactorsPage() {
                 onClose={() => setMultiSessionSettingsOpen(false)}
             />
 
-            <div>
-                <div className="mb-6">
-                    <Heading>Authentication Configuration</Heading>
-                </div>
+            <div className="flex flex-col gap-10">
+                <section
+                    className="flex flex-col gap-4"
+                    data-tour-id="auth-section-user-schema"
+                >
+                    <SectionLabel>User schema</SectionLabel>
+                    <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+                        <SchemaRow
+                            title="Email address"
+                            description="Users can add email addresses to their account"
+                            enabled={settings.email_address?.enabled}
+                            required={settings.email_address?.required}
+                            onToggle={(checked) =>
+                                handleToggle("email_enabled", checked)
+                            }
+                            onConfigure={() => setEmailSettingsOpen(true)}
+                        />
+                        <SchemaRow
+                            title="Password"
+                            description="Users can set a password for their account"
+                            enabled={settings.password?.enabled}
+                            onToggle={(checked) =>
+                                handleToggle("password_enabled", checked)
+                            }
+                            onConfigure={() => setPasswordSettingsOpen(true)}
+                        />
+                        <SchemaRow
+                            title="Phone number"
+                            description="Users can add phone numbers to their account"
+                            enabled={settings.phone_number?.enabled}
+                            required={settings.phone_number?.required}
+                            onToggle={(checked) =>
+                                handleToggle("phone_enabled", checked)
+                            }
+                            onConfigure={() => setPhoneSettingsOpen(true)}
+                        />
+                        <SchemaRow
+                            title="Username"
+                            description="Users can set a unique username for their account"
+                            enabled={settings.username?.enabled}
+                            required={settings.username?.required}
+                            onToggle={(checked) =>
+                                handleToggle("username_enabled", checked)
+                            }
+                            onConfigure={() => setUsernameSettingsOpen(true)}
+                        />
+                        <SchemaRow
+                            title="First name"
+                            description="Users can set their first name"
+                            enabled={settings.first_name?.enabled}
+                            required={settings.first_name?.required}
+                            onToggle={(checked) =>
+                                handleToggle("first_name_enabled", checked)
+                            }
+                            onConfigure={() => setFirstNameSettingsOpen(true)}
+                        />
+                        <SchemaRow
+                            title="Last name"
+                            description="Users can set their last name"
+                            enabled={settings.last_name?.enabled}
+                            required={settings.last_name?.required}
+                            onToggle={(checked) =>
+                                handleToggle("last_name_enabled", checked)
+                            }
+                            onConfigure={() => setLastNameSettingsOpen(true)}
+                        />
+                    </div>
+                </section>
 
-                <div className="space-y-16">
-                    <div className="space-y-6" data-tour-id="auth-section-user-schema">
-                        <div>
-                            <h2 className="text-base font-medium">
-                                User Schema
-                            </h2>
-                            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                                Configure the required fields and verification
-                                policies for your users
+                <section
+                    className="flex flex-col gap-4"
+                    data-tour-id="auth-section-first-factor"
+                >
+                    <SectionLabel>First factor authentication</SectionLabel>
+                    <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-3.5">
+                        <div className="min-w-0">
+                            <div className="text-sm font-medium text-foreground">
+                                Default sign-in method
+                            </div>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                                The method users see when they first arrive at
+                                sign-in.
                             </p>
                         </div>
-
-                        <Divider soft />
-
-                        <div className="space-y-6">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <h3 className="text-sm font-medium">
-                                        Email address
-                                    </h3>
-                                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                                        Users can add email addresses to their
-                                        account
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() =>
-                                            setEmailSettingsOpen(true)
-                                        }
-                                    >
-                                        <Cog6ToothIcon />
-                                    </Button>
-                                    <Switch
-                                        name="email_enabled"
-                                        checked={
-                                            settings.email_address?.enabled
-                                        }
-                                        onCheckedChange={(checked) =>
-                                            handleToggle(
-                                                "email_enabled",
-                                                checked,
-                                            )
-                                        }
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex items-start justify-between">
-                                <div className="gap-x-8 gap-y-1 flex flex-col">
-                                    <h3 className="text-sm font-medium">
-                                        Password
-                                    </h3>
-                                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                                        Users can set a password for their
-                                        account
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() =>
-                                            setPasswordSettingsOpen(true)
-                                        }
-                                    >
-                                        <Cog6ToothIcon />
-                                    </Button>
-                                    <Switch
-                                        name="password_enabled"
-                                        checked={settings.password?.enabled}
-                                        onCheckedChange={(checked) =>
-                                            handleToggle(
-                                                "password_enabled",
-                                                checked,
-                                            )
-                                        }
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex items-start justify-between">
-                                <div className="gap-x-8 gap-y-1 flex flex-col">
-                                    <h3 className="text-sm font-medium">
-                                        Phone number
-                                    </h3>
-                                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                                        Users can add phone numbers to their
-                                        account
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() =>
-                                            setPhoneSettingsOpen(true)
-                                        }
-                                    >
-                                        <Cog6ToothIcon />
-                                    </Button>
-                                    <Switch
-                                        name="phone_enabled"
-                                        checked={settings.phone_number?.enabled}
-                                        onCheckedChange={(checked) =>
-                                            handleToggle(
-                                                "phone_enabled",
-                                                checked,
-                                            )
-                                        }
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex items-start justify-between">
-                                <div className="gap-x-8 gap-y-1 flex flex-col">
-                                    <h3 className="text-sm font-medium">
-                                        Username
-                                    </h3>
-                                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                                        Users can set a unique username for
-                                        their account
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() =>
-                                            setUsernameSettingsOpen(true)
-                                        }
-                                    >
-                                        <Cog6ToothIcon />
-                                    </Button>
-                                    <Switch
-                                        name="username_enabled"
-                                        checked={settings.username?.enabled}
-                                        onCheckedChange={(checked) =>
-                                            handleToggle(
-                                                "username_enabled",
-                                                checked,
-                                            )
-                                        }
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex items-start justify-between">
-                                <div className="gap-x-8 gap-y-1 flex flex-col">
-                                    <h3 className="text-sm font-medium">
-                                        First name
-                                    </h3>
-                                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                                        Users can set their first name
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() =>
-                                            setFirstNameSettingsOpen(true)
-                                        }
-                                    >
-                                        <Cog6ToothIcon />
-                                    </Button>
-                                    <Switch
-                                        name="first_name_enabled"
-                                        checked={settings.first_name?.enabled}
-                                        onCheckedChange={(checked) =>
-                                            handleToggle(
-                                                "first_name_enabled",
-                                                checked,
-                                            )
-                                        }
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex items-start justify-between">
-                                <div className="gap-x-8 gap-y-1 flex flex-col">
-                                    <h3 className="text-sm font-medium">
-                                        Last name
-                                    </h3>
-                                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                                        Users can set their last name
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() =>
-                                            setLastNameSettingsOpen(true)
-                                        }
-                                    >
-                                        <Cog6ToothIcon />
-                                    </Button>
-                                    <Switch
-                                        name="last_name_enabled"
-                                        checked={settings.last_name?.enabled}
-                                        onCheckedChange={(checked) =>
-                                            handleToggle(
-                                                "last_name_enabled",
-                                                checked,
-                                            )
-                                        }
-                                    />
-                                </div>
-                            </div>
-                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="shrink-0 gap-1.5"
+                            onClick={() => setFirstFactorOpen(true)}
+                        >
+                            {settings.first_factor
+                                ?.replace(/_/g, " ")
+                                .replace(/\b\w/g, (l) => l.toUpperCase()) ||
+                                "Email Password"}
+                            <Cog6ToothIcon className="size-4" />
+                        </Button>
                     </div>
-
-                    <div className="space-y-6" data-tour-id="auth-section-first-factor">
-                        <div className="gap-x-8 gap-y-1 flex flex-col">
-                            <h2 className="text-base font-medium">
-                                First Factor Authentication
-                            </h2>
-                            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                                Select the authentication methods to present
-                                when a user signs in
-                            </p>
-                        </div>
-
-                        <Divider soft />
-
-                        <div className="space-y-6">
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                    <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                                        Default Sign-in Method
-                                    </h3>
-                                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                                        Choose which method is shown by default
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded">
-                                        {settings.first_factor
-                                            ?.replace(/_/g, " ")
-                                            .replace(/\b\w/g, (l) =>
-                                                l.toUpperCase(),
-                                            ) || "Email Password"}
-                                    </span>
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() => setFirstFactorOpen(true)}
-                                    >
-                                        <Cog6ToothIcon />
-                                    </Button>
-                                </div>
-                            </div>
-
-                            <SwitchField>
-                                <Label>Email Password</Label>
-                                <Description>
-                                    Users can sign in with an email password
-                                </Description>
-                                <Switch
-                                    name="email_password_enabled"
-                                    checked={
-                                        settings.auth_factors_enabled
-                                            ?.email_password
-                                    }
-                                    onCheckedChange={(checked) =>
-                                        handleToggle(
-                                            "email_password_enabled",
-                                            checked,
-                                        )
-                                    }
-                                />
-                            </SwitchField>
-
-                            <SwitchField>
-                                <Label>Username Password</Label>
-                                <Description>
-                                    Users can sign in with a username password
-                                </Description>
-                                <Switch
-                                    name="username_password_enabled"
-                                    checked={
-                                        settings.auth_factors_enabled
-                                            ?.username_password
-                                    }
-                                    onCheckedChange={(checked) =>
-                                        handleToggle(
-                                            "username_password_enabled",
-                                            checked,
-                                        )
-                                    }
-                                />
-                            </SwitchField>
-
-                            <SwitchField>
-                                <Label>SSO Authentication</Label>
-                                <Description>
-                                    Users can sign in external accounts
-                                </Description>
-                                <Switch
-                                    name="sso_enabled"
-                                    checked={settings.auth_factors_enabled?.sso}
-                                    onCheckedChange={(checked) =>
-                                        handleToggle("sso_enabled", checked)
-                                    }
-                                />
-                            </SwitchField>
-
-                            {/*<SwitchField>
-                <Label>Web3 Wallet</Label>
-                <Description>Users can sign in with a Web3 wallet</Description>
-                <Switch
-                  name="web3_wallet_enabled"
-                  checked={settings.auth_factors_enabled?.web3_wallet}
-                  onCheckedChange={(checked) =>
-                    handleToggle("web3_wallet_enabled", checked)
-                  }
-                />
-              </SwitchField>*/}
-
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <h3 className="text-sm font-medium">
-                                        Email magic link
-                                    </h3>
-                                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                                        Users can sign in with an email
-                                        verification link
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() =>
-                                            setEmailLinkSettingsOpen(true)
-                                        }
-                                    >
-                                        <Cog6ToothIcon />
-                                    </Button>
-                                    <Switch
-                                        name="email_link_enabled"
-                                        checked={
-                                            settings.auth_factors_enabled
-                                                ?.email_magic_link
-                                        }
-                                        onCheckedChange={(checked) =>
-                                            handleToggle(
-                                                "email_link_enabled",
-                                                checked,
-                                            )
-                                        }
-                                    />
-                                </div>
-                            </div>
-
-                            <SwitchField>
-                                <Label>Email OTP</Label>
-                                <Description>
-                                    Users can sign in with an email one-time
-                                    password
-                                </Description>
-                                <Switch
-                                    name="email_otp_enabled"
-                                    checked={
-                                        settings.auth_factors_enabled?.email_otp
-                                    }
-                                    onCheckedChange={(checked) =>
-                                        handleToggle(
-                                            "email_otp_enabled",
-                                            checked,
-                                        )
-                                    }
-                                />
-                            </SwitchField>
-
-                            <SwitchField>
-                                <Label>Phone OTP</Label>
-                                <Description>
-                                    Users can sign in with a phone one-time
-                                    password
-                                </Description>
-                                <Switch
-                                    name="phone_otp_enabled"
-                                    checked={
-                                        settings.auth_factors_enabled?.phone_otp
-                                    }
-                                    onCheckedChange={(checked) =>
-                                        handleToggle(
-                                            "phone_otp_enabled",
-                                            checked,
-                                        )
-                                    }
-                                />
-                            </SwitchField>
-                            {settings.auth_factors_enabled?.phone_otp && (
-                                <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
-                                    <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0" />
-                                    <span>
-                                        Phone OTP is enabled. SMS delivery
-                                        requires prepaid recharge before it can
-                                        work.
-                                    </span>
-                                </div>
-                            )}
-
-                            <SwitchField>
-                                <Label>Passkeys</Label>
-                                <Description>
-                                    Users can sign in with a passkey
-                                </Description>
-                                <div className="flex items-center gap-2">
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() =>
-                                            setPasskeySettingsOpen(true)
-                                        }
-                                    >
-                                        <Cog6ToothIcon />
-                                    </Button>
-                                    <Switch
-                                        name="passkey_enabled"
-                                        checked={settings.passkey?.enabled}
-                                        onCheckedChange={(checked) =>
-                                            handleToggle(
-                                                "passkey_enabled",
-                                                checked,
-                                            )
-                                        }
-                                    />
-                                </div>
-                            </SwitchField>
-                        </div>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <MethodCard
+                            title="Email + password"
+                            description="Users sign in with their email address and a password."
+                            enabled={
+                                settings.auth_factors_enabled?.email_password
+                            }
+                            isDefault={
+                                settings.first_factor === "email_password"
+                            }
+                            onToggle={(checked) =>
+                                handleToggle("email_password_enabled", checked)
+                            }
+                        />
+                        <MethodCard
+                            title="Username + password"
+                            description="Users sign in with a unique username and a password."
+                            enabled={
+                                settings.auth_factors_enabled?.username_password
+                            }
+                            isDefault={
+                                settings.first_factor === "username_password"
+                            }
+                            onToggle={(checked) =>
+                                handleToggle(
+                                    "username_password_enabled",
+                                    checked,
+                                )
+                            }
+                        />
+                        <MethodCard
+                            title="Email magic link"
+                            description="Users sign in by clicking a secure link sent to their email."
+                            enabled={
+                                settings.auth_factors_enabled?.email_magic_link
+                            }
+                            isDefault={
+                                settings.first_factor === "email_magic_link"
+                            }
+                            onToggle={(checked) =>
+                                handleToggle("email_link_enabled", checked)
+                            }
+                            onConfigure={() => setEmailLinkSettingsOpen(true)}
+                        />
+                        <MethodCard
+                            title="Email code"
+                            description="Users receive a one-time passcode via email."
+                            enabled={settings.auth_factors_enabled?.email_otp}
+                            isDefault={settings.first_factor === "email_otp"}
+                            onToggle={(checked) =>
+                                handleToggle("email_otp_enabled", checked)
+                            }
+                        />
+                        <MethodCard
+                            title="Phone code"
+                            description="Users receive a one-time passcode via SMS."
+                            enabled={settings.auth_factors_enabled?.phone_otp}
+                            isDefault={settings.first_factor === "phone_otp"}
+                            onToggle={(checked) =>
+                                handleToggle("phone_otp_enabled", checked)
+                            }
+                        />
+                        <MethodCard
+                            title="Passkey"
+                            description="Users register and sign in with biometric or hardware keys."
+                            enabled={settings.passkey?.enabled}
+                            onToggle={(checked) =>
+                                handleToggle("passkey_enabled", checked)
+                            }
+                            onConfigure={() => setPasskeySettingsOpen(true)}
+                        />
+                        <MethodCard
+                            title="Social login"
+                            description="Users sign in with Google, GitHub, and other social providers."
+                            enabled={settings.auth_factors_enabled?.sso}
+                            onToggle={(checked) =>
+                                handleToggle("sso_enabled", checked)
+                            }
+                        />
                     </div>
+                    {settings.auth_factors_enabled?.phone_otp && (
+                        <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+                            <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0" />
+                            <span>
+                                Phone OTP is enabled. SMS delivery requires
+                                prepaid recharge before it can work.
+                            </span>
+                        </div>
+                    )}
+                </section>
 
-                    <div className="space-y-6" data-tour-id="auth-section-second-factor">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <h2 className="text-base font-medium">
-                                    Second Factor Authentication
-                                </h2>
-                                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                                    Allow users to select a second factor
-                                    authentication method
-                                </p>
-                            </div>
+                <section
+                    className="flex flex-col gap-4"
+                    data-tour-id="auth-section-second-factor"
+                >
+                    <SectionLabel
+                        action={
                             <Button
                                 variant="ghost"
+                                size="icon"
+                                className="size-8 shrink-0 text-muted-foreground"
                                 onClick={() => setSecondFactorPolicyOpen(true)}
                             >
-                                <Cog6ToothIcon />
+                                <Cog6ToothIcon className="size-4" />
                             </Button>
-                        </div>
-
-                        <Divider soft />
-
-                        <div className="space-y-6">
-                            <SwitchField>
-                                <Label>Authenticator app</Label>
-                                <Description>
-                                    Users can verify with an authenticator app
-                                </Description>
-                                <Switch
-                                    name="2fa_authenticator_enabled"
-                                    checked={
-                                        settings.auth_factors_enabled
-                                            ?.authenticator || false
-                                    }
-                                    onCheckedChange={(checked) =>
-                                        handleToggle(
-                                            "second_factor_authenticator_enabled",
-                                            checked,
-                                        )
-                                    }
-                                />
-                            </SwitchField>
-
-                            <SwitchField>
-                                <Label>Backup code</Label>
-                                <Description>
-                                    Users can verify with a backup code
-                                </Description>
-                                <Switch
-                                    name="2fa_backup_code_enabled"
-                                    checked={
-                                        settings.auth_factors_enabled
-                                            ?.backup_code || false
-                                    }
-                                    onCheckedChange={(checked) =>
-                                        handleToggle(
-                                            "second_factor_backup_code_enabled",
-                                            checked,
-                                        )
-                                    }
-                                />
-                            </SwitchField>
-                        </div>
+                        }
+                    >
+                        Second factor authentication
+                    </SectionLabel>
+                    <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+                        <SchemaRow
+                            title="Authenticator app"
+                            description="Users can verify with an authenticator app"
+                            enabled={
+                                settings.auth_factors_enabled?.authenticator ||
+                                false
+                            }
+                            onToggle={(checked) =>
+                                handleToggle(
+                                    "second_factor_authenticator_enabled",
+                                    checked,
+                                )
+                            }
+                        />
+                        <SchemaRow
+                            title="Backup code"
+                            description="Users can verify with a backup code"
+                            enabled={
+                                settings.auth_factors_enabled?.backup_code ||
+                                false
+                            }
+                            onToggle={(checked) =>
+                                handleToggle(
+                                    "second_factor_backup_code_enabled",
+                                    checked,
+                                )
+                            }
+                        />
                     </div>
-                </div>
+                </section>
             </div>
 
             {isDirty && (
-                <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-zinc-200 bg-white p-4 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+                <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card p-4 shadow-lg">
                     <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-                        <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+                        <p className="text-sm font-medium text-foreground">
                             You have unsaved changes.
                         </p>
                         <div className="flex gap-3">

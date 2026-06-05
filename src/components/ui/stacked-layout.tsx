@@ -12,7 +12,7 @@ function MobileSidebar({
 }: React.PropsWithChildren<{ open: boolean; close: () => void }>) {
 	return (
 		<Sheet open={open} onOpenChange={close}>
-			<SheetContent side="left" className="w-full max-w-xs p-0 bg-white ring-1 shadow-xs ring-zinc-950/5 dark:bg-zinc-800 dark:ring-white/10">
+			<SheetContent side="left" className="w-full max-w-xs p-0 bg-card ring-1 shadow-xs ring-border dark:ring-white/10">
 				<div className="flex h-full flex-col">
 					<div className="-mb-3 px-4 pt-3">
 						{/* Close button handled by SheetContent default or we can add custom if needed. 
@@ -39,7 +39,7 @@ export function StackedLayout({
 	const [showSidebar, setShowSidebar] = useState(false);
 
 	return (
-		<div className="relative isolate flex min-h-svh w-full flex-col bg-white lg:bg-zinc-100 dark:bg-zinc-800 dark:lg:bg-zinc-850">
+		<div className="relative isolate flex min-h-svh w-full flex-col bg-card lg:bg-secondary">
 			{/* Sidebar on mobile */}
 			<MobileSidebar open={showSidebar} close={() => setShowSidebar(false)}>
 				{sidebar}
@@ -62,7 +62,7 @@ export function StackedLayout({
 
 			{/* Content */}
 			<main className="flex flex-1 flex-col pb-2 lg:px-2">
-				<div className="grow p-6 lg:rounded-lg lg:bg-white lg:p-10 lg:ring-1 lg:shadow-xs lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10">
+				<div className="grow p-6 lg:rounded-lg lg:bg-card lg:p-10 lg:ring-1 lg:shadow-xs lg:ring-border dark:lg:bg-primary dark:lg:ring-white/10">
 					<div className="mx-auto max-w-6xl">{children}</div>
 				</div>
 			</main>

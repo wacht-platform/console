@@ -5,7 +5,7 @@ import {
   useRemoveSegment,
 } from "@/lib/api/hooks/use-segments";
 import { Segment, SegmentType } from "@/types/segment";
-import { Badge } from "@/components/ui/badge";
+import { Tag } from "@/components/ui/tag";
 import type { SimpleComboboxOption } from "@/components/ui/simple-combobox";
 import { SimpleCombobox } from "@/components/ui/simple-combobox";
 import { XMarkIcon } from "@heroicons/react/20/solid";
@@ -56,20 +56,16 @@ export function SegmentManager({
   return (
     <div className="flex flex-wrap items-center gap-3">
       {currentSegments.map((segment) => (
-        <Badge
-          key={segment.id}
-          color="zinc"
-          className="pl-2.5 pr-1 py-1 flex items-center gap-1.5 transition-all"
-        >
+        <Tag key={segment.id} className="h-6 gap-1 pr-1">
           {segment.name}
           <button
             onClick={() => handleRemove(segment.id)}
-            className="rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 p-0.5 transition-colors cursor-pointer group"
+            className="cursor-pointer rounded-sm p-0.5 text-primary/60 transition-colors hover:bg-primary/20 hover:text-primary"
             aria-label={`Remove ${segment.name}`}
           >
-            <XMarkIcon className="h-3 w-3 text-zinc-500 group-hover:text-zinc-700 dark:text-zinc-400 dark:group-hover:text-zinc-200" />
+            <XMarkIcon className="h-3 w-3" />
           </button>
-        </Badge>
+        </Tag>
       ))}
 
       {isLoading ? (

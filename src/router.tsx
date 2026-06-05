@@ -10,6 +10,7 @@ const SimpleFallback = () => <AppLoading />;
 const OverviewPage = lazyImport(() => import("./pages/overview"));
 const GettingStartedPage = lazyImport(() => import("./pages/getting-started"));
 
+const UsersLayout = lazyImport(() => import("./pages/users/layout"));
 const ActiveUsersPage = lazyImport(() => import("./pages/users/active"));
 const InvitedUsersPage = lazyImport(() => import("./pages/users/invited"));
 const WaitlistUsersPage = lazyImport(() => import("./pages/users/waitlist"));
@@ -104,9 +105,6 @@ const AgentHooksPage = lazyImport(
 const AgentApprovalsPage = lazyImport(
     () => import("./pages/ai-agents/agent-approvals"),
 );
-const AgentDebugPage = lazyImport(
-    () => import("./pages/ai-agents/agent-debug"),
-);
 const ConfigureMCPPage = lazyImport(
     () => import("./pages/ai-agents/configure-mcp"),
 );
@@ -157,36 +155,45 @@ export const router = createBrowserRouter([
                 path: "users",
                 children: [
                     {
-                        index: true,
                         element: (
                             <Suspense fallback={<SimpleFallback />}>
-                                <ActiveUsersPage />
+                                <UsersLayout />
                             </Suspense>
                         ),
-                    },
-                    {
-                        path: "active",
-                        element: (
-                            <Suspense fallback={<SimpleFallback />}>
-                                <ActiveUsersPage />
-                            </Suspense>
-                        ),
-                    },
-                    {
-                        path: "invited",
-                        element: (
-                            <Suspense fallback={<SimpleFallback />}>
-                                <InvitedUsersPage />
-                            </Suspense>
-                        ),
-                    },
-                    {
-                        path: "waitlist",
-                        element: (
-                            <Suspense fallback={<SimpleFallback />}>
-                                <WaitlistUsersPage />
-                            </Suspense>
-                        ),
+                        children: [
+                            {
+                                index: true,
+                                element: (
+                                    <Suspense fallback={<SimpleFallback />}>
+                                        <ActiveUsersPage />
+                                    </Suspense>
+                                ),
+                            },
+                            {
+                                path: "active",
+                                element: (
+                                    <Suspense fallback={<SimpleFallback />}>
+                                        <ActiveUsersPage />
+                                    </Suspense>
+                                ),
+                            },
+                            {
+                                path: "invited",
+                                element: (
+                                    <Suspense fallback={<SimpleFallback />}>
+                                        <InvitedUsersPage />
+                                    </Suspense>
+                                ),
+                            },
+                            {
+                                path: "waitlist",
+                                element: (
+                                    <Suspense fallback={<SimpleFallback />}>
+                                        <WaitlistUsersPage />
+                                    </Suspense>
+                                ),
+                            },
+                        ],
                     },
                     {
                         path: ":id",
@@ -428,14 +435,6 @@ export const router = createBrowserRouter([
                                 element: (
                                     <Suspense fallback={<SimpleFallback />}>
                                         <AgentApprovalsPage />
-                                    </Suspense>
-                                ),
-                            },
-                            {
-                                path: "debug",
-                                element: (
-                                    <Suspense fallback={<SimpleFallback />}>
-                                        <AgentDebugPage />
                                     </Suspense>
                                 ),
                             },
