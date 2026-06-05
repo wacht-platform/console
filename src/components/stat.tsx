@@ -16,10 +16,10 @@ export function Stat({
 
   return (
     <div>
-      <div className="text-sm font-normal text-zinc-500 dark:text-zinc-400">
+      <div className="text-sm font-normal text-muted-foreground">
         {title}
       </div>
-      <div className="mt-2 text-3xl font-normal text-zinc-900 dark:text-zinc-50">
+      <div className="mt-2 text-3xl font-normal text-foreground dark:text-foreground">
         {value}
       </div>
       <div className="mt-2 flex items-center gap-2 text-sm">
@@ -37,12 +37,12 @@ export function Stat({
                 <span className="font-normal">{change}</span>
               </div>
             )}
-            <span className="text-zinc-500 dark:text-zinc-400 font-normal">
+            <span className="text-muted-foreground font-normal">
               vs last period
             </span>
           </>
         ) : (
-          <span className="text-zinc-400 dark:text-zinc-500 font-normal">
+          <span className="text-muted-foreground font-normal">
             No data for comparison
           </span>
         )}

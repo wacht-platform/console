@@ -5,14 +5,24 @@ import {
     MagnifyingGlassIcon,
     PhotoIcon,
     Squares2X2Icon,
+    FunnelIcon,
+    PlusIcon,
+    ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
+import { PageHead } from "@/components/ui/page-head";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Field, Label } from "@/components/ui/fieldset";
 import { SkeletonTableRows } from "@/components/ui/app-skeleton";
+import { TableEmptyRow } from "@/components/ui/table-empty-row";
 import {
     Dialog,
     DialogContent,
@@ -144,18 +154,18 @@ function CreateOAuthAppDialog({
                 <div className="space-y-4 py-2">
                     <div className="flex flex-col items-center pb-1">
                         <div
-                            className="relative w-20 h-20 rounded-full border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-zinc-100 hover:bg-zinc-200 dark:border-zinc-600 dark:hover:border-zinc-500 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all duration-200 cursor-pointer overflow-hidden"
+                            className="relative size-20 cursor-pointer overflow-hidden rounded-full border-2 border-dashed border-border bg-secondary transition-colors hover:border-input hover:bg-accent"
                             onClick={() => logoInputRef.current?.click()}
                         >
                             {logoPreview ? (
                                 <img
                                     src={logoPreview}
                                     alt="OAuth app logo preview"
-                                    className="w-full h-full object-cover"
+                                    className="h-full w-full object-cover"
                                 />
                             ) : (
-                                <div className="flex items-center justify-center h-full">
-                                    <PhotoIcon className="w-8 h-8 text-zinc-400 dark:text-zinc-500" />
+                                <div className="flex h-full items-center justify-center">
+                                    <PhotoIcon className="size-8 text-muted-foreground" />
                                 </div>
                             )}
                         </div>
@@ -163,26 +173,26 @@ function CreateOAuthAppDialog({
                             <button
                                 type="button"
                                 onClick={() => logoInputRef.current?.click()}
-                                className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                                className="text-sm font-medium text-primary transition-colors hover:text-primary/80"
                             >
                                 {logoPreview ? "Change photo" : "Add photo"}
                             </button>
                             {logoPreview ? (
                                 <>
-                                    <span className="text-zinc-300 dark:text-zinc-600">
+                                    <span className="text-muted-foreground/40">
                                         ·
                                     </span>
                                     <button
                                         type="button"
                                         onClick={handleRemoveLogo}
-                                        className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
+                                        className="text-sm font-medium text-destructive transition-colors hover:text-destructive/80"
                                     >
                                         Remove
                                     </button>
                                 </>
                             ) : null}
                         </div>
-                        <p className="mt-1 text-xs text-zinc-500">
+                        <p className="mt-1 text-xs text-muted-foreground">
                             PNG, JPG, GIF, WEBP, ICO up to 2MB
                         </p>
                         <input
@@ -228,8 +238,8 @@ function CreateOAuthAppDialog({
                     <Field>
                         <Label>
                             Description
-                            <span className="ml-1 text-zinc-400 font-normal">
-                                optional
+                            <span className="ml-1 font-normal text-muted-foreground">
+                                · optional
                             </span>
                         </Label>
                         <Textarea
@@ -291,64 +301,82 @@ export default function OAuthAppsIndexPage() {
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-1">
-                <h1 className="text-xl font-normal tracking-tight">
-                    OAuth Apps
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                    OAuth app servers for this deployment.
-                </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-                <div className="relative flex-1 max-w-sm">
-                    <MagnifyingGlassIcon className="absolute left-3 top-1/4 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search OAuth apps..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="pl-9"
-                    />
-                </div>
-
-                <Button
-                    data-tour-id="oauth-create-button"
-                    onClick={() => setIsCreateDialogOpen(true)}
-                    className="ml-auto"
-                >
-                    Create OAuth App
-                </Button>
-            </div>
+            <PageHead
+                className="mb-0"
+                eyebrow="Configuration"
+                title="OAuth apps"
+                sub="OAuth app servers for this deployment."
+                actions={
+                    <>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-1.5"
+                                >
+                                    <FunnelIcon className="size-4" />
+                                    Filter
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent align="end" className="w-64 p-3">
+                                <div className="relative">
+                                    <MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search OAuth apps…"
+                                        value={search}
+                                        onChange={(e) =>
+                                            setSearch(e.target.value)
+                                        }
+                                        className="h-8 bg-secondary pl-8 text-[13px]"
+                                    />
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                        <Button
+                            data-tour-id="oauth-create-button"
+                            className="gap-1.5"
+                            onClick={() => setIsCreateDialogOpen(true)}
+                        >
+                            <PlusIcon className="size-4" />
+                            Create OAuth app
+                        </Button>
+                    </>
+                }
+            />
 
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>OAuth App</TableHead>
+                        <TableHead>OAuth app</TableHead>
                         <TableHead>FQDN</TableHead>
                         <TableHead>Updated</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead className="w-10" />
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {isLoading ? (
                         <SkeletonTableRows
                             rows={10}
-                            columns={4}
+                            columns={5}
                             withAvatar={false}
                         />
                     ) : filteredApps.length === 0 ? (
-                        <TableRow>
-                            <TableCell colSpan={4} className="h-24 text-center">
-                                <div className="flex flex-col items-center justify-center gap-1">
-                                    <Squares2X2Icon className="h-8 w-8 text-muted-foreground" />
-                                    <p className="text-sm text-muted-foreground">
-                                        {search
-                                            ? "No OAuth apps found"
-                                            : "No OAuth apps yet"}
-                                    </p>
-                                </div>
-                            </TableCell>
-                        </TableRow>
+                        <TableEmptyRow
+                            colSpan={5}
+                            icon={
+                                <Squares2X2Icon className="h-8 w-8 text-muted-foreground/50" />
+                            }
+                            title={
+                                search ? "No OAuth apps found" : "No OAuth apps yet"
+                            }
+                            description={
+                                search
+                                    ? "Try adjusting your search."
+                                    : "Create an OAuth app to let other apps sign in with this deployment."
+                            }
+                        />
                     ) : (
                         filteredApps.map((app) => (
                             <TableRow
@@ -361,38 +389,36 @@ export default function OAuthAppsIndexPage() {
                                 }
                             >
                                 <TableCell>
-                                    <div className="flex items-center gap-3">
-                                        <Avatar className="h-8 w-8 border">
+                                    <div className="flex items-center gap-2.5">
+                                        <Avatar className="h-6 w-6 border border-border">
                                             <AvatarImage src={app.logo_url} />
-                                            <AvatarFallback className="text-xs">
+                                            <AvatarFallback className="text-[10px]">
                                                 {app.name
                                                     .slice(0, 1)
                                                     .toUpperCase()}
                                             </AvatarFallback>
                                         </Avatar>
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">
-                                                {app.name}
-                                            </span>
-                                            <span className="text-xs text-muted-foreground">
-                                                {app.slug}
-                                            </span>
-                                        </div>
+                                        <span className="truncate font-medium text-foreground">
+                                            {app.name}
+                                        </span>
                                     </div>
                                 </TableCell>
-                                <TableCell className="text-muted-foreground">
-                                    {app.fqdn || "-"}
+                                <TableCell className="font-mono text-xs text-muted-foreground">
+                                    {app.fqdn || "—"}
                                 </TableCell>
-                                <TableCell className="text-muted-foreground">
+                                <TableCell className="font-mono text-xs text-muted-foreground">
                                     {format(
                                         new Date(app.updated_at),
                                         "MMM d, yyyy",
                                     )}
                                 </TableCell>
                                 <TableCell>
-                                    <Badge variant="outline">
-                                        {app.is_active ? "Active" : "Inactive"}
-                                    </Badge>
+                                    <Pill tone={app.is_active ? "ok" : "mute"}>
+                                        {app.is_active ? "active" : "inactive"}
+                                    </Pill>
+                                </TableCell>
+                                <TableCell className="w-10 text-muted-foreground">
+                                    <ChevronRightIcon className="size-4" />
                                 </TableCell>
                             </TableRow>
                         ))

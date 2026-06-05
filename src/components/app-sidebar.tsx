@@ -143,12 +143,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
-            <SidebarContent>
-                <NavMain items={navOnboarding} />
-                <div className="flex flex-col gap-4 -mt-2">
-                    <NavMain title="MANAGEMENT" items={navManagement} />
-                    <NavMain title="CONFIGURATION" items={navConfiguration} />
-                    <NavMain title="DEVELOPERS" items={navDevelopers} />
+            <SidebarContent className="pt-4">
+                <div className="flex flex-col gap-3">
+                    <NavMain items={navOnboarding} />
+                    <NavMain title="Management" items={navManagement} />
+                    <NavMain title="Configuration" items={navConfiguration} />
+                    <NavMain title="Developers" items={navDevelopers} />
                 </div>
             </SidebarContent>
         </Sidebar>

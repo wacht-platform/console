@@ -1,7 +1,18 @@
 import { useMemo, useState } from "react";
-import { PencilIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { Heading } from "@/components/ui/heading";
+import {
+    PencilSquareIcon,
+    PlusIcon,
+    TrashIcon,
+    ServerStackIcon,
+    FunnelIcon,
+    MagnifyingGlassIcon,
+} from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import {
     Table,
     TableBody,
@@ -10,8 +21,9 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/app-table";
+import { TableEmptyRow } from "@/components/ui/table-empty-row";
 import { Input } from "@/components/ui/input";
-import { InputGroup } from "@/components/ui/input-group";
+import { PageHead } from "@/components/ui/page-head";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { CreateMcpServerDialog } from "@/components/ai-agents/create-mcp-server-dialog";
 import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
@@ -70,29 +82,46 @@ export default function ConfigureMCPPage() {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between gap-4">
-                <div>
-                    <Heading>MCP Servers</Heading>
-                    <p className="text-sm text-muted-foreground">
-                        Define reusable MCP servers at deployment level. These
-                        servers are available across sessions in this
-                        deployment.
-                    </p>
-                </div>
-                <Button onClick={handleCreate}>
-                    <PlusIcon className="mr-2 h-4 w-4" />
-                    New MCP Server
-                </Button>
-            </div>
-
-            <InputGroup className="w-full max-w-sm">
-                <Input
-                    placeholder="Search MCP servers..."
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                />
-            </InputGroup>
+        <div className="flex flex-col gap-6">
+            <PageHead
+                className="mb-0"
+                eyebrow="Agents platform"
+                title="MCP servers"
+                sub="Reusable MCP servers available to every agent session in this deployment."
+                actions={
+                    <>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-1.5"
+                                >
+                                    <FunnelIcon className="size-4" />
+                                    Filter
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent align="end" className="w-64 p-3">
+                                <div className="relative">
+                                    <MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search MCP servers…"
+                                        value={query}
+                                        onChange={(event) =>
+                                            setQuery(event.target.value)
+                                        }
+                                        className="h-8 bg-secondary pl-8 text-[13px]"
+                                    />
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                        <Button onClick={handleCreate}>
+                            <PlusIcon className="mr-2 h-4 w-4" />
+                            New MCP server
+                        </Button>
+                    </>
+                }
+            />
 
             {isLoading ? (
                 <InlineLoader />
@@ -138,7 +167,7 @@ export default function ConfigureMCPPage() {
                                             size="sm"
                                             onClick={() => handleEdit(server)}
                                         >
-                                            <PencilIcon className="h-4 w-4" />
+                                            <PencilSquareIcon className="h-4 w-4" />
                                         </Button>
                                         <Button
                                             variant="outline"
@@ -156,17 +185,28 @@ export default function ConfigureMCPPage() {
                     </TableBody>
                 </Table>
             ) : (
-                <div className="rounded-md border p-8 text-center">
-                    <h3 className="text-sm font-medium">No MCP servers</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        Create your first MCP server to make it available in
-                        this deployment.
-                    </p>
-                    <Button className="mt-4" onClick={handleCreate}>
-                        <PlusIcon className="mr-2 h-4 w-4" />
-                        New MCP Server
-                    </Button>
-                </div>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Endpoint</TableHead>
+                            <TableHead>Auth</TableHead>
+                            <TableHead className="w-[140px] text-right">
+                                Actions
+                            </TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableEmptyRow
+                            colSpan={4}
+                            icon={
+                                <ServerStackIcon className="h-8 w-8 text-muted-foreground/50" />
+                            }
+                            title="No MCP servers"
+                            description="Create your first MCP server to make it available in this deployment."
+                        />
+                    </TableBody>
+                </Table>
             )}
 
             <CreateMcpServerDialog

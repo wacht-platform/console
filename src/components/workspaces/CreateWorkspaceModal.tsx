@@ -151,7 +151,7 @@ export function CreateWorkspaceModal({
             {/* Workspace Logo - Centered */}
             <div className="flex flex-col items-center">
               <div
-                className="w-16 h-16 rounded-lg border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-zinc-100 hover:bg-zinc-200 dark:border-zinc-600 dark:hover:border-zinc-500 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all duration-200 cursor-pointer overflow-hidden"
+                className="w-16 h-16 rounded-lg border-2 border-dashed border-border hover:border-border bg-secondary hover:bg-secondary transition-all duration-200 cursor-pointer overflow-hidden"
                 onClick={() => fileInputRef.current?.click()}
               >
                 {imagePreview ? (
@@ -162,7 +162,7 @@ export function CreateWorkspaceModal({
                   />
                 ) : (
                   <div className="flex items-center justify-center h-full">
-                    <PhotoIcon className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
+                    <PhotoIcon className="w-6 h-6 text-muted-foreground" />
                   </div>
                 )}
               </div>
@@ -170,13 +170,13 @@ export function CreateWorkspaceModal({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                  className="text-sm text-primary hover:text-primary dark:text-primary dark:hover:text-primary font-medium"
                 >
                   {imagePreview ? "Change logo" : "Add logo"}
                 </button>
                 {imagePreview && (
                   <>
-                    <span className="text-zinc-300 dark:text-zinc-600">·</span>
+                    <span className="text-muted-foreground dark:text-muted-foreground">·</span>
                     <button
                       type="button"
                       onClick={handleRemoveImage}
@@ -198,7 +198,7 @@ export function CreateWorkspaceModal({
 
             <div className="space-y-2">
               <Label>Organization</Label>
-              <div className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md text-sm text-zinc-600 dark:text-zinc-400">
+              <div className="px-3 py-2 bg-secondary border border-border dark:border-border rounded-md text-sm text-muted-foreground">
                 {organizationName}
               </div>
             </div>
@@ -216,7 +216,7 @@ export function CreateWorkspaceModal({
             <div className="space-y-2">
               <Label>
                 Description
-                <span className="ml-1 text-zinc-400 dark:text-zinc-500 font-normal">·  optional</span>
+                <span className="ml-1 text-muted-foreground font-normal">·  optional</span>
               </Label>
               <Textarea
                 value={description}

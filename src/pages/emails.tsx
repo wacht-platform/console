@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Heading } from "@/components/ui/heading";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
+import { SectionLabel } from "@/components/ui/section-label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox"
@@ -45,18 +45,17 @@ export function EmailTemplateCard({
   onClick,
 }: EmailTemplateCardProps) {
   const content = (
-    <div className="group relative bg-white dark:bg-neutral-900 px-6 py-4 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all duration-200 border-b border-gray-200 dark:border-neutral-700 last:border-0">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-sm font-normal text-gray-900 dark:text-neutral-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-            {title}
-          </h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-neutral-400">
-            {description}
-          </p>
-        </div>
-        <ChevronRightIcon className="w-5 h-5 text-gray-400 dark:text-neutral-500 group-hover:text-gray-600 dark:group-hover:text-neutral-300 transition-colors" />
+    <div className="group flex items-center gap-3.5 border-b border-border px-5 py-4 transition-colors last:border-0 hover:bg-secondary">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+        <EnvelopeIcon className="h-3.5 w-3.5" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <h3 className="text-sm font-medium text-foreground">{title}</h3>
+        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+          {description}
+        </p>
       </div>
+      <ChevronRightIcon className="h-4 w-4 shrink-0 text-muted-foreground/50 transition-colors group-hover:text-muted-foreground" />
     </div>
   );
 
@@ -304,12 +303,12 @@ function SmtpConfigDialog({
               onChange={(e) => setFromEmail(e.target.value)}
               placeholder="noreply@example.com"
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
+            <p className="text-xs text-muted-foreground mt-1.5">
               Emails will be sent from this address
             </p>
           </Field>
 
-          <div className="pt-2 border-t border-gray-200 dark:border-neutral-700">
+          <div className="pt-2 border-t border-border">
             <CheckboxField>
               <Checkbox
                 checked={useTls}
@@ -317,7 +316,7 @@ function SmtpConfigDialog({
               />
               <Label>Use STARTTLS</Label>
             </CheckboxField>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-7">
+            <p className="text-xs text-muted-foreground mt-1 ml-7">
               Uncheck for implicit TLS/SSL (port 465). Keep checked for STARTTLS (port 587).
             </p>
           </div>
@@ -378,42 +377,47 @@ function EmailProviderCard() {
 
   return (
     <>
-      <div className="mb-6">
-        <h2 className="text-sm font-normal text-gray-500 dark:text-neutral-400 uppercase tracking-wide mb-3">
-          Email Provider
-        </h2>
-        <div className="bg-white dark:bg-neutral-900 shadow-sm ring-1 ring-gray-900/5 dark:ring-neutral-100/10 rounded-lg overflow-hidden">
-          <div
-            onClick={() => setIsDialogOpen(true)}
-            className="group relative bg-white dark:bg-neutral-900 px-6 py-4 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all duration-200 cursor-pointer"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                {isSmtp ? (
-                  <ServerIcon className="h-5 w-5 text-gray-400 dark:text-neutral-500" />
-                ) : (
-                  <EnvelopeIcon className="h-5 w-5 text-gray-400 dark:text-neutral-500" />
-                )}
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <h3 className="text-sm font-normal text-gray-900 dark:text-neutral-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                      {providerLabel}
-                    </h3>
-                    {isSmtp && smtpConfig?.verified && (
-                      <Badge color="green">Verified</Badge>
-                    )}
-                    {isSmtp && smtpConfig && !smtpConfig.verified && (
-                      <Badge color="yellow">Not Verified</Badge>
-                    )}
-                  </div>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-neutral-400">
-                    {statusInfo}
-                  </p>
-                </div>
-              </div>
-              <ChevronRightIcon className="w-5 h-5 text-gray-400 dark:text-neutral-500 group-hover:text-gray-600 dark:group-hover:text-neutral-300 transition-colors" />
+      <div className="space-y-3">
+        <SectionLabel>Email provider</SectionLabel>
+        <div
+          onClick={() => setIsDialogOpen(true)}
+          className="group flex cursor-pointer items-center gap-3.5 rounded-lg border border-border bg-card px-5 py-4 transition-colors hover:bg-secondary"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+            {isSmtp ? (
+              <ServerIcon className="h-4 w-4" />
+            ) : (
+              <EnvelopeIcon className="h-4 w-4" />
+            )}
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-medium text-foreground">
+                {providerLabel}
+              </h3>
+              {isSmtp && smtpConfig?.verified && (
+                <Pill tone="ok">verified</Pill>
+              )}
+              {isSmtp && smtpConfig && !smtpConfig.verified && (
+                <Pill tone="warn">not verified</Pill>
+              )}
             </div>
+            <p className="mt-0.5 font-mono text-xs text-muted-foreground">
+              {statusInfo}
+            </p>
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsDialogOpen(true);
+            }}
+          >
+            Edit provider
+          </Button>
+          <ChevronRightIcon className="h-4 w-4 shrink-0 text-muted-foreground/50 transition-colors group-hover:text-muted-foreground" />
         </div>
       </div>
       <SmtpConfigDialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)} />
@@ -423,37 +427,24 @@ function EmailProviderCard() {
 
 export default function EmailsPage() {
   return (
-    <div>
-      <div className="mb-8">
-        <Heading className="text-xl font-normal text-gray-900 dark:text-neutral-100">
-          Email Templates
-        </Heading>
-        <p className="mt-1 text-sm text-gray-600 dark:text-neutral-400">
-          Customize email templates for different communication scenarios
-        </p>
-      </div>
-
+    <div className="space-y-8">
       <EmailProviderCard />
 
-      <div className="space-y-6">
-        {emailTemplateCategories.map((category) => (
-          <div key={category.category}>
-            <h2 className="text-sm font-normal text-gray-500 dark:text-neutral-400 uppercase tracking-wide mb-3">
-              {category.category}
-            </h2>
-            <div className="bg-white dark:bg-neutral-900 shadow-sm ring-1 ring-gray-900/5 dark:ring-neutral-100/10 rounded-lg overflow-hidden">
-              {category.templates.map((template) => (
-                <EmailTemplateCard
-                  key={template.id}
-                  title={template.title}
-                  description={template.description}
-                  route={template.route}
-                />
-              ))}
-            </div>
+      {emailTemplateCategories.map((category) => (
+        <div key={category.category} className="space-y-3">
+          <SectionLabel>{category.category}</SectionLabel>
+          <div className="overflow-hidden rounded-lg border border-border bg-card">
+            {category.templates.map((template) => (
+              <EmailTemplateCard
+                key={template.id}
+                title={template.title}
+                description={template.description}
+                route={template.route}
+              />
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 }

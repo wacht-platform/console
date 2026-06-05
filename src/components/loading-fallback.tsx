@@ -21,11 +21,11 @@ export const LoadingFallback = ({
 
 	if (variant === "detailed") {
 		return (
-			<div className="flex h-screen w-full items-center justify-center bg-white dark:bg-zinc-900">
+			<div className="flex h-screen w-full items-center justify-center bg-card">
 				<div className="flex flex-col items-center gap-4 p-8">
 					<Spinner size="lg" />
 					{message && (
-						<p className="text-sm text-zinc-600 dark:text-zinc-400">{message}</p>
+						<p className="text-sm text-muted-foreground">{message}</p>
 					)}
 				</div>
 			</div>
@@ -38,7 +38,7 @@ export const LoadingFallback = ({
 			<div className="flex flex-col items-center gap-3">
 				<Spinner size={size} />
 				{message && (
-					<p className="text-sm text-zinc-600 dark:text-zinc-400">{message}</p>
+					<p className="text-sm text-muted-foreground">{message}</p>
 				)}
 			</div>
 		</div>

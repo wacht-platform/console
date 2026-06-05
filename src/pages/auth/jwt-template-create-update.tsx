@@ -1,16 +1,8 @@
 import { useParams, useNavigate } from "react-router";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import type { EditorView } from "@codemirror/view";
 import { Input } from "@/components/ui/input";
-import { Heading } from "@/components/ui/heading";
 import { Switch } from "@/components/ui/switch"
-import { SwitchField } from "@/components/ui/app-switch";
-import {
-  Field,
-  FieldGroup,
-  Label,
-  Description,
-} from "@/components/ui/fieldset";
 import { DeploymentJWTTemplate } from "@/types/deployment";
 import { CodeEditor } from "@/components/code-editor";
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/ui/listbox";
@@ -18,10 +10,87 @@ import { Textarea } from "@/components/ui/textarea";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { useDeploymentJWTTemplates } from "@/lib/api/hooks/use-deployment-jwt-templates";
 import { Button } from "@/components/ui/button";
-import { TrashIcon, DocumentDuplicateIcon, KeyIcon, ClockIcon, CpuChipIcon } from "@heroicons/react/24/outline";
+import { TrashIcon, DocumentDuplicateIcon, CheckCircleIcon, SparklesIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { Spinner } from "@/components/ui/app-spinner";
 import { toast } from 'sonner';
 import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
+
+const VAR_GROUPS: {
+  title: string;
+  open?: boolean;
+  match: (value: string) => boolean;
+}[] = [
+  {
+    title: "Session",
+    open: true,
+    match: (v) => v.startsWith("id") || v.startsWith("session_id"),
+  },
+  { title: "User", open: true, match: (v) => v.startsWith("user.") },
+  { title: "Email", match: (v) => v.includes("email") },
+  { title: "Phone", match: (v) => v.includes("phone") },
+  {
+    title: "Session details",
+    match: (v) =>
+      ["ip_address", "browser", "device", "city", "region", "country"].some(
+        (k) => v.includes(k),
+      ),
+  },
+  { title: "Organization", match: (v) => v.startsWith("active_organization") },
+  { title: "Workspace", match: (v) => v.startsWith("active_workspace") },
+];
+
+function VarGroup({
+  title,
+  count,
+  defaultOpen,
+  children,
+}: {
+  title: string;
+  count: number;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <details
+      open={defaultOpen}
+      className="group border-b border-border last:border-b-0"
+    >
+      <summary className="flex h-8 cursor-pointer list-none items-center justify-between px-3.5 hover:bg-accent/50">
+        <span className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+          <ChevronRightIcon className="size-3 text-muted-foreground transition-transform group-open:rotate-90" />
+          {title}
+        </span>
+        <span className="font-mono text-[10px] text-muted-foreground/60">
+          {count}
+        </span>
+      </summary>
+      <div className="pb-1.5">{children}</div>
+    </details>
+  );
+}
+
+function VarItem({
+  name,
+  value,
+  onInsert,
+}: {
+  name: string;
+  value: string;
+  onInsert: (value: string) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onInsert(value)}
+      className="flex w-full flex-col gap-0.5 py-1.5 pl-7 pr-3.5 text-left transition-colors hover:bg-accent"
+    >
+      <span className="text-xs font-medium text-foreground">{name}</span>
+      <span className="truncate font-mono text-[10px] text-muted-foreground">
+        {`{{${value}}}`}
+      </span>
+    </button>
+  );
+}
 
 export default function JWTTemplateCreateUpdatePage() {
   const { templateId } = useParams();
@@ -156,12 +225,32 @@ export default function JWTTemplateCreateUpdatePage() {
   };
 
   const handleClaimsChange = (value: string | undefined) => {
-    if (value !== undefined) {
-      const claimsParsed = JSON.parse(value);
-      setClaims(JSON.stringify(claimsParsed, null, 2));
-      setFormData((prev) => ({ ...prev, template: claimsParsed }));
+    const next = value ?? "";
+    setClaims(next);
+    try {
+      setFormData((prev) => ({ ...prev, template: JSON.parse(next) }));
+    } catch {
+      // Keep the last valid template until the JSON parses again.
     }
   };
+
+  const handleFormatClaims = () => {
+    try {
+      const parsed = JSON.parse(claims);
+      setClaims(JSON.stringify(parsed, null, 2));
+      setFormData((prev) => ({ ...prev, template: parsed }));
+    } catch {
+      toast.error("Invalid JSON");
+    }
+  };
+
+  let isValidClaims = true;
+  try {
+    JSON.parse(claims);
+  } catch {
+    isValidClaims = false;
+  }
+  const claimsVariableCount = (claims.match(/\{\{/g) ?? []).length;
 
 
 
@@ -267,52 +356,49 @@ export default function JWTTemplateCreateUpdatePage() {
   }
 
   return (
-    <div>
-      <div className="mb-8">
-        <div className="flex justify-between items-start">
-          <div>
-            <Heading className="text-xl font-normal text-gray-900 dark:text-zinc-100">
-              {isEditMode ? "Edit JWT Template" : "Create JWT Template"}
-            </Heading>
-            <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
-              {isEditMode
-                ? "Update your JWT template configuration and claims"
-                : "Configure a new JWT template for token generation"}
-            </p>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
+            JWT template
           </div>
-          <div className="flex items-center gap-3">
-            {isEditMode && (
-              <Button
-                variant="destructive"
-                size="icon"
-                onClick={handleDeleteTemplate}
-                disabled={isDeletingJWTTemplate}
-              >
-                {isDeletingJWTTemplate ? (
-                  <Spinner className="w-4 h-4" />
-                ) : (
-                  <TrashIcon className="w-4 h-4" />
-                )}
-              </Button>
-            )}
+          <h1 className="mt-0.5 text-xl font-normal tracking-tight text-foreground">
+            {isEditMode ? "Edit template" : "New template"}
+          </h1>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {isEditMode && (
             <Button
-              onClick={handleSubmit}
-              disabled={isCreatingJWTTemplate || isUpdatingJWTTemplate}
+              variant="destructive"
+              size="icon"
+              className="size-9"
+              onClick={handleDeleteTemplate}
+              disabled={isDeletingJWTTemplate}
             >
-              {isCreatingJWTTemplate || isUpdatingJWTTemplate
-                ? isEditMode
-                  ? "Updating..."
-                  : "Creating..."
-                : isEditMode
-                  ? "Update Template"
-                  : "Create Template"}
+              {isDeletingJWTTemplate ? (
+                <Spinner className="size-4" />
+              ) : (
+                <TrashIcon className="size-4" />
+              )}
             </Button>
-          </div>
+          )}
+          <Button
+            onClick={handleSubmit}
+            disabled={isCreatingJWTTemplate || isUpdatingJWTTemplate}
+          >
+            {isCreatingJWTTemplate || isUpdatingJWTTemplate
+              ? isEditMode
+                ? "Updating..."
+                : "Creating..."
+              : isEditMode
+                ? "Update template"
+                : "Create template"}
+          </Button>
         </div>
       </div>
 
       {validationError && (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-lg flex items-center">
+        <div className="mb-6 p-4 border border-destructive/30 bg-destructive/10 text-destructive rounded-lg flex items-center">
           <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
           </svg>
@@ -320,97 +406,94 @@ export default function JWTTemplateCreateUpdatePage() {
         </div>
       )}
 
-      <div className="space-y-8">
-        <div className="bg-white dark:bg-zinc-900 shadow-sm ring-1 ring-gray-900/5 dark:ring-zinc-800 sm:rounded-xl">
-          <div className="px-6 py-6">
-            <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100 mb-4">Basic Information</h3>
-            <Field>
-              <Label>Template Name</Label>
-              <Description>A unique name to identify this JWT template</Description>
-              <Input
-                name="name"
-                className="mt-2"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="e.g., API Access Token, User Session Token"
-              />
-            </Field>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)_280px]">
+        {/* LEFT — settings */}
+        <aside className="min-w-0">
+          <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+            <div className="flex flex-col gap-3 p-4">
+              <div className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                Template
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-foreground">
+                  Name
+                </label>
+                <Input
+                  name="name"
+                  className="h-8"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="e.g. API access token"
+                />
+              </div>
+            </div>
 
-        <div className="bg-white dark:bg-zinc-900 shadow-sm ring-1 ring-gray-900/5 dark:ring-zinc-800 sm:rounded-xl">
-          <div className="px-6 py-6">
-            <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100 mb-4 flex items-center">
-              <ClockIcon className="w-5 h-5 mr-2 text-gray-400 dark:text-zinc-500" />
-              Token Configuration
-            </h3>
-            <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Field>
-                <Label>Token Lifetime</Label>
-                <Description>How long the token remains valid</Description>
-                <div className="relative mt-2">
+            <div className="flex flex-col gap-3 p-4">
+              <div className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                Token
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-foreground">
+                  Lifetime
+                </label>
+                <div className="relative">
                   <Input
                     name="token_lifetime"
-                    value={formData.token_lifetime}
-                    onChange={handleNumberInputChange}
                     type="number"
                     min="1"
-                    className="pr-20"
+                    className="h-8 pr-16"
+                    value={formData.token_lifetime}
+                    onChange={handleNumberInputChange}
                   />
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <span className="text-gray-500 dark:text-zinc-400 sm:text-sm">seconds</span>
-                  </div>
+                  <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-xs text-muted-foreground">
+                    seconds
+                  </span>
                 </div>
-              </Field>
-
-              <Field>
-                <Label>Allowed Clock Skew</Label>
-                <Description>Tolerance for time synchronization issues</Description>
-                <div className="relative mt-2">
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-foreground">
+                  Allowed clock skew
+                </label>
+                <div className="relative">
                   <Input
                     name="allowed_clock_skew"
-                    value={formData.allowed_clock_skew}
-                    onChange={handleNumberInputChange}
                     type="number"
                     min="0"
-                    className="pr-20"
+                    className="h-8 pr-16"
+                    value={formData.allowed_clock_skew}
+                    onChange={handleNumberInputChange}
                   />
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <span className="text-gray-500 dark:text-zinc-400 sm:text-sm">seconds</span>
-                  </div>
+                  <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-xs text-muted-foreground">
+                    seconds
+                  </span>
                 </div>
-              </Field>
-            </FieldGroup>
-          </div>
-        </div>
+              </div>
+            </div>
 
-        <div className="bg-white dark:bg-zinc-900 shadow-sm ring-1 ring-gray-900/5 dark:ring-zinc-800 sm:rounded-xl">
-          <div className="px-6 py-6">
-            <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100 mb-4 flex items-center">
-              <KeyIcon className="w-5 h-5 mr-2 text-gray-400 dark:text-zinc-500" />
-              Signing Configuration
-            </h3>
-            <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <SwitchField className="md:col-span-2">
-                <Label>Use Custom Signing Key</Label>
-                <Description>
-                  Enable this option if you're using a third-party authentication service that requires custom signing keys
-                </Description>
+            <div className="flex flex-col gap-3 p-4">
+              <div className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                Signing
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-medium text-foreground">
+                  Custom signing key
+                </span>
                 <Switch
                   checked={isCustomSigningKey}
                   onCheckedChange={toggleCustomSigningKey}
                 />
-              </SwitchField>
+              </div>
               {isCustomSigningKey && (
                 <>
-                  <Field>
-                    <Label>Signing Algorithm</Label>
-                    <Description>The cryptographic algorithm to use</Description>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-medium text-foreground">
+                      Algorithm
+                    </label>
                     <Listbox
                       name="signing_algorithm"
                       value={signingAlgorithm}
                       onChange={handleAlgorithmChange}
-                      className="mt-2"
+                      className="w-full"
                     >
                       <ListboxOption value="HS256">
                         <ListboxLabel>HS256</ListboxLabel>
@@ -437,45 +520,41 @@ export default function JWTTemplateCreateUpdatePage() {
                         <ListboxLabel>ES384</ListboxLabel>
                       </ListboxOption>
                     </Listbox>
-                  </Field>
-                  <Field>
-                    <Label>Secret Key</Label>
-                    <Description>The key used to sign the JWT</Description>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-medium text-foreground">
+                      Secret key
+                    </label>
                     <Textarea
                       name="secret_key"
                       value={secretKey}
                       onChange={handleSecretKeyChange}
-                      className="mt-2 text-sm"
-                      rows={4}
-                      placeholder="Enter your secret key here..."
+                      className="text-sm"
+                      rows={3}
+                      placeholder="Enter your secret key…"
                     />
-                  </Field>
+                  </div>
                 </>
               )}
-            </FieldGroup>
-          </div>
-        </div>
+            </div>
 
-        <div className="bg-white dark:bg-zinc-900 shadow-sm ring-1 ring-gray-900/5 dark:ring-zinc-800 sm:rounded-xl">
-          <div className="px-6 py-6">
-            <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100 mb-4 flex items-center">
-              <CpuChipIcon className="w-5 h-5 mr-2 text-gray-400 dark:text-zinc-500" />
-              Token Endpoints
-            </h3>
-            <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Field>
-                <Label>Issuer</Label>
-                <Description>The JWT issuer claim value</Description>
-                <div className="relative mt-2">
+            <div className="flex flex-col gap-3 p-4">
+              <div className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                Endpoints
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-foreground">
+                  Issuer
+                </label>
+                <div className="relative">
                   <Input
-                    name="issuer"
-                    value={selectedDeployment?.backend_host}
                     disabled
-                    className="pr-16 bg-gray-50 dark:bg-zinc-800"
+                    value={selectedDeployment?.backend_host}
+                    className="h-8 bg-secondary pr-10 text-xs"
                   />
                   <button
                     type="button"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 inline-flex items-center px-2.5 py-1.5 text-xs font-normal text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded hover:bg-gray-50 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                     onClick={() => {
                       navigator.clipboard.writeText(
                         selectedDeployment?.backend_host || "",
@@ -483,25 +562,23 @@ export default function JWTTemplateCreateUpdatePage() {
                       toast.success("Issuer copied to clipboard!");
                     }}
                   >
-                    <DocumentDuplicateIcon className="w-3.5 h-3.5 mr-1" />
-                    Copy
+                    <DocumentDuplicateIcon className="size-3.5" />
                   </button>
                 </div>
-              </Field>
-
-              <Field>
-                <Label>JWKS Endpoint</Label>
-                <Description>JSON Web Key Set endpoint for public keys</Description>
-                <div className="relative mt-2">
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-foreground">
+                  JWKS endpoint
+                </label>
+                <div className="relative">
                   <Input
-                    name="jwks_endpoint"
-                    value={`https://${selectedDeployment?.backend_host}/.well-known/jwks.json`}
                     disabled
-                    className="pr-16 bg-gray-50 dark:bg-zinc-800 text-sm"
+                    value={`https://${selectedDeployment?.backend_host}/.well-known/jwks.json`}
+                    className="h-8 bg-secondary pr-10 text-xs"
                   />
                   <button
                     type="button"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 inline-flex items-center px-2.5 py-1.5 text-xs font-normal text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded hover:bg-gray-50 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                     onClick={() => {
                       navigator.clipboard.writeText(
                         `https://${selectedDeployment?.backend_host}/.well-known/jwks.json`,
@@ -509,220 +586,101 @@ export default function JWTTemplateCreateUpdatePage() {
                       toast.success("JWKS endpoint copied to clipboard!");
                     }}
                   >
-                    <DocumentDuplicateIcon className="w-3.5 h-3.5 mr-1" />
-                    Copy
+                    <DocumentDuplicateIcon className="size-3.5" />
                   </button>
-                </div>
-              </Field>
-            </FieldGroup>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-zinc-900 shadow-sm ring-1 ring-gray-900/5 dark:ring-zinc-800 sm:rounded-xl">
-          <div className="px-6 py-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              <div className="lg:col-span-8 space-y-4">
-                <div>
-                  <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100">JWT Claims</h3>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">Define the payload data to include in your JWT tokens</p>
-                </div>
-                <CodeEditor
-                  language="json"
-                  minHeight={400}
-                  value={claims}
-                  onChange={(value) => handleClaimsChange(value || "")}
-                  onCreateEditor={(view) => {
-                    editorRef.current = view;
-                  }}
-                />
-              </div>
-
-              <div className="lg:col-span-4 space-y-4">
-                <div>
-                  <h3 className="text-base font-normal leading-6 text-gray-900 dark:text-zinc-100">Available Variables</h3>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">Click to insert variables into your JWT claims</p>
-                </div>
-
-                <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-                  {/* Session Variables */}
-                  <details className="group" open>
-                    <summary className="cursor-pointer list-none">
-                      <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800">
-                        <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">Session</span>
-                        <svg className="w-4 h-4 text-gray-500 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </summary>
-                    <div className="mt-2 grid grid-cols-2 gap-1.5 px-1">
-                      {availableVariables.filter(v => v.value.startsWith('id') || v.value.startsWith('session_id')).map((variable) => (
-                        <button
-                          key={variable.value}
-                          type="button"
-                          onClick={() => insertVariable(variable.value)}
-                          className="text-left px-2.5 py-1.5 text-xs font-normal rounded border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600 transition-colors"
-                        >
-                          {variable.label}
-                        </button>
-                      ))}
-                    </div>
-                  </details>
-
-                  {/* User Variables */}
-                  <details className="group" open>
-                    <summary className="cursor-pointer list-none">
-                      <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800">
-                        <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">User</span>
-                        <svg className="w-4 h-4 text-gray-500 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </summary>
-                    <div className="mt-2 grid grid-cols-2 gap-1.5 px-1">
-                      {availableVariables.filter(v => v.value.startsWith('user.')).map((variable) => (
-                        <button
-                          key={variable.value}
-                          type="button"
-                          onClick={() => insertVariable(variable.value)}
-                          className="text-left px-2.5 py-1.5 text-xs font-normal rounded border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600 transition-colors"
-                        >
-                          {variable.label}
-                        </button>
-                      ))}
-                    </div>
-                  </details>
-
-                  {/* Email Variables */}
-                  <details className="group">
-                    <summary className="cursor-pointer list-none">
-                      <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800">
-                        <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">Email</span>
-                        <svg className="w-4 h-4 text-gray-500 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </summary>
-                    <div className="mt-2 grid grid-cols-2 gap-1.5 px-1">
-                      {availableVariables.filter(v => v.value.includes('email')).map((variable) => (
-                        <button
-                          key={variable.value}
-                          type="button"
-                          onClick={() => insertVariable(variable.value)}
-                          className="text-left px-2.5 py-1.5 text-xs font-normal rounded border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600 transition-colors"
-                        >
-                          {variable.label}
-                        </button>
-                      ))}
-                    </div>
-                  </details>
-
-                  {/* Phone Variables */}
-                  <details className="group">
-                    <summary className="cursor-pointer list-none">
-                      <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800">
-                        <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">Phone</span>
-                        <svg className="w-4 h-4 text-gray-500 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </summary>
-                    <div className="mt-2 grid grid-cols-2 gap-1.5 px-1">
-                      {availableVariables.filter(v => v.value.includes('phone')).map((variable) => (
-                        <button
-                          key={variable.value}
-                          type="button"
-                          onClick={() => insertVariable(variable.value)}
-                          className="text-left px-2.5 py-1.5 text-xs font-normal rounded border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600 transition-colors"
-                        >
-                          {variable.label}
-                        </button>
-                      ))}
-                    </div>
-                  </details>
-
-                  {/* Session Details Variables */}
-                  <details className="group">
-                    <summary className="cursor-pointer list-none">
-                      <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800">
-                        <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">Session Details</span>
-                        <svg className="w-4 h-4 text-gray-500 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </summary>
-                    <div className="mt-2 grid grid-cols-2 gap-1.5 px-1">
-                      {availableVariables.filter(v =>
-                        v.value.includes('ip_address') ||
-                        v.value.includes('browser') ||
-                        v.value.includes('device') ||
-                        v.value.includes('city') ||
-                        v.value.includes('region') ||
-                        v.value.includes('country')
-                      ).map((variable) => (
-                        <button
-                          key={variable.value}
-                          type="button"
-                          onClick={() => insertVariable(variable.value)}
-                          className="text-left px-2.5 py-1.5 text-xs font-normal rounded border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600 transition-colors"
-                        >
-                          {variable.label}
-                        </button>
-                      ))}
-                    </div>
-                  </details>
-
-                  {/* Organization Variables */}
-                  <details className="group">
-                    <summary className="cursor-pointer list-none">
-                      <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800">
-                        <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">Organization</span>
-                        <svg className="w-4 h-4 text-gray-500 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </summary>
-                    <div className="mt-2 grid grid-cols-2 gap-1.5 px-1">
-                      {availableVariables.filter(v => v.value.startsWith('active_organization')).map((variable) => (
-                        <button
-                          key={variable.value}
-                          type="button"
-                          onClick={() => insertVariable(variable.value)}
-                          className="text-left px-2.5 py-1.5 text-xs font-normal rounded border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600 transition-colors"
-                        >
-                          {variable.label}
-                        </button>
-                      ))}
-                    </div>
-                  </details>
-
-                  {/* Workspace Variables */}
-                  <details className="group">
-                    <summary className="cursor-pointer list-none">
-                      <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800">
-                        <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">Workspace</span>
-                        <svg className="w-4 h-4 text-gray-500 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </summary>
-                    <div className="mt-2 grid grid-cols-2 gap-1.5 px-1">
-                      {availableVariables.filter(v => v.value.startsWith('active_workspace')).map((variable) => (
-                        <button
-                          key={variable.value}
-                          type="button"
-                          onClick={() => insertVariable(variable.value)}
-                          className="text-left px-2.5 py-1.5 text-xs font-normal rounded border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600 transition-colors"
-                        >
-                          {variable.label}
-                        </button>
-                      ))}
-                    </div>
-                  </details>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </aside>
+
+        {/* CENTER — editor */}
+        <main className="min-w-0">
+                <div className="overflow-hidden rounded-lg border border-border bg-card">
+                  {/* Toolbar */}
+                  <div className="flex h-[38px] items-center gap-1 border-b border-border bg-secondary px-2">
+                    <span className="px-2 font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+                      claims.json
+                    </span>
+                    <span className="mx-1 h-4 w-px bg-border" />
+                    <button
+                      type="button"
+                      onClick={handleFormatClaims}
+                      className="inline-flex h-[26px] items-center gap-1.5 rounded-md px-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                    >
+                      <SparklesIcon className="size-3.5" />
+                      Format
+                    </button>
+                    <div className="flex-1" />
+                    <span className="px-2 font-mono text-[11px] text-muted-foreground">
+                      {claims.length} chars
+                    </span>
+                  </div>
+                  {/* Body */}
+                  <CodeEditor
+                    language="json"
+                    minHeight={400}
+                    chrome="flush"
+                    value={claims}
+                    onChange={(value) => handleClaimsChange(value || "")}
+                    onCreateEditor={(view) => {
+                      editorRef.current = view;
+                    }}
+                  />
+                  {/* Status strip */}
+                  <div className="flex h-[30px] items-center gap-2.5 border-t border-border bg-secondary px-3 font-mono text-[11px] text-muted-foreground">
+                    {isValidClaims ? (
+                      <span className="flex items-center gap-1">
+                        <CheckCircleIcon className="size-3 text-emerald-500" />
+                        valid JSON
+                      </span>
+                    ) : (
+                      <span className="text-destructive">invalid JSON</span>
+                    )}
+                    <span className="text-muted-foreground/40">·</span>
+                    <span>{claimsVariableCount} variables used</span>
+                  </div>
+                </div>
+              </main>
+
+              {/* RIGHT — variables */}
+              <aside className="min-w-0">
+                <div className="overflow-hidden rounded-lg border border-border bg-card">
+                  <div className="flex items-center justify-between border-b border-border px-3.5 py-3">
+                    <h3 className="text-sm font-medium text-foreground">
+                      Variables
+                    </h3>
+                    <span className="font-mono text-[11px] text-muted-foreground">
+                      click to insert
+                    </span>
+                  </div>
+                  <div className="max-h-[600px] overflow-y-auto">
+                    {VAR_GROUPS.map((group) => {
+                      const items = availableVariables.filter((v) =>
+                        group.match(v.value),
+                      );
+                      if (items.length === 0) return null;
+                      return (
+                        <VarGroup
+                          key={group.title}
+                          title={group.title}
+                          count={items.length}
+                          defaultOpen={group.open}
+                        >
+                          {items.map((variable) => (
+                            <VarItem
+                              key={variable.value}
+                              name={variable.label}
+                              value={variable.value}
+                              onInsert={insertVariable}
+                            />
+                          ))}
+                        </VarGroup>
+                      );
+                    })}
+                  </div>
+                </div>
+              </aside>
       </div>
 
       <ConfirmationDialog

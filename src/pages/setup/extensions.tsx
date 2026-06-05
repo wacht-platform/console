@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
-    CheckCircleIcon,
     ExclamationTriangleIcon,
     PlusIcon,
     TrashIcon,
 } from "@heroicons/react/20/solid";
-import { Heading, Subheading } from "@/components/ui/heading";
-import { Text } from "@/components/ui/text";
+import { PuzzlePieceIcon } from "@heroicons/react/24/outline";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { PageHead } from "@/components/ui/page-head";
+import { SectionLabel } from "@/components/ui/section-label";
+import { Pill } from "@/components/ui/pill";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Switch } from "@/components/ui/switch";
 import { Description, Field, Label } from "@/components/ui/fieldset";
 import { InlineLoader } from "@/components/ui/loading-screen";
@@ -34,11 +36,11 @@ export default function ExtensionsPage() {
 
     return (
         <div>
-            <Heading>External extensions</Heading>
-            <Text className="mt-2 text-zinc-500">
-                Enable third-party integration providers for this deployment.
-                Each extension exposes its apps to your agents.
-            </Text>
+            <PageHead
+                eyebrow="Agents platform"
+                title="Extensions"
+                sub="Enable third-party integration providers for this deployment. Each extension exposes its apps to your agents."
+            />
 
             <div className="mt-8 space-y-4">
                 <ComposioExtensionCard
@@ -65,29 +67,22 @@ function ComposioExtensionCard({
 
     return (
         <div className="space-y-8">
-            <header className="flex items-start justify-between gap-4 rounded-lg border border-zinc-200 px-5 py-4 dark:border-zinc-800">
+            <header className="flex items-start justify-between gap-4 rounded-lg border border-border px-5 py-4 dark:border-border">
                 <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 flex-none items-center justify-center rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+                    <div className="flex h-10 w-10 flex-none items-center justify-center rounded-md border border-border bg-card dark:border-border">
                         <ComposioMark />
                     </div>
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                            <Subheading>Composio</Subheading>
-                            {enabled ? (
-                                <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                                    <CheckCircleIcon className="h-3.5 w-3.5" />
-                                    Enabled
-                                </span>
-                            ) : (
-                                <span className="text-xs font-medium text-zinc-500">
-                                    Disabled
-                                </span>
-                            )}
+                            <h3 className="text-sm font-medium text-foreground">Composio</h3>
+                            <Pill tone={enabled ? "ok" : "mute"}>
+                                {enabled ? "enabled" : "disabled"}
+                            </Pill>
                         </div>
-                        <Text className="text-sm">
+                        <p className="text-sm text-muted-foreground text-sm">
                             Give agents access to 1000+ SaaS integrations
                             (Gmail, GitHub, Slack, and more).
-                        </Text>
+                        </p>
                     </div>
                 </div>
                 <Switch
@@ -151,15 +146,16 @@ function ComposioConfigPanel({ isProduction }: { isProduction: boolean }) {
     const enabledApps = composio?.enabled_apps ?? [];
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-7">
             {/* Credentials */}
-            <div className="space-y-4">
-                <div className="flex items-center justify-between gap-4 rounded-lg border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950">
+            <section className="flex flex-col gap-4">
+                <SectionLabel>Credentials</SectionLabel>
+                <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-3">
                     <div className="space-y-1">
-                        <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                        <div className="text-sm font-medium text-foreground">
                             Bring your own Composio key
                         </div>
-                        <div className="text-xs text-zinc-500">
+                        <div className="text-xs text-muted-foreground">
                             {isProduction
                                 ? "Production deployments always use your own Composio account."
                                 : "Turn on to use your own Composio account."}
@@ -194,7 +190,7 @@ function ComposioConfigPanel({ isProduction }: { isProduction: boolean }) {
                                 href="https://platform.composio.dev/settings"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-blue-500 hover:underline"
+                                className="text-primary hover:underline"
                             >
                                 Composio dashboard
                             </a>
@@ -215,34 +211,29 @@ function ComposioConfigPanel({ isProduction }: { isProduction: boolean }) {
                         </Button>
                     </div>
                 )}
-            </div>
+            </section>
 
             {/* Enabled apps */}
-            <div className="space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-baseline gap-2">
-                        <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                            Enabled apps
-                        </div>
-                        <div className="text-xs text-zinc-500">
-                            {enabledApps.length}{" "}
-                            {enabledApps.length === 1 ? "app" : "apps"}
-                        </div>
-                    </div>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPickerOpen(true)}
-                    >
-                        <PlusIcon className="mr-1.5 h-4 w-4" />
-                        Add app
-                    </Button>
-                </div>
+            <section className="flex flex-col gap-3">
+                <SectionLabel
+                    action={
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPickerOpen(true)}
+                        >
+                            <PlusIcon className="mr-1.5 h-4 w-4" />
+                            Add app
+                        </Button>
+                    }
+                >
+                    Enabled apps · {enabledApps.length}
+                </SectionLabel>
 
-                <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-400">
+                <div className="rounded-lg border border-border bg-secondary px-3 py-2 text-xs text-muted-foreground">
                     Inbound triggers (receiving Telegram messages, Slack DMs,
-                    Gmail replies, etc.) aren't supported yet — agents can
-                    only initiate calls outward. Coming soon.
+                    Gmail replies, etc.) aren't supported yet — agents can only
+                    initiate calls outward. Coming soon.
                 </div>
 
                 {enabledApps.length > 0 ? (
@@ -258,16 +249,14 @@ function ComposioConfigPanel({ isProduction }: { isProduction: boolean }) {
                         ))}
                     </ul>
                 ) : (
-                    <div className="flex flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-zinc-200 px-4 py-10 text-center dark:border-zinc-800">
-                        <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                            No apps enabled yet
-                        </div>
-                        <div className="text-xs text-zinc-500">
-                            Add your first app to make it available to agents.
-                        </div>
-                    </div>
+                    <EmptyState
+                        compact
+                        icon={<PuzzlePieceIcon />}
+                        title="No apps enabled yet"
+                        description="Add your first app to make it available to agents."
+                    />
                 )}
-            </div>
+            </section>
 
             <ComposioAppPicker
                 open={pickerOpen}
@@ -289,20 +278,20 @@ function EnabledAppCard({
 }) {
     const name = app.display_name || app.slug;
     return (
-        <li className="group relative flex items-start gap-3 rounded-lg border border-zinc-200 bg-white p-3 transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700">
+        <li className="group relative flex items-start gap-3 rounded-lg border border-border bg-card p-3 transition hover:border-border dark:border-border dark:hover:border-border">
             <ToolkitLogo logo={app.logo_url} name={name} size="md" />
             <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                <div className="truncate text-sm font-medium text-foreground">
                     {name}
                 </div>
-                <div className="mt-0.5 truncate text-[11px] text-zinc-500">
+                <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
                     <span className="font-mono">{app.auth_config_id}</span>
                 </div>
             </div>
             <button
                 type="button"
                 onClick={onRemove}
-                className="flex-none rounded-md p-1.5 text-zinc-400 opacity-0 transition hover:bg-zinc-100 hover:text-zinc-900 group-hover:opacity-100 focus:opacity-100 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                className="flex-none rounded-md p-1.5 text-muted-foreground opacity-0 transition hover:bg-secondary hover:text-foreground group-hover:opacity-100 focus:opacity-100"
                 aria-label={`Remove ${name}`}
             >
                 <TrashIcon className="h-4 w-4" />
@@ -313,7 +302,7 @@ function EnabledAppCard({
 
 function ComposioMark() {
     return (
-        <span className="font-heading text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+        <span className="font-heading text-lg font-semibold text-foreground">
             C
         </span>
     );

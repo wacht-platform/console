@@ -29,7 +29,7 @@ export function NavbarDivider({
 		<div
 			aria-hidden="true"
 			{...props}
-			className={clsx(className, "h-5 w-px bg-gray-200")}
+			className={clsx(className, "h-5 w-px bg-secondary")}
 		/>
 	);
 }
@@ -76,14 +76,14 @@ export const NavbarItem = forwardRef(function NavbarItem(
 		// Base
 		"relative flex min-w-0 items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium",
 		// Colors
-		"text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100",
-		"hover:bg-gray-100",
+		"text-foreground hover:text-foreground",
+		"hover:bg-secondary",
 		"transition-colors",
 		// Icons
 		"*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0",
 		"*:data-[slot=avatar]:size-6 *:data-[slot=avatar]:shrink-0",
 		// Current state
-		current && "text-zinc-900 dark:text-zinc-100 bg-gray-100",
+		current && "text-foreground bg-secondary",
 	);
 
 	return (

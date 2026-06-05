@@ -20,6 +20,7 @@ interface ImageUploadProps {
   required?: boolean;
   disabled?: boolean;
   variant?: "avatar" | "banner";
+  shape?: "circle" | "square";
   customUploadHook?: {
     mutateAsync: (file: File) => Promise<string>;
   };
@@ -59,6 +60,7 @@ export function ImageUpload({
   required = false,
   disabled = false,
   variant = "banner",
+  shape = "circle",
   customUploadHook,
   imageClassName,
 }: ImageUploadProps) {
@@ -134,24 +136,28 @@ export function ImageUpload({
           {/* Avatar Preview */}
           <div className="relative">
             <div
-              className={`w-20 h-20 rounded-full border-2 border-dashed transition-all duration-200 cursor-pointer overflow-hidden ${isUploading
-                ? 'border-blue-300 bg-blue-50'
-                : 'border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+              className={cn(
+                "h-16 w-16 cursor-pointer overflow-hidden border border-dashed transition-colors",
+                shape === "square" ? "rounded-xl" : "rounded-full",
+                isUploading
+                  ? "border-primary/40 bg-primary/5"
+                  : "border-border bg-secondary hover:border-muted-foreground/40 hover:bg-accent",
+                disabled && "cursor-not-allowed opacity-50",
+              )}
               onClick={!disabled ? handleUploadClick : undefined}
             >
               {previewUrl ? (
                 <img
                   src={previewUrl}
                   alt={`${label} preview`}
-                  className={cn("w-full h-full object-cover", imageClassName)}
+                  className={cn("h-full w-full object-cover", imageClassName)}
                 />
               ) : (
-                <div className="flex items-center justify-center h-full">
+                <div className="flex h-full items-center justify-center">
                   {isUploading ? (
-                    <Spinner className="w-6 h-6 text-blue-500" />
+                    <Spinner className="h-5 w-5 text-primary" />
                   ) : (
-                    <PhotoIcon className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
+                    <PhotoIcon className="h-5 w-5 text-muted-foreground" />
                   )}
                 </div>
               )}
@@ -163,9 +169,9 @@ export function ImageUpload({
                   e.stopPropagation();
                   handleRemoveImage();
                 }}
-                className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg border-2 border-white z-10"
+                className="absolute -top-2 -right-2 z-10 rounded-full border-2 border-background bg-destructive p-1 text-destructive-foreground shadow-sm transition-colors hover:bg-destructive/90"
               >
-                <XMarkIcon className="w-3 h-3" />
+                <XMarkIcon className="h-3 w-3" />
               </button>
             )}
           </div>
@@ -180,11 +186,11 @@ export function ImageUpload({
                 disabled={isUploading}
                 className="text-sm mb-2"
               >
-                {isUploading ? "Uploading..." : previewUrl ? "Change Image" : "Upload Image"}
+                {isUploading ? "Uploading…" : previewUrl ? "Change image" : "Upload image"}
               </Button>
             )}
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Recommended: Square SVG, PNG, or JPG, max 2MB
+            <p className="text-xs text-muted-foreground">
+              Recommended: square SVG, PNG, or JPG · max 2MB
             </p>
           </div>
 
@@ -211,10 +217,13 @@ export function ImageUpload({
       <div className="space-y-3">
         {/* Upload Area */}
         <div
-          className={`relative w-full h-36 border-2 border-dashed rounded-lg transition-all duration-200 cursor-pointer ${isUploading
-            ? 'border-blue-300 bg-blue-50'
-            : 'border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-            } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+          className={cn(
+            "relative h-36 w-full cursor-pointer rounded-lg border border-dashed transition-colors",
+            isUploading
+              ? "border-primary/40 bg-primary/5"
+              : "border-border bg-secondary hover:border-muted-foreground/40 hover:bg-accent",
+            disabled && "cursor-not-allowed opacity-50",
+          )}
           onClick={!disabled ? handleUploadClick : undefined}
         >
           {previewUrl ? (
@@ -231,7 +240,7 @@ export function ImageUpload({
                     e.stopPropagation();
                     handleRemoveImage();
                   }}
-                  className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm"
+                  className="absolute top-2 right-2 rounded-full bg-destructive p-1 text-destructive-foreground shadow-sm transition-colors hover:bg-destructive/90"
                 >
                   <XMarkIcon className="w-4 h-4" />
                 </button>
@@ -241,16 +250,16 @@ export function ImageUpload({
             <div className="flex flex-col items-center justify-center h-full text-center p-4">
               {isUploading ? (
                 <>
-                  <Spinner className="w-8 h-8 text-blue-500 mb-2" />
-                  <div className="text-sm text-blue-600 mb-1">Uploading...</div>
-                  <div className="text-xs text-gray-500">Please wait</div>
+                  <Spinner className="w-8 h-8 text-primary mb-2" />
+                  <div className="text-sm text-primary mb-1">Uploading…</div>
+                  <div className="text-xs text-muted-foreground">Please wait</div>
                 </>
               ) : (
                 <>
-                  <PhotoIcon className="w-8 h-8 text-zinc-400 dark:text-zinc-500 mb-2" />
-                  <div className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Upload logo</div>
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Recommended: Square SVG, PNG, or JPG, max 2MB
+                  <PhotoIcon className="w-8 h-8 text-muted-foreground mb-2" />
+                  <div className="text-sm text-foreground mb-1">Upload logo</div>
+                  <div className="text-xs text-muted-foreground">
+                    Recommended: square SVG, PNG, or JPG · max 2MB
                   </div>
                 </>
               )}

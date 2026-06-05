@@ -64,14 +64,14 @@ export function B2bPermissionsManager() {
   };
 
   if (isLoading) {
-    return <div className="text-sm text-gray-500">Loading permissions...</div>;
+    return <div className="text-sm text-muted-foreground">Loading permissions...</div>;
   }
 
   return (
     <div className="space-y-6">
       {/* Organization Permissions */}
       <div className="space-y-3">
-        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+        <h4 className="text-sm font-medium text-foreground">
           Organization Permissions
         </h4>
 
@@ -91,7 +91,7 @@ export function B2bPermissionsManager() {
 
         <div className="flex flex-wrap gap-2">
           {organizationPermissions.length === 0 ? (
-            <span className="text-sm text-gray-500 dark:text-gray-400 italic">
+            <span className="text-sm text-muted-foreground italic">
               No permissions configured
             </span>
           ) : (
@@ -116,7 +116,7 @@ export function B2bPermissionsManager() {
 
       {/* Workspace Permissions */}
       <div className="space-y-3">
-        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+        <h4 className="text-sm font-medium text-foreground">
           Workspace Permissions
         </h4>
 
@@ -136,7 +136,7 @@ export function B2bPermissionsManager() {
 
         <div className="flex flex-wrap gap-2">
           {workspacePermissions.length === 0 ? (
-            <span className="text-sm text-gray-500 dark:text-gray-400 italic">
+            <span className="text-sm text-muted-foreground italic">
               No permissions configured
             </span>
           ) : (

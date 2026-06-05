@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
+  BoltIcon,
   TrashIcon,
   PlusIcon,
   ChevronUpDownIcon,
@@ -32,6 +33,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { SectionLabel } from "@/components/ui/section-label";
+import { EmptyState } from "@/components/ui/empty-state";
+import SavePopup from "@/components/save-popup";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import {
   type AgentHookStep,
@@ -213,13 +217,13 @@ export default function AgentHooksPage() {
   };
 
   return (
-    <div className="space-y-8">
-      <p className="text-[13px] leading-5 text-muted-foreground">
+    <div>
+      <p className="mb-6 text-[13px] leading-6 text-muted-foreground">
         Steps run sequentially with a 60s cap each. Failures are reported via
         webhook and don't block the run.{" "}
         <a
           href="https://wacht.dev/docs/guides/agents/hooks"
-          className="underline underline-offset-2"
+          className="text-primary underline-offset-2 hover:underline"
           target="_blank"
           rel="noreferrer"
         >
@@ -228,44 +232,38 @@ export default function AgentHooksPage() {
         .
       </p>
 
-      <HookSection
-        title="Execution start"
-        description="Runs once at the top of every run, before the first model call."
-        steps={form.execution_start}
-        agentTools={agentToolOptions}
-        internalTools={internalTools}
-        composioTools={composioTools}
-        mcpServers={mcpServers}
-        schemas={schemasByName}
-        onChange={(update) => updateKind("execution_start", update)}
-      />
+      <div className="flex flex-col gap-10">
+        <HookSection
+          title="Execution start"
+          description="Runs once at the top of every run, before the first model call."
+          steps={form.execution_start}
+          agentTools={agentToolOptions}
+          internalTools={internalTools}
+          composioTools={composioTools}
+          mcpServers={mcpServers}
+          schemas={schemasByName}
+          onChange={(update) => updateKind("execution_start", update)}
+        />
 
-      <div className="border-t border-border/40" />
-
-      <HookSection
-        title="Execution end"
-        description="Runs once on the way out — success, abort, or budget cap. Fire-and-observe."
-        steps={form.execution_end}
-        agentTools={agentToolOptions}
-        internalTools={internalTools}
-        composioTools={composioTools}
-        mcpServers={mcpServers}
-        schemas={schemasByName}
-        onChange={(update) => updateKind("execution_end", update)}
-      />
-
-      <div className="flex items-center justify-end gap-2 border-t border-border/40 pt-5">
-        <Button
-          variant="outline"
-          onClick={() => setForm(original)}
-          disabled={!isDirty || updateAgent.isPending}
-        >
-          Reset
-        </Button>
-        <Button onClick={onSave} disabled={!isDirty || updateAgent.isPending}>
-          {updateAgent.isPending ? "Saving…" : "Save"}
-        </Button>
+        <HookSection
+          title="Execution end"
+          description="Runs once on the way out — success, abort, or budget cap. Fire-and-observe."
+          steps={form.execution_end}
+          agentTools={agentToolOptions}
+          internalTools={internalTools}
+          composioTools={composioTools}
+          mcpServers={mcpServers}
+          schemas={schemasByName}
+          onChange={(update) => updateKind("execution_end", update)}
+        />
       </div>
+
+      <SavePopup
+        isDirty={isDirty}
+        isSaving={updateAgent.isPending}
+        onSave={onSave}
+        onCancel={() => setForm(original)}
+      />
     </div>
   );
 }
@@ -294,34 +292,40 @@ function HookSection({
   onChange,
 }: HookSectionProps) {
   return (
-    <div className="space-y-3">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-[14px] font-medium leading-5">{title}</div>
-          <p className="mt-0.5 text-[13px] leading-5 text-muted-foreground">
-            {description}
-          </p>
-        </div>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => onChange((prev) => [...prev, { ...EMPTY_STEP }])}
-        >
-          <PlusIcon className="mr-1 h-3.5 w-3.5" />
-          Add step
-        </Button>
-      </div>
+    <section className="flex flex-col gap-4">
+      <SectionLabel
+        action={
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onChange((prev) => [...prev, { ...EMPTY_STEP }])}
+          >
+            <PlusIcon className="mr-1 h-3.5 w-3.5" />
+            Add step
+          </Button>
+        }
+      >
+        {title}
+      </SectionLabel>
+      <p className="-mt-1 text-[12px] leading-5 text-muted-foreground">
+        {description}
+      </p>
 
       {steps.length === 0 ? (
-        <p className="text-[13px] text-muted-foreground">No steps configured.</p>
+        <EmptyState
+          compact
+          icon={<BoltIcon />}
+          title="No steps yet"
+          description="Add a step to run a tool automatically when this hook fires — failures are reported but never block the run."
+        />
       ) : (
-        <ol className="space-y-3">
+        <ol className="divide-y divide-border">
           {steps.map((step, index) => {
             const schema = step.tool_name ? schemas[step.tool_name] : undefined;
             return (
-              <li key={index} className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[12px] text-muted-foreground">
+              <li key={index} className="py-4 first:pt-0 last:pb-0">
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-[12px] font-medium text-muted-foreground">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   <ToolPicker
@@ -343,6 +347,7 @@ function HookSection({
                   <Button
                     size="icon"
                     variant="ghost"
+                    className="h-8 w-8 text-muted-foreground"
                     disabled={index === 0}
                     onClick={() =>
                       onChange((prev) => {
@@ -361,6 +366,7 @@ function HookSection({
                   <Button
                     size="icon"
                     variant="ghost"
+                    className="h-8 w-8 text-muted-foreground"
                     disabled={index === steps.length - 1}
                     onClick={() =>
                       onChange((prev) => {
@@ -379,28 +385,35 @@ function HookSection({
                   <Button
                     size="icon"
                     variant="ghost"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
                     onClick={() =>
                       onChange((prev) => prev.filter((_, i) => i !== index))
                     }
                   >
-                    <TrashIcon className="h-3.5 w-3.5 text-destructive" />
+                    <TrashIcon className="h-3.5 w-3.5" />
                   </Button>
                 </div>
-                <ArgsEditor
-                  step={step}
-                  schema={schema}
-                  onChange={(next) =>
-                    onChange((prev) =>
-                      prev.map((s, i) => (i === index ? { ...s, ...next } : s)),
-                    )
-                  }
-                />
+                {step.tool_name ? (
+                  <div className="mt-3">
+                    <ArgsEditor
+                      step={step}
+                      schema={schema}
+                      onChange={(next) =>
+                        onChange((prev) =>
+                          prev.map((s, i) =>
+                            i === index ? { ...s, ...next } : s,
+                          ),
+                        )
+                      }
+                    />
+                  </div>
+                ) : null}
               </li>
             );
           })}
         </ol>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -517,7 +530,7 @@ function SchemaForm({
   }
 
   return (
-    <div className="rounded border border-border/50 bg-muted/20 p-3">
+    <div className="rounded border border-border bg-secondary p-3">
       <SchemaObjectFields
         properties={properties}
         required={required}
@@ -698,7 +711,7 @@ function SchemaField({
           ? (value as Record<string, unknown>)
           : {};
       return (
-        <div className="rounded border border-border/40 bg-background/40 p-2.5 pl-3">
+        <div className="rounded border border-border bg-card p-2.5 pl-3">
           <SchemaObjectFields
             properties={nestedProperties}
             required={nestedRequired}
@@ -799,7 +812,7 @@ function ToolPicker({
         align="start"
       >
         {showMcpTab ? (
-          <div className="flex border-b border-border/60">
+          <div className="flex border-b border-border">
             <PickerTabButton
               label="Catalog"
               active={tab === "catalog"}
@@ -1042,7 +1055,7 @@ function McpPicker({
           onChange={(e) => setToolName(e.target.value)}
         />
       </div>
-      <div className="rounded border border-border/50 bg-muted/30 px-2.5 py-1.5">
+      <div className="rounded border border-border bg-secondary px-2.5 py-1.5">
         <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
           Resolves to
         </div>

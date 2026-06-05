@@ -1,8 +1,9 @@
 import {
-    MagnifyingGlassIcon,
     UserGroupIcon,
+    ChevronLeftIcon,
+    ChevronRightIcon,
 } from "@heroicons/react/24/outline";
-import { Input } from "@/components/ui/input";
+import { useOutletContext } from "react-router";
 import {
     Select,
     SelectTrigger,
@@ -21,32 +22,32 @@ import {
 } from "@/components/ui/app-table";
 import { useDeploymentWaitlist } from "@/lib/api/hooks/use-deployment-users";
 import type { DeploymentWaitlistUser } from "@/types/user";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { useApproveWaitlistUser } from "@/lib/api/hooks/use-deployment-user-mutations";
 import { ConfirmationDialog } from "@/components/modals/confirmation-dialog";
 import { SkeletonTableRows } from "@/components/ui/app-skeleton";
-import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
+import type { UsersListContext } from "./layout";
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
 
 export default function WaitlistUsersPage() {
-    const [sortKey, setSortKey] = useState<string>("created_at");
-    const [sortOrder, setSortOrder] = useState<string>("desc");
+    const { search, sortKey, sortOrder } = useOutletContext<UsersListContext>();
     const [page, setPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_OPTIONS[0]);
-    const [search, setSearch] = useState("");
-    const debouncedSearch = useDebouncedValue(search, 500);
     const [waitlistUserToApprove, setWaitlistUserToApprove] =
         useState<DeploymentWaitlistUser | null>(null);
+
+    useEffect(() => {
+        setPage(1);
+    }, [search, sortKey, sortOrder]);
 
     const { data, isLoading } = useDeploymentWaitlist({
         offset: (page - 1) * itemsPerPage,
         limit: itemsPerPage,
         sort_key: sortKey,
         sort_order: sortOrder,
-        search: debouncedSearch,
+        search,
         enabled: true,
     });
 
@@ -55,18 +56,6 @@ export default function WaitlistUsersPage() {
     const hasNextPage = data?.has_more ?? false;
     const hasPrevPage = page > 1;
 
-    const handleSortChange = (value: string) => {
-        const [key, order] = value.split("-");
-        setSortKey(key);
-        setSortOrder(order);
-        setPage(1);
-    };
-
-    const handleItemsPerPageChange = (value: string) => {
-        setItemsPerPage(Number.parseInt(value, 10));
-        setPage(1);
-    };
-
     const handleApproveWaitlist = async (user: DeploymentWaitlistUser) => {
         await approveWaitlist.mutateAsync(user.id);
         setWaitlistUserToApprove(null);
@@ -74,45 +63,6 @@ export default function WaitlistUsersPage() {
 
     return (
         <div className="flex flex-col gap-6">
-            {/* Heading */}
-            <h1 className="text-xl font-normal tracking-tight">Waitlist</h1>
-
-            {/* Filters */}
-            <div className="flex items-center gap-2">
-                <div className="relative flex-1 max-w-sm">
-                    <MagnifyingGlassIcon className="absolute left-3 top-1/4 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search waitlist..."
-                        value={search}
-                        onChange={(e) => {
-                            setSearch(e.target.value);
-                            setPage(1);
-                        }}
-                        className="pl-9"
-                    />
-                </div>
-
-                <Select
-                    value={`${sortKey}-${sortOrder}`}
-                    onValueChange={handleSortChange}
-                >
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="created_at-desc">
-                            Newest first
-                        </SelectItem>
-                        <SelectItem value="created_at-asc">
-                            Oldest first
-                        </SelectItem>
-                        <SelectItem value="email-asc">Email (A-Z)</SelectItem>
-                        <SelectItem value="email-desc">Email (Z-A)</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-
-            {/* Table */}
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -175,14 +125,16 @@ export default function WaitlistUsersPage() {
                 </TableBody>
             </Table>
 
-            {/* Pagination */}
             {!isLoading && (data?.data.length ?? 0) > 0 && (
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <span>Show</span>
                         <Select
                             value={itemsPerPage.toString()}
-                            onValueChange={handleItemsPerPageChange}
+                            onValueChange={(value) => {
+                                setItemsPerPage(Number.parseInt(value, 10));
+                                setPage(1);
+                            }}
                         >
                             <SelectTrigger className="w-[70px]">
                                 <SelectValue />
@@ -222,7 +174,6 @@ export default function WaitlistUsersPage() {
                 </div>
             )}
 
-            {/* Confirmation Dialog */}
             {waitlistUserToApprove && (
                 <ConfirmationDialog
                     isOpen={!!waitlistUserToApprove}

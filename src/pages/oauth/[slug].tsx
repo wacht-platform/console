@@ -2,12 +2,16 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useTour } from "@/lib/tour";
 import { format } from "date-fns";
-import { Pencil } from "lucide-react";
+import { Pencil, Plus, RotateCw, Check, Copy, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Pill } from "@/components/ui/pill";
+import { Tag } from "@/components/ui/tag";
+import { SectionLabel } from "@/components/ui/section-label";
+import { TableEmptyRow } from "@/components/ui/table-empty-row";
 import { Textarea } from "@/components/ui/textarea";
 import { SkeletonTableRows } from "@/components/ui/app-skeleton";
 import {
@@ -47,6 +51,7 @@ import {
     useUpdateOAuthApp,
     useUpdateOAuthScope,
     useVerifyOAuthAppDomain,
+    type OAuthAppSigningKey,
 } from "@/lib/api/hooks/use-oauth-management";
 import { useCurrentDeployemnt } from "@/lib/api/hooks/use-deployment-settings";
 import { useProjects } from "@/lib/api/hooks/use-projects";
@@ -150,31 +155,29 @@ function PillInput({
     return (
         <div className="space-y-2">
             {values.length > 0 ? (
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2">
                     {values.map((value) => (
-                        <div
+                        <span
                             key={value}
-                            className="inline-flex h-9 items-center gap-1 rounded-full border bg-background px-3"
+                            className="inline-flex h-7 items-center gap-1.5 rounded-md bg-primary/10 pl-2.5 pr-1.5 font-mono text-[11px] font-medium text-primary"
                         >
-                            <p className="text-sm">{value}</p>
+                            {value}
                             {getMeta?.(value)?.archived ? (
-                                <span className="text-[10px] text-zinc-500">
+                                <span className="text-[10px] text-primary/60">
                                     archived
                                 </span>
                             ) : null}
                             {onEdit ? (
-                                <Button
+                                <button
                                     type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    className="ml-1 h-2 w-2 p-0 text-zinc-500 hover:text-zinc-700"
+                                    className="flex h-4 w-4 items-center justify-center rounded text-primary/60 hover:bg-primary/10 hover:text-primary"
                                     onClick={() => onEdit(value)}
                                     title="Edit scope details"
                                 >
-                                    <Pencil width={4} height={4} />
-                                </Button>
+                                    <Pencil className="h-3 w-3" />
+                                </button>
                             ) : null}
-                        </div>
+                        </span>
                     ))}
                 </div>
             ) : null}
@@ -565,7 +568,7 @@ function OAuthClientCreatedDialog({
                     <div className="space-y-2">
                         <div className="rounded border px-3 py-2">
                             <div className="flex items-center justify-between gap-2">
-                                <p className="text-xs text-zinc-500">
+                                <p className="text-xs text-muted-foreground">
                                     Client ID
                                 </p>
                                 <Button
@@ -587,9 +590,9 @@ function OAuthClientCreatedDialog({
                     </div>
 
                     {isSecretBased && (
-                        <div className="space-y-2 rounded border border-amber-200 bg-amber-50 px-3 py-2">
+                        <div className="space-y-2 rounded border border-amber-500/30 bg-amber-500/10 px-3 py-2">
                             <div className="flex items-center justify-between gap-2">
-                                <p className="text-xs text-amber-900">
+                                <p className="text-xs text-amber-700 dark:text-amber-300">
                                     Client Secret (shown once)
                                 </p>
                                 {clientSecret ? (
@@ -597,7 +600,7 @@ function OAuthClientCreatedDialog({
                                         type="button"
                                         variant="ghost"
                                         size="sm"
-                                        className="h-6 px-2 text-xs text-amber-900 hover:text-amber-900"
+                                        className="h-6 px-2 text-xs text-amber-700 hover:text-amber-700 dark:text-amber-300"
                                         onClick={() =>
                                             copy(clientSecret, "Client secret")
                                         }
@@ -606,7 +609,7 @@ function OAuthClientCreatedDialog({
                                     </Button>
                                 ) : null}
                             </div>
-                            <p className="font-mono text-xs break-all text-amber-900">
+                            <p className="font-mono text-xs break-all text-amber-700 dark:text-amber-300">
                                 {clientSecret ?? "Secret was not returned"}
                             </p>
                         </div>
@@ -628,7 +631,7 @@ function OAuthClientCreatedDialog({
                             </p>
                             {client.jwks_uri && (
                                 <div className="rounded border px-3 py-2">
-                                    <p className="text-xs text-zinc-500">
+                                    <p className="text-xs text-muted-foreground">
                                         Registered JWKS URI
                                     </p>
                                     <p className="font-mono text-xs break-all">
@@ -638,7 +641,7 @@ function OAuthClientCreatedDialog({
                             )}
                             {client.jwks && (
                                 <div className="rounded border px-3 py-2">
-                                    <p className="text-xs text-zinc-500">
+                                    <p className="text-xs text-muted-foreground">
                                         Registered JWKS
                                     </p>
                                     <p className="text-xs text-muted-foreground">
@@ -648,7 +651,7 @@ function OAuthClientCreatedDialog({
                             )}
                             {client.public_key_pem && (
                                 <div className="rounded border px-3 py-2">
-                                    <p className="text-xs text-zinc-500">
+                                    <p className="text-xs text-muted-foreground">
                                         Registered Public Key (PEM)
                                     </p>
                                     <p className="text-xs text-muted-foreground">
@@ -683,8 +686,8 @@ export default function OAuthAppDetailsPage() {
     const [activeTab, setActiveTab] = useState("clients");
     const [isCreateClientOpen, setIsCreateClientOpen] = useState(false);
     const [createdClient, setCreatedClient] = useState<OAuthClient>();
-    const [clientSearch, setClientSearch] = useState("");
     const [domainVerified, setDomainVerified] = useState<boolean | null>(null);
+    const [confirmRotateKey, setConfirmRotateKey] = useState(false);
 
     const { data: oauthApps = [], isLoading: oauthAppsLoading } =
         useOAuthApps();
@@ -694,22 +697,25 @@ export default function OAuthAppDetailsPage() {
     const verifyOAuthAppDomain = useVerifyOAuthAppDomain(oauthAppSlug);
     const { data: oauthClients = [], isLoading: oauthClientsLoading } =
         useOAuthClients(oauthAppSlug);
+    const { data: signingKeys = [], isLoading: signingKeysLoading } =
+        useOAuthAppSigningKeys(oauthAppSlug);
+    const rotateSigningKey = useRotateOAuthAppSigningKey(oauthAppSlug);
     const updateOAuthApp = useUpdateOAuthApp(oauthAppSlug);
+
+    const handleRotateKeyConfirmed = async () => {
+        try {
+            await rotateSigningKey.mutateAsync();
+        } catch {
+            // toast surfaced in hook
+        } finally {
+            setConfirmRotateKey(false);
+        }
+    };
 
     const oauthApp = useMemo(
         () => oauthApps.find((app) => app.slug === oauthAppSlug),
         [oauthApps, oauthAppSlug],
     );
-    const filteredOAuthClients = useMemo(() => {
-        const term = clientSearch.trim().toLowerCase();
-        if (!term) return oauthClients;
-        return oauthClients.filter((client) => {
-            return `${client.client_id} ${client.client_auth_method} ${client.grant_types.join(" ")}`
-                .toLowerCase()
-                .includes(term);
-        });
-    }, [oauthClients, clientSearch]);
-
     const [settingsName, setSettingsName] = useState("");
     const [settingsDescription, setSettingsDescription] = useState("");
     const [settingsScopes, setSettingsScopes] = useState<string[]>([]);
@@ -892,18 +898,18 @@ export default function OAuthAppDetailsPage() {
     const jwksEndpoint = `${issuerUrl}/.well-known/jwks.json`;
     const connectorMapTarget = "oauth.wacht.services";
     const runtimeEndpoints = [
-        { label: "Authorization", value: authorizationEndpoint },
-        { label: "Token", value: tokenEndpoint },
-        { label: "UserInfo", value: userinfoEndpoint },
-        { label: "End Session (Logout)", value: endSessionEndpoint },
-        { label: "Revocation", value: revocationEndpoint },
-        { label: "Introspection", value: introspectionEndpoint },
-        { label: "Dynamic Registration", value: registrationEndpoint },
+        { label: "Authorization", value: authorizationEndpoint, method: "GET" },
+        { label: "Token", value: tokenEndpoint, method: "POST" },
+        { label: "UserInfo", value: userinfoEndpoint, method: "GET" },
+        { label: "End Session", value: endSessionEndpoint, method: "GET" },
+        { label: "Revocation", value: revocationEndpoint, method: "POST" },
+        { label: "Introspection", value: introspectionEndpoint, method: "POST" },
+        { label: "Dynamic Registration", value: registrationEndpoint, method: "POST" },
     ];
     const discoveryEndpoints = [
-        { label: "OpenID Configuration", value: openidConfigurationEndpoint },
-        { label: "JWKS", value: jwksEndpoint },
-        { label: "OAuth Metadata", value: metadataEndpoint },
+        { label: "OpenID Configuration", value: openidConfigurationEndpoint, method: "GET" },
+        { label: "JWKS", value: jwksEndpoint, method: "GET" },
+        { label: "OAuth Metadata", value: metadataEndpoint, method: "GET" },
     ];
     const isProductionDeployment = selectedDeployment?.mode === "production";
 
@@ -931,28 +937,97 @@ export default function OAuthAppDetailsPage() {
         <>
             <div className="space-y-6">
                 <section>
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10 border">
-                                <AvatarImage src={oauthApp.logo_url} />
-                                <AvatarFallback>
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div className="flex items-start gap-4">
+                            <Avatar className="h-14 w-14 overflow-hidden rounded-xl after:rounded-xl">
+                                <AvatarImage
+                                    src={oauthApp.logo_url}
+                                    className="rounded-xl"
+                                />
+                                <AvatarFallback className="rounded-xl bg-primary/10 text-primary">
                                     {oauthApp.name.slice(0, 1).toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
-                            <div>
-                                <h1 className="text-xl font-normal tracking-tight">
+                            <div className="min-w-0">
+                                <h1 className="text-xl font-medium tracking-tight text-foreground">
                                     {oauthApp.name}
                                 </h1>
-                                <p className="mt-1 text-xs text-zinc-500">
-                                    {oauthApp.slug}
-                                </p>
+                                <div className="mt-2 flex flex-wrap items-center gap-2.5">
+                                    <Pill tone={oauthApp.is_active ? "ok" : "mute"}>
+                                        {oauthApp.is_active ? "active" : "inactive"}
+                                    </Pill>
+                                    <span className="font-mono text-[11px] text-muted-foreground">
+                                        {oauthClients.length} client
+                                        {oauthClients.length === 1 ? "" : "s"} ·{" "}
+                                        {signingKeys.length} signing key
+                                        {signingKeys.length === 1 ? "" : "s"}
+                                        {oauthApp.created_at
+                                            ? ` · created ${format(new Date(oauthApp.created_at), "MMM d, yyyy")}`
+                                            : ""}
+                                    </span>
+                                </div>
                             </div>
+                        </div>
+                        <div className="flex shrink-0 flex-wrap items-center gap-2">
+                            {activeTab === "clients" ? (
+                                <Button onClick={() => setIsCreateClientOpen(true)}>
+                                    <Plus className="h-4 w-4" />
+                                    Create OAuth client
+                                </Button>
+                            ) : null}
+                            {activeTab === "runtime" ? (
+                                <>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() =>
+                                            copyRuntimeValue(
+                                                "OAuth Domain",
+                                                oauthApp.fqdn,
+                                            )
+                                        }
+                                    >
+                                        <Copy className="h-4 w-4" />
+                                        Copy domain
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() =>
+                                            copyRuntimeValue("Issuer URL", issuerUrl)
+                                        }
+                                    >
+                                        <Copy className="h-4 w-4" />
+                                        Copy issuer
+                                    </Button>
+                                </>
+                            ) : null}
+                            {activeTab === "signing-keys" ? (
+                                <Button
+                                    onClick={() => setConfirmRotateKey(true)}
+                                    disabled={rotateSigningKey.isPending}
+                                >
+                                    <RotateCw className="h-4 w-4" />
+                                    {rotateSigningKey.isPending
+                                        ? "Rotating…"
+                                        : "Rotate key"}
+                                </Button>
+                            ) : null}
+                            {activeTab === "settings" ? (
+                                <Button
+                                    onClick={handleSaveSettings}
+                                    disabled={updateOAuthApp.isPending}
+                                >
+                                    <Check className="h-4 w-4" />
+                                    {updateOAuthApp.isPending
+                                        ? "Saving…"
+                                        : "Save settings"}
+                                </Button>
+                            ) : null}
                         </div>
                     </div>
                 </section>
 
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList>
+                    <TabsList variant="pill">
                         <TabsTrigger
                             value="clients"
                             data-tour-id="oauth-app-tab-clients"
@@ -969,93 +1044,100 @@ export default function OAuthAppDetailsPage() {
                             value="signing-keys"
                             data-tour-id="oauth-app-tab-signing-keys"
                         >
-                            Signing Keys
+                            Signing keys
                         </TabsTrigger>
                         <TabsTrigger
                             value="settings"
                             data-tour-id="oauth-app-tab-settings"
                         >
-                            App Settings
+                            App settings
                         </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="clients" className="mt-4">
-                        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                            <h2 className="text-base font-normal">
-                                OAuth Clients
+                        <div className="mb-3 flex items-baseline justify-between gap-3">
+                            <h2 className="text-base font-medium text-foreground">
+                                OAuth clients
                             </h2>
-                            <Button onClick={() => setIsCreateClientOpen(true)}>
-                                Create OAuth Client
-                            </Button>
-                        </div>
-                        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                            <Input
-                                className="max-w-sm"
-                                placeholder="Search client ID, auth method, grant type"
-                                value={clientSearch}
-                                onChange={(e) => setClientSearch(e.target.value)}
-                            />
-                            <p className="text-xs text-zinc-500">
+                            <span className="font-mono text-[11px] text-muted-foreground">
                                 {oauthClients.length} total
-                            </p>
+                            </span>
                         </div>
 
                         <Table>
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Client ID</TableHead>
-                                    <TableHead>Auth Method</TableHead>
-                                    <TableHead>Grant Types</TableHead>
+                                    <TableHead>Auth method</TableHead>
+                                    <TableHead>Grant types</TableHead>
                                     <TableHead>Created</TableHead>
+                                    <TableHead className="w-10" />
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {oauthClientsLoading ? (
                                     <SkeletonTableRows
-                                        rows={8}
-                                        columns={4}
+                                        rows={6}
+                                        columns={5}
                                         withAvatar={false}
                                     />
-                                ) : filteredOAuthClients.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell
-                                            colSpan={4}
-                                            className="h-20 text-center text-muted-foreground"
-                                        >
-                                            {oauthClients.length === 0
-                                                ? "No OAuth clients yet"
-                                                : "No OAuth clients match your search"}
-                                        </TableCell>
-                                    </TableRow>
+                                ) : oauthClients.length === 0 ? (
+                                    <TableEmptyRow
+                                        colSpan={5}
+                                        title="No OAuth clients yet"
+                                        description="Create a client to issue tokens against this app."
+                                        action={
+                                            <Button
+                                                size="sm"
+                                                onClick={() =>
+                                                    setIsCreateClientOpen(true)
+                                                }
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                                Create OAuth client
+                                            </Button>
+                                        }
+                                    />
                                 ) : (
-                                    filteredOAuthClients.map((client) => (
+                                    oauthClients.map((client) => (
                                         <TableRow
                                             key={client.id}
                                             className="cursor-pointer"
                                             onClick={() =>
-                                                navigate(
-                                                    `clients/${client.id}`,
-                                                )
+                                                navigate(`clients/${client.id}`)
                                             }
                                         >
-                                            <TableCell className="font-mono text-xs">
+                                            <TableCell className="font-mono text-xs text-foreground">
                                                 {client.client_id}
                                             </TableCell>
-                                            <TableCell className="text-muted-foreground">
-                                                {formatClientAuthMethodLabel(
-                                                    client.client_auth_method,
-                                                )}
+                                            <TableCell>
+                                                <Pill tone="info">
+                                                    {formatClientAuthMethodLabel(
+                                                        client.client_auth_method,
+                                                    )}
+                                                </Pill>
                                             </TableCell>
-                                            <TableCell className="text-xs text-muted-foreground">
-                                                {client.grant_types
-                                                    .map(formatGrantTypeLabel)
-                                                    .join(", ")}
+                                            <TableCell>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {client.grant_types.map(
+                                                        (grant) => (
+                                                            <Tag key={grant}>
+                                                                {formatGrantTypeLabel(
+                                                                    grant,
+                                                                )}
+                                                            </Tag>
+                                                        ),
+                                                    )}
+                                                </div>
                                             </TableCell>
-                                            <TableCell className="text-muted-foreground">
+                                            <TableCell className="font-mono text-xs text-muted-foreground">
                                                 {format(
                                                     new Date(client.created_at),
                                                     "MMM d, yyyy",
                                                 )}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -1065,101 +1147,80 @@ export default function OAuthAppDetailsPage() {
                     </TabsContent>
 
                     <TabsContent value="runtime" className="mt-4">
-                        <div className="space-y-6">
-                            <section className="space-y-4">
-                                <div className="flex flex-wrap items-center justify-between gap-3">
-                                    <div>
-                                        <p className="text-xs uppercase tracking-wide text-zinc-500">
-                                            Runtime Profile
-                                        </p>
-                                        <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
-                                            OAuth Runtime
-                                        </h3>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() =>
-                                                copyRuntimeValue(
-                                                    "OAuth Domain",
-                                                    oauthApp.fqdn,
-                                                )
-                                            }
+                        <div className="space-y-7">
+                            <section className="space-y-3">
+                                <SectionLabel>Runtime profile</SectionLabel>
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    {[
+                                        {
+                                            label: "Runtime domain (FQDN)",
+                                            value: oauthApp.fqdn,
+                                        },
+                                        { label: "Issuer", value: issuerUrl },
+                                    ].map((block) => (
+                                        <div
+                                            key={block.label}
+                                            className="rounded-lg border border-border bg-card p-4"
                                         >
-                                            Copy Domain
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() =>
-                                                copyRuntimeValue(
-                                                    "Issuer URL",
-                                                    issuerUrl,
-                                                )
-                                            }
-                                        >
-                                            Copy Issuer
-                                        </Button>
-                                    </div>
-                                </div>
-                                <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-                                    <div className="rounded-lg border bg-background p-3">
-                                        <p className="text-xs text-zinc-500">
-                                            Runtime Domain (FQDN)
-                                        </p>
-                                        <p className="mt-1 font-mono text-xs break-all text-zinc-800 dark:text-zinc-100">
-                                            {oauthApp.fqdn}
-                                        </p>
-                                    </div>
-                                    <div className="rounded-lg border bg-background p-3">
-                                        <p className="text-xs text-zinc-500">
-                                            Issuer
-                                        </p>
-                                        <p className="mt-1 font-mono text-xs break-all text-zinc-800 dark:text-zinc-100">
-                                            {issuerUrl}
-                                        </p>
-                                    </div>
+                                            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                                                {block.label}
+                                            </p>
+                                            <div className="mt-2 flex items-center gap-2">
+                                                <code className="min-w-0 flex-1 truncate font-mono text-xs text-foreground">
+                                                    {block.value}
+                                                </code>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-7 w-7 shrink-0 p-0 text-muted-foreground hover:text-foreground"
+                                                    onClick={() =>
+                                                        copyRuntimeValue(
+                                                            block.label,
+                                                            block.value,
+                                                        )
+                                                    }
+                                                >
+                                                    <Copy className="h-3.5 w-3.5" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </section>
 
                             {isProductionDeployment ? (
-                                <section className="space-y-4">
-                                    <div className="flex flex-wrap items-center justify-between gap-3">
-                                        <div>
-                                            <p className="text-xs uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
-                                                Domain Verification
-                                            </p>
-                                            <p className="text-sm text-emerald-900 dark:text-emerald-100">
-                                                Map your connector domain with a
-                                                CNAME record and verify DNS.
-                                            </p>
-                                        </div>
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            onClick={handleCheckDomain}
-                                            disabled={
-                                                verifyOAuthAppDomain.isPending
-                                            }
-                                        >
-                                            {verifyOAuthAppDomain.isPending
-                                                ? "Checking..."
-                                                : "Check Domain"}
-                                        </Button>
-                                    </div>
-                                    <div className="mt-4 rounded-lg border bg-background p-3">
+                                <section className="space-y-3">
+                                    <SectionLabel
+                                        action={
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="ml-3"
+                                                onClick={handleCheckDomain}
+                                                disabled={
+                                                    verifyOAuthAppDomain.isPending
+                                                }
+                                            >
+                                                {verifyOAuthAppDomain.isPending
+                                                    ? "Checking…"
+                                                    : "Check domain"}
+                                            </Button>
+                                        }
+                                    >
+                                        Domain verification
+                                    </SectionLabel>
+                                    <div className="rounded-lg border border-border bg-card p-4">
                                         <div className="flex items-center justify-between gap-3">
-                                            <p className="text-xs text-zinc-500">
-                                                Map Connector Domain To
+                                            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                                                Map connector domain to
                                             </p>
                                             <Button
                                                 type="button"
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-6 px-2 text-xs"
+                                                className="h-7 px-2.5 text-[11px] text-muted-foreground hover:text-foreground"
                                                 onClick={() =>
                                                     copyRuntimeValue(
                                                         "Connector Map Target",
@@ -1167,199 +1228,176 @@ export default function OAuthAppDetailsPage() {
                                                     )
                                                 }
                                             >
+                                                <Copy className="h-3 w-3" />
                                                 Copy
                                             </Button>
                                         </div>
-                                        <p className="mt-1 font-mono text-xs break-all text-zinc-800 dark:text-zinc-100">
+                                        <code className="mt-2 block break-all font-mono text-xs text-foreground">
                                             {connectorMapTarget}
-                                        </p>
+                                        </code>
+                                        {domainVerified !== null ? (
+                                            <p
+                                                className={`mt-3 text-xs ${domainVerified ? "text-emerald-700 dark:text-emerald-300" : "text-amber-700 dark:text-amber-300"}`}
+                                            >
+                                                {domainVerified
+                                                    ? "Domain is verified."
+                                                    : "Domain is not verified yet. Point your CNAME to the target above."}
+                                            </p>
+                                        ) : null}
                                     </div>
-                                    {domainVerified !== null ? (
-                                        <p
-                                            className={`mt-3 text-xs ${domainVerified ? "text-emerald-700 dark:text-emerald-300" : "text-amber-700 dark:text-amber-300"}`}
-                                        >
-                                            {domainVerified
-                                                ? "Domain is verified."
-                                                : "Domain is not verified yet."}
-                                        </p>
-                                    ) : null}
                                 </section>
                             ) : null}
 
-                            <section>
-                                <p className="text-xs uppercase tracking-wide text-zinc-500">
-                                    OAuth &amp; OIDC Endpoints
-                                </p>
-                                <div className="mt-3 space-y-2">
-                                    {runtimeEndpoints.map((item) => (
-                                        <div
-                                            key={item.label}
-                                            className="flex items-start justify-between gap-3 rounded-lg border bg-zinc-50/60 p-3 dark:bg-zinc-900/40"
-                                        >
-                                            <div className="min-w-0">
-                                                <p className="text-xs text-zinc-500">
-                                                    {item.label}
-                                                </p>
-                                                <p className="mt-1 font-mono text-xs break-all text-zinc-800 dark:text-zinc-100">
-                                                    {item.value}
-                                                </p>
-                                            </div>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-6 px-2 text-xs"
-                                                onClick={() =>
-                                                    copyRuntimeValue(
-                                                        item.label,
-                                                        item.value,
-                                                    )
-                                                }
+                            {[
+                                {
+                                    title: "OAuth & OIDC",
+                                    rows: runtimeEndpoints,
+                                },
+                                { title: "Discovery", rows: discoveryEndpoints },
+                            ].map((group) => (
+                                <section key={group.title} className="space-y-3">
+                                    <SectionLabel>{group.title}</SectionLabel>
+                                    <div className="overflow-hidden rounded-lg border border-border bg-card">
+                                        {group.rows.map((item) => (
+                                            <div
+                                                key={item.label}
+                                                className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1.5 border-b border-border px-4 py-3 last:border-0 sm:grid-cols-[170px_64px_1fr_auto] sm:gap-y-0"
                                             >
-                                                Copy
-                                            </Button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-
-                            <section>
-                                <p className="text-xs uppercase tracking-wide text-zinc-500">
-                                    Discovery
-                                </p>
-                                <div className="mt-3 space-y-2">
-                                    {discoveryEndpoints.map((item) => (
-                                        <div
-                                            key={item.label}
-                                            className="flex items-start justify-between gap-3 rounded-lg border bg-zinc-50/60 p-3 dark:bg-zinc-900/40"
-                                        >
-                                            <div className="min-w-0">
-                                                <p className="text-xs text-zinc-500">
+                                                <span className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
                                                     {item.label}
-                                                </p>
-                                                <p className="mt-1 font-mono text-xs break-all text-zinc-800 dark:text-zinc-100">
+                                                </span>
+                                                <Tag className="order-last sm:order-none">
+                                                    {item.method}
+                                                </Tag>
+                                                <code className="col-span-2 min-w-0 truncate font-mono text-xs text-secondary-foreground sm:col-span-1">
                                                     {item.value}
-                                                </p>
+                                                </code>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="hidden h-7 px-2.5 text-[11px] sm:inline-flex"
+                                                    onClick={() =>
+                                                        copyRuntimeValue(
+                                                            item.label,
+                                                            item.value,
+                                                        )
+                                                    }
+                                                >
+                                                    <Copy className="h-3 w-3" />
+                                                    Copy
+                                                </Button>
                                             </div>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-6 px-2 text-xs"
-                                                onClick={() =>
-                                                    copyRuntimeValue(
-                                                        item.label,
-                                                        item.value,
-                                                    )
-                                                }
-                                            >
-                                                Copy
-                                            </Button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
+                                        ))}
+                                    </div>
+                                </section>
+                            ))}
                         </div>
                     </TabsContent>
 
                     <TabsContent value="signing-keys" className="mt-4">
-                        <SigningKeysSection oauthAppSlug={oauthAppSlug} />
+                        <SigningKeysSection
+                            oauthAppSlug={oauthAppSlug}
+                            keys={signingKeys}
+                            isLoading={signingKeysLoading}
+                        />
                     </TabsContent>
 
                     <TabsContent value="settings" className="mt-4">
-                        <div className="mb-4 flex items-center justify-between gap-3">
-                            <h2 className="text-base font-medium">
-                                OAuth App Settings
-                            </h2>
-                            <Button
-                                onClick={handleSaveSettings}
-                                disabled={updateOAuthApp.isPending}
-                            >
-                                {updateOAuthApp.isPending
-                                    ? "Saving..."
-                                    : "Save Settings"}
-                            </Button>
-                        </div>
-                        <div className="grid grid-cols-1 gap-6">
-                            <div>
-                                <p className="mb-2 text-sm text-muted-foreground">
-                                    App Name
-                                </p>
-                                <Input
-                                    value={settingsName}
-                                    onChange={(e) =>
-                                        setSettingsName(e.target.value)
-                                    }
-                                />
-                            </div>
-
-                            <div>
-                                <p className="mb-2 text-sm text-muted-foreground">
-                                    Description
-                                </p>
-                                <Textarea
-                                    value={settingsDescription}
-                                    onChange={(e) =>
-                                        setSettingsDescription(e.target.value)
-                                    }
-                                    rows={3}
-                                />
-                            </div>
-
-                            <div>
-                                <p className="mb-2 text-sm text-muted-foreground">
-                                    Supported Scopes
-                                </p>
-                                <PillInput
-                                    values={settingsScopes}
-                                    onChange={setSettingsScopes}
-                                    placeholder="Type scope and press Enter"
-                                    onEdit={openScopeEditor}
-                                    getMeta={(scope) => {
-                                        const definition =
-                                            settingsScopeDefinitions.find(
-                                                (d) => d.scope === scope,
-                                            );
-                                        return {
-                                            archived: !!definition?.archived,
-                                        };
-                                    }}
-                                />
-                                <p className="mt-1 text-xs text-zinc-500">
-                                    Scopes are append-only. Added scopes cannot
-                                    be removed.
-                                </p>
-                            </div>
-
-                            <div className="flex items-center justify-between">
+                        <h2 className="mb-3 text-base font-medium text-foreground">
+                            OAuth app settings
+                        </h2>
+                        <div className="overflow-hidden rounded-lg border border-border bg-card">
+                            <div className="space-y-5 p-6">
                                 <div>
-                                    <p className="text-sm">
-                                        Allow Dynamic Client Registration
-                                    </p>
-                                    <p className="text-xs text-zinc-500">
-                                        Allow clients to self-register via OAuth
-                                        registration APIs.
+                                    <label className="mb-1.5 block text-sm font-medium text-foreground">
+                                        App name
+                                    </label>
+                                    <Input
+                                        value={settingsName}
+                                        onChange={(e) =>
+                                            setSettingsName(e.target.value)
+                                        }
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="mb-1.5 block text-sm font-medium text-foreground">
+                                        Description
+                                    </label>
+                                    <Textarea
+                                        value={settingsDescription}
+                                        onChange={(e) =>
+                                            setSettingsDescription(
+                                                e.target.value,
+                                            )
+                                        }
+                                        rows={3}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="mb-1.5 block text-sm font-medium text-foreground">
+                                        Supported scopes
+                                    </label>
+                                    <PillInput
+                                        values={settingsScopes}
+                                        onChange={setSettingsScopes}
+                                        placeholder="Type scope and press Enter"
+                                        onEdit={openScopeEditor}
+                                        getMeta={(scope) => {
+                                            const definition =
+                                                settingsScopeDefinitions.find(
+                                                    (d) => d.scope === scope,
+                                                );
+                                            return {
+                                                archived:
+                                                    !!definition?.archived,
+                                            };
+                                        }}
+                                    />
+                                    <p className="mt-1.5 text-xs text-muted-foreground">
+                                        Scopes are append-only. Added scopes
+                                        cannot be removed.
                                     </p>
                                 </div>
-                                <Switch
-                                    checked={settingsAllowDynamicRegistration}
-                                    onCheckedChange={
-                                        setSettingsAllowDynamicRegistration
-                                    }
-                                />
                             </div>
 
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm">App Active</p>
-                                    <p className="text-xs text-zinc-500">
-                                        Disable to block app usage.
-                                    </p>
+                            <div className="divide-y divide-border border-t border-border">
+                                <div className="flex items-start justify-between gap-4 px-6 py-4">
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-medium text-foreground">
+                                            Allow dynamic client registration
+                                        </p>
+                                        <p className="mt-0.5 text-xs text-muted-foreground">
+                                            Allow clients to self-register via
+                                            OAuth registration APIs.
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        checked={
+                                            settingsAllowDynamicRegistration
+                                        }
+                                        onCheckedChange={
+                                            setSettingsAllowDynamicRegistration
+                                        }
+                                    />
                                 </div>
-                                <Switch
-                                    checked={settingsActive}
-                                    onCheckedChange={setSettingsActive}
-                                />
+
+                                <div className="flex items-start justify-between gap-4 px-6 py-4">
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-medium text-foreground">
+                                            App active
+                                        </p>
+                                        <p className="mt-0.5 text-xs text-muted-foreground">
+                                            Disable to block app usage.
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        checked={settingsActive}
+                                        onCheckedChange={setSettingsActive}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </TabsContent>
@@ -1382,6 +1420,48 @@ export default function OAuthAppDetailsPage() {
             />
 
             <Dialog
+                open={confirmRotateKey}
+                onOpenChange={(open) => {
+                    if (!open && !rotateSigningKey.isPending)
+                        setConfirmRotateKey(false);
+                }}
+            >
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Rotate signing key?</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3 text-sm text-muted-foreground">
+                        <p>
+                            The current active key is marked{" "}
+                            <code className="rounded bg-secondary px-1 py-0.5 font-mono text-xs text-foreground">
+                                retired
+                            </code>{" "}
+                            (still published in JWKS so in-flight id_tokens keep
+                            verifying), and a fresh RSA key signs all future
+                            id_tokens.
+                        </p>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setConfirmRotateKey(false)}
+                            disabled={rotateSigningKey.isPending}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleRotateKeyConfirmed}
+                            disabled={rotateSigningKey.isPending}
+                        >
+                            {rotateSigningKey.isPending
+                                ? "Rotating…"
+                                : "Rotate key"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
                 open={!!editingScope}
                 onOpenChange={(open) => !open && setEditingScope(null)}
             >
@@ -1392,15 +1472,15 @@ export default function OAuthAppDetailsPage() {
                     {editingScope ? (
                         <div className="space-y-3 py-1">
                             <div>
-                                <p className="mb-2 text-xs text-zinc-500">
+                                <p className="mb-2 text-xs text-muted-foreground">
                                     Scope key
                                 </p>
-                                <div className="rounded-md border bg-zinc-50 px-3 py-2 text-sm dark:bg-zinc-900">
+                                <div className="rounded-md border bg-secondary px-3 py-2 text-sm dark:bg-secondary">
                                     {editingScope.scope}
                                 </div>
                             </div>
                             <div>
-                                <p className="mb-2 text-xs text-zinc-500">
+                                <p className="mb-2 text-xs text-muted-foreground">
                                     Display name
                                 </p>
                                 <Input
@@ -1414,7 +1494,7 @@ export default function OAuthAppDetailsPage() {
                                 />
                             </div>
                             <div>
-                                <p className="mb-2 text-xs text-zinc-500">
+                                <p className="mb-2 text-xs text-muted-foreground">
                                     Description
                                 </p>
                                 <Textarea
@@ -1442,7 +1522,7 @@ export default function OAuthAppDetailsPage() {
                             </div>
 
                             <div>
-                                <p className="mb-2 text-xs text-zinc-500">
+                                <p className="mb-2 text-xs text-muted-foreground">
                                     Category
                                 </p>
                                 <Select
@@ -1488,7 +1568,7 @@ export default function OAuthAppDetailsPage() {
 
                             {editingScope.category === "organization" ? (
                                 <div>
-                                    <p className="mb-2 text-xs text-zinc-500">
+                                    <p className="mb-2 text-xs text-muted-foreground">
                                         Required Organization Permission
                                     </p>
                                     <Select
@@ -1531,7 +1611,7 @@ export default function OAuthAppDetailsPage() {
 
                             {editingScope.category === "workspace" ? (
                                 <div>
-                                    <p className="mb-2 text-xs text-zinc-500">
+                                    <p className="mb-2 text-xs text-muted-foreground">
                                         Attach Workspace Permission
                                     </p>
                                     <Select
@@ -1596,17 +1676,21 @@ export default function OAuthAppDetailsPage() {
     );
 }
 
-function SigningKeysSection({ oauthAppSlug }: { oauthAppSlug: string }) {
-    const { data: keys, isLoading } = useOAuthAppSigningKeys(oauthAppSlug);
-    const rotate = useRotateOAuthAppSigningKey(oauthAppSlug);
+function SigningKeysSection({
+    oauthAppSlug,
+    keys,
+    isLoading,
+}: {
+    oauthAppSlug: string;
+    keys: OAuthAppSigningKey[];
+    isLoading: boolean;
+}) {
     const compromise = useCompromiseOAuthAppSigningKey(oauthAppSlug);
     const [confirmCompromise, setConfirmCompromise] = useState<string | null>(
         null,
     );
-    const [confirmRotate, setConfirmRotate] = useState(false);
 
     const sorted = useMemo(() => {
-        if (!keys) return [];
         const order = { active: 0, retired: 1, compromised: 2 } as const;
         return [...keys].sort(
             (a, b) =>
@@ -1627,16 +1711,6 @@ function SigningKeysSection({ oauthAppSlug }: { oauthAppSlug: string }) {
         URL.revokeObjectURL(url);
     };
 
-    const handleRotateConfirmed = async () => {
-        try {
-            await rotate.mutateAsync();
-        } catch {
-            // onError already surfaced a toast
-        } finally {
-            setConfirmRotate(false);
-        }
-    };
-
     const handleCompromiseConfirmed = async () => {
         if (!confirmCompromise) return;
         try {
@@ -1650,30 +1724,22 @@ function SigningKeysSection({ oauthAppSlug }: { oauthAppSlug: string }) {
 
     return (
         <div className="space-y-6">
-            <section className="space-y-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                        <p className="text-xs uppercase tracking-wide text-zinc-500">
-                            OIDC
-                        </p>
-                        <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
-                            Signing Keys
-                        </h3>
-                    </div>
-                    <Button
-                        onClick={() => setConfirmRotate(true)}
-                        disabled={rotate.isPending}
-                    >
-                        {rotate.isPending ? "Rotating..." : "Rotate Key"}
-                    </Button>
+            <section className="space-y-3">
+                <div>
+                    <p className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                        OIDC
+                    </p>
+                    <h2 className="mt-1 text-base font-medium text-foreground">
+                        Signing keys
+                    </h2>
                 </div>
 
                 <Table>
                     <TableHeader>
                         <TableRow>
                             <TableHead>Key ID</TableHead>
-                            <TableHead>Algorithm</TableHead>
-                            <TableHead>Status</TableHead>
+                            <TableHead className="w-28">Algorithm</TableHead>
+                            <TableHead className="w-28">Status</TableHead>
                             <TableHead className="text-right">
                                 Actions
                             </TableHead>
@@ -1687,33 +1753,39 @@ function SigningKeysSection({ oauthAppSlug }: { oauthAppSlug: string }) {
                                 withAvatar={false}
                             />
                         ) : sorted.length === 0 ? (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={4}
-                                    className="h-20 text-center text-muted-foreground"
-                                >
-                                    No signing keys yet — click "Rotate Key" to
-                                    generate the first one.
-                                </TableCell>
-                            </TableRow>
+                            <TableEmptyRow
+                                colSpan={4}
+                                title="No signing keys yet"
+                                description={`Use "Rotate key" above to generate the first signing key.`}
+                            />
                         ) : (
                             sorted.map((key) => (
                                 <TableRow key={key.kid}>
-                                    <TableCell className="font-mono text-xs">
+                                    <TableCell className="font-mono text-xs text-foreground">
                                         {key.kid}
                                     </TableCell>
-                                    <TableCell className="text-muted-foreground">
-                                        {key.algorithm}
+                                    <TableCell>
+                                        <Tag>{key.algorithm}</Tag>
                                     </TableCell>
                                     <TableCell>
-                                        <StatusPill status={key.status} />
+                                        <Pill
+                                            tone={
+                                                key.status === "active"
+                                                    ? "ok"
+                                                    : key.status === "retired"
+                                                      ? "warn"
+                                                      : "err"
+                                            }
+                                        >
+                                            {key.status}
+                                        </Pill>
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             <Button
-                                                variant="ghost"
+                                                variant="outline"
                                                 size="sm"
-                                                className="h-7 px-2 text-xs"
+                                                className="h-7 px-2.5 text-[11px]"
                                                 onClick={() =>
                                                     downloadPem(
                                                         key.kid,
@@ -1725,16 +1797,16 @@ function SigningKeysSection({ oauthAppSlug }: { oauthAppSlug: string }) {
                                             </Button>
                                             {key.status !== "compromised" && (
                                                 <Button
-                                                    variant="ghost"
+                                                    variant="outline"
                                                     size="sm"
-                                                    className="h-7 px-2 text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                                                    className="h-7 px-2.5 text-[11px] text-destructive hover:text-destructive"
                                                     onClick={() =>
                                                         setConfirmCompromise(
                                                             key.kid,
                                                         )
                                                     }
                                                 >
-                                                    Mark Compromised
+                                                    Mark compromised
                                                 </Button>
                                             )}
                                         </div>
@@ -1745,43 +1817,6 @@ function SigningKeysSection({ oauthAppSlug }: { oauthAppSlug: string }) {
                     </TableBody>
                 </Table>
             </section>
-
-            <Dialog
-                open={confirmRotate}
-                onOpenChange={(open) => {
-                    if (!open && !rotate.isPending) setConfirmRotate(false);
-                }}
-            >
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Rotate signing key?</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-3 text-sm">
-                        <p>
-                            The current active key will be marked{" "}
-                            <code className="text-xs">retired</code> (still
-                            published in JWKS so in-flight id_tokens keep
-                            verifying), and a fresh RSA key will sign all future
-                            id_tokens.
-                        </p>
-                    </div>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setConfirmRotate(false)}
-                            disabled={rotate.isPending}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            onClick={handleRotateConfirmed}
-                            disabled={rotate.isPending}
-                        >
-                            {rotate.isPending ? "Rotating..." : "Rotate Key"}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
 
             <Dialog
                 open={!!confirmCompromise}
@@ -1826,21 +1861,5 @@ function SigningKeysSection({ oauthAppSlug }: { oauthAppSlug: string }) {
                 </DialogContent>
             </Dialog>
         </div>
-    );
-}
-
-function StatusPill({ status }: { status: string }) {
-    const cls =
-        status === "active"
-            ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-emerald-500/30"
-            : status === "retired"
-              ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 ring-amber-500/30"
-              : "bg-rose-500/15 text-rose-700 dark:text-rose-400 ring-rose-500/30";
-    return (
-        <span
-            className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1 ring-inset ${cls}`}
-        >
-            {status}
-        </span>
     );
 }

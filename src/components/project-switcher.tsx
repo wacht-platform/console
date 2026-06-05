@@ -42,24 +42,24 @@ export function ProjectSwitcher({
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 group">
+                <button className="flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-secondary outline-none focus-visible:ring-2 focus-visible:ring-ring group">
                     {isLoading ? (
                         <>
-                            <div className="h-5 w-5 rounded-md bg-zinc-200 dark:bg-zinc-800 animate-pulse" />
-                            <div className="h-4 w-24 rounded bg-zinc-200 dark:bg-zinc-800 animate-pulse" />
+                            <div className="h-5 w-5 rounded-md bg-secondary animate-pulse" />
+                            <div className="h-4 w-24 rounded bg-secondary animate-pulse" />
                         </>
                     ) : selectedProject ? (
                         <>
-                            <span className="font-normal text-zinc-900 dark:text-zinc-100 max-w-37.5 truncate">
+                            <span className="font-normal text-foreground max-w-37.5 truncate">
                                 {selectedProject.name}
                             </span>
                         </>
                     ) : (
                         <>
-                            <div className="flex h-5 w-5 items-center justify-center rounded-md border border-dashed border-zinc-300 dark:border-zinc-700">
-                                <PlusIcon className="h-3 w-3 text-zinc-500" />
+                            <div className="flex h-5 w-5 items-center justify-center rounded-md border border-dashed border-border dark:border-border">
+                                <PlusIcon className="h-3 w-3 text-muted-foreground" />
                             </div>
-                            <span className="font-normal text-zinc-900 dark:text-zinc-100 max-w-37.5 truncate">
+                            <span className="font-normal text-foreground max-w-37.5 truncate">
                                 Select Project
                             </span>
                         </>

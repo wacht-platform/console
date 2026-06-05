@@ -1,7 +1,5 @@
-import { Heading, Subheading } from "@/components/ui/heading";
-import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
-import { Divider } from "@/components/ui/divider";
+import { SectionLabel } from "@/components/ui/section-label";
 import { Input } from "@/components/ui/input";
 import { Field, FieldGroup } from "@/components/ui/fieldset";
 import {
@@ -182,134 +180,135 @@ export default function SessionsPage() {
   }
 
   return (
-    <div>
-      <div className="mb-6">
-        <Heading>Sessions</Heading>
-      </div>
+    <div className="flex flex-col gap-10">
+      <section className="flex flex-col gap-4">
+        <SectionLabel>Sessions</SectionLabel>
+        <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+          <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 sm:max-w-md">
+              <div className="text-sm font-medium text-foreground">
+                Session validity
+              </div>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                The maximum lifetime of a session, regardless of activity.
+                After that, the user must sign in again.
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Input
+                aria-label="Duration"
+                name="sessionValidityValue"
+                className="w-20 text-right"
+                type="number"
+                min="1"
+                value={sessionValidityValue}
+                onChange={(e) => handleSessionValidityChange(parseInt(e.target.value) || 1, sessionValidityUnit)}
+              />
+              <Select
+                value={sessionValidityUnit}
+                onValueChange={(unit) => handleSessionValidityChange(sessionValidityValue, unit)}
+              >
+                <SelectTrigger className="w-28">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="minutes">Minutes</SelectItem>
+                  <SelectItem value="hours">Hours</SelectItem>
+                  <SelectItem value="days">Days</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-      <div className="space-y-10">
-        <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="max-w-xl space-y-1">
-            <Subheading>Session Validity</Subheading>
-            <Text>
-              The maximum lifetime of a session, regardless of user activity.
-              After that, the session will be expired and the user will need to
-              log in again.
-            </Text>
+          <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 sm:max-w-md">
+              <div className="text-sm font-medium text-foreground">
+                Inactivity timeout
+              </div>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                The maximum period of inactivity after which a session is
+                terminated.
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Input
+                aria-label="Duration"
+                className="w-20 text-right"
+                name="inactivityTimeoutValue"
+                type="number"
+                min="1"
+                value={inactivityTimeoutValue}
+                onChange={(e) => handleInactivityTimeoutChange(parseInt(e.target.value) || 1, inactivityTimeoutUnit)}
+              />
+              <Select
+                value={inactivityTimeoutUnit}
+                onValueChange={(unit) => handleInactivityTimeoutChange(inactivityTimeoutValue, unit)}
+              >
+                <SelectTrigger className="w-28">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="minutes">Minutes</SelectItem>
+                  <SelectItem value="hours">Hours</SelectItem>
+                  <SelectItem value="days">Days</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <div className="flex w-full items-center gap-2 sm:w-auto">
-            <Input
-              aria-label="Duration"
-              name="sessionValidityValue"
-              className="w-20 text-right"
-              type="number"
-              min="1"
-              value={sessionValidityValue}
-              onChange={(e) => handleSessionValidityChange(parseInt(e.target.value) || 1, sessionValidityUnit)}
-            />
-            <Select
-              value={sessionValidityUnit}
-              onValueChange={(unit) => handleSessionValidityChange(sessionValidityValue, unit)}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="minutes">Minutes</SelectItem>
-                <SelectItem value="hours">Hours</SelectItem>
-                <SelectItem value="days">Days</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </section>
 
-        <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="max-w-xl space-y-1">
-            <Subheading>Inactivity Timeout</Subheading>
-            <Text>
-              The maximum period of inactivity after which a session is
-              terminated.
-            </Text>
+          <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 sm:max-w-md">
+              <div className="text-sm font-medium text-foreground">
+                Token expiration
+              </div>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                The maximum lifetime of a token. After that, the token is
+                revalidated.
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Input
+                aria-label="Duration"
+                name="tokenExpirationValue"
+                className="w-20 text-right"
+                type="number"
+                min="1"
+                value={tokenExpirationValue}
+                onChange={(e) => handleTokenExpirationChange(parseInt(e.target.value) || 1, tokenExpirationUnit)}
+              />
+              <Select
+                value={tokenExpirationUnit}
+                onValueChange={(unit) => handleTokenExpirationChange(tokenExpirationValue, unit)}
+              >
+                <SelectTrigger className="w-28">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="minutes">Minutes</SelectItem>
+                  <SelectItem value="hours">Hours</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <div className="flex w-full items-center gap-2 sm:w-auto">
-            <Input
-              aria-label="Duration"
-              className="w-20 text-right"
-              name="inactivityTimeoutValue"
-              type="number"
-              min="1"
-              value={inactivityTimeoutValue}
-              onChange={(e) => handleInactivityTimeoutChange(parseInt(e.target.value) || 1, inactivityTimeoutUnit)}
-            />
-            <Select
-              value={inactivityTimeoutUnit}
-              onValueChange={(unit) => handleInactivityTimeoutChange(inactivityTimeoutValue, unit)}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="minutes">Minutes</SelectItem>
-                <SelectItem value="hours">Hours</SelectItem>
-                <SelectItem value="days">Days</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex items-center justify-between gap-4 px-4 py-4">
+            <div className="min-w-0">
+            <div className="text-sm font-medium text-foreground">
+              Multi-session support
+            </div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Allow users to have multiple sessions at the same time.
+            </p>
           </div>
-        </section>
-
-        <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="max-w-xl space-y-1">
-            <Subheading>Token Expiration</Subheading>
-            <Text>
-              The maximum lifetime of a token. After that, the token will be
-              expired and the token with be revalidated.
-            </Text>
-          </div>
-          <div className="flex w-full items-center gap-2 sm:w-auto">
-            <Input
-              aria-label="Duration"
-              name="tokenExpirationValue"
-              className="w-20 text-right"
-              type="number"
-              min="1"
-              value={tokenExpirationValue}
-              onChange={(e) => handleTokenExpirationChange(parseInt(e.target.value) || 1, tokenExpirationUnit)}
-            />
-            <Select
-              value={tokenExpirationUnit}
-              onValueChange={(unit) => handleTokenExpirationChange(tokenExpirationValue, unit)}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="minutes">Minutes</SelectItem>
-                <SelectItem value="hours">Hours</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </section>
-      </div>
-
-      <Divider className="my-10" soft />
-
-      <section>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="max-w-xl space-y-1">
-            <Subheading>Multi Session Support</Subheading>
-            <Text>
-              Enable multi-session support to allow users to have multiple
-              sessions at the same time.
-            </Text>
-          </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <Button
               variant="ghost"
+              size="icon"
+              className="size-8 text-muted-foreground"
               type="button"
               onClick={() => setIsOpen(true)}
               disabled={!multiSessionEnabled}
             >
-              <Cog6ToothIcon />
+              <Cog6ToothIcon className="size-4" />
             </Button>
             <Dialog
               open={isOpen}
@@ -327,11 +326,11 @@ export default function SessionsPage() {
                 <div className="space-y-8 py-4">
                   <section className="grid gap-6 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <Subheading>Maximum accounts per session</Subheading>
-                      <Text>
+                      <h3 className="text-sm font-medium text-foreground">Maximum accounts per session</h3>
+                      <p className="text-sm text-muted-foreground">
                         Limit the number of accounts that can be active within a
                         single session.
-                      </Text>
+                      </p>
                     </div>
                     <div className="space-y-4">
                       <Field className="flex items-center gap-4">
@@ -348,19 +347,19 @@ export default function SessionsPage() {
                           />
                         </FieldGroup>
                       </Field>
-                      <Text>Set a value between 1 and 10.</Text>
+                      <p className="text-sm text-muted-foreground">Set a value between 1 and 10.</p>
                     </div>
                   </section>
 
-                  <Divider className="my-8" soft />
+                  <div className="my-8 border-t border-border" />
 
                   <section className="grid gap-6 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <Subheading>Maximum user logins</Subheading>
-                      <Text>
+                      <h3 className="text-sm font-medium text-foreground">Maximum user logins</h3>
+                      <p className="text-sm text-muted-foreground">
                         Set the maximum number of active sessions a user can
                         have at the same time.
-                      </Text>
+                      </p>
                     </div>
                     <div className="space-y-4">
                       <Field className="flex items-center gap-4">
@@ -377,7 +376,7 @@ export default function SessionsPage() {
                           />
                         </FieldGroup>
                       </Field>
-                      <Text>Set a value between 1 and 10.</Text>
+                      <p className="text-sm text-muted-foreground">Set a value between 1 and 10.</p>
                     </div>
                   </section>
                 </div>
@@ -395,15 +394,14 @@ export default function SessionsPage() {
               onCheckedChange={handleMultiSessionChange}
             />
           </div>
+          </div>
         </div>
       </section>
 
-      <Divider className="my-10" soft />
-
       {isDirty && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-zinc-200 bg-white p-4 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card p-4 shadow-lg">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+            <p className="text-sm font-medium text-foreground">
               You have unsaved changes.
             </p>
             <div className="flex gap-3">

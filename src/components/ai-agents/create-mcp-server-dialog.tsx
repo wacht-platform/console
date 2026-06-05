@@ -282,7 +282,7 @@ export function CreateMcpServerDialog({ open, onClose, mcpServer }: Props) {
             </div>
 
             {discoveryMessage ? (
-              <div className="rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+              <div className="rounded-md border border-border bg-secondary px-3 py-2 text-xs text-muted-foreground">
                 {discoveryMessage}
               </div>
             ) : null}

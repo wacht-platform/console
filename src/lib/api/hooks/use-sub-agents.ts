@@ -34,6 +34,20 @@ async function detachSubAgent(
   );
 }
 
+export type AgentRole = "reviewer" | "conversation";
+
+async function setAgentRoleAgent(
+  deploymentId: string,
+  agentId: string,
+  role: AgentRole,
+  targetAgentId: string | null,
+): Promise<void> {
+  await apiClient.put(
+    `/deployments/${deploymentId}/ai/agents/${agentId}/role-agent`,
+    { role, agent_id: targetAgentId },
+  );
+}
+
 export function useAgentSubAgents(agentId: string) {
   const { selectedDeployment } = useProjects();
 
@@ -91,6 +105,34 @@ export function useDetachSubAgent() {
       });
       queryClient.invalidateQueries({
         queryKey: ["agent-details", selectedDeployment?.id, variables.agentId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["agents", selectedDeployment?.id],
+      });
+    },
+  });
+}
+
+export function useSetAgentRoleAgent() {
+  const { selectedDeployment } = useProjects();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      agentId,
+      role,
+      targetAgentId,
+    }: {
+      agentId: string;
+      role: AgentRole;
+      targetAgentId: string | null;
+    }) => setAgentRoleAgent(selectedDeployment!.id, agentId, role, targetAgentId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["agent-details", selectedDeployment?.id, variables.agentId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["agent-sub-agents", selectedDeployment?.id, variables.agentId],
       });
       queryClient.invalidateQueries({
         queryKey: ["agents", selectedDeployment?.id],

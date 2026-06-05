@@ -153,7 +153,7 @@ export function WebhookFilterBuilder({ value, onChange, className }: FilterBuild
         <div className="mt-4 space-y-4">
           {filterGroup.rules.length > 1 && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">Match</span>
+              <span className="text-sm text-muted-foreground">Match</span>
               <Listbox value={filterGroup.operator} onChange={updateGroupOperator}>
                 <ListboxOption value="$and">
                   <ListboxLabel>All conditions (AND)</ListboxLabel>
@@ -167,7 +167,7 @@ export function WebhookFilterBuilder({ value, onChange, className }: FilterBuild
 
           <div className="space-y-3">
             {filterGroup.rules.map((rule, index) => (
-              <div key={index} className="flex items-start gap-2 p-3 bg-zinc-50 dark:bg-zinc-900/50 rounded-lg">
+              <div key={index} className="flex items-start gap-2 p-3 bg-secondary rounded-lg">
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-2">
                   <Input
                     placeholder="Field path (e.g., user.role)"
@@ -218,9 +218,9 @@ export function WebhookFilterBuilder({ value, onChange, className }: FilterBuild
       </Button>
 
       {filterGroup.rules.length > 0 && (
-        <div className="mt-4 p-3 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
-          <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-2">Preview (JSON)</p>
-          <pre className="text-xs text-zinc-700 dark:text-zinc-300 overflow-x-auto">
+        <div className="mt-4 p-3 bg-secondary rounded-lg">
+          <p className="text-xs font-medium text-muted-foreground mb-2">Preview (JSON)</p>
+          <pre className="text-xs text-foreground overflow-x-auto">
             {JSON.stringify(
               filterGroup.rules.length > 0 ?
                 {

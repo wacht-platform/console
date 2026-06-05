@@ -134,7 +134,7 @@ export function EditProfileModal({
             {/* Profile Image Upload - Centered */}
             <div className="flex flex-col items-center pb-2">
               <div
-                className="relative w-20 h-20 rounded-full border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-zinc-100 hover:bg-zinc-200 dark:border-zinc-600 dark:hover:border-zinc-500 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all duration-200 cursor-pointer overflow-hidden"
+                className="relative w-20 h-20 rounded-full border-2 border-dashed border-border hover:border-border bg-secondary hover:bg-secondary transition-all duration-200 cursor-pointer overflow-hidden"
                 onClick={() => fileInputRef.current?.click()}
               >
                 {imagePreview ? (
@@ -145,7 +145,7 @@ export function EditProfileModal({
                   />
                 ) : (
                   <div className="flex items-center justify-center h-full">
-                    <PhotoIcon className="w-8 h-8 text-zinc-400 dark:text-zinc-500" />
+                    <PhotoIcon className="w-8 h-8 text-muted-foreground" />
                   </div>
                 )}
               </div>
@@ -153,13 +153,13 @@ export function EditProfileModal({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                  className="text-sm text-primary hover:text-primary dark:text-primary dark:hover:text-primary font-medium"
                 >
                   {imagePreview ? "Change photo" : "Add photo"}
                 </button>
                 {imagePreview && (
                   <>
-                    <span className="text-zinc-300 dark:text-zinc-600">·</span>
+                    <span className="text-muted-foreground dark:text-muted-foreground">·</span>
                     <button
                       type="button"
                       onClick={handleRemoveImage}

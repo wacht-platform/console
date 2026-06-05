@@ -2,14 +2,21 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
-    CodeBracketSquareIcon,
+    CpuChipIcon,
     MagnifyingGlassIcon,
     ChevronRightIcon,
+    FunnelIcon,
     PlusIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { Badge } from "../../components/ui/badge";
+import { PageHead } from "@/components/ui/page-head";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { Pill } from "@/components/ui/pill";
 import { CreateAgentDialog } from "../../components/ai-agents/create-agent-dialog";
 import { InlineLoader } from "../../components/ui/loading-screen";
 import { useAgents, type Agent } from "../../lib/api/hooks/use-agents";
@@ -28,6 +35,7 @@ import {
     TableHeader,
     TableRow,
 } from "../../components/ui/app-table";
+import { TableEmptyRow } from "@/components/ui/table-empty-row";
 
 export default function CreateAgentsPage() {
     const navigate = useNavigate();
@@ -70,31 +78,60 @@ export default function CreateAgentsPage() {
     };
 
     return (
-        <div>
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h1 className="text-xl font-normal tracking-tight">
-                        AI Agents
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        Manage AI agents that combine tools and knowledge bases
-                    </p>
-                </div>
-                {!isLoading && !error && (
-                    <Button
-                        data-tour-id="agents-create-button"
-                        onClick={handleCreateAgent}
-                    >
-                        <PlusIcon className="h-4 w-4 mr-2" />
-                        Create Agent
-                    </Button>
-                )}
-            </div>
+        <div className="flex flex-col gap-6">
+            <PageHead
+                className="mb-0"
+                eyebrow="Agents platform"
+                title="AI agents"
+                sub="Manage agents that combine tools, skills and knowledge bases"
+                actions={
+                    !isLoading && !error ? (
+                        <>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="gap-1.5"
+                                        data-tour-id="agents-search"
+                                    >
+                                        <FunnelIcon className="size-4" />
+                                        Filter
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent
+                                    align="end"
+                                    className="w-64 p-3"
+                                >
+                                    <div className="relative">
+                                        <MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Search agents…"
+                                            value={searchTerm}
+                                            onChange={(e) =>
+                                                setSearchTerm(e.target.value)
+                                            }
+                                            className="h-8 bg-secondary pl-8 text-[13px]"
+                                        />
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                            <Button
+                                data-tour-id="agents-create-button"
+                                onClick={handleCreateAgent}
+                            >
+                                <PlusIcon className="h-4 w-4" />
+                                Create agent
+                            </Button>
+                        </>
+                    ) : undefined
+                }
+            />
             {aiSettings &&
                 (!providerApiKeyConfigured || !s3StorageConfigured) && (
-                    <div className="mb-6 flex flex-col gap-2">
+                    <div className="flex flex-col gap-2">
                         {!providerApiKeyConfigured && (
-                            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+                            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
                                 Configure a Gemini, OpenAI, or OpenRouter API
                                 key before running agents.{" "}
                                 <Link
@@ -106,7 +143,7 @@ export default function CreateAgentsPage() {
                             </div>
                         )}
                         {!s3StorageConfigured && providerApiKeyConfigured && (
-                            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+                            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
                                 Configure customer S3 storage before running
                                 agents that use workspaces, uploads, or vector
                                 tables.{" "}
@@ -121,19 +158,6 @@ export default function CreateAgentsPage() {
                     </div>
                 )}
 
-            {/* Search */}
-            {!isLoading && !error && agents.length > 0 && (
-                <div className="relative mb-6" data-tour-id="agents-search">
-                    <MagnifyingGlassIcon className="absolute left-3 top-1/4 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search agents..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-9"
-                    />
-                </div>
-            )}
-
             {/* Content */}
             {isLoading ? (
                 <InlineLoader />
@@ -144,19 +168,32 @@ export default function CreateAgentsPage() {
                     </p>
                 </div>
             ) : agents.length === 0 ? (
-                <div className="text-center py-12">
-                    <CodeBracketSquareIcon className="mx-auto h-12 w-12 text-muted-foreground" />
-                    <h3 className="mt-2 text-sm font-normal">No AI agents</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        Get started by creating your first AI agent.
-                    </p>
-                    <div className="mt-6">
-                        <Button onClick={handleCreateAgent}>
-                            <PlusIcon className="h-4 w-4 mr-2" />
-                            Create Agent
-                        </Button>
-                    </div>
-                </div>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead>Capabilities</TableHead>
+                            <TableHead className="w-[50px]"></TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableEmptyRow
+                            colSpan={4}
+                            icon={
+                                <CpuChipIcon className="h-8 w-8 text-muted-foreground/50" />
+                            }
+                            title="No AI agents"
+                            description="Get started by creating your first AI agent."
+                            action={
+                                <Button onClick={handleCreateAgent}>
+                                    <PlusIcon className="h-4 w-4 mr-2" />
+                                    Create Agent
+                                </Button>
+                            }
+                        />
+                    </TableBody>
+                </Table>
             ) : (
                 <Table data-tour-id="agents-table">
                     <TableHeader>
@@ -175,50 +212,52 @@ export default function CreateAgentsPage() {
                                 className="cursor-pointer group"
                             >
                                 <TableCell>
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                            <CodeBracketSquareIcon className="h-4 w-4" />
-                                        </div>
-                                        <span className="font-medium transition-colors">
+                                    <div className="flex items-center gap-2.5">
+                                        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                                            <CpuChipIcon className="h-4 w-4" />
+                                        </span>
+                                        <span className="font-medium text-foreground">
                                             {agent.name}
                                         </span>
                                     </div>
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="max-w-0">
                                     <span
-                                        className="text-muted-foreground truncate max-w-sm block"
+                                        className="block truncate text-muted-foreground"
                                         title={agent.description || ""}
                                     >
                                         {agent.description || "No description"}
                                     </span>
                                 </TableCell>
                                 <TableCell>
-                                    <div className="flex items-center gap-2">
-                                        {agent.tools_count > 0 && (
-                                            <Badge
-                                                variant="secondary"
-                                                className="font-normal"
-                                            >
-                                                {agent.tools_count} tools
-                                            </Badge>
-                                        )}
-                                        {agent.knowledge_bases_count > 0 && (
-                                            <Badge
-                                                variant="secondary"
-                                                className="font-normal"
-                                            >
-                                                {agent.knowledge_bases_count}{" "}
-                                                docs
-                                            </Badge>
-                                        )}
-                                        {agent.tools_count === 0 &&
-                                            agent.knowledge_bases_count ===
-                                                0 && (
-                                                <span className="text-xs text-muted-foreground italic">
-                                                    No capabilities
-                                                </span>
+                                    {agent.tools_count > 0 ||
+                                    agent.knowledge_bases_count > 0 ? (
+                                        <div className="flex flex-wrap items-center gap-1.5">
+                                            {agent.tools_count > 0 && (
+                                                <Pill tone="info">
+                                                    {agent.tools_count} tool
+                                                    {agent.tools_count === 1
+                                                        ? ""
+                                                        : "s"}
+                                                </Pill>
                                             )}
-                                    </div>
+                                            {agent.knowledge_bases_count >
+                                                0 && (
+                                                <Pill tone="mute">
+                                                    {
+                                                        agent.knowledge_bases_count
+                                                    }{" "}
+                                                    KB
+                                                    {agent.knowledge_bases_count ===
+                                                    1
+                                                        ? ""
+                                                        : "s"}
+                                                </Pill>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <Pill tone="mute">no capabilities</Pill>
+                                    )}
                                 </TableCell>
                                 <TableCell>
                                     <ChevronRightIcon className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />

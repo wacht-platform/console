@@ -150,7 +150,7 @@ export function AppLoading() {
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0 }}
-			className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white dark:bg-neutral-950"
+			className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-card"
 		>
 			<div className="relative flex flex-col items-center gap-6">
 				<div className="relative h-20 w-20">
@@ -164,7 +164,7 @@ export function AppLoading() {
 							repeat: Infinity,
 							ease: "easeInOut",
 						}}
-						className="absolute inset-0 rounded-3xl bg-blue-500/60 blur-2xl"
+						className="absolute inset-0 rounded-3xl bg-primary blur-2xl"
 					/>
 					<motion.div
 						animate={{
@@ -175,7 +175,7 @@ export function AppLoading() {
 							repeat: Infinity,
 							ease: "easeInOut",
 						}}
-						className="relative flex h-full w-full items-center justify-center rounded-3xl border border-neutral-200 bg-white shadow-2xl shadow-blue-500/10 dark:border-neutral-700 dark:bg-neutral-800"
+						className="relative flex h-full w-full items-center justify-center rounded-3xl border border-border bg-card shadow-2xl shadow-primary/10 dark:border-border"
 					>
 						<img
 							src="/favicon.ico"
@@ -184,11 +184,11 @@ export function AppLoading() {
 						/>
 					</motion.div>
 				</div>
-				<div className="h-1.5 w-16 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800">
+				<div className="h-1.5 w-16 overflow-hidden rounded-full bg-secondary">
 					<motion.div
 						animate={{ x: ["-120%", "220%"] }}
 						transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-						className="h-full w-8 rounded-full bg-blue-600 dark:bg-blue-400"
+						className="h-full w-8 rounded-full bg-primary dark:bg-primary"
 					/>
 				</div>
 			</div>
@@ -214,7 +214,7 @@ export function InlineLoader() {
 						repeat: Infinity,
 						ease: "linear",
 					}}
-					className="h-full w-full rounded-full border-2 border-neutral-200 dark:border-neutral-800 border-t-blue-600 dark:border-t-blue-400"
+					className="h-full w-full rounded-full border-2 border-border dark:border-border border-t-blue-600 dark:border-t-blue-400"
 				/>
 			</motion.div>
 		</div>

@@ -311,7 +311,7 @@ export function CreateAgentDialog({
 	return (
 		<Dialog open={open} onOpenChange={(val) => !val && onClose()}>
 			<DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col p-0 gap-0">
-				<DialogHeader className="p-6 pb-2">
+				<DialogHeader className="mx-0 mt-0 border-0 p-6 pb-4">
 					<DialogTitle>{isEditing ? "Edit Agent" : "Create Agent"}</DialogTitle>
 					<DialogDescription>
 						{isEditing
@@ -354,7 +354,7 @@ export function CreateAgentDialog({
 					) : (
 						<Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
 							<div className="px-6">
-								<TabsList className="grid w-full grid-cols-3">
+								<TabsList variant="pill" className="grid w-full grid-cols-3">
 									<TabsTrigger value="details">Details</TabsTrigger>
 									<TabsTrigger value="capabilities">Capabilities</TabsTrigger>
 									<TabsTrigger value="subAgents">Sub-Agents</TabsTrigger>
@@ -388,7 +388,7 @@ export function CreateAgentDialog({
 												<div
 													key={tool.id}
 													onClick={() => toggleSelection(tool.id, 'tools')}
-													className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all hover:bg-muted/50 ${formData.toolIds.includes(tool.id)
+													className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all hover:bg-secondary ${formData.toolIds.includes(tool.id)
 														? "border-primary bg-primary/5 hover:bg-primary/10"
 														: "border-border"
 														}`}
@@ -413,7 +413,7 @@ export function CreateAgentDialog({
 								<div className="space-y-3">
 									<div className="flex items-center justify-between">
 										<Label className="flex items-center gap-2 text-base">
-											<BookOpenIcon className="h-4 w-4 text-blue-500" />
+											<BookOpenIcon className="h-4 w-4 text-primary" />
 											Knowledge Bases
 										</Label>
 										{formData.knowledgeBaseIds.length > 0 && (
@@ -430,7 +430,7 @@ export function CreateAgentDialog({
 												<div
 													key={kb.id}
 													onClick={() => toggleSelection(kb.id, 'knowledgeBases')}
-													className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all hover:bg-muted/50 ${formData.knowledgeBaseIds.includes(kb.id)
+													className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all hover:bg-secondary ${formData.knowledgeBaseIds.includes(kb.id)
 														? "border-primary bg-primary/5 hover:bg-primary/10"
 														: "border-border"
 														}`}
@@ -482,7 +482,7 @@ export function CreateAgentDialog({
 															: [...formData.subAgentIds, subAgent.id];
 														setFormData({ ...formData, subAgentIds: newIds });
 													}}
-													className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all hover:bg-muted/50 ${
+													className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all hover:bg-secondary ${
 														formData.subAgentIds.includes(subAgent.id)
 															? "border-primary bg-primary/5 hover:bg-primary/10"
 															: "border-border"
@@ -512,7 +512,7 @@ export function CreateAgentDialog({
 					</Tabs>
 					)}
 
-					<div className="flex items-center justify-end gap-3 border-t bg-muted/40 p-4 shrink-0">
+					<div className="flex items-center justify-end gap-3 border-t bg-secondary p-4 shrink-0">
 						<Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
 							Cancel
 						</Button>

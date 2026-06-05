@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -33,6 +33,7 @@ import {
   TableRow,
 } from "@/components/ui/app-table";
 import { SkeletonTableRows } from "@/components/ui/app-skeleton";
+import { TableEmptyRow } from "@/components/ui/table-empty-row";
 import {
   useOAuthApps,
   useOAuthClients,
@@ -109,20 +110,20 @@ function ClientMetadataItem({
 
   return (
     <div className="grid gap-1 p-3 sm:grid-cols-[160px_1fr] sm:items-start sm:gap-4">
-      <p className="text-xs text-zinc-500">{label}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
       {hasValue && href ? (
         <a
           href={href}
           target="_blank"
           rel="noreferrer"
-          className="block break-all font-mono text-xs text-zinc-800 underline-offset-2 hover:underline dark:text-zinc-100"
+          className="block break-all font-mono text-xs text-foreground underline-offset-2 hover:underline"
         >
           {displayValue}
         </a>
       ) : (
         <p
           className={`break-all text-sm ${
-            hasValue ? "text-zinc-800 dark:text-zinc-100" : "text-muted-foreground"
+            hasValue ? "text-foreground" : "text-muted-foreground"
           }`}
         >
           {displayValue}
@@ -322,39 +323,44 @@ export default function OAuthClientDetailsPage() {
   return (
     <div className="space-y-6">
       <section>
-        <p className="text-xs uppercase tracking-wide text-zinc-500">OAuth Client</p>
-        <h1 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
+        <p className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+          OAuth client
+        </p>
+        <h1 className="mt-1 break-all text-xl font-normal tracking-tight text-foreground">
           {oauthClient.client_id}
         </h1>
-        <p className="mt-1 text-xs text-zinc-500">
-          {oauthApp.name} ({oauthApp.slug})
+        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+          {oauthApp.name}
+          <code className="inline-block rounded-md border border-border bg-secondary px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground">
+            {oauthApp.slug}
+          </code>
         </p>
       </section>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+        <TabsList variant="pill">
           <TabsTrigger value="configuration">Configuration</TabsTrigger>
           <TabsTrigger value="grants">Grants</TabsTrigger>
         </TabsList>
 
         <TabsContent value="configuration" className="mt-4 space-y-4">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <div className="rounded-lg border bg-background p-3">
-              <p className="text-xs text-zinc-500">Auth Method</p>
+            <div className="rounded-lg border border-border bg-card p-3">
+              <p className="text-xs text-muted-foreground">Auth Method</p>
               <p className="mt-1 text-sm">{formatClientAuthMethodLabel(oauthClient.client_auth_method)}</p>
             </div>
-            <div className="rounded-lg border bg-background p-3">
-              <p className="text-xs text-zinc-500">Grant Types</p>
+            <div className="rounded-lg border border-border bg-card p-3">
+              <p className="text-xs text-muted-foreground">Grant Types</p>
               <p className="mt-1 text-sm">
                 {oauthClient.grant_types.map(formatGrantTypeLabel).join(", ")}
               </p>
             </div>
-            <div className="rounded-lg border bg-background p-3">
-              <p className="text-xs text-zinc-500">Created</p>
+            <div className="rounded-lg border border-border bg-card p-3">
+              <p className="text-xs text-muted-foreground">Created</p>
               <p className="mt-1 text-sm">{format(new Date(oauthClient.created_at), "MMM d, yyyy")}</p>
             </div>
-            <div className="rounded-lg border bg-background p-3">
-              <p className="text-xs text-zinc-500">Updated</p>
+            <div className="rounded-lg border border-border bg-card p-3">
+              <p className="text-xs text-muted-foreground">Updated</p>
               <p className="mt-1 text-sm">{format(new Date(oauthClient.updated_at), "MMM d, yyyy")}</p>
             </div>
           </div>
@@ -362,7 +368,7 @@ export default function OAuthClientDetailsPage() {
           <div>
             <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-wide text-zinc-500">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
                   Client Metadata
                 </p>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">
@@ -378,7 +384,7 @@ export default function OAuthClientDetailsPage() {
                 Edit
               </Button>
             </div>
-            <div className="divide-y rounded-md border">
+            <div className="divide-y divide-border rounded-lg border border-border bg-card">
               <ClientMetadataItem
                 label="Client Name"
                 value={oauthClient.client_name}
@@ -420,18 +426,18 @@ export default function OAuthClientDetailsPage() {
 
           <div>
             <div className="mb-3 flex items-center justify-between gap-3">
-              <p className="text-xs uppercase tracking-wide text-zinc-500">Redirect URIs</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Redirect URIs</p>
               <Button type="button" variant="outline" size="sm" onClick={handleOpenEditRedirectUris}>
                 Edit
               </Button>
             </div>
-            <div className="divide-y rounded-md border">
+            <div className="divide-y divide-border rounded-lg border border-border bg-card">
               {oauthClient.redirect_uris.length === 0 ? (
                 <p className="p-3 text-sm text-muted-foreground">No redirect URIs configured.</p>
               ) : (
                 oauthClient.redirect_uris.map((uri) => (
                   <div key={uri} className="flex items-start justify-between gap-3 p-3">
-                    <p className="font-mono text-xs break-all text-zinc-800 dark:text-zinc-100">{uri}</p>
+                    <p className="font-mono text-xs break-all text-foreground">{uri}</p>
                     <Button
                       type="button"
                       variant="ghost"
@@ -450,7 +456,7 @@ export default function OAuthClientDetailsPage() {
           <div>
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-wide text-zinc-500">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
                   Post-Logout Redirect URIs
                 </p>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">
@@ -466,7 +472,7 @@ export default function OAuthClientDetailsPage() {
                 Edit
               </Button>
             </div>
-            <div className="divide-y rounded-md border">
+            <div className="divide-y divide-border rounded-lg border border-border bg-card">
               {!oauthClient.post_logout_redirect_uris ||
               oauthClient.post_logout_redirect_uris.length === 0 ? (
                 <p className="p-3 text-sm text-muted-foreground">
@@ -475,7 +481,7 @@ export default function OAuthClientDetailsPage() {
               ) : (
                 oauthClient.post_logout_redirect_uris.map((uri) => (
                   <div key={uri} className="flex items-start justify-between gap-3 p-3">
-                    <p className="font-mono text-xs break-all text-zinc-800 dark:text-zinc-100">
+                    <p className="font-mono text-xs break-all text-foreground">
                       {uri}
                     </p>
                     <Button
@@ -496,7 +502,7 @@ export default function OAuthClientDetailsPage() {
           <div>
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-wide text-zinc-500">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
                   OIDC Settings
                 </p>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">
@@ -512,7 +518,7 @@ export default function OAuthClientDetailsPage() {
                 Edit
               </Button>
             </div>
-            <div className="divide-y rounded-md border">
+            <div className="divide-y divide-border rounded-lg border border-border bg-card">
               <ClientMetadataItem
                 label="Access Token Format"
                 value={
@@ -533,29 +539,29 @@ export default function OAuthClientDetailsPage() {
           </div>
 
           {oauthClient.client_auth_method === "private_key_jwt" ? (
-            <div className="rounded-xl border p-4">
-              <p className="text-xs uppercase tracking-wide text-zinc-500">Key Material</p>
+            <div className="rounded-lg border border-border bg-card p-4">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Key Material</p>
               <div className="mt-3 space-y-2">
                 {oauthClient.jwks_uri ? (
-                  <div className="rounded-lg border bg-zinc-50/60 p-3 dark:bg-zinc-900/40">
-                    <p className="text-xs text-zinc-500">JWKS URI</p>
-                    <p className="mt-1 font-mono text-xs break-all text-zinc-800 dark:text-zinc-100">
+                  <div className="rounded-lg border border-border bg-secondary p-3">
+                    <p className="text-xs text-muted-foreground">JWKS URI</p>
+                    <p className="mt-1 font-mono text-xs break-all text-foreground">
                       {oauthClient.jwks_uri}
                     </p>
                   </div>
                 ) : null}
                 {oauthClient.jwks ? (
-                  <div className="rounded-lg border bg-zinc-50/60 p-3 dark:bg-zinc-900/40">
-                    <p className="text-xs text-zinc-500">JWKS</p>
-                    <p className="mt-1 text-sm text-zinc-800 dark:text-zinc-100">
+                  <div className="rounded-lg border border-border bg-secondary p-3">
+                    <p className="text-xs text-muted-foreground">JWKS</p>
+                    <p className="mt-1 text-sm text-foreground">
                       {oauthClient.jwks.keys.length} key(s) registered
                     </p>
                   </div>
                 ) : null}
                 {oauthClient.public_key_pem ? (
-                  <div className="rounded-lg border bg-zinc-50/60 p-3 dark:bg-zinc-900/40">
-                    <p className="text-xs text-zinc-500">Public Key PEM</p>
-                    <p className="mt-1 font-mono text-xs text-zinc-800 dark:text-zinc-100">
+                  <div className="rounded-lg border border-border bg-secondary p-3">
+                    <p className="text-xs text-muted-foreground">Public Key PEM</p>
+                    <p className="mt-1 font-mono text-xs text-foreground">
                       Stored
                     </p>
                   </div>
@@ -565,13 +571,13 @@ export default function OAuthClientDetailsPage() {
           ) : null}
 
           {isSecretBased ? (
-            <div className="rounded-xl border border-amber-200/70 bg-amber-50/70 p-4 dark:border-amber-900/50 dark:bg-amber-950/20">
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-amber-800 dark:text-amber-200">
+                  <p className="text-xs uppercase tracking-wide text-amber-700 dark:text-amber-300">
                     Client Secret
                   </p>
-                  <p className="text-sm text-amber-900 dark:text-amber-100">
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
                     Existing secret cannot be viewed again. Rotate if needed.
                   </p>
                 </div>
@@ -585,8 +591,8 @@ export default function OAuthClientDetailsPage() {
 
         <TabsContent value="grants" className="mt-4">
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-xs uppercase tracking-wide text-zinc-500">Client Grants</p>
-            <Badge variant="outline">{grants.length} total</Badge>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Client Grants</p>
+            <Pill tone="mute">{grants.length} total</Pill>
           </div>
           <Table>
             <TableHeader>
@@ -603,11 +609,11 @@ export default function OAuthClientDetailsPage() {
               {grantsLoading ? (
                 <SkeletonTableRows rows={8} columns={6} withAvatar={false} />
               ) : grants.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-20 text-center text-muted-foreground">
-                    No grants found for this client
-                  </TableCell>
-                </TableRow>
+                <TableEmptyRow
+                  colSpan={6}
+                  title="No grants yet"
+                  description="This client has not been granted access to any resources."
+                />
               ) : (
                 grants.map((grant) => (
                   <TableRow key={grant.id}>
@@ -617,7 +623,9 @@ export default function OAuthClientDetailsPage() {
                       {grant.scopes.join(", ")}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{grant.status}</Badge>
+                      <Pill tone={grant.status === "active" ? "ok" : "mute"}>
+                        {grant.status}
+                      </Pill>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {format(new Date(grant.granted_at), "MMM d, yyyy")}
@@ -645,9 +653,9 @@ export default function OAuthClientDetailsPage() {
           <DialogHeader>
             <DialogTitle>Client Secret Rotated</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2 rounded border border-amber-200 bg-amber-50 p-3">
-            <p className="text-xs text-amber-900">New Client Secret (shown once)</p>
-            <p className="font-mono text-xs break-all text-amber-900">{rotatedSecret}</p>
+          <div className="space-y-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
+            <p className="text-xs text-amber-700 dark:text-amber-300">New Client Secret (shown once)</p>
+            <p className="font-mono text-xs break-all text-amber-700 dark:text-amber-300">{rotatedSecret}</p>
           </div>
           <DialogFooter>
             <Button
@@ -923,7 +931,7 @@ export default function OAuthClientDetailsPage() {
               </p>
             </div>
 
-            <div className="flex items-start justify-between gap-3 rounded-md border p-3">
+            <div className="flex items-start justify-between gap-3 rounded-lg border border-border p-3">
               <div>
                 <Label className="text-sm">Skip Consent Screen</Label>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">

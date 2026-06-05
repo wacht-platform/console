@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from "react-router";
 import { format } from "date-fns";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
 import {
   Select,
   SelectContent,
@@ -20,6 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/app-table";
 import { SkeletonTableRows } from "@/components/ui/app-skeleton";
+import { TableEmptyRow } from "@/components/ui/table-empty-row";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import {
   useOAuthApps,
@@ -99,12 +100,20 @@ export default function OAuthAppGrantsPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h1 className="text-xl font-normal">OAuth Grants</h1>
-          <p className="text-sm text-zinc-500">{oauthApp.name} ({oauthApp.slug})</p>
-        </div>
-      </div>
+      <section>
+        <p className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+          OAuth app
+        </p>
+        <h1 className="mt-1 text-xl font-normal tracking-tight text-foreground">
+          OAuth grants
+        </h1>
+        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+          {oauthApp.name}
+          <code className="inline-block rounded-md border border-border bg-secondary px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground">
+            {oauthApp.slug}
+          </code>
+        </p>
+      </section>
 
       <div>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -153,25 +162,28 @@ export default function OAuthAppGrantsPage() {
             {oauthClientsLoading ? (
               <SkeletonTableRows rows={8} columns={6} withAvatar={false} />
             ) : oauthClients.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-20 text-center text-muted-foreground">
-                  No OAuth clients available
-                </TableCell>
-              </TableRow>
+              <TableEmptyRow
+                colSpan={6}
+                title="No OAuth clients"
+                description="Create a client before delegating access to resources."
+              />
             ) : !selectedClientId ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-20 text-center text-muted-foreground">
-                  Select OAuth client
-                </TableCell>
-              </TableRow>
+              <TableEmptyRow
+                colSpan={6}
+                title="Select a client"
+                description="Choose an OAuth client above to view its grants."
+              />
             ) : grantsLoading ? (
               <SkeletonTableRows rows={8} columns={6} withAvatar={false} />
             ) : grants.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-20 text-center text-muted-foreground">
-                  No grants found for this client
-                </TableCell>
-              </TableRow>
+              <TableEmptyRow
+                colSpan={6}
+                icon={
+                  <ShieldCheckIcon className="h-6 w-6 text-muted-foreground/50" />
+                }
+                title="No grants yet"
+                description="This client has not been granted access to any resources."
+              />
             ) : (
               grants.map((grant) => (
                 <TableRow key={grant.id}>
@@ -181,7 +193,9 @@ export default function OAuthAppGrantsPage() {
                     {grant.scopes.join(", ")}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{grant.status}</Badge>
+                    <Pill tone={grant.status === "active" ? "ok" : "mute"}>
+                      {grant.status}
+                    </Pill>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {format(new Date(grant.granted_at), "MMM d, yyyy")}

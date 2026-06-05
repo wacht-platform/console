@@ -132,11 +132,11 @@ export function EditWorkspaceDialog({
 					<DialogTitle>Edit Workspace</DialogTitle>
 				</DialogHeader>
 				<div className="py-4">
-					<form onSubmit={handleSubmit} className="space-y-4">
+					<form onSubmit={handleSubmit} className="flex flex-col gap-5">
 						{/* Workspace Logo - Centered */}
 						<div className="flex flex-col items-center">
 							<div
-								className="w-16 h-16 rounded-lg border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-zinc-100 hover:bg-zinc-200 dark:border-zinc-600 dark:hover:border-zinc-500 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all duration-200 cursor-pointer overflow-hidden"
+								className="size-16 cursor-pointer overflow-hidden rounded-lg border-2 border-dashed border-border bg-secondary transition-colors hover:border-input hover:bg-accent"
 								onClick={() => fileInputRef.current?.click()}
 							>
 								{imagePreview ? (
@@ -147,7 +147,7 @@ export function EditWorkspaceDialog({
 									/>
 								) : (
 									<div className="flex items-center justify-center h-full">
-										<PhotoIcon className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
+										<PhotoIcon className="size-6 text-muted-foreground" />
 									</div>
 								)}
 							</div>
@@ -155,17 +155,17 @@ export function EditWorkspaceDialog({
 								<button
 									type="button"
 									onClick={() => fileInputRef.current?.click()}
-									className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+									className="text-sm font-medium text-primary transition-colors hover:text-primary/80"
 								>
 									{imagePreview ? "Change logo" : "Add logo"}
 								</button>
 								{imagePreview && (
 									<>
-										<span className="text-zinc-300 dark:text-zinc-600">·</span>
+										<span className="text-muted-foreground/40">·</span>
 										<button
 											type="button"
 											onClick={handleRemoveImage}
-											className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
+											className="text-sm font-medium text-destructive transition-colors hover:text-destructive/80"
 										>
 											Remove
 										</button>
@@ -193,7 +193,7 @@ export function EditWorkspaceDialog({
 						<div className="space-y-2">
 							<Label>
 								Description
-								<span className="ml-1 text-zinc-400 dark:text-zinc-500 font-normal">·  optional</span>
+								<span className="ml-1 font-normal text-muted-foreground">·  optional</span>
 							</Label>
 							<Textarea
 								value={description}

@@ -14,12 +14,20 @@ export interface AnalyticsStatsResponse {
   daily_metrics: DailyAuthMetric[];
   recent_signups: RecentSignup[];
   recent_signins: RecentSignup[];
+  methods: BreakdownItem[];
+  top_countries: BreakdownItem[];
+  devices: BreakdownItem[];
 }
 
 export interface DailyAuthMetric {
   day: string;
   signins: number;
   signups: number;
+}
+
+export interface BreakdownItem {
+  label: string;
+  count: number;
 }
 
 export interface RecentSignup {

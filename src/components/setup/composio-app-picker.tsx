@@ -133,7 +133,7 @@ function PickerStep({
 }) {
     return (
         <>
-            <DialogHeader className="border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
+            <DialogHeader className="mx-0 mt-0 border-b border-border px-5 py-4">
                 <DialogTitle>Add a Composio app</DialogTitle>
                 <DialogDescription>
                     Pick an app to expose to your agents. You'll need an auth
@@ -141,9 +141,9 @@ function PickerStep({
                 </DialogDescription>
             </DialogHeader>
 
-            <div className="border-b border-zinc-200 px-5 py-3 dark:border-zinc-800">
+            <div className="border-b border-border px-5 py-3 dark:border-border">
                 <div className="relative">
-                    <MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                    <MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                         autoFocus
                         placeholder="Search Gmail, GitHub, Slack…"
@@ -161,12 +161,12 @@ function PickerStep({
                     <ToolkitSkeletonGrid />
                 ) : toolkits.length === 0 ? (
                     <div className="flex h-full flex-col items-center justify-center gap-1 py-12 text-center">
-                        <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        <div className="text-sm font-medium text-foreground">
                             {search
                                 ? "No apps match your search"
                                 : "No apps found"}
                         </div>
-                        <div className="text-xs text-zinc-500">
+                        <div className="text-xs text-muted-foreground">
                             {search
                                 ? "Try a different search term."
                                 : "Make sure your Composio API key is configured."}
@@ -179,7 +179,7 @@ function PickerStep({
                                 <button
                                     type="button"
                                     onClick={() => onPick(toolkit)}
-                                    className="flex w-full items-start gap-3 rounded-lg border border-zinc-200 bg-white p-3 text-left transition hover:border-zinc-400 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
+                                    className="flex w-full items-start gap-3 rounded-lg border border-border bg-card p-3 text-left transition hover:border-border hover:shadow-sm dark:border-border"
                                 >
                                     <ToolkitLogo
                                         logo={toolkit.logo}
@@ -187,21 +187,21 @@ function PickerStep({
                                         size="md"
                                     />
                                     <div className="min-w-0 flex-1">
-                                        <div className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                        <div className="truncate text-sm font-medium text-foreground">
                                             {toolkit.name}
                                         </div>
                                         {toolkit.description && (
-                                            <div className="mt-0.5 line-clamp-2 text-xs text-zinc-500">
+                                            <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
                                                 {toolkit.description}
                                             </div>
                                         )}
-                                        <div className="mt-1.5 flex items-center gap-2 text-[11px] text-zinc-500">
+                                        <div className="mt-1.5 flex items-center gap-2 text-[11px] text-muted-foreground">
                                             <span className="font-mono">
                                                 {toolkit.slug}
                                             </span>
                                             {toolkit.tool_count > 0 && (
                                                 <>
-                                                    <span className="text-zinc-300 dark:text-zinc-700">
+                                                    <span className="text-muted-foreground dark:text-foreground">
                                                         •
                                                     </span>
                                                     <span>
@@ -329,12 +329,12 @@ function EnableStep({
 
     return (
         <>
-            <DialogHeader className="border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
+            <DialogHeader className="mx-0 mt-0 border-b border-border px-5 py-4">
                 <button
                     type="button"
                     onClick={onBack}
                     disabled={isPending}
-                    className="mb-1 inline-flex items-center gap-1 self-start text-xs font-medium text-zinc-500 hover:text-zinc-700 disabled:opacity-50 dark:hover:text-zinc-300"
+                    className="mb-1 inline-flex items-center gap-1 self-start text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-50 dark:hover:text-muted-foreground"
                 >
                     <ArrowLeftIcon className="h-3.5 w-3.5" />
                     Back to apps
@@ -361,15 +361,15 @@ function EnableStep({
                     {showExisting && (
                         <div className="space-y-2">
                             <div className="flex items-baseline justify-between gap-2">
-                                <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                                     Existing auth configs
                                 </div>
-                                <div className="text-[11px] text-zinc-400">
+                                <div className="text-[11px] text-muted-foreground">
                                     From your Composio account
                                 </div>
                             </div>
                             {existingLoading ? (
-                                <div className="h-10 animate-pulse rounded-lg border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900" />
+                                <div className="h-10 animate-pulse rounded-lg border border-border bg-secondary dark:border-border" />
                             ) : existingConfigs.length > 0 ? (
                                 <div className="space-y-2">
                                     {existingConfigs.map((cfg) => (
@@ -390,7 +390,7 @@ function EnableStep({
                                     ))}
                                 </div>
                             ) : (
-                                <div className="rounded-lg border border-dashed border-zinc-200 px-3 py-3 text-xs text-zinc-500 dark:border-zinc-800">
+                                <div className="rounded-lg border border-dashed border-border px-3 py-3 text-xs text-muted-foreground dark:border-border">
                                     No existing auth configs for{" "}
                                     <span className="font-mono">
                                         {toolkit.slug}
@@ -403,14 +403,14 @@ function EnableStep({
 
                     <div className="space-y-2">
                         {showExisting && existingConfigs.length > 0 && (
-                            <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                            <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                                 Or create a new one
                             </div>
                         )}
                         {detailsLoading ? (
-                            <div className="h-16 animate-pulse rounded-lg border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900" />
+                            <div className="h-16 animate-pulse rounded-lg border border-border bg-secondary dark:border-border" />
                         ) : authModes.length === 0 ? (
-                            <div className="rounded-lg border border-dashed border-zinc-200 px-3 py-3 text-xs text-zinc-500 dark:border-zinc-800">
+                            <div className="rounded-lg border border-dashed border-border px-3 py-3 text-xs text-muted-foreground dark:border-border">
                                 No auth methods reported for this app.
                             </div>
                         ) : (
@@ -500,7 +500,7 @@ function EnableStep({
                 </div>
             </div>
 
-            <div className="flex justify-end gap-2 border-t border-zinc-200 bg-zinc-50/50 px-5 py-3 dark:border-zinc-800 dark:bg-zinc-900/30">
+            <div className="flex justify-end gap-2 border-t border-border bg-secondary px-5 py-3 dark:border-border">
                 <Button variant="outline" onClick={onBack} disabled={isPending}>
                     Cancel
                 </Button>
@@ -567,7 +567,7 @@ function DynamicFieldsForm({
     const optional = mode.auth_config_creation.optional;
     if (required.length === 0 && optional.length === 0) return null;
     return (
-        <div className="mt-2 space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+        <div className="mt-2 space-y-3 rounded-lg border border-border p-4 dark:border-border">
             {required.map((f) => (
                 <FieldInput
                     key={f.name}
@@ -578,7 +578,7 @@ function DynamicFieldsForm({
             ))}
             {optional.length > 0 && (
                 <div className="pt-1">
-                    <div className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+                    <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                         Optional
                     </div>
                 </div>
@@ -592,7 +592,7 @@ function DynamicFieldsForm({
                 />
             ))}
             {mode.auth_hint_url && (
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-muted-foreground">
                     Where to find these:{" "}
                     <a
                         href={mode.auth_hint_url}
@@ -623,7 +623,7 @@ function FieldInput({
         /(secret|password)/i.test(t);
     return (
         <div className="space-y-1">
-            <label className="flex items-center gap-1 text-xs font-medium text-zinc-900 dark:text-zinc-100">
+            <label className="flex items-center gap-1 text-xs font-medium text-foreground">
                 {field.display_name}
                 {field.required && <span className="text-red-500">*</span>}
             </label>
@@ -634,7 +634,7 @@ function FieldInput({
                 placeholder={field.default ?? ""}
             />
             {field.description && (
-                <p className="text-xs text-zinc-500">{field.description}</p>
+                <p className="text-xs text-muted-foreground">{field.description}</p>
             )}
         </div>
     );
@@ -654,37 +654,37 @@ function ExistingAuthConfigCard({
         <button
             type="button"
             onClick={onSelect}
-            className={`flex w-full items-start gap-3 rounded-lg border bg-white p-3 text-left transition ${
+            className={`flex w-full items-start gap-3 rounded-lg border bg-card p-3 text-left transition ${
                 selected
-                    ? "border-zinc-900 shadow-sm ring-1 ring-zinc-900/10 dark:border-zinc-100 dark:bg-zinc-950 dark:ring-zinc-100/10"
-                    : "border-zinc-200 hover:border-zinc-400 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
+                    ? "border-primary shadow-sm ring-1 ring-border"
+                    : "border-border hover:border-border hover:shadow-sm dark:border-border"
             }`}
         >
             <div
                 className={`mt-0.5 flex h-4 w-4 flex-none items-center justify-center rounded-full border ${
                     selected
-                    ? "border-zinc-900 bg-zinc-900 dark:border-zinc-100 dark:bg-zinc-100"
-                    : "border-zinc-300 dark:border-zinc-700"
+                    ? "border-primary bg-primary dark:bg-secondary"
+                    : "border-border dark:border-border"
                 }`}
             >
                 {selected && (
-                    <div className="h-1.5 w-1.5 rounded-full bg-white dark:bg-zinc-900" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-card" />
                 )}
             </div>
             <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                     <span className="truncate">{shortName}</span>
                     <span
                         className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
                             config.is_composio_managed
-                                ? "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
-                                : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                                ? "bg-primary text-primary dark:bg-primary dark:text-primary"
+                                : "bg-secondary text-foreground dark:text-muted-foreground"
                         }`}
                     >
                         {config.is_composio_managed ? "managed" : "custom"}
                     </span>
                 </div>
-                <div className="mt-0.5 truncate font-mono text-[11px] text-zinc-500">
+                <div className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
                     {config.id}
                 </div>
             </div>
@@ -709,29 +709,29 @@ function AuthModeCard({
         <button
             type="button"
             onClick={onSelect}
-            className={`flex w-full items-start gap-3 rounded-lg border bg-white p-3 text-left transition ${
+            className={`flex w-full items-start gap-3 rounded-lg border bg-card p-3 text-left transition ${
                 selected
-                    ? "border-zinc-900 shadow-sm ring-1 ring-zinc-900/10 dark:border-zinc-100 dark:bg-zinc-950 dark:ring-zinc-100/10"
-                    : "border-zinc-200 hover:border-zinc-400 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
+                    ? "border-primary shadow-sm ring-1 ring-border"
+                    : "border-border hover:border-border hover:shadow-sm dark:border-border"
             }`}
         >
             <div
                 className={`mt-0.5 flex h-4 w-4 flex-none items-center justify-center rounded-full border ${
                     selected
-                        ? "border-zinc-900 bg-zinc-900 dark:border-zinc-100 dark:bg-zinc-100"
-                        : "border-zinc-300 dark:border-zinc-700"
+                        ? "border-primary bg-primary dark:bg-secondary"
+                        : "border-border dark:border-border"
                 }`}
             >
                 {selected && (
-                    <div className="h-1.5 w-1.5 rounded-full bg-white dark:bg-zinc-900" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-card" />
                 )}
             </div>
             <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
                     {icon}
                     {title}
                 </div>
-                <div className="mt-0.5 text-xs text-zinc-500">
+                <div className="mt-0.5 text-xs text-muted-foreground">
                     {description}
                 </div>
             </div>
@@ -756,7 +756,7 @@ export function ToolkitLogo({
 
     return (
         <div
-            className={`flex flex-none items-center justify-center overflow-hidden rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 ${dims}`}
+            className={`flex flex-none items-center justify-center overflow-hidden rounded-md border border-border bg-card dark:border-border ${dims}`}
         >
             {logo ? (
                 <img
@@ -770,7 +770,7 @@ export function ToolkitLogo({
                 />
             ) : (
                 <span
-                    className={`font-semibold text-zinc-500 dark:text-zinc-400 ${textSize}`}
+                    className={`font-semibold text-muted-foreground ${textSize}`}
                 >
                     {initial}
                 </span>
@@ -785,12 +785,12 @@ function ToolkitSkeletonGrid() {
             {Array.from({ length: 6 }).map((_, i) => (
                 <li
                     key={i}
-                    className="flex items-start gap-3 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950"
+                    className="flex items-start gap-3 rounded-lg border border-border bg-card p-3 dark:border-border"
                 >
-                    <div className="h-9 w-9 flex-none animate-pulse rounded-md bg-zinc-100 dark:bg-zinc-800" />
+                    <div className="h-9 w-9 flex-none animate-pulse rounded-md bg-secondary" />
                     <div className="min-w-0 flex-1 space-y-1.5">
-                        <div className="h-3.5 w-1/3 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
-                        <div className="h-3 w-2/3 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+                        <div className="h-3.5 w-1/3 animate-pulse rounded bg-secondary" />
+                        <div className="h-3 w-2/3 animate-pulse rounded bg-secondary" />
                     </div>
                 </li>
             ))}

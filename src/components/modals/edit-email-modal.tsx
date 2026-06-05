@@ -112,10 +112,10 @@ export function EditEmailModal({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <label className="text-sm font-medium text-foreground">
                     Verified
                   </label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     Mark this email as verified
                   </p>
                 </div>
@@ -124,10 +124,10 @@ export function EditEmailModal({
 
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <label className="text-sm font-medium text-foreground">
                     Primary
                   </label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     {isPrimary && userData?.primary_email_address_id === emailData?.id
                       ? "This is the primary email address"
                       : "Set as primary email address"}

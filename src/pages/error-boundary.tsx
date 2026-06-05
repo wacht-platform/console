@@ -36,13 +36,13 @@ export default function ErrorBoundaryPage() {
                     Something Went Wrong
                 </Heading>
 
-                <Text className="mb-4 text-zinc-600 dark:text-zinc-400">
+                <Text className="mb-4 text-muted-foreground">
                     {errorMessage}
                 </Text>
 
                 {errorDetails && import.meta.env.DEV && (
-                    <pre className="mb-8 p-4 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-left text-xs overflow-auto max-h-64">
-                        <code className="text-zinc-800 dark:text-zinc-200">
+                    <pre className="mb-8 p-4 bg-secondary rounded-lg text-left text-xs overflow-auto max-h-64">
+                        <code className="text-foreground">
                             {errorDetails}
                         </code>
                     </pre>

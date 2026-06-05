@@ -141,22 +141,22 @@ export function CreateProductionDeploymentDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={(openStart) => !openStart && onClose()}>
-			<DialogContent className="sm:max-w-4xl p-0 overflow-hidden border-none bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl shadow-2xl">
+			<DialogContent className="sm:max-w-4xl p-0 overflow-hidden border border-border bg-popover/95 backdrop-blur-xl shadow-2xl">
 				<div className="relative">
 					{/* Decorative background gradients - Green theme */}
 					<div className="absolute top-0 right-0 w-96 h-96 bg-green-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 					<div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
-					<DialogHeader className="p-8 pb-4 relative z-10">
+					<DialogHeader className="mx-0 mt-0 border-0 p-8 pb-4 relative z-10">
 						<div className="flex items-center gap-3 mb-2">
 							<div className="p-2.5 rounded-xl bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20 shadow-sm">
 								<ShieldCheckIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
 							</div>
-							<DialogTitle className="text-xl font-normal text-zinc-900 dark:text-zinc-100">
+							<DialogTitle className="text-xl font-normal text-foreground">
 								Create Production Deployment
 							</DialogTitle>
 						</div>
-						<DialogDescription className="text-base text-zinc-500 dark:text-zinc-400 font-normal ml-1">
+						<DialogDescription className="text-base text-muted-foreground font-normal ml-1">
 							Configure your production environment's secure entry point.
 						</DialogDescription>
 					</DialogHeader>
@@ -164,15 +164,15 @@ export function CreateProductionDeploymentDialog({
 					<div className="px-8 py-4 space-y-8 relative z-10">
 						<section className="space-y-4">
 							<div className="flex items-center gap-2">
-								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-800 to-transparent" />
-								<span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Environment Details</span>
-								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-800 to-transparent" />
+								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+								<span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Environment Details</span>
+								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
 							</div>
 
-							<div className="bg-zinc-50/50 dark:bg-zinc-900/50 p-1 rounded-xl border border-zinc-200/60 dark:border-zinc-800/60">
+							<div className="bg-secondary p-1 rounded-xl border border-border">
 								<Field className="space-y-2 p-3">
-									<Label className="flex items-center gap-2 text-sm font-normal text-zinc-600 dark:text-zinc-400">
-										<GlobeAltIcon className="h-4 w-4 text-zinc-400" />
+									<Label className="flex items-center gap-2 text-sm font-normal text-muted-foreground">
+										<GlobeAltIcon className="h-4 w-4 text-muted-foreground" />
 										Custom Domain
 									</Label>
 									<div className="relative">
@@ -180,7 +180,7 @@ export function CreateProductionDeploymentDialog({
 											type="text"
 											placeholder="app.yourcompany.com"
 											className={clsx(
-												"w-full bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 focus:ring-green-500/20 focus:border-green-500/50 transition-all rounded-lg py-2.5 pl-3",
+												"w-full bg-card border-border focus:ring-green-500/20 focus:border-green-500/50 transition-all rounded-lg py-2.5 pl-3",
 												validationError ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20" : ""
 											)}
 											value={customDomain}
@@ -198,7 +198,7 @@ export function CreateProductionDeploymentDialog({
 											{validationError}
 										</Text>
 									) : (
-										<Text className="text-xs text-zinc-400 dark:text-zinc-500 pl-1">
+										<Text className="text-xs text-muted-foreground pl-1">
 											This will be the primary entry point for your users.
 										</Text>
 									)}
@@ -208,9 +208,9 @@ export function CreateProductionDeploymentDialog({
 
 							<section className="space-y-5">
 							<div className="flex items-center gap-2">
-								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-800 to-transparent" />
-								<span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Authentication Methods</span>
-								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-800 to-transparent" />
+								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+								<span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Authentication Methods</span>
+								<div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
 							</div>
 
 								<div className="space-y-4">
@@ -236,7 +236,7 @@ export function CreateProductionDeploymentDialog({
 											onClick={() => toggleAuthMethod("username")}
 										/>
 									</div>
-									<Text className="text-xs text-zinc-500 dark:text-zinc-400 px-1">
+									<Text className="text-xs text-muted-foreground px-1">
 										Social sign-in providers are configured after deployment creation.
 										Add provider credentials first, then enable them from Authentication settings.
 									</Text>
@@ -244,12 +244,12 @@ export function CreateProductionDeploymentDialog({
 							</section>
 					</div>
 
-					<DialogFooter className="p-8 pt-6 pb-8 border-t border-zinc-100 dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-900/30">
+					<DialogFooter className="mx-0 mb-0 rounded-none border-t border-border bg-secondary p-8 pt-6 pb-8">
 						<Button
 							variant="ghost"
 							onClick={onClose}
 							disabled={isLoading}
-							className="text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+							className="text-muted-foreground hover:text-foreground dark:text-muted-foreground"
 						>
 							Cancel
 						</Button>
@@ -258,12 +258,12 @@ export function CreateProductionDeploymentDialog({
 							disabled={isLoading || !customDomain.trim() || selectedMethods.length === 0}
 							className={clsx(
 								"min-w-40 shadow-lg shadow-green-500/10 transition-all duration-300",
-								"bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white transform hover:-translate-y-px"
+								"bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-primary-foreground transform hover:-translate-y-px"
 							)}
 						>
 							{isLoading ? (
 								<div className="flex items-center gap-2">
-									<Spinner size="sm" className="text-white" />
+									<Spinner size="sm" className="text-primary-foreground" />
 									<span>Creating...</span>
 								</div>
 							) : (
@@ -299,7 +299,7 @@ function AuthMethodCard({
 				compact ? "p-2.5" : "p-3",
 				selected
 					? "bg-green-50/80 dark:bg-green-500/10 border-green-500/30 shadow-[0_0_15px_-3px_rgba(34,197,94,0.15)] ring-1 ring-green-500/20"
-					: "bg-white dark:bg-zinc-900/40 border-zinc-200/60 dark:border-zinc-800/60 hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 shadow-sm"
+					: "bg-card border-border hover:border-border dark:hover:border-border hover:bg-secondary shadow-sm"
 			)}
 			onClick={onClick}
 		>
@@ -307,15 +307,15 @@ function AuthMethodCard({
 				"flex shrink-0 items-center justify-center rounded-lg transition-colors",
 				compact ? "h-6 w-6" : "h-8 w-8",
 				selected
-					? "bg-white dark:bg-green-500/20 text-green-600 dark:text-green-400 shadow-sm"
-					: "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500"
+					? "bg-card dark:bg-green-500/20 text-green-600 dark:text-green-400 shadow-sm"
+					: "bg-secondary text-muted-foreground"
 			)}>
 				{icon}
 			</span>
 			<span className={clsx(
 				"flex-1 font-medium truncate",
 				compact ? "text-xs" : "text-sm",
-				selected ? "text-green-900 dark:text-green-100" : "text-zinc-600 dark:text-zinc-400"
+				selected ? "text-green-900 dark:text-green-100" : "text-muted-foreground"
 			)}>
 				{label}
 			</span>
@@ -328,7 +328,7 @@ function AuthMethodCard({
 						exit={{ opacity: 0, scale: 0 }}
 						className="absolute top-2 right-2"
 					>
-						<div className="bg-green-500 text-white rounded-full p-0.5 shadow-sm">
+						<div className="bg-green-500 text-primary-foreground rounded-full p-0.5 shadow-sm">
 							<CheckCircleIcon className="h-3 w-3" />
 						</div>
 					</motion.div>

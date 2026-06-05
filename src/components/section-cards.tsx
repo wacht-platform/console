@@ -16,15 +16,15 @@ export function SectionCards({ data }: { data?: SectionCardData[] }) {
     const cards = data || [];
 
     return (
-        <div className="overflow-hidden rounded-lg border border-border/50">
+        <div className="overflow-hidden rounded-lg border border-border bg-card">
             <div className="flex flex-col sm:flex-row">
             {cards.map((card, index) => (
                 <Card
                     key={index}
-                    className="@container-card flex-1 rounded-none border-0 border-b border-border/40 bg-gradient-to-t from-primary/5 to-card shadow-none sm:border-b-0 sm:border-r last:border-b-0 sm:last:border-r-0"
+                    className="@container-card flex-1 rounded-none border-0 border-b border-border bg-card shadow-none sm:border-b-0 sm:border-r last:border-b-0 sm:last:border-r-0"
                 >
-                    <CardHeader className="gap-1 px-2.5 py-0 sm:px-3 sm:py-0">
-                        <CardDescription className="text-[9px] leading-none uppercase tracking-[0.05em] text-muted-foreground sm:text-[10px]">
+                    <CardHeader className="gap-1.5 px-2.5 py-0 sm:px-3 sm:py-0">
+                        <CardDescription className="font-mono text-[10px] leading-none uppercase tracking-[0.06em] text-muted-foreground">
                             {card.title}
                         </CardDescription>
                         <div className="flex items-center gap-2">

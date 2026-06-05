@@ -46,7 +46,7 @@ export function DynamicBreadcrumbs() {
     return (
         <Breadcrumb className="hidden md:flex items-center">
             <BreadcrumbList>
-                <BreadcrumbSeparator className="text-zinc-300 dark:text-zinc-600" />
+                <BreadcrumbSeparator className="text-muted-foreground dark:text-muted-foreground" />
                 {breadcrumbs.map((crumb, index) => (
                     <BreadcrumbItem key={crumb.path}>
                         {index < breadcrumbs.length - 1 ? (

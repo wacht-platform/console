@@ -160,7 +160,7 @@ function SchemaFieldEditor({
 }) {
     const normalizedField = normalizeSchemaField(field);
     return (
-        <div className={depth > 0 ? "border-l border-border/50 pl-3" : ""}>
+        <div className={depth > 0 ? "border-l border-border pl-3" : ""}>
             <div className="space-y-3 rounded-md py-1">
                 {allowName ? (
                     <div className="space-y-1">
@@ -416,7 +416,7 @@ function ConfigSubsection({
     children: React.ReactNode;
 }) {
     return (
-        <div className="space-y-3 border-t border-border/50 pt-4 first:border-t-0 first:pt-0">
+        <div className="space-y-3 border-t border-border pt-4 first:border-t-0 first:pt-0">
             <div className="space-y-1">
                 <h4 className="text-sm font-medium text-foreground">{title}</h4>
                 {description ? (
@@ -1187,7 +1187,7 @@ export function ToolEditorForm({
                 className="flex min-h-0 flex-1 flex-col"
             >
                 <div className="grid min-h-0 flex-1 gap-10 xl:grid-cols-[320px_minmax(0,1fr)]">
-                    <aside className="space-y-6 border-b border-border/60 pb-8 xl:border-b-0 xl:border-r xl:pb-0 xl:pr-8">
+                    <aside className="space-y-6 border-b border-border pb-8 xl:border-b-0 xl:border-r xl:pb-0 xl:pr-8">
                         <FormSection
                             title="Tool details"
                             description="Define what the tool is called and how the agent should think about using it."

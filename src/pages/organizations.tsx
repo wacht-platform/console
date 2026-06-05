@@ -1,9 +1,17 @@
 import {
     MagnifyingGlassIcon,
     BuildingOffice2Icon,
+    FunnelIcon,
+    CheckIcon,
 } from "@heroicons/react/24/outline";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "../components/ui/input";
+import { cn } from "@/lib/utils";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import {
     Select,
     SelectContent,
@@ -12,6 +20,7 @@ import {
     SelectValue,
 } from "../components/ui/select";
 import { Button } from "../components/ui/button";
+import { PageHead } from "@/components/ui/page-head";
 import {
     Table,
     TableBody,
@@ -75,57 +84,84 @@ export default function OrganizationsPage() {
 
     return (
         <div className="flex flex-col gap-6">
-            {/* Header */}
-            <div className="flex flex-col gap-1">
-                <h1 className="text-xl font-normal tracking-tight">
-                    Organizations
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                    Manage organizations, their members, and settings.
-                </p>
-            </div>
-
-            {/* Filters */}
-            <div className="flex items-center gap-2">
-                <div className="relative flex-1 max-w-sm">
-                    <MagnifyingGlassIcon className="absolute left-3 top-1/4 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search organizations..."
-                        value={search}
-                        onChange={(e) => {
-                            setSearch(e.target.value);
-                            setPage(1);
-                        }}
-                        className="pl-9"
-                    />
-                </div>
-
-                <Select
-                    value={`${sortKey}-${sortOrder}`}
-                    onValueChange={handleSortChange}
-                >
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="created_at-desc">
-                            Newest first
-                        </SelectItem>
-                        <SelectItem value="created_at-asc">
-                            Oldest first
-                        </SelectItem>
-                        <SelectItem value="name-asc">Name (A-Z)</SelectItem>
-                        <SelectItem value="name-desc">Name (Z-A)</SelectItem>
-                    </SelectContent>
-                </Select>
-
-                <Button
-                    onClick={() => setCreateOrgModalOpen(true)}
-                    className="ml-auto"
-                >
-                    Create Organization
-                </Button>
-            </div>
+            <PageHead
+                className="mb-0"
+                eyebrow="Multi-tenancy"
+                title="Organizations"
+                sub="Manage organizations, their members, and settings."
+                actions={
+                    <>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-1.5"
+                                >
+                                    <FunnelIcon className="size-4" />
+                                    Filter
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                                align="end"
+                                className="w-64 space-y-3 p-3"
+                            >
+                                <div className="relative">
+                                    <MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search organizations…"
+                                        value={search}
+                                        onChange={(e) => {
+                                            setSearch(e.target.value);
+                                            setPage(1);
+                                        }}
+                                        className="h-8 bg-secondary pl-8 text-[13px]"
+                                    />
+                                </div>
+                                <div className="space-y-0.5">
+                                    <div className="px-1 pb-1 font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                                        Sort by
+                                    </div>
+                                    {(
+                                        [
+                                            ["created_at-desc", "Newest first"],
+                                            ["created_at-asc", "Oldest first"],
+                                            ["name-asc", "Name (A–Z)"],
+                                            ["name-desc", "Name (Z–A)"],
+                                        ] as const
+                                    ).map(([value, label]) => {
+                                        const active =
+                                            `${sortKey}-${sortOrder}` === value;
+                                        return (
+                                            <button
+                                                key={value}
+                                                type="button"
+                                                onClick={() =>
+                                                    handleSortChange(value)
+                                                }
+                                                className={cn(
+                                                    "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-[13px] transition-colors",
+                                                    active
+                                                        ? "bg-accent text-foreground"
+                                                        : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                                                )}
+                                            >
+                                                {label}
+                                                {active && (
+                                                    <CheckIcon className="size-3.5 text-primary" />
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                        <Button onClick={() => setCreateOrgModalOpen(true)}>
+                            Create organization
+                        </Button>
+                    </>
+                }
+            />
 
             {/* Table */}
             <Table>

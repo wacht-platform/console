@@ -102,7 +102,7 @@ export function EditWorkspaceMemberDialog({
 				<div className="py-2">
 					<div className="space-y-6">
 						{/* Member Info */}
-						<div className="text-sm text-gray-600 dark:text-gray-400">
+						<div className="text-sm text-muted-foreground">
 							<strong>{member.first_name} {member.last_name}</strong> • {member.primary_email_address}
 						</div>
 
@@ -115,7 +115,7 @@ export function EditWorkspaceMemberDialog({
 										{/* Selected roles */}
 										{selectedRoles.length > 0 && (
 											<div>
-												<div className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+												<div className="text-sm text-foreground mb-2">
 													Assigned roles:
 												</div>
 												<div className="flex flex-wrap gap-2">
@@ -141,7 +141,7 @@ export function EditWorkspaceMemberDialog({
 
 										{/* Available roles */}
 										<div>
-											<div className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+											<div className="text-sm text-foreground mb-2">
 												Available roles:
 											</div>
 											<div className="flex flex-wrap gap-2">
@@ -151,7 +151,7 @@ export function EditWorkspaceMemberDialog({
 														<Badge
 															key={role.id}
 															color="zinc"
-															className="cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800"
+															className="cursor-pointer hover:bg-secondary"
 															onClick={() => setSelectedRoles([...selectedRoles, role.id])}
 														>
 															{role.is_deployment_level ? `${role.name} (Default)` : role.name}
@@ -162,14 +162,14 @@ export function EditWorkspaceMemberDialog({
 													))}
 											</div>
 											{availableRoles.filter(role => !selectedRoles.includes(role.id)).length === 0 && (
-												<div className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+												<div className="text-sm text-muted-foreground mt-2">
 													All available roles are already assigned.
 												</div>
 											)}
 										</div>
 									</div>
 								) : (
-									<div className="text-sm text-gray-500 dark:text-gray-400">
+									<div className="text-sm text-muted-foreground">
 										No roles available. Create roles first to assign them to members.
 									</div>
 								)}
@@ -178,11 +178,11 @@ export function EditWorkspaceMemberDialog({
 							{/* Public Metadata */}
 							<div className="space-y-4">
 								<div className="flex justify-between items-center">
-									<Label className="text-base text-zinc-900 dark:text-zinc-100">Public Metadata</Label>
+									<Label className="text-base text-foreground">Public Metadata</Label>
 								</div>
 
 								<div className="space-y-3">
-									<div className="rounded-lg overflow-hidden bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800">
+									<div className="rounded-lg overflow-hidden bg-secondary dark:bg-primary border border-border dark:border-border">
 										<CodeEditor
 											language="json"
 											minHeight={120}
@@ -190,7 +190,7 @@ export function EditWorkspaceMemberDialog({
 											onChange={(value) => setPublicMetadata(value || "{}")}
 										/>
 									</div>
-									<p className="text-xs text-gray-500 dark:text-gray-400">
+									<p className="text-xs text-muted-foreground">
 										This metadata will be publicly accessible. Use valid JSON format.
 									</p>
 								</div>

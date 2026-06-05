@@ -34,7 +34,7 @@ export function DeleteConfirmationDialog({
         </DialogHeader>
 
         <div className="py-2">
-          <p className="text-zinc-600 dark:text-zinc-400">{description}</p>
+          <p className="text-muted-foreground">{description}</p>
         </div>
 
         <DialogFooter>

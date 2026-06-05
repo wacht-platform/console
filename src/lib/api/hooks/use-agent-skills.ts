@@ -113,13 +113,18 @@ export function useAgentSkillsSummary(agentId: string) {
   });
 }
 
-export function useAgentSkillTree(agentId: string, scope: SkillScope, path: string) {
+export function useAgentSkillTree(
+  agentId: string,
+  scope: SkillScope,
+  path: string,
+  enabled = true,
+) {
   const { selectedDeployment } = useProjects();
 
   return useQuery({
     queryKey: ["agent-skill-tree", selectedDeployment?.id, agentId, scope, path],
     queryFn: () => fetchSkillTree(selectedDeployment!.id, agentId, scope, path),
-    enabled: !!selectedDeployment?.id && !!agentId,
+    enabled: !!selectedDeployment?.id && !!agentId && enabled,
   });
 }
 

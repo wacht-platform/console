@@ -44,9 +44,9 @@ export function BackupCodesModal({
 						Each code is single-use.
 					</DialogDescription>
 				</DialogHeader>
-				<div className="grid grid-cols-2 gap-2 rounded-md border border-zinc-100 bg-zinc-50/50 p-4 font-mono text-sm dark:border-zinc-800 dark:bg-zinc-900/50">
+				<div className="grid grid-cols-2 gap-2 rounded-md border border-border bg-secondary/50 p-4 font-mono text-sm dark:border-border dark:bg-primary/50">
 					{codes.map((code) => (
-						<div key={code} className="text-zinc-900 dark:text-zinc-100">
+						<div key={code} className="text-foreground">
 							{code}
 						</div>
 					))}

@@ -3,12 +3,29 @@ import { useNavigate } from "react-router";
 import {
     WrenchScrewdriverIcon,
     MagnifyingGlassIcon,
+    FunnelIcon,
     TrashIcon,
+    PlusIcon,
     EllipsisHorizontalIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { Badge } from "../../components/ui/badge";
+import { PageHead } from "@/components/ui/page-head";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { Pill, type PillTone } from "@/components/ui/pill";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "../../components/ui/app-table";
+import { TableEmptyRow } from "@/components/ui/table-empty-row";
 import { ConfirmationDialog } from "../../components/modals/confirmation-dialog";
 import { InlineLoader } from "../../components/ui/loading-screen";
 import { useTools, useDeleteTool } from "../../lib/api/hooks/use-tools";
@@ -23,15 +40,28 @@ import type { AiTool } from "@/types/ai-tool";
 const getTypeBadge = (type: string) => {
     switch (type) {
         case "api":
-            return "API Call";
+            return "API call";
         case "knowledge_base":
-            return "Knowledge Base";
+            return "Knowledge base";
         case "platform_event":
-            return "Platform Event";
+            return "Platform event";
         case "code_runner":
-            return "Code Runner";
+            return "Code runner";
         default:
             return "Unknown";
+    }
+};
+
+const getTypeTone = (type: string): PillTone => {
+    switch (type) {
+        case "api":
+            return "info";
+        case "platform_event":
+            return "warn";
+        case "knowledge_base":
+            return "ok";
+        default:
+            return "mute";
     }
 };
 
@@ -74,32 +104,51 @@ export default function ToolsPage() {
     };
 
     return (
-        <div>
-            <div className="mb-5 flex items-end justify-between gap-4">
-                <div className="space-y-1">
-                    <h1 className="text-lg font-medium tracking-tight">
-                        Tools
-                    </h1>
-                    <p className="text-[13px] text-muted-foreground">
-                        Manage tools that can be used by AI agents
-                    </p>
-                </div>
-                {!isLoading && !error && (
-                    <Button onClick={handleCreateTool}>Create Tool</Button>
-                )}
-            </div>
-
-            {!isLoading && !error && tools.length > 0 && (
-                <div className="relative mb-5">
-                    <MagnifyingGlassIcon className="absolute left-3 top-1/4 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search tools..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="h-9 pl-9"
-                    />
-                </div>
-            )}
+        <div className="flex flex-col gap-6">
+            <PageHead
+                className="mb-0"
+                eyebrow="Agents platform"
+                title="Tools"
+                sub="Tools your agents can call — APIs, code runners and platform events."
+                actions={
+                    !isLoading && !error ? (
+                        <>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="gap-1.5"
+                                    >
+                                        <FunnelIcon className="size-4" />
+                                        Filter
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent
+                                    align="end"
+                                    className="w-64 p-3"
+                                >
+                                    <div className="relative">
+                                        <MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Search tools…"
+                                            value={searchTerm}
+                                            onChange={(e) =>
+                                                setSearchTerm(e.target.value)
+                                            }
+                                            className="h-8 bg-secondary pl-8 text-[13px]"
+                                        />
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                            <Button onClick={handleCreateTool}>
+                                <PlusIcon className="h-4 w-4" />
+                                Create tool
+                            </Button>
+                        </>
+                    ) : undefined
+                }
+            />
 
             {isLoading ? (
                 <InlineLoader />
@@ -109,87 +158,111 @@ export default function ToolsPage() {
                         Error loading tools: {error.message}
                     </p>
                 </div>
-            ) : tools.length === 0 ? (
-                <div className="text-center py-12">
-                    <WrenchScrewdriverIcon className="mx-auto h-12 w-12 text-muted-foreground" />
-                    <h3 className="mt-2 text-sm font-normal">No tools</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        Get started by creating your first AI tool.
-                    </p>
-                    <div className="mt-6">
-                        <Button onClick={handleCreateTool}>Create Tool</Button>
-                    </div>
-                </div>
             ) : (
-                <div className="space-y-1.5">
-                    {tools.map((tool) => (
-                        <div
-                            key={tool.id}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => handleEditTool(tool)}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                    e.preventDefault();
-                                    handleEditTool(tool);
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-[280px]">Name</TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead className="w-[140px]">Type</TableHead>
+                            <TableHead className="w-[50px]"></TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {tools.length === 0 ? (
+                            <TableEmptyRow
+                                colSpan={4}
+                                icon={
+                                    <WrenchScrewdriverIcon className="h-8 w-8 text-muted-foreground/50" />
                                 }
-                            }}
-                            className="group flex items-start gap-3 rounded-lg border border-border/60 bg-background px-3.5 py-2.5 text-left transition-colors hover:border-border hover:bg-muted/20"
-                        >
-                            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                                <WrenchScrewdriverIcon className="h-3.5 w-3.5" />
-                            </div>
-                            <div className="min-w-0 flex-1 space-y-0.5">
-                                <div className="flex items-center gap-2.5">
-                                    <span className="truncate text-[14px] font-medium leading-5">
-                                        {tool.name}
-                                    </span>
-                                    <Badge
-                                        variant="secondary"
-                                        className="h-5 rounded-md px-1.5 text-[11px] font-medium"
-                                    >
-                                        {getTypeBadge(tool.tool_type)}
-                                    </Badge>
-                                </div>
-                                <p
-                                    className="line-clamp-1 text-[13px] leading-5 text-muted-foreground"
-                                    title={tool.description || ""}
+                                title={
+                                    searchTerm
+                                        ? "No tools match your search"
+                                        : "No tools yet"
+                                }
+                                description={
+                                    searchTerm
+                                        ? "Try a different search term."
+                                        : "Create your first tool to give agents API calls, code runners and platform events."
+                                }
+                                action={
+                                    searchTerm ? undefined : (
+                                        <Button onClick={handleCreateTool}>
+                                            <PlusIcon className="mr-2 h-4 w-4" />
+                                            Create tool
+                                        </Button>
+                                    )
+                                }
+                            />
+                        ) : (
+                            tools.map((tool) => (
+                                <TableRow
+                                    key={tool.id}
+                                    onClick={() => handleEditTool(tool)}
+                                    className="group cursor-pointer"
                                 >
-                                    {tool.description || "No description"}
-                                </p>
-                            </div>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="mt-0.5 h-7 w-7 shrink-0 text-muted-foreground"
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        <EllipsisHorizontalIcon className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent
-                                    align="end"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                    }}
-                                >
-                                    <DropdownMenuItem
-                                        variant="destructive"
-                                        onSelect={(e) => {
-                                            e.stopPropagation();
-                                            handleDeleteTool(tool);
-                                        }}
-                                    >
-                                        <TrashIcon className="mr-2 h-4 w-4" />
-                                        Delete tool
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    ))}
-                </div>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2.5">
+                                            <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                                                <WrenchScrewdriverIcon className="h-4 w-4" />
+                                            </span>
+                                            <span className="truncate font-medium text-foreground">
+                                                {tool.name}
+                                            </span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="max-w-0">
+                                        <span
+                                            className="block truncate text-muted-foreground"
+                                            title={tool.description || ""}
+                                        >
+                                            {tool.description ||
+                                                "No description"}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Pill tone={getTypeTone(tool.tool_type)}>
+                                            {getTypeBadge(tool.tool_type)}
+                                        </Pill>
+                                    </TableCell>
+                                    <TableCell>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-7 w-7 shrink-0 text-muted-foreground"
+                                                    onClick={(e) =>
+                                                        e.stopPropagation()
+                                                    }
+                                                >
+                                                    <EllipsisHorizontalIcon className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent
+                                                align="end"
+                                                onClick={(e) =>
+                                                    e.stopPropagation()
+                                                }
+                                            >
+                                                <DropdownMenuItem
+                                                    variant="destructive"
+                                                    onSelect={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteTool(tool);
+                                                    }}
+                                                >
+                                                    <TrashIcon className="mr-2 h-4 w-4" />
+                                                    Delete tool
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
             )}
             <ConfirmationDialog
                 isOpen={confirmDeleteOpen}

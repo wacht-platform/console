@@ -44,8 +44,8 @@ export function DeploymentSwitcher({
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 outline-none focus-visible:ring-2 focus-visible:ring-zinc-400">
-                    <span className="text-zinc-600 dark:text-zinc-400 truncate max-w-[150px]">
+                <button className="flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-secondary outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    <span className="text-muted-foreground truncate max-w-[150px]">
                         {selectedDeployment ? selectedLabel() : "Select Deployment"}
                     </span>
                 </button>

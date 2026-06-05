@@ -7,7 +7,6 @@ import {
 	useRemoveSmtpConfig,
 } from "@/lib/api/hooks/use-smtp-config";
 import { InlineLoader } from "@/components/ui/loading-screen";
-import { Text } from "@/components/ui/text";
 import { toast } from "sonner";
 import type { SmtpConfigRequest } from "@/types/deployment";
 
@@ -80,9 +79,9 @@ export default function DnsVerificationPage() {
 	if (!selectedDeployment) {
 		return (
 			<div className="flex items-center justify-center min-h-screen">
-				<Text className="text-zinc-500 dark:text-zinc-400">
+				<p className="text-sm text-muted-foreground text-muted-foreground">
 					No deployment selected. Please select a deployment first.
-				</Text>
+				</p>
 			</div>
 		);
 	}
@@ -92,13 +91,13 @@ export default function DnsVerificationPage() {
 		return (
 			<div className="flex items-center justify-center min-h-screen">
 				<div className="text-center">
-					<Text className="text-zinc-500 dark:text-zinc-400 mb-2">
+					<p className="text-sm text-muted-foreground text-muted-foreground mb-2">
 						DNS configuration is only available for production deployments.
-					</Text>
-					<Text className="text-sm text-zinc-400 dark:text-zinc-500">
+					</p>
+					<p className="text-sm text-muted-foreground text-sm text-muted-foreground/70">
 						Create a production deployment to configure custom domain
 						functionality.
-					</Text>
+					</p>
 				</div>
 			</div>
 		);

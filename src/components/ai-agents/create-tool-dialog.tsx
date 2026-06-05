@@ -24,7 +24,7 @@ export function CreateToolDialog({
     return (
         <Dialog open={open} onOpenChange={(value) => !value && onClose()}>
             <DialogContent className="sm:max-w-6xl max-h-[92vh] flex flex-col gap-0 p-0">
-                <DialogHeader className="p-6 pb-2">
+                <DialogHeader className="mx-0 mt-0 border-0 p-6 pb-4">
                     <DialogTitle>{isEditing ? "Edit Tool" : "Create Tool"}</DialogTitle>
                     <DialogDescription>
                         Configure a tool for your AI agents to use.

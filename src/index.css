@@ -77,75 +77,92 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
+    /* Wacht design language — light. Mapped from _export 2 --wa-* tokens. */
+    --background: oklch(0.969 0.004 106.5);        /* wa-bg */
+    --foreground: oklch(0.201 0.004 286);        /* wa-ink */
+    --card: oklch(1 0 0);              /* wa-surface */
+    --card-foreground: oklch(0.201 0.004 286);
     --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.491 0.27 292.581);
-    --primary-foreground: oklch(0.969 0.016 293.756);
-    --secondary: oklch(0.967 0.001 286.375);
-    --secondary-foreground: oklch(0.21 0.006 285.885);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --destructive-foreground: oklch(0.97 0.014 254.604);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
+    --popover-foreground: oklch(0.201 0.004 286);
+    --primary: oklch(0.536 0.253 285.6);           /* wa-accent (violet) */
+    --primary-foreground: oklch(1 0 0);
+    --secondary: oklch(0.985 0.003 106.4);         /* wa-surface-2 */
+    --secondary-foreground: oklch(0.354 0.007 286); /* wa-ink-2 */
+    --muted: oklch(0.985 0.003 106.4);
+    --muted-foreground: oklch(0.568 0.009 286.1);  /* wa-mute */
+    --accent: oklch(0.957 0.004 106.5);            /* wa-hover */
+    --accent-foreground: oklch(0.201 0.004 286);
+    --destructive: oklch(0.533 0.194 28.7);       /* wa-err */
+    --destructive-foreground: oklch(1 0 0);
+    --border: oklch(0.192 0.004 286 / 0.08);   /* wa-line */
+    --input: oklch(0.192 0.004 286 / 0.14);    /* wa-line-2 */
+    --ring: oklch(0.536 0.253 285.6);
     --chart-1: oklch(0.785 0.115 274.713);
     --chart-2: oklch(0.585 0.233 277.117);
     --chart-3: oklch(0.511 0.262 276.966);
     --chart-4: oklch(0.457 0.24 277.023);
     --chart-5: oklch(0.398 0.195 277.366);
     --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.541 0.281 293.009);
-    --sidebar-primary-foreground: oklch(0.969 0.016 293.756);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --sidebar: oklch(0.985 0.003 106.4);   /* wa-surface-2 #fafaf8 (whitish vs page) */
+    --sidebar-foreground: oklch(0.201 0.004 286);
+    --sidebar-primary: oklch(0.536 0.253 285.6);
+    --sidebar-primary-foreground: oklch(1 0 0);
+    --sidebar-accent: oklch(0.957 0.004 106.5);
+    --sidebar-accent-foreground: oklch(0.201 0.004 286);
+    --sidebar-border: oklch(0.192 0.004 286 / 0.08);
+    --sidebar-ring: oklch(0.536 0.253 285.6);
+
+    /* Code syntax tokens (light) */
+    --code-keyword: oklch(0.536 0.253 285.6);   /* violet (accent) */
+    --code-string: oklch(0.5 0.13 150);         /* green */
+    --code-number: oklch(0.55 0.13 55);         /* amber */
+    --code-fn: oklch(0.52 0.2 277);             /* indigo-violet */
+    --code-type: oklch(0.52 0.13 230);          /* blue */
+    --code-comment: oklch(0.568 0.009 286.1);   /* muted */
 }
 
 .dark {
-    /* Indigo-tinted dark palette */
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.432 0.232 292.759);
-    --primary-foreground: oklch(0.969 0.016 293.756);
-    --secondary: oklch(0.274 0.006 286.033);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --destructive-foreground: oklch(0.97 0.014 254.604);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
+    /* Wacht design language — dark. Mapped from _export 2 .wa-dark tokens. */
+    --background: oklch(0.16 0.006 285.7);        /* wa-bg */
+    --foreground: oklch(0.944 0.004 286.3);        /* wa-ink */
+    --card: oklch(0.189 0.01 285.4);              /* wa-surface */
+    --card-foreground: oklch(0.944 0.004 286.3);
+    --popover: oklch(0.189 0.01 285.4);
+    --popover-foreground: oklch(0.944 0.004 286.3);
+    --primary: oklch(0.66 0.194 289.1);           /* wa-dark violet accent */
+    --primary-foreground: oklch(1 0 0);
+    --secondary: oklch(0.175 0.01 285.3);         /* wa-surface-2 */
+    --secondary-foreground: oklch(0.825 0.008 286.2); /* wa-ink-2 */
+    --muted: oklch(0.175 0.01 285.3);
+    --muted-foreground: oklch(0.636 0.012 286.1);  /* wa-mute */
+    --accent: oklch(0.22 0.012 285.4);            /* wa-hover */
+    --accent-foreground: oklch(0.944 0.004 286.3);
+    --destructive: oklch(0.667 0.186 26.1);
+    --destructive-foreground: oklch(1 0 0);
+    --border: oklch(1 0 0 / 0.07);   /* wa-line */
+    --input: oklch(1 0 0 / 0.13);    /* wa-line-2 */
+    --ring: oklch(0.66 0.194 289.1);
     --chart-1: oklch(0.785 0.115 274.713);
     --chart-2: oklch(0.585 0.233 277.117);
     --chart-3: oklch(0.511 0.262 276.966);
     --chart-4: oklch(0.457 0.24 277.023);
     --chart-5: oklch(0.398 0.195 277.366);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.606 0.25 292.717);
-    --sidebar-primary-foreground: oklch(0.969 0.016 293.756);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --sidebar: oklch(0.16 0.006 285.7);           /* wa-bg #0d0d10 (flush w/ page) */
+    --sidebar-foreground: oklch(0.944 0.004 286.3);
+    --sidebar-primary: oklch(0.66 0.194 289.1);
+    --sidebar-primary-foreground: oklch(1 0 0);
+    --sidebar-accent: oklch(0.22 0.012 285.4);
+    --sidebar-accent-foreground: oklch(0.944 0.004 286.3);
+    --sidebar-border: oklch(1 0 0 / 0.07);
+    --sidebar-ring: oklch(0.66 0.194 289.1);
+
+    /* Code syntax tokens (dark) */
+    --code-keyword: oklch(0.72 0.16 290);       /* violet */
+    --code-string: oklch(0.82 0.14 160);        /* green */
+    --code-number: oklch(0.8 0.11 65);          /* amber */
+    --code-fn: oklch(0.74 0.13 270);            /* indigo */
+    --code-type: oklch(0.74 0.11 225);          /* blue */
+    --code-comment: oklch(0.636 0.012 286.1);   /* muted */
 }
 
 * {
@@ -171,9 +188,9 @@
 }
 
 @theme inline {
-    --radius-sm: calc(var(--radius) - 4px);
-    --radius-md: calc(var(--radius) - 2px);
-    --radius-lg: var(--radius);
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
     --radius-xl: calc(var(--radius) + 4px);
     --radius-2xl: calc(var(--radius) + 8px);
     --radius-3xl: calc(var(--radius) + 12px);
@@ -238,4 +255,272 @@
     input[type="number"] {
         -moz-appearance: textfield;
     }
+}
+/* Email template editor — blend the custom Jodit editor into the card frame
+   and give the toolbar the slick, flat design-system look. */
+.wa-jodit,
+.wa-jodit .jodit-container {
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: var(--card) !important;
+}
+.wa-jodit .jodit-toolbar__box {
+    border: 0 !important;
+    border-bottom: 1px solid var(--border) !important;
+    border-radius: 0 !important;
+    background: var(--secondary) !important;
+    padding: 5px 8px !important;
+}
+.wa-jodit .jodit-toolbar-editor-collection,
+.wa-jodit .jodit-toolbar-collection {
+    background: transparent !important;
+    padding: 0 !important;
+}
+/* kill Jodit's faux toolbar drop-shadow line */
+.wa-jodit .jodit-toolbar-editor-collection:after,
+.wa-jodit .jodit-toolbar-collection:after {
+    display: none !important;
+}
+.wa-jodit .jodit-toolbar-button { margin: 0 1px !important; }
+.wa-jodit .jodit-toolbar-button__button {
+    height: 28px !important;
+    min-width: 28px !important;
+    padding: 0 6px !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    color: var(--secondary-foreground) !important;
+    background: transparent !important;
+    transition:
+        background 0.12s ease,
+        color 0.12s ease;
+}
+.wa-jodit .jodit-toolbar-button__button:hover,
+.wa-jodit .jodit-toolbar-button__trigger:hover {
+    background: var(--accent) !important;
+    color: var(--foreground) !important;
+}
+.wa-jodit .jodit-toolbar-button_active .jodit-toolbar-button__button,
+.wa-jodit .jodit-toolbar-button__button[aria-pressed="true"] {
+    background: var(--accent) !important;
+    color: var(--foreground) !important;
+}
+.wa-jodit .jodit-toolbar-button__icon svg,
+.wa-jodit .jodit-toolbar-button__button svg {
+    width: 15px !important;
+    height: 15px !important;
+    fill: currentColor !important;
+}
+.wa-jodit .jodit-toolbar-button__text {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+}
+.wa-jodit .jodit-toolbar-button__trigger {
+    width: 13px !important;
+    border-radius: 6px !important;
+    opacity: 0.55;
+}
+/* thin vertical separators between groups */
+.wa-jodit .jodit-ui-separator,
+.wa-jodit .jodit-toolbar__box .jodit_toolbar_btn-separator {
+    border-left: 1px solid var(--border) !important;
+    width: 0 !important;
+    height: 18px !important;
+    margin: 0 6px !important;
+    background: transparent !important;
+}
+.wa-jodit .jodit-workplace,
+.wa-jodit .jodit-wysiwyg {
+    background: var(--card) !important;
+    color: var(--foreground) !important;
+}
+.wa-jodit .jodit-status-bar {
+    display: none !important;
+}
+
+/* Email editor canvas — always render the editing surface in light mode,
+   regardless of app theme (emails are composed/sent on light backgrounds). */
+.wa-editor-light {
+    color-scheme: light;
+    --background: oklch(0.969 0.004 106.5);
+    --foreground: oklch(0.201 0.004 286);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.201 0.004 286);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.201 0.004 286);
+    --secondary: oklch(0.985 0.003 106.4);
+    --secondary-foreground: oklch(0.354 0.007 286);
+    --muted: oklch(0.985 0.003 106.4);
+    --muted-foreground: oklch(0.568 0.009 286.1);
+    --accent: oklch(0.957 0.004 106.5);
+    --accent-foreground: oklch(0.201 0.004 286);
+    --border: oklch(0.192 0.004 286 / 0.08);
+    --input: oklch(0.192 0.004 286 / 0.14);
+}
+.wa-editor-light .jodit-wysiwyg,
+.wa-editor-light .jodit-workplace {
+    background: #ffffff !important;
+    color: #1f1f22 !important;
+}
+
+/* Milkdown Crepe (system prompt editor) — map to design tokens so it follows
+   light/dark, and drop the frame theme's own card chrome since we wrap it. */
+.wa-prompt-editor .milkdown {
+    --crepe-color-background: transparent;
+    --crepe-color-on-background: var(--foreground);
+    --crepe-color-surface: var(--popover);
+    --crepe-color-surface-low: var(--secondary);
+    --crepe-color-on-surface: var(--foreground);
+    --crepe-color-on-surface-variant: var(--muted-foreground);
+    /* outline drives popup icon colours, so it must be a visible muted tone,
+       not the faint hairline border token. */
+    --crepe-color-outline: var(--muted-foreground);
+    --crepe-color-primary: var(--primary);
+    --crepe-color-secondary: var(--secondary);
+    --crepe-color-on-secondary: var(--secondary-foreground);
+    --crepe-color-inverse: var(--foreground);
+    --crepe-color-on-inverse: var(--background);
+    --crepe-color-inline-code: var(--primary);
+    --crepe-color-error: var(--destructive);
+    --crepe-color-hover: var(--accent);
+    --crepe-color-selected: color-mix(in oklch, var(--primary) 14%, transparent);
+    --crepe-color-inline-area: var(--secondary);
+    --crepe-font-title: var(--font-sans);
+    --crepe-font-default: var(--font-sans);
+    --crepe-font-code: var(--font-mono);
+    --crepe-shadow-1: var(--shadow-md, 0 2px 8px rgb(0 0 0 / 0.12));
+    --crepe-shadow-2: 0 4px 16px rgb(0 0 0 / 0.16);
+    box-shadow: none;
+    border-radius: 0;
+    font-size: 13px;
+}
+.wa-prompt-editor .milkdown .ProseMirror {
+    min-height: 440px;
+    padding: 12px 16px;
+}
+.wa-prompt-editor .milkdown .ProseMirror[data-milkdown-root] {
+    max-width: none;
+}
+
+/* Tighten Crepe's document-scale typography to our density. */
+.wa-prompt-editor .milkdown .ProseMirror h1 {
+    font-size: 18px;
+    line-height: 1.35;
+    margin-top: 16px;
+    padding: 0;
+}
+.wa-prompt-editor .milkdown .ProseMirror h2 {
+    font-size: 16px;
+    line-height: 1.35;
+    margin-top: 14px;
+    padding: 0;
+}
+.wa-prompt-editor .milkdown .ProseMirror h3 {
+    font-size: 14px;
+    line-height: 1.4;
+    margin-top: 12px;
+    padding: 0;
+}
+.wa-prompt-editor .milkdown .ProseMirror h4,
+.wa-prompt-editor .milkdown .ProseMirror h5,
+.wa-prompt-editor .milkdown .ProseMirror h6 {
+    font-size: 13px;
+    line-height: 1.4;
+    margin-top: 10px;
+    padding: 0;
+}
+.wa-prompt-editor .milkdown .ProseMirror p {
+    font-size: 13px;
+    line-height: 1.65;
+    padding: 2px 0;
+}
+.wa-prompt-editor .milkdown .ProseMirror li {
+    font-size: 13px;
+    line-height: 1.6;
+}
+.wa-prompt-editor .milkdown .ProseMirror blockquote {
+    padding-left: 14px;
+    margin: 6px 0;
+}
+.wa-prompt-editor .milkdown .ProseMirror pre {
+    padding: 10px 12px;
+}
+.wa-prompt-editor .milkdown .ProseMirror pre,
+.wa-prompt-editor .milkdown .ProseMirror pre code {
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* Slash / block-edit menu — Crepe ships document-scale rows; compact them. */
+.wa-prompt-editor .milkdown .milkdown-slash-menu .menu-groups {
+    padding: 0 6px 6px;
+    max-height: 280px;
+}
+.wa-prompt-editor .milkdown .milkdown-slash-menu .menu-groups .menu-group h6 {
+    font-size: 10px;
+    line-height: 1;
+    padding: 8px 8px 4px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.wa-prompt-editor .milkdown .milkdown-slash-menu .menu-groups .menu-group li {
+    min-width: 196px;
+    gap: 10px;
+    padding: 6px 8px;
+    border-radius: 6px;
+}
+.wa-prompt-editor .milkdown .milkdown-slash-menu .menu-groups .menu-group li svg {
+    width: 16px;
+    height: 16px;
+}
+.wa-prompt-editor .milkdown .milkdown-slash-menu .menu-groups .menu-group li > span {
+    font-size: 13px;
+    line-height: 1.3;
+}
+.wa-prompt-editor .milkdown .milkdown-slash-menu .tab-group {
+    padding: 6px 6px 0;
+}
+.wa-prompt-editor .milkdown .milkdown-slash-menu .tab-group ul {
+    padding: 4px 6px;
+    gap: 6px;
+}
+.wa-prompt-editor .milkdown .milkdown-slash-menu .tab-group ul li {
+    padding: 4px 10px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+.wa-prompt-editor .milkdown .milkdown-block-handle .operation-item {
+    width: 26px;
+    height: 26px;
+    padding: 5px;
+}
+.wa-prompt-editor .milkdown .milkdown-block-handle .operation-item svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Pop-up menus (selection toolbar, slash menu, block handle) — match our
+   popover chrome: hairline border, rounded-md, ring, compact items. */
+.wa-prompt-editor .milkdown .milkdown-toolbar,
+.wa-prompt-editor .milkdown .milkdown-slash-menu,
+.wa-prompt-editor .milkdown .milkdown-block-handle {
+    z-index: 40;
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    box-shadow:
+        var(--crepe-shadow-1),
+        0 0 0 1px color-mix(in oklch, var(--foreground) 10%, transparent);
+}
+.wa-prompt-editor .milkdown .milkdown-toolbar .toolbar-item {
+    width: 30px;
+    height: 30px;
+    margin: 4px;
+    border-radius: 6px;
+}
+.wa-prompt-editor .milkdown .milkdown-toolbar .toolbar-item svg {
+    width: 16px;
+    height: 16px;
+}
+.wa-prompt-editor .milkdown .milkdown-toolbar .divider {
+    height: 18px;
+    margin: 6px 2px;
 }

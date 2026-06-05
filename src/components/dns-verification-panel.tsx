@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/pill";
+import { Tag } from "@/components/ui/tag";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox"
 import { CheckboxField } from "@/components/ui/app-checkbox";
@@ -15,6 +16,8 @@ import {
 	ExclamationTriangleIcon,
 	ServerIcon,
 	EnvelopeIcon,
+	PlayIcon,
+	CheckIcon,
 } from "@heroicons/react/24/outline";
 import { Link } from "react-router";
 import {
@@ -27,6 +30,8 @@ import {
 } from "@/components/ui/app-table";
 import { Text } from "@/components/ui/text";
 import { Heading } from "@/components/ui/heading";
+import { PageHead } from "@/components/ui/page-head";
+import { cn } from "@/lib/utils";
 import type {
 	DnsRecord,
 	DomainVerificationRecords,
@@ -57,12 +62,12 @@ function DnsRecordRow({ record }: { record: DnsRecord }) {
 
 	const getStatusBadge = () => {
 		if (record.verified) {
-			return <Badge color="green">Configured</Badge>;
+			return <Pill tone="ok">Configured</Pill>;
 		}
 		if (record.verification_attempted_at) {
-			return <Badge color="red">Failed</Badge>;
+			return <Pill tone="err">Failed</Pill>;
 		}
-		return <Badge color="yellow">Pending</Badge>;
+		return <Pill tone="warn">Pending</Pill>;
 	};
 
 	return (
@@ -73,28 +78,31 @@ function DnsRecordRow({ record }: { record: DnsRecord }) {
 				</div>
 			</TableCell>
 			<TableCell className="w-[10%] min-w-[60px]">
-				<Badge color="zinc">{record.record_type}</Badge>
+				<Tag>{record.record_type}</Tag>
 			</TableCell>
 			<TableCell className="w-[45%] min-w-[200px] max-w-0">
-				<div className="flex items-center space-x-2 min-w-0">
+				<div className="flex min-w-0 items-center gap-2">
+					<code
+						className="block flex-1 truncate rounded-md border border-border bg-secondary px-2 py-1.5 font-mono text-[12px] text-secondary-foreground"
+						title={record.value}
+					>
+						{record.value}
+					</code>
 					<Button
 						variant="outline"
+						size="icon-xs"
 						onClick={() => copyToClipboard(record.value)}
-						className="p-1 h-6 w-6 flex-shrink-0"
+						className="shrink-0"
 						title="Copy to clipboard"
 					>
 						<DocumentDuplicateIcon className="h-3 w-3" />
 					</Button>
-					<div className="min-w-0 flex-1">
-						<code
-							className="text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded block truncate w-full"
-							title={record.value}
-						>
-							{record.value}
-						</code>
-					</div>
 				</div>
-				{copied && <Text className="text-xs text-green-600 mt-1">Copied!</Text>}
+				{copied && (
+					<span className="mt-1 block font-mono text-[10px] text-emerald-600">
+						copied
+					</span>
+				)}
 			</TableCell>
 			<TableCell className="w-[15%] min-w-[100px]">
 				<div className="flex items-center space-x-1">
@@ -102,7 +110,7 @@ function DnsRecordRow({ record }: { record: DnsRecord }) {
 					{getStatusBadge()}
 				</div>
 			</TableCell>
-			<TableCell className="text-sm text-zinc-500 dark:text-zinc-400 w-[10%] min-w-[80px] max-w-0">
+			<TableCell className="text-sm text-muted-foreground w-[10%] min-w-[80px] max-w-0">
 				<div className="truncate" title={
 					record.last_verified_at
 						? new Date(record.last_verified_at).toLocaleString()
@@ -134,33 +142,40 @@ function DnsRecordSection({
 		return null;
 	}
 
+	const configured = records.filter((r) => r.verified).length;
+
 	return (
-		<div className="space-y-4">
-			<div>
-				<h3 className="text-lg font-medium">{title}</h3>
-				<Text className="text-sm text-zinc-500 dark:text-zinc-400">{description}</Text>
+		<div className="flex flex-col gap-3">
+			<div className="flex items-center justify-between gap-3">
+				<div className="flex items-center gap-2.5">
+					<h2 className="text-base font-medium tracking-tight text-foreground">
+						{title}
+					</h2>
+					<Tag>
+						{configured} of {records.length} configured
+					</Tag>
+				</div>
+				<span className="hidden font-mono text-[11px] text-muted-foreground sm:block">
+					{description}
+				</span>
 			</div>
 
-			<div className="w-full max-w-full overflow-hidden">
-				<div className="overflow-x-auto">
-					<Table className="table-fixed w-full min-w-full">
-						<TableHeader>
-							<TableRow>
-								<TableHead className="w-[20%] min-w-[120px]">Name</TableHead>
-								<TableHead className="w-[10%] min-w-[60px]">Type</TableHead>
-								<TableHead className="w-[45%] min-w-[200px]">Value</TableHead>
-								<TableHead className="w-[15%] min-w-[100px]">Status</TableHead>
-								<TableHead className="w-[10%] min-w-[80px]">Last Checked</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{records.map((record, index) => (
-								<DnsRecordRow key={`${record.name}-${index}`} record={record} />
-							))}
-						</TableBody>
-					</Table>
-				</div>
-			</div>
+			<Table className="table-fixed w-full">
+				<TableHeader>
+					<TableRow>
+						<TableHead className="w-[20%] min-w-[120px]">Name</TableHead>
+						<TableHead className="w-[10%] min-w-[60px]">Type</TableHead>
+						<TableHead className="w-[45%] min-w-[200px]">Value</TableHead>
+						<TableHead className="w-[15%] min-w-[100px]">Status</TableHead>
+						<TableHead className="w-[10%] min-w-[80px]">Last Checked</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{records.map((record, index) => (
+						<DnsRecordRow key={`${record.name}-${index}`} record={record} />
+					))}
+				</TableBody>
+			</Table>
 		</div>
 	);
 }
@@ -203,8 +218,8 @@ function SmtpConfigForm({
 	const isFormValid = host && port && username && password && fromEmail;
 
 	return (
-		<div className="space-y-4">
-			<div className="grid grid-cols-2 gap-4">
+		<div className="flex flex-col gap-4">
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				<Field>
 					<Label>SMTP Host</Label>
 					<Input
@@ -225,7 +240,7 @@ function SmtpConfigForm({
 				</Field>
 			</div>
 
-			<div className="grid grid-cols-2 gap-4">
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				<Field>
 					<Label>Username</Label>
 					<Input
@@ -254,7 +269,7 @@ function SmtpConfigForm({
 					onChange={(e) => setFromEmail(e.target.value)}
 					placeholder="noreply@example.com"
 				/>
-				<Text className="text-xs text-gray-500 mt-1">
+				<Text className="text-xs text-muted-foreground mt-1">
 					Emails will be sent from this address
 				</Text>
 			</Field>
@@ -272,20 +287,25 @@ function SmtpConfigForm({
 					onClick={() => onVerify(getConfig())}
 					disabled={!isFormValid || isVerifying}
 					variant="outline"
+					className="gap-1.5"
 				>
+					<PlayIcon className="h-4 w-4" />
 					{isVerifying ? "Testing..." : "Test Connection"}
 				</Button>
 				<Button
 					onClick={() => onSubmit(getConfig())}
 					disabled={!isFormValid || isSubmitting}
+					className="gap-1.5"
 				>
+					<CheckIcon className="h-4 w-4" />
 					{isSubmitting ? "Saving..." : existingConfig ? "Update Configuration" : "Save Configuration"}
 				</Button>
+				<div className="flex-1" />
 				{existingConfig && (
 					<Button
 						onClick={onRemove}
 						disabled={isRemoving}
-						color="red"
+						variant="destructive"
 					>
 						{isRemoving ? "Removing..." : "Remove & Use Postmark"}
 					</Button>
@@ -353,32 +373,32 @@ export function DnsVerificationPanel({
 		switch (verificationStatus) {
 			case "verified":
 				return (
-					<Badge color="green" className="text-sm">
+					<Pill tone="ok">
 						<CheckCircleIcon className="h-4 w-4 mr-1" />
 						Configured
-					</Badge>
+					</Pill>
 				);
 			case "in_progress":
 				return (
-					<Badge color="yellow" className="text-sm">
+					<Pill tone="warn">
 						<ClockIcon className="h-4 w-4 mr-1" />
 						In Progress
-					</Badge>
+					</Pill>
 				);
 			case "failed":
 				return (
-					<Badge color="red" className="text-sm">
+					<Pill tone="err">
 						<ExclamationTriangleIcon className="h-4 w-4 mr-1" />
 						Failed
-					</Badge>
+					</Pill>
 				);
 			case "pending":
 			default:
 				return (
-					<Badge color="zinc" className="text-sm">
+					<Pill tone="mute">
 						<ClockIcon className="h-4 w-4 mr-1" />
 						Pending
-					</Badge>
+					</Pill>
 				);
 		}
 	};
@@ -393,17 +413,17 @@ export function DnsVerificationPanel({
 						</div>
 						<div>
 							<Heading className="text-lg">DNS Configuration Required</Heading>
-							<Text className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+							<Text className="text-sm text-muted-foreground mt-1">
 								Your production deployment requires DNS configuration to be
 								fully functional.
 							</Text>
 							<div className="mt-2 flex items-center space-x-3">
-								<Badge color="yellow" className="text-sm">
+								<Pill tone="warn">
 									{verifiedRecords} of {totalRecords} records configured
-								</Badge>
+								</Pill>
 								<Link
 									to="go-live"
-									className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center space-x-1"
+									className="text-sm text-primary hover:text-primary dark:text-primary dark:hover:text-primary flex items-center space-x-1"
 								>
 									<span>View Details</span>
 									<ChevronRightIcon className="h-3 w-3" />
@@ -427,129 +447,134 @@ export function DnsVerificationPanel({
 	}
 
 	return (
-		<div className="space-y-8">
-			<div className="flex items-center justify-between">
-				<div>
-					<Heading>DNS Configuration</Heading>
-					<Text className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-						Configure these DNS records to enable your domain and email
-						functionality
-					</Text>
-				</div>
-
-				<div className="flex items-center space-x-4">
-					{getVerificationStatusBadge()}
-					{verificationStatus !== "verified" && (
-						<Badge color="zinc" className="text-sm">
-							{verifiedRecords} of {totalRecords} records configured
-						</Badge>
-					)}
-
-					<Button
-						onClick={onVerify}
-						disabled={isVerifying}
-						className="flex items-center space-x-2"
-					>
-						<ArrowPathIcon
-							className={`h-4 w-4 ${isVerifying ? "animate-spin" : ""}`}
-						/>
-						<span>{isVerifying ? "Checking..." : "Check Records"}</span>
-					</Button>
-				</div>
-			</div>
+		<div className="flex flex-col gap-8">
+			<PageHead
+				className="mb-0"
+				eyebrow="Production"
+				title="Go live"
+				sub="Configure DNS records and email delivery so Wacht can serve your custom domain."
+				actions={
+					<>
+						{getVerificationStatusBadge()}
+						{verificationStatus !== "verified" && (
+							<Pill tone="mute">
+								{verifiedRecords} of {totalRecords} records configured
+							</Pill>
+						)}
+						<Button
+							onClick={onVerify}
+							disabled={isVerifying}
+							className="flex items-center space-x-2"
+						>
+							<ArrowPathIcon
+								className={`h-4 w-4 ${isVerifying ? "animate-spin" : ""}`}
+							/>
+							<span>{isVerifying ? "Checking..." : "Check Records"}</span>
+						</Button>
+					</>
+				}
+			/>
 
 			{allDomainRecords.length > 0 && (
 				<DnsRecordSection
-					title="Domain Configuration Records"
-					description="Add these DNS records to enable your custom domain"
+					title="Domain configuration"
+					description="Add these records to enable your custom domain"
 					records={allDomainRecords}
 				/>
 			)}
 
-			{/* Email Configuration Section */}
-			<div className="space-y-4">
-				<div>
-					<h3 className="text-lg font-medium">Email Configuration</h3>
-					<Text className="text-sm text-zinc-500 dark:text-zinc-400">
-						Configure email delivery for your application
-					</Text>
+			{/* Email delivery */}
+			<div className="flex flex-col gap-4">
+				<div className="flex items-baseline justify-between gap-3">
+					<h2 className="text-base font-medium tracking-tight text-foreground">
+						Email delivery
+					</h2>
+					<span className="hidden font-mono text-[11px] text-muted-foreground sm:block">
+						required for verification &amp; magic links
+					</span>
 				</div>
 
-				{/* Email Provider Toggle */}
-				<div className="flex gap-3">
+				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 					<button
 						type="button"
 						onClick={() => setEmailConfigMode("postmark")}
-						className={`flex-1 p-4 rounded-lg border transition-all ${emailConfigMode === "postmark"
-							? "border-indigo-400 bg-indigo-50/70 dark:border-indigo-500 dark:bg-indigo-500/10"
-							: "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600 bg-white dark:bg-neutral-800/50"
-							}`}
+						className={cn(
+							"rounded-lg border p-4 text-left transition-all",
+							emailConfigMode === "postmark"
+								? "border-primary ring-3 ring-primary/15"
+								: "border-border bg-card hover:border-muted-foreground/40",
+						)}
 					>
-						<div className="flex items-start justify-between">
-							<div className="flex items-start space-x-3">
-								<EnvelopeIcon className={`h-6 w-6 mt-0.5 ${emailConfigMode === "postmark" ? "text-indigo-600 dark:text-indigo-400" : "text-gray-400 dark:text-neutral-500"}`} />
-								<div className="text-left">
-									<div className="flex items-center gap-2">
-										<span className={`font-medium ${emailConfigMode === "postmark" ? "text-indigo-600 dark:text-indigo-400" : "text-gray-900 dark:text-neutral-100"}`}>
-											Postmark
-										</span>
-										<Badge color="zinc" className="text-xs">Required</Badge>
-									</div>
-									<div className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
-										Configure DNS records for email delivery
-									</div>
-								</div>
-							</div>
-							{emailProvider === "postmark" && (
-								<Badge color="green" className="flex-shrink-0">Active</Badge>
-							)}
+						<div className="mb-1.5 flex items-center gap-3">
+							<EnvelopeIcon
+								className={cn(
+									"h-[18px] w-[18px] shrink-0",
+									emailConfigMode === "postmark"
+										? "text-primary"
+										: "text-muted-foreground",
+								)}
+							/>
+							<span className="text-sm font-medium text-foreground">
+								Postmark
+							</span>
+							<Tag>required</Tag>
+							<div className="flex-1" />
+							<Pill tone={emailProvider === "postmark" ? "ok" : "mute"}>
+								{emailProvider === "postmark" ? "active" : "not set"}
+							</Pill>
 						</div>
+						<p className="text-xs leading-relaxed text-muted-foreground">
+							Add DNS records and let Wacht handle delivery from
+							postmarkapp.com.
+						</p>
 					</button>
 
 					<button
 						type="button"
 						onClick={() => setEmailConfigMode("smtp")}
-						className={`flex-1 p-4 rounded-lg border transition-all ${emailConfigMode === "smtp"
-							? "border-indigo-400 bg-indigo-50/70 dark:border-indigo-500 dark:bg-indigo-500/10"
-							: "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600 bg-white dark:bg-neutral-800/50"
-							}`}
+						className={cn(
+							"rounded-lg border p-4 text-left transition-all",
+							emailConfigMode === "smtp"
+								? "border-primary ring-3 ring-primary/15"
+								: "border-border bg-card hover:border-muted-foreground/40",
+						)}
 					>
-						<div className="flex items-start justify-between">
-							<div className="flex items-start space-x-3">
-								<ServerIcon className={`h-6 w-6 mt-0.5 ${emailConfigMode === "smtp" ? "text-indigo-600 dark:text-indigo-400" : "text-gray-400 dark:text-neutral-500"}`} />
-								<div className="text-left">
-									<div className="flex items-center gap-2">
-										<span className={`font-medium ${emailConfigMode === "smtp" ? "text-indigo-600 dark:text-indigo-400" : "text-gray-900 dark:text-neutral-100"}`}>
-											Custom SMTP
-										</span>
-										<Badge color="amber" className="text-xs">Optional</Badge>
-									</div>
-									<div className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
-										Use your own SMTP server instead
-									</div>
-								</div>
-							</div>
-							{emailProvider === "custom_smtp" && (
-								<Badge color="green" className="flex-shrink-0">Active</Badge>
-							)}
+						<div className="mb-1.5 flex items-center gap-3">
+							<ServerIcon
+								className={cn(
+									"h-[18px] w-[18px] shrink-0",
+									emailConfigMode === "smtp"
+										? "text-primary"
+										: "text-muted-foreground",
+								)}
+							/>
+							<span className="text-sm font-medium text-foreground">
+								Custom SMTP
+							</span>
+							<Tag>optional</Tag>
+							<div className="flex-1" />
+							<Pill tone={emailProvider === "custom_smtp" ? "ok" : "mute"}>
+								{emailProvider === "custom_smtp" ? "active" : "not set"}
+							</Pill>
 						</div>
+						<p className="text-xs leading-relaxed text-muted-foreground">
+							Use your own SMTP server. Best for vanity from-addresses.
+						</p>
 					</button>
 				</div>
 
 				{/* Postmark DNS Records */}
 				{emailConfigMode === "postmark" && allEmailRecords.length > 0 && (
-					<div className="mt-4">
-						<DnsRecordSection
-							title="Email DNS Records"
-							description="Add these DNS records to enable email delivery via Postmark"
-							records={allEmailRecords}
-						/>
-					</div>
+					<DnsRecordSection
+						title="Email DNS records"
+						description="Add these records to enable email delivery via Postmark"
+						records={allEmailRecords}
+					/>
 				)}
 
 				{/* SMTP Configuration Form */}
 				{emailConfigMode === "smtp" && onSmtpSubmit && onSmtpVerify && onSmtpRemove && (
-					<div className="mt-3 bg-white dark:bg-neutral-900 rounded-lg border border-gray-200/80 dark:border-neutral-700/80 p-5">
+					<div className="bg-card rounded-lg border border-border p-5">
 						<SmtpConfigForm
 							existingConfig={smtpConfig}
 							onSubmit={onSmtpSubmit}
@@ -565,7 +590,7 @@ export function DnsVerificationPanel({
 
 			{allDomainRecords.length === 0 && allEmailRecords.length === 0 && emailConfigMode === "postmark" && (
 				<div className="text-center py-12">
-					<Text className="text-zinc-500 dark:text-zinc-400">
+					<Text className="text-muted-foreground">
 						No DNS records found. Create a production deployment to generate
 						configuration records.
 					</Text>
