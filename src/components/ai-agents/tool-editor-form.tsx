@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { TrashIcon, PlusIcon, VariableIcon } from "@heroicons/react/24/outline";
+import { EmptyState } from "@/components/ui/empty-state";
 import { CodeEditor } from "@/components/code-editor";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -409,14 +410,19 @@ function SchemaFieldListEditor({
 function ConfigSubsection({
     title,
     description,
+    action,
+    inset,
     children,
 }: {
     title: string;
     description?: string;
+    action?: React.ReactNode;
+    /** Render the heading inside the card (design's SubLabel-in-card groups). */
+    inset?: boolean;
     children: React.ReactNode;
 }) {
-    return (
-        <div className="space-y-3 border-t border-border pt-4 first:border-t-0 first:pt-0">
+    const heading = (
+        <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
                 <h4 className="text-sm font-medium text-foreground">{title}</h4>
                 {description ? (
@@ -425,18 +431,38 @@ function ConfigSubsection({
                     </p>
                 ) : null}
             </div>
-            {children}
+            {action ? <div className="shrink-0">{action}</div> : null}
         </div>
+    );
+
+    if (inset) {
+        return (
+            <section className="space-y-4 rounded-lg border border-border bg-card p-5">
+                {heading}
+                {children}
+            </section>
+        );
+    }
+
+    return (
+        <section className="space-y-3">
+            {heading}
+            <div className="rounded-lg border border-border bg-card p-5">
+                {children}
+            </div>
+        </section>
     );
 }
 
 function FormSection({
     title,
     description,
+    card,
     children,
 }: {
     title: string;
     description?: string;
+    card?: boolean;
     children: React.ReactNode;
 }) {
     return (
@@ -444,12 +470,18 @@ function FormSection({
             <div className="space-y-1">
                 <h3 className="text-sm font-medium text-foreground">{title}</h3>
                 {description ? (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-[13px] leading-5 text-muted-foreground">
                         {description}
                     </p>
                 ) : null}
             </div>
-            {children}
+            {card ? (
+                <div className="rounded-lg border border-border bg-card p-5">
+                    {children}
+                </div>
+            ) : (
+                children
+            )}
         </section>
     );
 }
@@ -659,12 +691,10 @@ export function ToolEditorForm({
                 });
                 onSaved?.(savedTool);
             } else {
-                const savedTool = await createToolMutation.mutateAsync(
-                    {
-                        ...baseToolData,
-                        tool_type: formData.type,
-                    } as CreateToolRequest,
-                );
+                const savedTool = await createToolMutation.mutateAsync({
+                    ...baseToolData,
+                    tool_type: formData.type,
+                } as CreateToolRequest);
                 onSaved?.(savedTool);
             }
         } catch (error) {
@@ -729,6 +759,7 @@ export function ToolEditorForm({
                         <ConfigSubsection
                             title="Endpoint"
                             description="Choose the HTTP method, target URL, and timeout."
+                            inset
                         >
                             <div className="grid gap-4 xl:grid-cols-[140px_minmax(0,1fr)_120px]">
                                 <div className="space-y-2">
@@ -786,7 +817,9 @@ export function ToolEditorForm({
                                         <Input
                                             type="number"
                                             className="w-full"
-                                            value={apiConfig.timeout_seconds || ""}
+                                            value={
+                                                apiConfig.timeout_seconds || ""
+                                            }
                                             onChange={(e) =>
                                                 setFormData({
                                                     ...formData,
@@ -902,6 +935,7 @@ export function ToolEditorForm({
                         <ConfigSubsection
                             title="Runtime"
                             description="Choose the runtime and execution limits."
+                            inset
                         >
                             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_140px]">
                                 <div className="space-y-2">
@@ -955,13 +989,9 @@ export function ToolEditorForm({
 
                         <ConfigSubsection
                             title="Network access"
-                            description="Keep this off unless the code genuinely needs outbound access."
-                        >
-                            <div className="flex items-center justify-between gap-4">
-                                <p className="text-sm text-muted-foreground">
-                                    Allow outbound network access for this code
-                                    runner.
-                                </p>
+                            description="Allow outbound network access for this code runner. Keep this off unless it genuinely needs it."
+                            inset
+                            action={
                                 <Switch
                                     id="code-runner-network"
                                     checked={runnerConfig.allow_network}
@@ -975,134 +1005,141 @@ export function ToolEditorForm({
                                         })
                                     }
                                 />
-                            </div>
+                            }
+                        >
+                            {null}
                         </ConfigSubsection>
 
                         <ConfigSubsection
                             title="Environment variables"
                             description="These values are encrypted at rest and injected into the execution environment for this tool."
+                            action={
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() =>
+                                        setFormData({
+                                            ...formData,
+                                            configuration: {
+                                                ...runnerConfig,
+                                                env_variables: [
+                                                    ...normalizeCodeRunnerEnvVariables(
+                                                        runnerConfig.env_variables,
+                                                    ),
+                                                    { name: "", value: "" },
+                                                ],
+                                            },
+                                        })
+                                    }
+                                >
+                                    <PlusIcon className="mr-1.5 h-3.5 w-3.5" />
+                                    Add variable
+                                </Button>
+                            }
                         >
-                            <div className="space-y-3">
-                                {normalizeCodeRunnerEnvVariables(
-                                    runnerConfig.env_variables,
-                                ).map((variable, index) => (
-                                    <div
-                                        key={index}
-                                        className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_36px]"
-                                    >
-                                        <div className="space-y-2">
-                                            <Label>Name</Label>
-                                            <Input
-                                                placeholder="MY_ENV_VAR"
-                                                value={variable.name}
-                                                onChange={(e) => {
-                                                    const nextVariables =
-                                                        normalizeCodeRunnerEnvVariables(
-                                                            runnerConfig.env_variables,
-                                                        );
-                                                    nextVariables[index] = {
-                                                        ...variable,
-                                                        name: e.target.value,
-                                                    };
-                                                    setFormData({
-                                                        ...formData,
-                                                        configuration: {
-                                                            ...runnerConfig,
-                                                            env_variables:
-                                                                nextVariables,
-                                                        },
-                                                    });
-                                                }}
-                                            />
+                            {normalizeCodeRunnerEnvVariables(
+                                runnerConfig.env_variables,
+                            ).length === 0 ? (
+                                <EmptyState
+                                    compact
+                                    icon={<VariableIcon />}
+                                    title="No environment variables"
+                                    description="Add a variable to inject an encrypted value into this tool's runtime."
+                                />
+                            ) : (
+                                <div className="space-y-3">
+                                    {normalizeCodeRunnerEnvVariables(
+                                        runnerConfig.env_variables,
+                                    ).map((variable, index) => (
+                                        <div
+                                            key={index}
+                                            className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_36px]"
+                                        >
+                                            <div className="space-y-2">
+                                                <Label>Name</Label>
+                                                <Input
+                                                    placeholder="MY_ENV_VAR"
+                                                    value={variable.name}
+                                                    onChange={(e) => {
+                                                        const nextVariables =
+                                                            normalizeCodeRunnerEnvVariables(
+                                                                runnerConfig.env_variables,
+                                                            );
+                                                        nextVariables[index] = {
+                                                            ...variable,
+                                                            name: e.target
+                                                                .value,
+                                                        };
+                                                        setFormData({
+                                                            ...formData,
+                                                            configuration: {
+                                                                ...runnerConfig,
+                                                                env_variables:
+                                                                    nextVariables,
+                                                            },
+                                                        });
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Value</Label>
+                                                <Input
+                                                    placeholder="Value"
+                                                    value={variable.value}
+                                                    onChange={(e) => {
+                                                        const nextVariables =
+                                                            normalizeCodeRunnerEnvVariables(
+                                                                runnerConfig.env_variables,
+                                                            );
+                                                        nextVariables[index] = {
+                                                            ...variable,
+                                                            value: e.target
+                                                                .value,
+                                                        };
+                                                        setFormData({
+                                                            ...formData,
+                                                            configuration: {
+                                                                ...runnerConfig,
+                                                                env_variables:
+                                                                    nextVariables,
+                                                            },
+                                                        });
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="flex items-end">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-10 w-10 justify-center px-0 text-muted-foreground hover:bg-transparent hover:text-destructive"
+                                                    onClick={() => {
+                                                        const nextVariables =
+                                                            normalizeCodeRunnerEnvVariables(
+                                                                runnerConfig.env_variables,
+                                                            ).filter(
+                                                                (_, i) =>
+                                                                    i !== index,
+                                                            );
+                                                        setFormData({
+                                                            ...formData,
+                                                            configuration: {
+                                                                ...runnerConfig,
+                                                                env_variables:
+                                                                    nextVariables,
+                                                            },
+                                                        });
+                                                    }}
+                                                    aria-label="Delete environment variable"
+                                                >
+                                                    <TrashIcon className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label>Value</Label>
-                                            <Input
-                                                placeholder="Value"
-                                                value={variable.value}
-                                                onChange={(e) => {
-                                                    const nextVariables =
-                                                        normalizeCodeRunnerEnvVariables(
-                                                            runnerConfig.env_variables,
-                                                        );
-                                                    nextVariables[index] = {
-                                                        ...variable,
-                                                        value: e.target.value,
-                                                    };
-                                                    setFormData({
-                                                        ...formData,
-                                                        configuration: {
-                                                            ...runnerConfig,
-                                                            env_variables:
-                                                                nextVariables,
-                                                        },
-                                                    });
-                                                }}
-                                            />
-                                        </div>
-                                        <div className="flex items-end">
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-10 w-10 justify-center px-0 text-muted-foreground hover:bg-transparent hover:text-destructive"
-                                                onClick={() => {
-                                                    const nextVariables =
-                                                        normalizeCodeRunnerEnvVariables(
-                                                            runnerConfig.env_variables,
-                                                        ).filter(
-                                                            (_, i) =>
-                                                                i !== index,
-                                                        );
-                                                    setFormData({
-                                                        ...formData,
-                                                        configuration: {
-                                                            ...runnerConfig,
-                                                            env_variables:
-                                                                nextVariables,
-                                                        },
-                                                    });
-                                                }}
-                                                aria-label="Delete environment variable"
-                                            >
-                                                <TrashIcon className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ))}
-                                <div className="flex items-center justify-between gap-4">
-                                    <p className="text-xs text-muted-foreground">
-                                        Reserved runtime keys such as provider API
-                                        keys are managed by the platform.
-                                    </p>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
-                                        onClick={() =>
-                                            setFormData({
-                                                ...formData,
-                                                configuration: {
-                                                    ...runnerConfig,
-                                                    env_variables: [
-                                                        ...normalizeCodeRunnerEnvVariables(
-                                                            runnerConfig.env_variables,
-                                                        ),
-                                                        {
-                                                            name: "",
-                                                            value: "",
-                                                        },
-                                                    ],
-                                                },
-                                            })
-                                        }
-                                    >
-                                        <PlusIcon className="mr-1 h-3 w-3" />
-                                        Add variable
-                                    </Button>
+                                    ))}
                                 </div>
-                            </div>
+                            )}
                         </ConfigSubsection>
 
                         <ConfigSubsection
@@ -1124,9 +1161,14 @@ export function ToolEditorForm({
                                 }
                             />
                             <p className="text-xs leading-5 text-muted-foreground">
-                                If your code returns structured output, define it in
-                                <span className="font-medium text-foreground"> Output Parameters</span>.
-                                The returned JSON must match that schema exactly.
+                                If your code returns structured output, define
+                                it in
+                                <span className="font-medium text-foreground">
+                                    {" "}
+                                    Output Parameters
+                                </span>
+                                . The returned JSON must match that schema
+                                exactly.
                             </p>
                         </ConfigSubsection>
 
@@ -1186,11 +1228,12 @@ export function ToolEditorForm({
                 onSubmit={handleSubmit}
                 className="flex min-h-0 flex-1 flex-col"
             >
-                <div className="grid min-h-0 flex-1 gap-10 xl:grid-cols-[320px_minmax(0,1fr)]">
-                    <aside className="space-y-6 border-b border-border pb-8 xl:border-b-0 xl:border-r xl:pb-0 xl:pr-8">
+                <div className="grid min-h-0 flex-1 gap-8 xl:grid-cols-[360px_minmax(0,1fr)] xl:items-start">
+                    <aside className="space-y-6">
                         <FormSection
                             title="Tool details"
-                            description="Define what the tool is called and how the agent should think about using it."
+                            description="Define the tool and how agents should think about using it."
+                            card
                         >
                             <div className="space-y-4">
                                 <div className="space-y-2">
@@ -1246,10 +1289,9 @@ export function ToolEditorForm({
                                 </div>
                             </div>
                         </FormSection>
-
                     </aside>
 
-                    <main className="min-h-0 space-y-8 xl:pl-2">
+                    <main className="min-h-0 space-y-8">
                         <FormSection
                             title="Configuration"
                             description="Provide the type-specific settings and schemas the runtime will use."
@@ -1290,7 +1332,8 @@ function normalizeToolConfiguration(
         case "CodeRunner":
             return {
                 ...configuration,
-                runtime: configuration.runtime === "python" ? "python" : "python",
+                runtime:
+                    configuration.runtime === "python" ? "python" : "python",
                 input_schema: normalizeSchemaFields(configuration.input_schema),
                 output_schema: normalizeSchemaFields(
                     configuration.output_schema,
