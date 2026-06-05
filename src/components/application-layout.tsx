@@ -2,6 +2,7 @@ import { Outlet, useNavigate, useLocation, useParams } from "react-router";
 import { useState, useEffect } from "react";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { AppLoading } from "./ui/loading-screen";
+import { HelpButton } from "./help-button";
 import { CreateProjectDialog } from "./create-project-dialog";
 import { BillingSetupDialog } from "./billing-setup-dialog";
 import { CreateProductionDeploymentDialog } from "./create-production-deployment-dialog";
@@ -396,6 +397,7 @@ export function ApplicationLayout() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            <HelpButton />
         </SidebarProvider>
     );
 }
