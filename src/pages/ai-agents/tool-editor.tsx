@@ -24,23 +24,34 @@ export default function ToolEditorPage() {
     }
 
     return (
-        <div className="flex min-h-[calc(100vh-8rem)] flex-col gap-10 px-2 pb-12">
+        <div className="flex min-h-[calc(100vh-8rem)] flex-col gap-6 px-2 pb-12">
             <div className="flex items-start justify-between gap-6 pt-2">
-                <div className="space-y-2">
-                    <div className="space-y-1">
-                        <h1 className="text-lg font-normal tracking-tight">
-                            {isEditing
-                                ? `Editing ${tool?.name ?? "tool"}`
-                                : "Creating tool"}
-                        </h1>
-                        <p className="max-w-2xl text-sm text-muted-foreground">
-                            Configure a tool for your AI agents to use.
-                        </p>
+                <div className="min-w-0">
+                    <div className="font-mono text-[11px] font-medium uppercase tracking-[0.07em] text-muted-foreground/70">
+                        {isEditing ? "Tool · edit" : "Agents platform · new tool"}
                     </div>
+                    <h1 className="mt-1.5 text-[22px] font-medium leading-[1.2] tracking-[-0.012em] text-foreground">
+                        {isEditing
+                            ? `Editing ${tool?.name ?? "tool"}`
+                            : "Create tool"}
+                    </h1>
+                    <p className="mt-1.5 max-w-2xl text-[13px] leading-6 text-muted-foreground">
+                        Configure a tool your agents can call — HTTP
+                        integrations, code runners, or platform actions.
+                    </p>
                 </div>
-                <Button type="submit" form="tool-editor-form">
-                    {isEditing ? "Save changes" : "Create tool"}
-                </Button>
+                <div className="flex shrink-0 items-center gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => navigate(basePath)}
+                    >
+                        Cancel
+                    </Button>
+                    <Button type="submit" form="tool-editor-form">
+                        {isEditing ? "Save changes" : "Create tool"}
+                    </Button>
+                </div>
             </div>
 
             <ToolEditorForm
