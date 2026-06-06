@@ -48,9 +48,6 @@ export default function ToolEditorPage() {
                     >
                         Cancel
                     </Button>
-                    <Button type="submit" form="tool-editor-form">
-                        {isEditing ? "Save changes" : "Create tool"}
-                    </Button>
                 </div>
             </div>
 

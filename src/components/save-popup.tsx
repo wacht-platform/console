@@ -5,9 +5,11 @@ interface SavePopupProps {
     isSaving: boolean;
     onSave: () => void;
     onCancel: () => void;
+    /** Label for the primary button (defaults to "Save changes"). */
+    saveLabel?: string;
 }
 
-export default function SavePopup({ isDirty, isSaving, onSave, onCancel }: SavePopupProps) {
+export default function SavePopup({ isDirty, isSaving, onSave, onCancel, saveLabel = "Save changes" }: SavePopupProps) {
     if (!isDirty) return null;
 
     return (
@@ -35,7 +37,7 @@ export default function SavePopup({ isDirty, isSaving, onSave, onCancel }: SaveP
                         onClick={onSave}
                         disabled={isSaving}
                     >
-                        {isSaving ? "Saving…" : "Save changes"}
+                        {isSaving ? "Saving…" : saveLabel}
                     </Button>
                 </div>
             </div>
