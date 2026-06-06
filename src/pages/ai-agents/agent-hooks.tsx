@@ -603,6 +603,68 @@ function SchemaObjectFields({
   );
 }
 
+function ArrayField({
+  def,
+  value,
+  onChange,
+}: {
+  def: PropertyDef;
+  value: unknown;
+  onChange: (next: unknown) => void;
+}) {
+  const itemType = def.items?.type ?? "string";
+
+  const toText = (v: unknown) =>
+    Array.isArray(v) ? v.join("\n") : typeof v === "string" ? v : "";
+
+  const computeValue = (raw: string): unknown => {
+    const items = raw
+      .split("\n")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+    if (itemType === "integer" || itemType === "number") {
+      const nums = items.map((s) =>
+        itemType === "integer" ? parseInt(s, 10) : parseFloat(s),
+      );
+      return nums.some((n) => Number.isNaN(n)) ? items : nums;
+    }
+    return items.length > 0 ? items : undefined;
+  };
+
+  const ser = (v: unknown) => JSON.stringify(v === undefined ? null : v);
+
+  // Hold the raw text locally so in-progress lines (incl. the trailing newline
+  // when you press Enter) survive — deriving the textarea value from the parsed
+  // array would strip empty lines and make a second line impossible to start.
+  const [text, setText] = useState(() => toText(value));
+  const [syncedKey, setSyncedKey] = useState(() => ser(value));
+
+  // Resync only when the value changes from the outside (form reset, tool
+  // switch) — never from our own emits, which would clobber what's being typed.
+  const valueKey = ser(value);
+  if (valueKey !== syncedKey) {
+    setSyncedKey(valueKey);
+    setText(toText(value));
+  }
+
+  return (
+    <Textarea
+      value={text}
+      rows={3}
+      placeholder={`One ${itemType} per line`}
+      spellCheck={false}
+      className="font-mono text-[12px]"
+      onChange={(e) => {
+        const raw = e.target.value;
+        setText(raw);
+        const next = computeValue(raw);
+        setSyncedKey(ser(next));
+        onChange(next);
+      }}
+    />
+  );
+}
+
 function SchemaField({
   def,
   type,
@@ -671,35 +733,7 @@ function SchemaField({
   }
 
   if (type === "array") {
-    const itemType = def.items?.type ?? "string";
-    const text = Array.isArray(value)
-      ? value.join("\n")
-      : typeof value === "string"
-        ? value
-        : "";
-    return (
-      <Textarea
-        value={text}
-        rows={3}
-        placeholder={`One ${itemType} per line`}
-        spellCheck={false}
-        className="font-mono text-[12px]"
-        onChange={(e) => {
-          const items = e.target.value
-            .split("\n")
-            .map((s) => s.trim())
-            .filter((s) => s.length > 0);
-          if (itemType === "integer" || itemType === "number") {
-            const nums = items.map((s) =>
-              itemType === "integer" ? parseInt(s, 10) : parseFloat(s),
-            );
-            onChange(nums.some((n) => Number.isNaN(n)) ? items : nums);
-          } else {
-            onChange(items.length > 0 ? items : undefined);
-          }
-        }}
-      />
-    );
+    return <ArrayField def={def} value={value} onChange={onChange} />;
   }
 
   if (type === "object") {
