@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router";
-import { Button } from "@/components/ui/button";
 import { ToolEditorForm } from "@/components/ai-agents/tool-editor-form";
 import type { AiTool } from "@/types/ai-tool";
 
@@ -39,15 +38,6 @@ export default function ToolEditorPage() {
                         Configure a tool your agents can call — HTTP
                         integrations, code runners, or platform actions.
                     </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => navigate(basePath)}
-                    >
-                        Cancel
-                    </Button>
                 </div>
             </div>
 
