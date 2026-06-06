@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { TrashIcon, PlusIcon, VariableIcon } from "@heroicons/react/24/outline";
 import { EmptyState } from "@/components/ui/empty-state";
+import SavePopup from "@/components/save-popup";
 import { CodeEditor } from "@/components/code-editor";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -495,25 +496,22 @@ export function ToolEditorForm({
 }: ToolEditorFormProps) {
     const createToolMutation = useCreateTool();
     const updateToolMutation = useUpdateTool();
-    const [formData, setFormData] = useState<ToolFormData>({
-        name: "",
-        description: "",
-        type: "api",
-        configuration: {
-            type: "Api",
-            endpoint: "",
-            method: "GET",
-            authorization: undefined,
-            request_body_schema: [],
-            url_params_schema: [],
-            timeout_seconds: 30,
-        } as ApiToolConfiguration,
-    });
-
-    const [eventDataString, setEventDataString] = useState("");
+    const [formData, setFormData] = useState<ToolFormData>(
+        () => buildInitialToolState(tool).formData,
+    );
+    const [eventDataString, setEventDataString] = useState(
+        () => buildInitialToolState(tool).eventDataString,
+    );
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
+    const baselineRef = useRef<string>(
+        JSON.stringify(buildInitialToolState(tool)),
+    );
 
     const isEditing = !!tool;
+    const isSaving =
+        createToolMutation.isPending || updateToolMutation.isPending;
+    const isDirty =
+        JSON.stringify({ formData, eventDataString }) !== baselineRef.current;
 
     useEffect(() => {
         if (validationErrors.length > 0) {
@@ -528,47 +526,10 @@ export function ToolEditorForm({
     ]);
 
     useEffect(() => {
-        if (tool) {
-            setFormData({
-                name: tool.name,
-                description: tool.description || "",
-                type: tool.tool_type,
-                configuration: normalizeToolConfiguration(tool.configuration),
-            });
-
-            if (
-                tool.tool_type === "platform_event" &&
-                (tool.configuration as PlatformEventToolConfiguration)
-                    .event_data
-            ) {
-                setEventDataString(
-                    JSON.stringify(
-                        (tool.configuration as PlatformEventToolConfiguration)
-                            .event_data,
-                        null,
-                        2,
-                    ),
-                );
-            } else {
-                setEventDataString("");
-            }
-        } else {
-            setFormData({
-                name: "",
-                description: "",
-                type: "api",
-                configuration: {
-                    type: "Api",
-                    endpoint: "",
-                    method: "GET",
-                    authorization: undefined,
-                    request_body_schema: [],
-                    url_params_schema: [],
-                    timeout_seconds: 30,
-                } as ApiToolConfiguration,
-            });
-            setEventDataString("");
-        }
+        const next = buildInitialToolState(tool);
+        setFormData(next.formData);
+        setEventDataString(next.eventDataString);
+        baselineRef.current = JSON.stringify(next);
         setValidationErrors([]);
     }, [tool]);
 
@@ -618,7 +579,7 @@ export function ToolEditorForm({
             if (eventDataString.trim()) {
                 try {
                     JSON.parse(eventDataString);
-                } catch (e) {
+                } catch {
                     errors.push("Event Data must be valid JSON");
                 }
             }
@@ -662,8 +623,7 @@ export function ToolEditorForm({
         return errors;
     };
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    const save = async () => {
         const errors = validateForm();
         setValidationErrors(errors);
         if (errors.length > 0) return;
@@ -679,8 +639,9 @@ export function ToolEditorForm({
                 configuration,
             };
 
+            let savedTool: AiTool;
             if (isEditing && tool) {
-                const savedTool = await updateToolMutation.mutateAsync({
+                savedTool = await updateToolMutation.mutateAsync({
                     toolId: tool.id.toString(),
                     tool: {
                         ...baseToolData,
@@ -689,18 +650,32 @@ export function ToolEditorForm({
                             : {}),
                     } as UpdateToolRequest,
                 });
-                onSaved?.(savedTool);
             } else {
-                const savedTool = await createToolMutation.mutateAsync({
+                savedTool = await createToolMutation.mutateAsync({
                     ...baseToolData,
                     tool_type: formData.type,
                 } as CreateToolRequest);
-                onSaved?.(savedTool);
             }
+            baselineRef.current = JSON.stringify({ formData, eventDataString });
+            toast.success(isEditing ? "Tool updated" : "Tool created");
+            onSaved?.(savedTool);
         } catch (error) {
             console.error("Failed to save tool:", error);
             toast.error(`Failed to ${isEditing ? "update" : "create"} tool`);
         }
+    };
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        void save();
+    };
+
+    const handleDiscard = () => {
+        const next = buildInitialToolState(tool);
+        setFormData(next.formData);
+        setEventDataString(next.eventDataString);
+        baselineRef.current = JSON.stringify(next);
+        setValidationErrors([]);
     };
 
     const handleTypeChange = (newType: string) => {
@@ -1311,6 +1286,14 @@ export function ToolEditorForm({
                     </main>
                 </div>
             </form>
+
+            <SavePopup
+                isDirty={isDirty}
+                isSaving={isSaving}
+                onSave={() => void save()}
+                onCancel={handleDiscard}
+                saveLabel={isEditing ? "Save changes" : "Create tool"}
+            />
         </div>
     );
 }
@@ -1393,4 +1376,51 @@ function serializeToolConfiguration(
         default:
             return configuration;
     }
+}
+
+function buildInitialToolState(tool?: AiTool): {
+    formData: ToolFormData;
+    eventDataString: string;
+} {
+    if (tool) {
+        let eventDataString = "";
+        if (
+            tool.tool_type === "platform_event" &&
+            (tool.configuration as PlatformEventToolConfiguration).event_data
+        ) {
+            eventDataString = JSON.stringify(
+                (tool.configuration as PlatformEventToolConfiguration)
+                    .event_data,
+                null,
+                2,
+            );
+        }
+        return {
+            formData: {
+                name: tool.name,
+                description: tool.description || "",
+                type: tool.tool_type,
+                configuration: normalizeToolConfiguration(tool.configuration),
+            },
+            eventDataString,
+        };
+    }
+
+    return {
+        formData: {
+            name: "",
+            description: "",
+            type: "api",
+            configuration: {
+                type: "Api",
+                endpoint: "",
+                method: "GET",
+                authorization: undefined,
+                request_body_schema: [],
+                url_params_schema: [],
+                timeout_seconds: 30,
+            } as ApiToolConfiguration,
+        },
+        eventDataString: "",
+    };
 }
