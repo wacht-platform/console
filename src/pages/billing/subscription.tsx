@@ -9,6 +9,15 @@ import { BillingSetupDialog } from "@/components/billing-setup-dialog";
 import { usePostHog } from "@posthog/react";
 import { CreditCardIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Pill } from "@/components/ui/pill";
 import { Tag } from "@/components/ui/tag";
 import { SectionLabel } from "@/components/ui/section-label";
@@ -29,6 +38,12 @@ import { plans, enterprisePlan } from "./plans";
 export default function BillingSubscriptionPage() {
   const [selectedPlan, setSelectedPlan] = useState<string>("");
   const [billingSetupOpen, setBillingSetupOpen] = useState(false);
+  const [pendingSwitch, setPendingSwitch] = useState<{
+    planId: string;
+    previousPlanId: string;
+    previousPlanName: string;
+    isLocalStarterUpgrade: boolean;
+  } | null>(null);
   const posthog = usePostHog();
 
   const { data: billingAccount, isLoading, refetch } = useBillingAccount();
@@ -86,31 +101,13 @@ export default function BillingSubscriptionPage() {
       // Don't allow selecting the current plan if already subscribed
       if (planId === currentPlan.id) return;
 
-      if (isLocalStarterSubscription && planId !== "starter") {
-        posthog?.capture("billing_plan_selected", {
-          plan_id: planId,
-          plan_name: plans.find((p) => p.id === planId)?.name,
-          previous_plan_id: currentPlan.id,
-          previous_plan_name: currentPlan.name,
-          has_active_subscription: true,
-          local_starter_upgrade: true,
-        });
-        if (confirm(`Switch to ${plans.find((p) => p.id === planId)?.name}?`)) {
-          handleChangePlan(planId);
-        }
-        return;
-      }
-
-      if (confirm(`Switch to ${plans.find((p) => p.id === planId)?.name}?`)) {
-        posthog?.capture("billing_plan_selected", {
-          plan_id: planId,
-          plan_name: plans.find((p) => p.id === planId)?.name,
-          previous_plan_id: currentPlan.id,
-          previous_plan_name: currentPlan.name,
-          has_active_subscription: true,
-        });
-        handleChangePlan(planId);
-      }
+      setPendingSwitch({
+        planId,
+        previousPlanId: currentPlan.id,
+        previousPlanName: currentPlan.name,
+        isLocalStarterUpgrade:
+          !!isLocalStarterSubscription && planId !== "starter",
+      });
     } else {
       // No active subscription - open billing setup
       posthog?.capture("billing_plan_selected", {
@@ -156,6 +153,22 @@ export default function BillingSubscriptionPage() {
       console.error("Failed to change plan:", error);
       posthog?.captureException(error);
     }
+  };
+
+  const confirmSwitch = () => {
+    if (!pendingSwitch) return;
+    posthog?.capture("billing_plan_selected", {
+      plan_id: pendingSwitch.planId,
+      plan_name: plans.find((p) => p.id === pendingSwitch.planId)?.name,
+      previous_plan_id: pendingSwitch.previousPlanId,
+      previous_plan_name: pendingSwitch.previousPlanName,
+      has_active_subscription: true,
+      ...(pendingSwitch.isLocalStarterUpgrade
+        ? { local_starter_upgrade: true }
+        : {}),
+    });
+    handleChangePlan(pendingSwitch.planId);
+    setPendingSwitch(null);
   };
 
   if (isLoading) {
@@ -281,6 +294,70 @@ export default function BillingSubscriptionPage() {
     </div>
   );
 
+  const targetPlan = pendingSwitch
+    ? plans.find((p) => p.id === pendingSwitch.planId)
+    : undefined;
+
+  const switchPlanDialog = (
+    <Dialog
+      open={!!pendingSwitch}
+      onOpenChange={(open) => {
+        if (!open) setPendingSwitch(null);
+      }}
+    >
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Switch plan</DialogTitle>
+          <DialogDescription>
+            Confirm the change to your subscription.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogBody>
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-secondary/40 px-3.5 py-3">
+            <div className="min-w-0">
+              <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground/70">
+                Current
+              </p>
+              <p className="mt-0.5 truncate text-sm font-medium text-foreground">
+                {pendingSwitch?.previousPlanName}
+              </p>
+            </div>
+            <span className="shrink-0 text-muted-foreground">→</span>
+            <div className="min-w-0 text-right">
+              <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground/70">
+                New
+              </p>
+              <p className="mt-0.5 truncate text-sm font-medium text-foreground">
+                {targetPlan?.name}
+                {targetPlan && typeof targetPlan.price === "number" ? (
+                  <span className="ml-1 font-normal text-muted-foreground">
+                    {formatCurrency(targetPlan.price)}/mo
+                  </span>
+                ) : null}
+              </p>
+            </div>
+          </div>
+          <p className="text-[13px] leading-relaxed text-muted-foreground">
+            Changes apply immediately and are prorated for the remainder of your
+            current billing cycle.
+          </p>
+        </DialogBody>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingSwitch(null)}
+            disabled={changePlan.isPending}
+          >
+            Cancel
+          </Button>
+          <Button onClick={confirmSwitch} disabled={changePlan.isPending}>
+            {changePlan.isPending ? "Switching…" : "Confirm switch"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
   if (isSubscriptionInactive) {
     return (
       <div className="space-y-8">
@@ -325,6 +402,8 @@ export default function BillingSubscriptionPage() {
           }}
           planId={selectedPlan}
         />
+
+        {switchPlanDialog}
       </div>
     );
   }
@@ -469,6 +548,8 @@ export default function BillingSubscriptionPage() {
         }}
         planId={selectedPlan}
       />
+
+      {switchPlanDialog}
     </div>
   );
 }
