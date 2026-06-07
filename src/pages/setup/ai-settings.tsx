@@ -334,12 +334,6 @@ export default function AISettingsPage() {
             );
             return;
         }
-        if (openrouterStrongWithoutRequireParams) {
-            toast.error(
-                "OpenRouter is selected as the strong model provider but 'require parameters' is disabled. Enable it to ensure JSON schema output works correctly.",
-            );
-            return;
-        }
 
         const updates: UpdateAISettingsRequest = {};
         if (strongLlmProvider !== settings?.strong_llm_provider) {
@@ -661,7 +655,9 @@ export default function AISettingsPage() {
                                         }
                                         value={storageAccessKeyId}
                                         onChange={(e) =>
-                                            setStorageAccessKeyId(e.target.value)
+                                            setStorageAccessKeyId(
+                                                e.target.value,
+                                            )
                                         }
                                     />
                                 </CompactField>
@@ -806,7 +802,8 @@ export default function AISettingsPage() {
                                 embeddingModel.trim() !==
                                     (settings?.embedding_model ?? "") ||
                                 embeddingDimension !==
-                                    (settings?.embedding_dimension ?? 1536)) && (
+                                    (settings?.embedding_dimension ??
+                                        1536)) && (
                                 <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">
                                     <ExclamationTriangleIcon className="h-3 w-3" />
                                     Invalidates vector store
@@ -815,76 +812,82 @@ export default function AISettingsPage() {
                         }
                     />
                     <div className="rounded-lg border border-border bg-card p-5">
-                    <div className="grid gap-x-3.5 gap-y-3 sm:grid-cols-3">
-                        <CompactField label="Provider">
-                            <Select
-                                value={embeddingProvider}
-                                onValueChange={(v) => {
-                                    const next = v as EmbeddingProvider;
-                                    setEmbeddingProvider(next);
-                                    const prevDefault =
-                                        defaultEmbeddingModelFor(
-                                            embeddingProvider,
-                                        );
-                                    if (
-                                        !embeddingModel.trim() ||
-                                        embeddingModel.trim() === prevDefault
-                                    ) {
-                                        setEmbeddingModel(
-                                            defaultEmbeddingModelFor(next),
-                                        );
-                                    }
-                                }}
-                            >
-                                <CompactSelectTrigger>
-                                    <SelectValue placeholder="Select provider" />
-                                </CompactSelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="gemini">
-                                        Gemini
-                                    </SelectItem>
-                                    <SelectItem value="openai">
-                                        OpenAI
-                                    </SelectItem>
-                                    <SelectItem value="openrouter">
-                                        OpenRouter
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </CompactField>
-                        <CompactField label="Model">
-                            <CompactInput
-                                placeholder={defaultEmbeddingModelFor(
-                                    embeddingProvider,
-                                )}
-                                value={embeddingModel}
-                                onChange={(e) =>
-                                    setEmbeddingModel(e.target.value)
-                                }
-                            />
-                        </CompactField>
-                        <CompactField label="Dimension">
-                            <Select
-                                value={String(embeddingDimension)}
-                                onValueChange={(v) =>
-                                    setEmbeddingDimension(
-                                        Number(v) as EmbeddingDimension,
-                                    )
-                                }
-                            >
-                                <CompactSelectTrigger>
-                                    <SelectValue placeholder="Select dimension" />
-                                </CompactSelectTrigger>
-                                <SelectContent>
-                                    {SUPPORTED_EMBEDDING_DIMENSIONS.map((d) => (
-                                        <SelectItem key={d} value={String(d)}>
-                                            {d}
+                        <div className="grid gap-x-3.5 gap-y-3 sm:grid-cols-3">
+                            <CompactField label="Provider">
+                                <Select
+                                    value={embeddingProvider}
+                                    onValueChange={(v) => {
+                                        const next = v as EmbeddingProvider;
+                                        setEmbeddingProvider(next);
+                                        const prevDefault =
+                                            defaultEmbeddingModelFor(
+                                                embeddingProvider,
+                                            );
+                                        if (
+                                            !embeddingModel.trim() ||
+                                            embeddingModel.trim() ===
+                                                prevDefault
+                                        ) {
+                                            setEmbeddingModel(
+                                                defaultEmbeddingModelFor(next),
+                                            );
+                                        }
+                                    }}
+                                >
+                                    <CompactSelectTrigger>
+                                        <SelectValue placeholder="Select provider" />
+                                    </CompactSelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="gemini">
+                                            Gemini
                                         </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </CompactField>
-                    </div>
+                                        <SelectItem value="openai">
+                                            OpenAI
+                                        </SelectItem>
+                                        <SelectItem value="openrouter">
+                                            OpenRouter
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </CompactField>
+                            <CompactField label="Model">
+                                <CompactInput
+                                    placeholder={defaultEmbeddingModelFor(
+                                        embeddingProvider,
+                                    )}
+                                    value={embeddingModel}
+                                    onChange={(e) =>
+                                        setEmbeddingModel(e.target.value)
+                                    }
+                                />
+                            </CompactField>
+                            <CompactField label="Dimension">
+                                <Select
+                                    value={String(embeddingDimension)}
+                                    onValueChange={(v) =>
+                                        setEmbeddingDimension(
+                                            Number(v) as EmbeddingDimension,
+                                        )
+                                    }
+                                >
+                                    <CompactSelectTrigger>
+                                        <SelectValue placeholder="Select dimension" />
+                                    </CompactSelectTrigger>
+                                    <SelectContent>
+                                        {SUPPORTED_EMBEDDING_DIMENSIONS.map(
+                                            (d) => (
+                                                <SelectItem
+                                                    key={d}
+                                                    value={String(d)}
+                                                >
+                                                    {d}
+                                                </SelectItem>
+                                            ),
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            </CompactField>
+                        </div>
                     </div>
                 </section>
 
@@ -946,9 +949,7 @@ export default function AISettingsPage() {
                                 title="Require parameters"
                                 description="Skip endpoints that drop params."
                                 checked={openrouterRequireParameters}
-                                onCheckedChange={
-                                    setOpenrouterRequireParameters
-                                }
+                                onCheckedChange={setOpenrouterRequireParameters}
                             />
                         </ProviderKeyRow>
 
@@ -1057,7 +1058,6 @@ export default function AISettingsPage() {
                         </div>
                     )}
                 </section>
-
             </div>
 
             <ProviderProfileDialog
@@ -1268,9 +1268,7 @@ function GeminiProviderLogo() {
 }
 
 function OpenRouterProviderLogo() {
-    return (
-        <img src={OpenRouterLogo} alt="" className="h-4 w-4" />
-    );
+    return <img src={OpenRouterLogo} alt="" className="h-4 w-4" />;
 }
 
 function OpenAiProviderLogo() {
@@ -1530,9 +1528,9 @@ function ProviderProfileDialog({
                                 Disable prompt caching
                             </div>
                             <div className="text-xs text-muted-foreground">
-                                Skips the prompt_cache_key sent to this endpoint.
-                                Turn on for OpenAI-compatible base URLs that
-                                reject it.
+                                Skips the prompt_cache_key sent to this
+                                endpoint. Turn on for OpenAI-compatible base
+                                URLs that reject it.
                             </div>
                         </div>
                         <Switch
