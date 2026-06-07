@@ -3,8 +3,9 @@ import axios from "axios";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Text as WachtText } from "@/components/ui/text";
 import { Label } from "@/components/ui/fieldset";
+import { Pill, type PillTone } from "@/components/ui/pill";
+import { Tag } from "@/components/ui/tag";
 import {
     useCreateCheckout,
     CreateCheckoutRequest,
@@ -12,16 +13,9 @@ import {
 } from "@/lib/api/hooks/use-billing";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePostHog } from "@posthog/react";
-import {
-    RocketLaunchIcon,
-    SparklesIcon,
-    GlobeAltIcon,
-    CheckBadgeIcon,
-    ArrowRightIcon,
-} from "@heroicons/react/24/outline";
-import { InformationCircleIcon } from "@heroicons/react/24/solid";
+import { CheckIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import { Spinner } from "@/components/ui/app-spinner";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 
@@ -40,14 +34,6 @@ const plans = [
         mau: "10,000 MAU",
         orgs: "500 MAO",
         workspaces: "2,000 MAW",
-        icon: RocketLaunchIcon,
-        features: [
-            "10,000 MAU included",
-            "500 MAO included",
-            "2,000 MAW included",
-            "Core CIAM (password, magic link, social, MFA)",
-            "Agents platform (BYOK + agent BYO storage)",
-        ],
     },
     {
         id: "pro",
@@ -56,15 +42,7 @@ const plans = [
         mau: "50,000 MAU",
         orgs: "2,500 MAO",
         workspaces: "10,000 MAW",
-        icon: SparklesIcon,
         popular: true,
-        features: [
-            "50,000 MAU included",
-            "2,500 MAO included",
-            "10,000 MAW included",
-            "Phone authentication",
-            "Webhook apps (webhooks as a service)",
-        ],
     },
     {
         id: "growth",
@@ -73,13 +51,6 @@ const plans = [
         mau: "200,000 MAU",
         orgs: "10,000 MAO",
         workspaces: "40,000 MAW",
-        icon: GlobeAltIcon,
-        features: [
-            "200,000 MAU included",
-            "10,000 MAO included",
-            "40,000 MAW included",
-            "API key management (API keys as a service)",
-        ],
     },
 ];
 
@@ -160,6 +131,12 @@ export function BillingSetupDialog({
                 return null;
         }
     })();
+    const checkoutFlowTone: PillTone =
+        checkoutFlowState === "active"
+            ? "ok"
+            : checkoutFlowState === "failed"
+              ? "err"
+              : "warn";
     const isStarterSelected = selectedPlanId === "starter";
 
     const handleInputChange = (
@@ -316,7 +293,7 @@ export function BillingSetupDialog({
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
             <DialogContent
                 data-tour-id="billing-setup-form"
-                className="sm:max-w-5xl w-[95vw] p-0 overflow-hidden border-none bg-card/80 backdrop-blur-xl shadow-2xl"
+                className="sm:max-w-4xl w-[95vw] gap-0 overflow-hidden p-0"
                 onPointerDownOutside={(e) => {
                     if (
                         (e.target as HTMLElement | null)?.closest(
@@ -340,63 +317,35 @@ export function BillingSetupDialog({
                     {isPolling ? (
                         <motion.div
                             key="polling"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="p-12 flex flex-col items-center justify-center min-h-[400px] text-center"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="flex min-h-[420px] flex-col items-center justify-center p-12 text-center"
                         >
-                            <div className="relative mb-8">
-                                <div className="absolute inset-0 bg-primary/25 blur-3xl rounded-full" />
-                                <div className="relative w-24 h-24 flex items-center justify-center">
-                                    <Spinner
-                                        size="xl"
-                                        className="text-primary"
-                                    />
-                                    <motion.div
-                                        initial={{ scale: 0 }}
-                                        animate={{ scale: 1 }}
-                                        transition={{
-                                            delay: 0.5,
-                                            type: "spring",
-                                        }}
-                                        className="absolute inset-0 flex items-center justify-center"
-                                    >
-                                        <CheckBadgeIcon className="w-10 h-10 text-primary/55" />
-                                    </motion.div>
-                                </div>
-                            </div>
-
-                            <div className="max-w-md mx-auto space-y-4">
-                                <h3 className="text-2xl font-light text-foreground tracking-tight">
-                                    Checkout in Progress
-                                </h3>
-                                <WachtText className="text-muted-foreground leading-relaxed">
-                                    {checkoutWindowClosed
-                                        ? "It looks like the checkout window was closed. Don't worry, we're still double-checking your payment status."
-                                        : "Please complete your secure payment in the new window. Your workspace will automatically upgrade the moment it's finished."}
-                                </WachtText>
-                            </div>
+                            <Spinner size="xl" className="text-primary" />
+                            <h3 className="mt-6 text-base font-medium tracking-tight text-foreground">
+                                Completing checkout
+                            </h3>
+                            <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+                                {checkoutWindowClosed
+                                    ? "The checkout window was closed — we're still double-checking your payment status."
+                                    : "Complete your secure payment in the new window. Your workspace upgrades automatically the moment it's finished."}
+                            </p>
 
                             {checkoutWindowClosed && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="mt-10"
+                                <Button
+                                    onClick={() => {
+                                        setCheckoutWindowClosed(false);
+                                        setIsPolling(false);
+                                        sessionStorage.removeItem(
+                                            "initiatedCheckout",
+                                        );
+                                    }}
+                                    variant="outline"
+                                    className="mt-6"
                                 >
-                                    <Button
-                                        onClick={() => {
-                                            setCheckoutWindowClosed(false);
-                                            setIsPolling(false);
-                                            sessionStorage.removeItem(
-                                                "initiatedCheckout",
-                                            );
-                                        }}
-                                        variant="outline"
-                                        className="rounded-xl border-border"
-                                    >
-                                        Try again
-                                    </Button>
-                                </motion.div>
+                                    Try again
+                                </Button>
                             )}
                         </motion.div>
                     ) : (
@@ -408,161 +357,150 @@ export function BillingSetupDialog({
                             className="grid grid-cols-1 lg:grid-cols-2 min-h-0"
                         >
                             {/* Left Side: Plan Selection */}
-                            <div className="p-6 lg:p-10 border-b lg:border-b-0 lg:border-r border-border bg-secondary">
-                                <div className="mb-6">
-                                    <h2 className="text-2xl font-light text-foreground tracking-tight">
-                                        Almost there
+                            <div className="flex flex-col border-b border-border bg-secondary/40 p-6 lg:border-b-0 lg:border-r lg:p-8">
+                                <div className="mb-5">
+                                    <p className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground/70">
+                                        Choose your plan
+                                    </p>
+                                    <h2 className="mt-1.5 text-[17px] font-medium tracking-[-0.01em] text-foreground">
+                                        Pick a plan that scales with you
                                     </h2>
-                                    <WachtText className="text-muted-foreground">
-                                        Choose a plan that scales with your
-                                        growth.
-                                    </WachtText>
                                 </div>
 
-                                <div className="space-y-4">
-                                    {plans.map((plan) => (
-                                        <motion.button
-                                            key={plan.id}
-                                            onClick={() =>
-                                                handlePlanSelect(plan.id)
-                                            }
-                                            className={clsx(
-                                                "w-full text-left p-3 rounded-xl border transition-all duration-300 relative overflow-hidden group",
-                                                selectedPlanId === plan.id
-                                                    ? "border-primary bg-primary/10 dark:bg-primary/15 ring-1 ring-primary/45"
-                                                    : "border-border hover:border-border dark:hover:border-border bg-card/50 dark:bg-primary/40",
-                                            )}
-                                            whileHover={{ y: -1 }}
-                                            whileTap={{ scale: 0.995 }}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div
-                                                    className={clsx(
-                                                        "w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-300 flex-shrink-0",
-                                                        selectedPlanId ===
-                                                            plan.id
-                                                            ? "bg-primary text-primary-foreground"
-                                                            : "bg-secondary text-muted-foreground",
+                                <div className="space-y-2.5">
+                                    {plans.map((plan) => {
+                                        const selected =
+                                            selectedPlanId === plan.id;
+                                        return (
+                                            <button
+                                                key={plan.id}
+                                                type="button"
+                                                onClick={() =>
+                                                    handlePlanSelect(plan.id)
+                                                }
+                                                className={cn(
+                                                    "flex w-full items-center gap-3 rounded-lg border px-3.5 py-3 text-left transition-colors",
+                                                    selected
+                                                        ? "border-primary/40 bg-primary/5 ring-1 ring-primary/15"
+                                                        : "border-border bg-card hover:border-muted-foreground/30",
+                                                )}
+                                            >
+                                                <span
+                                                    className={cn(
+                                                        "flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors",
+                                                        selected
+                                                            ? "border-primary bg-primary text-primary-foreground"
+                                                            : "border-muted-foreground/40",
                                                     )}
                                                 >
-                                                    <plan.icon className="w-4 h-4" />
-                                                </div>
+                                                    {selected && (
+                                                        <CheckIcon
+                                                            className="size-2.5"
+                                                            strokeWidth={3}
+                                                        />
+                                                    )}
+                                                </span>
 
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center justify-between mb-0.5">
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="flex items-center justify-between gap-2">
                                                         <div className="flex items-center gap-2">
-                                                            <span className="font-medium text-foreground text-sm">
+                                                            <span className="text-sm font-medium text-foreground">
                                                                 {plan.name}
                                                             </span>
                                                             {plan.popular && (
-                                                                <span className="bg-primary text-[9px] font-medium text-primary-foreground px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                                                                <Tag>
                                                                     Popular
-                                                                </span>
+                                                                </Tag>
                                                             )}
                                                         </div>
-                                                        <div className="flex items-baseline gap-1 ml-4 text-sm">
-                                                            <span className="font-medium text-foreground">
+                                                        <div className="flex items-baseline gap-0.5">
+                                                            <span className="font-mono text-sm font-medium text-foreground">
                                                                 {plan.price}
                                                             </span>
-                                                            {plan.price !== "Free" && (
-                                                                <span className="text-[9px] text-muted-foreground font-normal lowercase">
+                                                            {plan.price !==
+                                                                "Free" && (
+                                                                <span className="text-[11px] text-muted-foreground">
                                                                     /mo
                                                                 </span>
                                                             )}
                                                         </div>
                                                     </div>
-                                                    <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3 gap-y-0.5">
-                                                        <span className="flex items-center gap-1">
-                                                            <CheckBadgeIcon className="w-2.5 h-2.5 text-primary" />
-                                                            {plan.mau}
+                                                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+                                                        <span>{plan.mau}</span>
+                                                        <span className="text-muted-foreground/40">
+                                                            ·
                                                         </span>
-                                                        <span className="flex items-center gap-1">
-                                                            <CheckBadgeIcon className="w-2.5 h-2.5 text-primary" />
-                                                            {plan.orgs}
+                                                        <span>{plan.orgs}</span>
+                                                        <span className="text-muted-foreground/40">
+                                                            ·
                                                         </span>
-                                                        <span className="flex items-center gap-1">
-                                                            <CheckBadgeIcon className="w-2.5 h-2.5 text-primary" />
+                                                        <span>
                                                             {plan.workspaces}
                                                         </span>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </motion.button>
-                                    ))}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
 
-                                <div className="mt-8 p-4 bg-primary/8 dark:bg-primary/12 rounded-xl border border-primary/20 dark:border-primary/25">
-                                    <div className="flex gap-3">
-                                        <InformationCircleIcon className="w-5 h-5 text-primary flex-shrink-0" />
-                                        <div>
-                                            <p className="text-xs font-medium text-foreground mb-1">
-                                                Flexible Billing
-                                            </p>
-                                            <p className="text-[11px] text-muted-foreground leading-relaxed">
-                                                Usage is tracked hourly. You'll
-                                                only pay for unique active
-                                                entities within each billing
-                                                cycle. Additional metrics
-                                                charged separately.
-                                            </p>
-                                        </div>
+                                <div className="mt-auto pt-6">
+                                    <div className="rounded-lg border border-border bg-card px-3.5 py-3">
+                                        <p className="text-xs font-medium text-foreground">
+                                            Flexible, usage-based billing
+                                        </p>
+                                        <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                                            Usage is tracked hourly — you only pay
+                                            for unique active entities within each
+                                            billing cycle. Additional metrics are
+                                            charged separately.
+                                        </p>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Right Side: Information Form */}
-                            <div className="p-6 lg:p-10 flex flex-col justify-start">
-                                <div className="space-y-8">
+                            <div className="flex flex-col p-6 lg:p-8">
+                                <div className="space-y-6">
                                     <div>
-                                        <h3 className="text-lg font-medium text-foreground mb-2">
-                                            Billing Identity
-                                        </h3>
-                                        <p className="text-xs text-muted-foreground">
-                                            How should we address your invoices?
+                                        <p className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground/70">
+                                            Billing identity
                                         </p>
+                                        <h3 className="mt-1.5 text-[17px] font-medium tracking-[-0.01em] text-foreground">
+                                            Who are we invoicing?
+                                        </h3>
                                     </div>
 
                                     {((checkoutFlowState &&
                                         checkoutFlowState !== "idle") ||
                                         billingAccount?.status ===
                                             "pending") && (
-                                        <div className="rounded-xl border border-border bg-secondary px-4 py-3">
+                                        <div className="rounded-lg border border-border bg-secondary/50 px-3.5 py-3">
                                             <div className="flex items-center justify-between gap-3">
-                                                <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                                                    Checkout Progress
+                                                <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground/70">
+                                                    Checkout progress
                                                 </span>
-                                                <span
-                                                    className={clsx(
-                                                        "text-[10px] uppercase tracking-wider",
-                                                        checkoutFlowState ===
-                                                            "active"
-                                                            ? "text-emerald-600 dark:text-emerald-400"
-                                                            : checkoutFlowState ===
-                                                                "failed"
-                                                              ? "text-red-600 dark:text-red-400"
-                                                              : "text-amber-600 dark:text-amber-400",
-                                                    )}
-                                                >
+                                                <Pill tone={checkoutFlowTone}>
                                                     {checkoutFlowLabel}
-                                                </span>
+                                                </Pill>
                                             </div>
-                                            <div className="mt-1 text-xs text-muted-foreground">
+                                            <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
                                                 {checkoutFlowMessage ||
                                                     "Waiting for billing webhooks to settle."}
                                                 {billingAccount?.last_checkout_session_created_at
                                                     ? ` • ${format(parseISO(billingAccount.last_checkout_session_created_at), "MMM d, yyyy • HH:mm")}`
                                                     : ""}
-                                            </div>
+                                            </p>
                                         </div>
                                     )}
 
-                                    <div className="space-y-5">
+                                    <div className="space-y-4">
                                         <div
                                             className="space-y-1.5"
                                             data-tour-id="billing-legal-name"
                                         >
-                                            <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider ml-1">
-                                                Entity Name
+                                            <Label className="text-xs font-medium text-foreground">
+                                                Entity name
                                             </Label>
                                             <Input
                                                 required
@@ -574,7 +512,6 @@ export function BillingSetupDialog({
                                                     )
                                                 }
                                                 placeholder="Your legal or company name"
-                                                className="rounded-xl border-border bg-secondary focus:ring-primary/20 focus:border-primary h-11"
                                             />
                                         </div>
 
@@ -582,8 +519,8 @@ export function BillingSetupDialog({
                                             className="space-y-1.5"
                                             data-tour-id="billing-work-email"
                                         >
-                                            <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider ml-1">
-                                                Work Email
+                                            <Label className="text-xs font-medium text-foreground">
+                                                Work email
                                             </Label>
                                             <Input
                                                 type="email"
@@ -596,13 +533,15 @@ export function BillingSetupDialog({
                                                     )
                                                 }
                                                 placeholder="billing@company.com"
-                                                className="rounded-xl border-border bg-secondary focus:ring-primary/20 focus:border-primary h-11"
                                             />
                                         </div>
 
                                         <div className="space-y-1.5">
-                                            <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider ml-1">
-                                                Tax ID (Optional)
+                                            <Label className="text-xs font-medium text-foreground">
+                                                Tax ID{" "}
+                                                <span className="font-normal text-muted-foreground">
+                                                    (optional)
+                                                </span>
                                             </Label>
                                             <Input
                                                 value={formData.tax_id}
@@ -613,13 +552,12 @@ export function BillingSetupDialog({
                                                     )
                                                 }
                                                 placeholder="GSTIN, VAT, or EIN"
-                                                className="rounded-xl border-border bg-secondary focus:ring-primary/20 focus:border-primary h-11"
                                             />
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="pt-8 flex flex-col gap-3">
+                                <div className="mt-auto flex flex-col items-center gap-2 pt-6">
                                     <Button
                                         data-tour-id="billing-submit-button"
                                         onClick={handleSubmit}
@@ -627,41 +565,34 @@ export function BillingSetupDialog({
                                             !isFormValid ||
                                             createCheckout.isPending
                                         }
-                                        className={clsx(
-                                            "w-full h-12 rounded-xl text-primary-foreground font-medium transition-all duration-300 border-none",
-                                            isFormValid
-                                                ? "bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/30 active:scale-[0.98]"
-                                                : "bg-secondary text-muted-foreground",
-                                        )}
+                                        className="w-full"
                                     >
                                         {createCheckout.isPending ? (
-                                            <div className="flex items-center gap-2">
+                                            <>
                                                 <Spinner size="sm" />
-                                                <span>
-                                                    {isStarterSelected
-                                                        ? "Activating Starter..."
-                                                        : "Preparing Session..."}
-                                                </span>
-                                            </div>
+                                                {isStarterSelected
+                                                    ? "Activating Starter…"
+                                                    : "Preparing session…"}
+                                            </>
                                         ) : (
-                                            <div className="flex items-center justify-center gap-2">
-                                                <span>
-                                                    {isStarterSelected
-                                                        ? "Activate Starter Plan"
-                                                        : "Continue to Checkout"}
-                                                </span>
+                                            <>
+                                                {isStarterSelected
+                                                    ? "Activate Starter plan"
+                                                    : "Continue to checkout"}
                                                 {!isStarterSelected && (
-                                                    <ArrowRightIcon className="w-4 h-4" />
+                                                    <ArrowRightIcon className="size-4" />
                                                 )}
-                                            </div>
+                                            </>
                                         )}
                                     </Button>
-                                    <button
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
                                         onClick={onClose}
-                                        className="text-xs text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground transition-colors py-2"
+                                        className="text-muted-foreground hover:text-foreground"
                                     >
                                         I'll do this later
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         </motion.div>
