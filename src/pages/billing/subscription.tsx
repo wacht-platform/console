@@ -101,6 +101,27 @@ export default function BillingSubscriptionPage() {
       // Don't allow selecting the current plan if already subscribed
       if (planId === currentPlan.id) return;
 
+      // Switching to a paid plan needs billing identity. Auto-provisioned
+      // accounts start with none, so collect it via the setup modal — which
+      // also kicks off checkout — instead of a bare confirm.
+      const needsBillingIdentity =
+        planId !== "starter" &&
+        (!billingAccount?.billing_email || !billingAccount?.legal_name);
+
+      if (needsBillingIdentity) {
+        posthog?.capture("billing_plan_selected", {
+          plan_id: planId,
+          plan_name: plans.find((p) => p.id === planId)?.name,
+          previous_plan_id: currentPlan.id,
+          previous_plan_name: currentPlan.name,
+          has_active_subscription: true,
+          needs_billing_identity: true,
+        });
+        setSelectedPlan(planId);
+        setBillingSetupOpen(true);
+        return;
+      }
+
       setPendingSwitch({
         planId,
         previousPlanId: currentPlan.id,
