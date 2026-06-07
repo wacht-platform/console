@@ -316,10 +316,6 @@ export default function AISettingsPage() {
         openrouterKey,
     ]);
 
-    // Warn if OpenRouter is strong provider and require_parameters is being turned off
-    const openrouterStrongWithoutRequireParams =
-        strongLlmProvider === "openrouter" && !openrouterRequireParameters;
-
     const handleSave = () => {
         // Client-side provider/key consistency check (mirrors backend validation)
         if (!providerKeyAvailable.strong) {
@@ -706,16 +702,13 @@ export default function AISettingsPage() {
                     />
 
                     {(!providerKeyAvailable.strong ||
-                        !providerKeyAvailable.weak ||
-                        openrouterStrongWithoutRequireParams) && (
+                        !providerKeyAvailable.weak) && (
                         <div className="mb-3 flex items-center gap-1.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">
                             <ExclamationTriangleIcon className="h-3 w-3 shrink-0" />
                             <span>
                                 {!providerKeyAvailable.strong
                                     ? `${providerLabel(strongLlmProvider)} has no strong-provider key`
-                                    : !providerKeyAvailable.weak
-                                      ? `${providerLabel(weakLlmProvider)} has no weak-provider key`
-                                      : "OpenRouter require parameters must stay enabled for strong routing"}
+                                    : `${providerLabel(weakLlmProvider)} has no weak-provider key`}
                             </span>
                         </div>
                     )}
