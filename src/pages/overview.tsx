@@ -17,6 +17,9 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { useAnalyticsStats } from "@/lib/api/hooks/use-analytics";
+import { useTokenUsage } from "@/lib/api/hooks/use-token-usage";
+import { useWebhookUsage } from "@/lib/api/hooks/use-webhook-usage";
+import { useGatewayUsage } from "@/lib/api/hooks/use-gateway-usage";
 import {
     TableBody,
     TableCell,
@@ -118,6 +121,107 @@ export default function OverviewPage() {
     const recentSigninsData = resolvedStats?.recent_signins || [];
     const signupsLoading = resolvedStatsLoading;
     const signinsLoading = resolvedStatsLoading;
+
+    const tokenGranularity: "minute" | "hour" | "day" =
+        selectedPeriod === "today"
+            ? "minute"
+            : selectedPeriod === "thisMonth"
+              ? "day"
+              : "hour";
+    const { data: tokenUsage, isLoading: tokenUsageLoading } = useTokenUsage(
+        selectedDeployment?.id || "",
+        currentRange.from,
+        currentRange.to,
+        tokenGranularity,
+        !!selectedDeployment?.id,
+    );
+    const tokenData = (tokenUsage?.buckets ?? []).map((b) => ({
+        label: format(
+            new Date(b.bucket),
+            tokenGranularity === "day" ? "MMM d" : "HH:mm",
+        ),
+        input: b.input_tokens,
+        cached: b.cached_tokens,
+        output: b.output_tokens,
+        total: b.total_tokens,
+    }));
+    const tokenTotals = tokenData.reduce(
+        (acc, d) => {
+            acc.input += d.input;
+            acc.cached += d.cached;
+            acc.output += d.output;
+            return acc;
+        },
+        { input: 0, cached: 0, output: 0 },
+    );
+    const tokenChartConfig = {
+        input: { label: "Input", color: "var(--chart-1)" },
+        cached: { label: "Cached", color: "var(--chart-3)" },
+        output: { label: "Output", color: "var(--chart-2)" },
+    } satisfies ChartConfig;
+
+    const compact = (n: number) =>
+        new Intl.NumberFormat("en", {
+            notation: "compact",
+            maximumFractionDigits: 1,
+        }).format(n);
+    const bucketLabel = (iso: string) =>
+        format(new Date(iso), tokenGranularity === "day" ? "MMM d" : "HH:mm");
+
+    const { data: webhookUsage, isLoading: webhookUsageLoading } =
+        useWebhookUsage(
+            selectedDeployment?.id || "",
+            currentRange.from,
+            currentRange.to,
+            tokenGranularity,
+            !!selectedDeployment?.id,
+        );
+    const webhookData = (webhookUsage?.buckets ?? []).map((b) => ({
+        label: bucketLabel(b.bucket),
+        successful: b.successful_deliveries,
+        failed: b.failed_deliveries,
+        filtered: b.filtered_deliveries,
+    }));
+    const webhookTotals = (webhookUsage?.buckets ?? []).reduce(
+        (a, b) => {
+            a.successful += b.successful_deliveries;
+            a.failed += b.failed_deliveries;
+            a.filtered += b.filtered_deliveries;
+            return a;
+        },
+        { successful: 0, failed: 0, filtered: 0 },
+    );
+    const webhookChartConfig = {
+        successful: { label: "Success", color: "var(--chart-3)" },
+        failed: { label: "Failed", color: "var(--chart-4)" },
+        filtered: { label: "Filtered", color: "var(--chart-5)" },
+    } satisfies ChartConfig;
+
+    const { data: gatewayUsage, isLoading: gatewayUsageLoading } =
+        useGatewayUsage(
+            selectedDeployment?.id || "",
+            currentRange.from,
+            currentRange.to,
+            tokenGranularity,
+            !!selectedDeployment?.id,
+        );
+    const gatewayData = (gatewayUsage?.buckets ?? []).map((b) => ({
+        label: bucketLabel(b.bucket),
+        allowed: b.allowed_requests,
+        blocked: b.blocked_requests,
+    }));
+    const gatewayTotals = (gatewayUsage?.buckets ?? []).reduce(
+        (a, b) => {
+            a.allowed += b.allowed_requests;
+            a.blocked += b.blocked_requests;
+            return a;
+        },
+        { allowed: 0, blocked: 0 },
+    );
+    const gatewayChartConfig = {
+        allowed: { label: "Allowed", color: "var(--chart-3)" },
+        blocked: { label: "Blocked", color: "var(--chart-4)" },
+    } satisfies ChartConfig;
 
     const dailyChartConfig = {
         signins: {
@@ -264,6 +368,45 @@ export default function OverviewPage() {
                 <MethodsCard data={methodsData} />
             </div>
 
+            <TokenUsageCard
+                loading={tokenUsageLoading}
+                data={tokenData}
+                config={tokenChartConfig}
+                totals={tokenTotals}
+            />
+
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <UsageAreaCard
+                    title="Webhook deliveries"
+                    subtitle="Delivery outcomes · UTC"
+                    loading={webhookUsageLoading}
+                    data={webhookData}
+                    config={webhookChartConfig}
+                    series={[
+                        { key: "successful" },
+                        { key: "failed" },
+                        { key: "filtered" },
+                    ]}
+                    legend={[
+                        { color: "var(--chart-3)", label: "Success", value: compact(webhookTotals.successful) },
+                        { color: "var(--chart-4)", label: "Failed", value: compact(webhookTotals.failed) },
+                        { color: "var(--chart-5)", label: "Filtered", value: compact(webhookTotals.filtered) },
+                    ]}
+                />
+                <UsageAreaCard
+                    title="API gateway usage"
+                    subtitle="Key verifications · UTC"
+                    loading={gatewayUsageLoading}
+                    data={gatewayData}
+                    config={gatewayChartConfig}
+                    series={[{ key: "allowed" }, { key: "blocked" }]}
+                    legend={[
+                        { color: "var(--chart-3)", label: "Allowed", value: compact(gatewayTotals.allowed) },
+                        { color: "var(--chart-4)", label: "Blocked", value: compact(gatewayTotals.blocked) },
+                    ]}
+                />
+            </div>
+
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <BarListCard
                     title="Top countries"
@@ -288,6 +431,187 @@ export default function OverviewPage() {
                 signins={recentSigninsData}
                 signups={recentSignupsData}
             />
+        </div>
+    );
+}
+
+function TokenUsageCard({
+    loading,
+    data,
+    config,
+    totals,
+}: {
+    loading: boolean;
+    data: Array<{
+        label: string;
+        input: number;
+        cached: number;
+        output: number;
+        total: number;
+    }>;
+    config: ChartConfig;
+    totals: { input: number; cached: number; output: number };
+}) {
+    const compact = (n: number) =>
+        new Intl.NumberFormat("en", {
+            notation: "compact",
+            maximumFractionDigits: 1,
+        }).format(n);
+    return (
+        <div className="rounded-lg border border-border bg-card p-5">
+            <div className="mb-3 flex items-start justify-between gap-4">
+                <div>
+                    <h3 className="text-sm font-medium text-foreground">
+                        Token usage
+                    </h3>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                        Model tokens · UTC
+                    </p>
+                </div>
+                <div className="flex gap-5">
+                    <Legend
+                        color="var(--chart-1)"
+                        label="Input"
+                        value={compact(totals.input)}
+                    />
+                    <Legend
+                        color="var(--chart-3)"
+                        label="Cached"
+                        value={compact(totals.cached)}
+                    />
+                    <Legend
+                        color="var(--chart-2)"
+                        label="Output"
+                        value={compact(totals.output)}
+                    />
+                </div>
+            </div>
+            {loading ? (
+                <div className="h-[230px] animate-pulse rounded-md bg-muted/50" />
+            ) : data.length > 0 ? (
+                <ChartContainer config={config} className="h-[230px] w-full">
+                    <AreaChart data={data}>
+                        <defs>
+                            <linearGradient id="fill-input" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="var(--color-input)" stopOpacity={0.18} />
+                                <stop offset="100%" stopColor="var(--color-input)" stopOpacity={0} />
+                            </linearGradient>
+                            <linearGradient id="fill-cached" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="var(--color-cached)" stopOpacity={0.18} />
+                                <stop offset="100%" stopColor="var(--color-cached)" stopOpacity={0} />
+                            </linearGradient>
+                            <linearGradient id="fill-output" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="var(--color-output)" stopOpacity={0.18} />
+                                <stop offset="100%" stopColor="var(--color-output)" stopOpacity={0} />
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid vertical={false} />
+                        <XAxis
+                            dataKey="label"
+                            tickLine={false}
+                            axisLine={false}
+                            tickMargin={8}
+                            minTickGap={24}
+                        />
+                        <ChartTooltip
+                            cursor={false}
+                            content={<ChartTooltipContent indicator="dot" />}
+                        />
+                        <Area dataKey="input" type="monotone" stackId="t" stroke="var(--color-input)" fill="url(#fill-input)" strokeWidth={2} />
+                        <Area dataKey="cached" type="monotone" stackId="t" stroke="var(--color-cached)" fill="url(#fill-cached)" strokeWidth={2} />
+                        <Area dataKey="output" type="monotone" stackId="t" stroke="var(--color-output)" fill="url(#fill-output)" strokeWidth={2} />
+                    </AreaChart>
+                </ChartContainer>
+            ) : (
+                <EmptyState
+                    icon={<RectangleStackIcon className="h-12 w-12" />}
+                    title="No token usage"
+                    description="Token consumption will appear here once your agents start running."
+                />
+            )}
+        </div>
+    );
+}
+
+function UsageAreaCard({
+    title,
+    subtitle,
+    loading,
+    data,
+    config,
+    series,
+    legend,
+}: {
+    title: string;
+    subtitle: string;
+    loading: boolean;
+    data: Array<Record<string, number | string>>;
+    config: ChartConfig;
+    series: Array<{ key: string }>;
+    legend: Array<{ color: string; label: string; value: string }>;
+}) {
+    return (
+        <div className="rounded-lg border border-border bg-card p-5">
+            <div className="mb-3 flex items-start justify-between gap-4">
+                <div>
+                    <h3 className="text-sm font-medium text-foreground">{title}</h3>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
+                </div>
+                <div className="flex gap-5">
+                    {legend.map((l) => (
+                        <Legend key={l.label} color={l.color} label={l.label} value={l.value} />
+                    ))}
+                </div>
+            </div>
+            {loading ? (
+                <div className="h-[230px] animate-pulse rounded-md bg-muted/50" />
+            ) : data.length > 0 ? (
+                <ChartContainer config={config} className="h-[230px] w-full">
+                    <AreaChart data={data}>
+                        <defs>
+                            {series.map((sr) => (
+                                <linearGradient
+                                    key={sr.key}
+                                    id={`fill-${sr.key}`}
+                                    x1="0"
+                                    y1="0"
+                                    x2="0"
+                                    y2="1"
+                                >
+                                    <stop offset="0%" stopColor={`var(--color-${sr.key})`} stopOpacity={0.18} />
+                                    <stop offset="100%" stopColor={`var(--color-${sr.key})`} stopOpacity={0} />
+                                </linearGradient>
+                            ))}
+                        </defs>
+                        <CartesianGrid vertical={false} />
+                        <XAxis
+                            dataKey="label"
+                            tickLine={false}
+                            axisLine={false}
+                            tickMargin={8}
+                            minTickGap={24}
+                        />
+                        <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                        {series.map((sr) => (
+                            <Area
+                                key={sr.key}
+                                dataKey={sr.key}
+                                type="monotone"
+                                stackId="u"
+                                stroke={`var(--color-${sr.key})`}
+                                fill={`url(#fill-${sr.key})`}
+                                strokeWidth={2}
+                            />
+                        ))}
+                    </AreaChart>
+                </ChartContainer>
+            ) : (
+                <EmptyState
+                    icon={<RectangleStackIcon className="h-12 w-12" />}
+                    title="No data"
+                    description="Activity will appear here once available."
+                />
+            )}
         </div>
     );
 }

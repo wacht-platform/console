@@ -30,6 +30,11 @@ export interface AgentToolApprovalRule {
   action: ApprovalAction;
 }
 
+export interface AgentLimits {
+  context_window_tokens?: number;
+  run_token_budget?: number;
+}
+
 export interface Agent {
   id: string;
   created_at: string;
@@ -49,6 +54,7 @@ export interface Agent {
   require_approval_mcp?: boolean;
   require_approval_virtual?: boolean;
   tool_approval_rules?: AgentToolApprovalRule[];
+  limits?: AgentLimits;
 }
 
 export interface CreateAgentRequest {
@@ -64,6 +70,7 @@ export interface CreateAgentRequest {
   require_approval_mcp?: boolean;
   require_approval_virtual?: boolean;
   tool_approval_rules?: AgentToolApprovalRule[];
+  limits?: AgentLimits;
 }
 
 export interface UpdateAgentRequest {
@@ -80,6 +87,7 @@ export interface UpdateAgentRequest {
   require_approval_mcp?: boolean;
   require_approval_virtual?: boolean;
   tool_approval_rules?: AgentToolApprovalRule[];
+  limits?: AgentLimits;
 }
 
 interface GetAgentsParams {

@@ -20,6 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import { InlineLoader } from "@/components/ui/loading-screen";
 import { useAiProviderProfiles } from "@/lib/api/hooks/use-ai-provider-profiles";
 import {
+  type AgentLimits,
   type AgentModelOverride,
   useAgentById,
   useUpdateAgent,
@@ -98,6 +99,7 @@ export default function AgentModelsPage() {
 
   const [strong, setStrong] = useState<ModelFormState>(EMPTY_FORM);
   const [weak, setWeak] = useState<ModelFormState>(EMPTY_FORM);
+  const [limits, setLimits] = useState({ contextWindow: "", runTokenBudget: "" });
 
   const enabledProfiles = useMemo(
     () => profiles.filter((profile) => profile.enabled),
@@ -108,6 +110,7 @@ export default function AgentModelsPage() {
     if (!agent) return;
     setStrong(fromOverride(agent.strong_model));
     setWeak(fromOverride(agent.weak_model));
+    setLimits(fromLimits(agent.limits));
   }, [agent]);
 
   if (isLoading) return <InlineLoader />;
@@ -122,10 +125,13 @@ export default function AgentModelsPage() {
   const original = {
     strong: fromOverride(agent.strong_model),
     weak: fromOverride(agent.weak_model),
+    limits: fromLimits(agent.limits),
   };
   const isDirty =
     !sameModelState(original.strong, strong) ||
-    !sameModelState(original.weak, weak);
+    !sameModelState(original.weak, weak) ||
+    limits.contextWindow !== original.limits.contextWindow ||
+    limits.runTokenBudget !== original.limits.runTokenBudget;
   const formInvalid = isModelStateInvalid(strong) || isModelStateInvalid(weak);
 
   const onSave = async () => {
@@ -148,6 +154,17 @@ export default function AgentModelsPage() {
     } else {
       update.clear_weak_model = true;
     }
+
+    const nextLimits: AgentLimits = {};
+    const cw = Number.parseInt(limits.contextWindow, 10);
+    if (limits.contextWindow.trim() && Number.isFinite(cw) && cw > 0) {
+      nextLimits.context_window_tokens = cw;
+    }
+    const rb = Number.parseInt(limits.runTokenBudget, 10);
+    if (limits.runTokenBudget.trim() && Number.isFinite(rb) && rb > 0) {
+      nextLimits.run_token_budget = rb;
+    }
+    update.limits = nextLimits;
 
     try {
       await updateAgent.mutateAsync({ agentId: agent.id, agent: update });
@@ -193,6 +210,50 @@ export default function AgentModelsPage() {
           profiles={enabledProfiles}
           defaultModel={aiDefaults?.weak_model}
         />
+
+        <section className="flex flex-col gap-4">
+          <SectionLabel>Runtime limits</SectionLabel>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="context-window">Context window (tokens)</Label>
+              <Input
+                id="context-window"
+                type="number"
+                min={0}
+                inputMode="numeric"
+                value={limits.contextWindow}
+                placeholder="150000 (default)"
+                className="font-mono"
+                onChange={(e) =>
+                  setLimits({ ...limits, contextWindow: e.target.value })
+                }
+              />
+              <p className="text-xs leading-5 text-muted-foreground">
+                History compacts once the prompt reaches this many tokens. Blank
+                = engine default (150k).
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="run-token-budget">Run token budget</Label>
+              <Input
+                id="run-token-budget"
+                type="number"
+                min={0}
+                inputMode="numeric"
+                value={limits.runTokenBudget}
+                placeholder="Unlimited"
+                className="font-mono"
+                onChange={(e) =>
+                  setLimits({ ...limits, runTokenBudget: e.target.value })
+                }
+              />
+              <p className="text-xs leading-5 text-muted-foreground">
+                Max total tokens per execution run before it's preempted. Blank =
+                uncapped.
+              </p>
+            </div>
+          </div>
+        </section>
       </div>
 
       <SavePopup
@@ -202,6 +263,7 @@ export default function AgentModelsPage() {
         onCancel={() => {
           setStrong(fromOverride(agent.strong_model));
           setWeak(fromOverride(agent.weak_model));
+          setLimits(fromLimits(agent.limits));
         }}
       />
     </div>
@@ -390,6 +452,20 @@ function toOverride(state: ModelFormState): AgentModelOverride {
   return {
     provider: state.provider.trim(),
     model: state.model.trim(),
+  };
+}
+
+function fromLimits(limits?: AgentLimits): {
+  contextWindow: string;
+  runTokenBudget: string;
+} {
+  return {
+    contextWindow:
+      limits?.context_window_tokens != null
+        ? String(limits.context_window_tokens)
+        : "",
+    runTokenBudget:
+      limits?.run_token_budget != null ? String(limits.run_token_budget) : "",
   };
 }
 
