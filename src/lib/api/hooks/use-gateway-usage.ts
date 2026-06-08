@@ -17,14 +17,15 @@ export const useGatewayUsage = (
   from: string,
   to: string,
   granularity: "minute" | "hour" | "day",
+  tz: string,
   enabled = true,
 ) =>
   useQuery({
-    queryKey: ["gateway-usage", deploymentId, from, to, granularity],
+    queryKey: ["gateway-usage", deploymentId, from, to, granularity, tz],
     queryFn: async (): Promise<GatewayUsageResponse> => {
       const response = await apiClient.get(
         `/deployments/${deploymentId}/analytics/gateway-usage`,
-        { params: { from, to, granularity } },
+        { params: { from, to, granularity, tz } },
       );
       return response.data;
     },

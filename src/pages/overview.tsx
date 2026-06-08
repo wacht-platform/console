@@ -1,5 +1,12 @@
 import { useId, useState, type ReactNode } from "react";
-import { format } from "date-fns";
+import {
+    format,
+    startOfDay,
+    endOfDay,
+    startOfWeek,
+    startOfMonth,
+    subDays,
+} from "date-fns";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import {
     FingerPrintIcon,
@@ -17,7 +24,10 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { useAnalyticsStats } from "@/lib/api/hooks/use-analytics";
-import { useTokenUsage } from "@/lib/api/hooks/use-token-usage";
+import {
+    useTokenUsage,
+    useTokenUsageByModel,
+} from "@/lib/api/hooks/use-token-usage";
 import { useWebhookUsage } from "@/lib/api/hooks/use-webhook-usage";
 import { useGatewayUsage } from "@/lib/api/hooks/use-gateway-usage";
 import {
@@ -53,38 +63,28 @@ import type {
 // Date range options for analytics
 const DATE_RANGES = {
     today: () => ({
-        from: format(new Date(), "yyyy-MM-dd'T'00:00:00'Z'"),
-        to: format(new Date(), "yyyy-MM-dd'T'23:59:59'Z'"),
+        from: startOfDay(new Date()).toISOString(),
+        to: endOfDay(new Date()).toISOString(),
         label: "Today",
     }),
     yesterday: () => {
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
+        const y = subDays(new Date(), 1);
         return {
-            from: format(yesterday, "yyyy-MM-dd'T'00:00:00'Z'"),
-            to: format(yesterday, "yyyy-MM-dd'T'23:59:59'Z'"),
+            from: startOfDay(y).toISOString(),
+            to: endOfDay(y).toISOString(),
             label: "Yesterday",
         };
     },
-    thisWeek: () => {
-        const now = new Date();
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - now.getDay());
-        return {
-            from: format(startOfWeek, "yyyy-MM-dd'T'00:00:00'Z'"),
-            to: format(now, "yyyy-MM-dd'T'23:59:59'Z'"),
-            label: "This week",
-        };
-    },
-    thisMonth: () => {
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        return {
-            from: format(startOfMonth, "yyyy-MM-dd'T'00:00:00'Z'"),
-            to: format(now, "yyyy-MM-dd'T'23:59:59'Z'"),
-            label: "This month",
-        };
-    },
+    thisWeek: () => ({
+        from: startOfWeek(new Date()).toISOString(),
+        to: new Date().toISOString(),
+        label: "This week",
+    }),
+    thisMonth: () => ({
+        from: startOfMonth(new Date()).toISOString(),
+        to: new Date().toISOString(),
+        label: "This month",
+    }),
 };
 
 export default function OverviewPage() {
@@ -94,6 +94,7 @@ export default function OverviewPage() {
     const [selectedPeriod, setSelectedPeriod] =
         useState<keyof typeof DATE_RANGES>("thisWeek");
     const currentRange = DATE_RANGES[selectedPeriod]();
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     const { session } = useSession();
     const user = session?.active_signin?.user;
@@ -133,6 +134,7 @@ export default function OverviewPage() {
         currentRange.from,
         currentRange.to,
         tokenGranularity,
+        tz,
         !!selectedDeployment?.id,
     );
     const tokenData = (tokenUsage?.buckets ?? []).map((b) => ({
@@ -174,6 +176,7 @@ export default function OverviewPage() {
             currentRange.from,
             currentRange.to,
             tokenGranularity,
+            tz,
             !!selectedDeployment?.id,
         );
     const webhookData = (webhookUsage?.buckets ?? []).map((b) => ({
@@ -203,6 +206,7 @@ export default function OverviewPage() {
             currentRange.from,
             currentRange.to,
             tokenGranularity,
+            tz,
             !!selectedDeployment?.id,
         );
     const gatewayData = (gatewayUsage?.buckets ?? []).map((b) => ({
@@ -222,6 +226,15 @@ export default function OverviewPage() {
         allowed: { label: "Allowed", color: "var(--chart-3)" },
         blocked: { label: "Blocked", color: "var(--chart-4)" },
     } satisfies ChartConfig;
+
+    const { data: tokenByModel, isLoading: tokenByModelLoading } =
+        useTokenUsageByModel(
+            selectedDeployment?.id || "",
+            currentRange.from,
+            currentRange.to,
+            !!selectedDeployment?.id,
+        );
+    const tokenModels = tokenByModel?.models ?? [];
 
     const dailyChartConfig = {
         signins: {
@@ -368,17 +381,24 @@ export default function OverviewPage() {
                 <MethodsCard data={methodsData} />
             </div>
 
-            <TokenUsageCard
-                loading={tokenUsageLoading}
-                data={tokenData}
-                config={tokenChartConfig}
-                totals={tokenTotals}
-            />
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.7fr_1fr]">
+                <TokenUsageCard
+                    loading={tokenUsageLoading}
+                    data={tokenData}
+                    config={tokenChartConfig}
+                    totals={tokenTotals}
+                    tz={tz}
+                />
+                <TokenByModelCard
+                    loading={tokenByModelLoading}
+                    models={tokenModels}
+                />
+            </div>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <UsageAreaCard
                     title="Webhook deliveries"
-                    subtitle="Delivery outcomes · UTC"
+                    subtitle={`Delivery outcomes · ${tz}`}
                     loading={webhookUsageLoading}
                     data={webhookData}
                     config={webhookChartConfig}
@@ -395,7 +415,7 @@ export default function OverviewPage() {
                 />
                 <UsageAreaCard
                     title="API gateway usage"
-                    subtitle="Key verifications · UTC"
+                    subtitle={`Key verifications · ${tz}`}
                     loading={gatewayUsageLoading}
                     data={gatewayData}
                     config={gatewayChartConfig}
@@ -440,6 +460,7 @@ function TokenUsageCard({
     data,
     config,
     totals,
+    tz,
 }: {
     loading: boolean;
     data: Array<{
@@ -451,6 +472,7 @@ function TokenUsageCard({
     }>;
     config: ChartConfig;
     totals: { input: number; cached: number; output: number };
+    tz: string;
 }) {
     const compact = (n: number) =>
         new Intl.NumberFormat("en", {
@@ -465,7 +487,7 @@ function TokenUsageCard({
                         Token usage
                     </h3>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                        Model tokens · UTC
+                        Model tokens · {tz}
                     </p>
                 </div>
                 <div className="flex gap-5">
@@ -527,6 +549,67 @@ function TokenUsageCard({
                     icon={<RectangleStackIcon className="h-12 w-12" />}
                     title="No token usage"
                     description="Token consumption will appear here once your agents start running."
+                />
+            )}
+        </div>
+    );
+}
+
+function TokenByModelCard({
+    loading,
+    models,
+}: {
+    loading: boolean;
+    models: Array<{
+        model: string;
+        input_tokens: number;
+        output_tokens: number;
+        total_tokens: number;
+    }>;
+}) {
+    const compact = (n: number) =>
+        new Intl.NumberFormat("en", {
+            notation: "compact",
+            maximumFractionDigits: 1,
+        }).format(n);
+    const max = Math.max(1, ...models.map((m) => m.total_tokens));
+    return (
+        <div className="rounded-lg border border-border bg-card p-5">
+            <div className="mb-3">
+                <h3 className="text-sm font-medium text-foreground">
+                    Tokens by model
+                </h3>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                    Total this range
+                </p>
+            </div>
+            {loading ? (
+                <div className="h-[230px] animate-pulse rounded-md bg-muted/50" />
+            ) : models.length > 0 ? (
+                <div className="space-y-3">
+                    {models.map((m) => (
+                        <div key={m.model}>
+                            <div className="flex items-center justify-between gap-3 text-xs">
+                                <span className="truncate font-mono text-foreground">
+                                    {m.model}
+                                </span>
+                                <span className="shrink-0 text-muted-foreground">
+                                    {compact(m.total_tokens)}
+                                </span>
+                            </div>
+                            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-secondary">
+                                <div
+                                    className="h-full rounded-full bg-[var(--chart-1)]"
+                                    style={{ width: `${(m.total_tokens / max) * 100}%` }}
+                                />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <PanelEmpty
+                    icon={<RectangleStackIcon className="h-12 w-12" />}
+                    message="Per-model token usage will appear here once agents run."
                 />
             )}
         </div>

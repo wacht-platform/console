@@ -19,14 +19,15 @@ export const useWebhookUsage = (
   from: string,
   to: string,
   granularity: "minute" | "hour" | "day",
+  tz: string,
   enabled = true,
 ) =>
   useQuery({
-    queryKey: ["webhook-usage", deploymentId, from, to, granularity],
+    queryKey: ["webhook-usage", deploymentId, from, to, granularity, tz],
     queryFn: async (): Promise<WebhookUsageResponse> => {
       const response = await apiClient.get(
         `/deployments/${deploymentId}/analytics/webhook-usage`,
-        { params: { from, to, granularity } },
+        { params: { from, to, granularity, tz } },
       );
       return response.data;
     },
