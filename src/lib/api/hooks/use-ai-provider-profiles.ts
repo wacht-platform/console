@@ -17,6 +17,7 @@ export interface AiProviderProfile {
   default_model?: string | null;
   enabled: boolean;
   disable_prompt_caching: boolean;
+  disable_reasoning_effort: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -32,6 +33,7 @@ export interface CreateAiProviderProfileRequest {
   default_model?: string;
   enabled?: boolean;
   disable_prompt_caching?: boolean;
+  disable_reasoning_effort?: boolean;
 }
 
 export interface UpdateAiProviderProfileRequest {
@@ -44,6 +46,7 @@ export interface UpdateAiProviderProfileRequest {
   default_model?: string;
   enabled?: boolean;
   disable_prompt_caching?: boolean;
+  disable_reasoning_effort?: boolean;
 }
 
 function unwrapProfile(data: { data?: AiProviderProfile } & AiProviderProfile) {

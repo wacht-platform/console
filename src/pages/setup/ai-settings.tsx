@@ -1278,6 +1278,7 @@ interface ProviderProfileForm {
     defaultModel: string;
     enabled: boolean;
     disablePromptCaching: boolean;
+    disableReasoningEffort: boolean;
 }
 
 function ProviderProfileDialog({
@@ -1307,6 +1308,7 @@ function ProviderProfileDialog({
         defaultModel: "",
         enabled: true,
         disablePromptCaching: false,
+        disableReasoningEffort: false,
     });
 
     useEffect(() => {
@@ -1321,6 +1323,7 @@ function ProviderProfileDialog({
             defaultModel: profile?.default_model ?? "",
             enabled: profile?.enabled ?? true,
             disablePromptCaching: profile?.disable_prompt_caching ?? false,
+            disableReasoningEffort: profile?.disable_reasoning_effort ?? false,
         });
     }, [open, profile]);
 
@@ -1362,6 +1365,7 @@ function ProviderProfileDialog({
             default_model: optionalString(form.defaultModel),
             enabled: form.enabled,
             disable_prompt_caching: form.disablePromptCaching,
+            disable_reasoning_effort: form.disableReasoningEffort,
         };
 
         if (isEditing) {
@@ -1530,6 +1534,25 @@ function ProviderProfileDialog({
                             checked={form.disablePromptCaching}
                             onCheckedChange={(disablePromptCaching) =>
                                 setForm({ ...form, disablePromptCaching })
+                            }
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-4 rounded-md border border-border px-4 py-3 dark:border-border">
+                        <div>
+                            <div className="text-sm font-medium text-foreground">
+                                Disable reasoning effort
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                                Skips the reasoning_effort sent to this endpoint.
+                                Turn on for models that don't support a thinking /
+                                reasoning level and reject it.
+                            </div>
+                        </div>
+                        <Switch
+                            checked={form.disableReasoningEffort}
+                            onCheckedChange={(disableReasoningEffort) =>
+                                setForm({ ...form, disableReasoningEffort })
                             }
                         />
                     </div>
