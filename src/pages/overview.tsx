@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from "react";
+import { useId, useMemo, useState, type ReactNode } from "react";
 import {
     format,
     startOfDay,
@@ -93,7 +93,13 @@ export default function OverviewPage() {
     const queryClient = useQueryClient();
     const [selectedPeriod, setSelectedPeriod] =
         useState<keyof typeof DATE_RANGES>("thisWeek");
-    const currentRange = DATE_RANGES[selectedPeriod]();
+    // Memoize per period: the range fns use `new Date()` for `to`, so calling
+    // them every render produced a fresh `to` each time → new query keys → an
+    // infinite refetch loop across every analytics hook below.
+    const currentRange = useMemo(
+        () => DATE_RANGES[selectedPeriod](),
+        [selectedPeriod],
+    );
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     const { session } = useSession();
@@ -325,7 +331,7 @@ export default function OverviewPage() {
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" size="sm">
-                                    {DATE_RANGES[selectedPeriod]().label}
+                                    {currentRange.label}
                                     <ChevronDownIcon className="size-4 text-muted-foreground" />
                                 </Button>
                             </DropdownMenuTrigger>
