@@ -143,12 +143,14 @@ export default function OverviewPage() {
         tz,
         !!selectedDeployment?.id,
     );
+    // cached tokens are a subset of input tokens (Gemini usage semantics);
+    // derive the non-cached share so the stacked series sum correctly.
     const tokenData = (tokenUsage?.buckets ?? []).map((b) => ({
         label: format(
             new Date(b.bucket),
             tokenGranularity === "day" ? "MMM d" : "HH:mm",
         ),
-        input: b.input_tokens,
+        input: Math.max(0, b.input_tokens - b.cached_tokens),
         cached: b.cached_tokens,
         output: b.output_tokens,
         total: b.total_tokens,
@@ -265,7 +267,7 @@ export default function OverviewPage() {
     const signinsSeries = dailyMetrics.map((m) => m.signins);
     const signupsSeries = dailyMetrics.map((m) => m.signups);
     const fmt = (n?: number) =>
-        resolvedStatsLoading ? "…" : (n ?? 0).toLocaleString();
+        resolvedStatsLoading ? "…" : (n ?? 0).toLocaleString("en-US");
 
     const kpiCards = [
         {
@@ -1114,7 +1116,7 @@ function MethodsDonut({
                 className="fill-foreground"
                 style={{ font: "500 16px var(--font-sans)" }}
             >
-                {total.toLocaleString()}
+                {total.toLocaleString("en-US")}
             </text>
             <text
                 x={cx}
