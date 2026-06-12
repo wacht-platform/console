@@ -2,12 +2,9 @@ import { useApiAuthApps } from "@/lib/api/hooks/use-manage-apps";
 import { AppManager } from "./app-manager";
 
 export default function ApiGatewayPage() {
-    const { data: apps = [], isLoading } = useApiAuthApps();
     return (
         <AppManager
-            kind="api-auth"
-            apps={apps}
-            loading={isLoading}
+            useApps={useApiAuthApps}
             eyebrow="Manage"
             title="API Gateway"
             sub="API auth apps, keys, rate limits and audit logs for this deployment."

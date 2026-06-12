@@ -110,7 +110,13 @@ const ConfigureMCPPage = lazyImport(
 const WebhooksEmbedPage = lazyImport(() => import("./pages/webhooks/embed"));
 const ApiKeysEmbedPage = lazyImport(() => import("./pages/api-keys/embed"));
 const ApiGatewayPage = lazyImport(() => import("./pages/manage/api-gateway"));
+const ApiGatewayDetailPage = lazyImport(
+    () => import("./pages/manage/api-gateway-detail"),
+);
 const WebhookAppsPage = lazyImport(() => import("./pages/manage/webhook-apps"));
+const WebhookAppsDetailPage = lazyImport(
+    () => import("./pages/manage/webhook-apps-detail"),
+);
 const AgentObservabilityPage = lazyImport(
     () => import("./pages/manage/agent-observability"),
 );
@@ -728,19 +734,45 @@ export const router = createBrowserRouter([
             },
             {
                 path: "manage/api-gateway",
-                element: (
-                    <Suspense fallback={<SimpleFallback />}>
-                        <ApiGatewayPage />
-                    </Suspense>
-                ),
+                children: [
+                    {
+                        index: true,
+                        element: (
+                            <Suspense fallback={<SimpleFallback />}>
+                                <ApiGatewayPage />
+                            </Suspense>
+                        ),
+                    },
+                    {
+                        path: ":slug",
+                        element: (
+                            <Suspense fallback={<SimpleFallback />}>
+                                <ApiGatewayDetailPage />
+                            </Suspense>
+                        ),
+                    },
+                ],
             },
             {
                 path: "manage/webhook-apps",
-                element: (
-                    <Suspense fallback={<SimpleFallback />}>
-                        <WebhookAppsPage />
-                    </Suspense>
-                ),
+                children: [
+                    {
+                        index: true,
+                        element: (
+                            <Suspense fallback={<SimpleFallback />}>
+                                <WebhookAppsPage />
+                            </Suspense>
+                        ),
+                    },
+                    {
+                        path: ":slug",
+                        element: (
+                            <Suspense fallback={<SimpleFallback />}>
+                                <WebhookAppsDetailPage />
+                            </Suspense>
+                        ),
+                    },
+                ],
             },
             {
                 path: "manage/agent-observability",
