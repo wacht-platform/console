@@ -44,7 +44,6 @@ const B2BSettingsLayout = lazyImport(
     () => import("./pages/b2b-settings/layout"),
 );
 const SetupLayout = lazyImport(() => import("./pages/setup/layout"));
-const PortalPage = lazyImport(() => import("./pages/portal"));
 const DeploymentSettingsPage = lazyImport(
     () => import("./pages/deployment-settings"),
 );
@@ -533,14 +532,6 @@ export const router = createBrowserRouter([
                         ),
                     },
                 ],
-            },
-            {
-                path: "portal",
-                element: (
-                    <Suspense fallback={<SimpleFallback />}>
-                        <PortalPage />
-                    </Suspense>
-                ),
             },
             {
                 path: "setup",

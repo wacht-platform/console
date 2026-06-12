@@ -61,6 +61,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             icon: IconCirclePlus,
             isActive: pathname.includes("segments"),
         },
+        ...(hasNewUi
+            ? [
+                  {
+                      title: "API Gateway",
+                      url: "manage/api-gateway",
+                      icon: IconShieldLock,
+                      isActive: pathname.includes("manage/api-gateway"),
+                  },
+                  {
+                      title: "Webhook Apps",
+                      url: "manage/webhook-apps",
+                      icon: IconWebhook,
+                      isActive: pathname.includes("manage/webhook-apps"),
+                  },
+                  {
+                      title: "Agent Observability",
+                      url: "manage/agent-observability",
+                      icon: IconChartBar,
+                      isActive: pathname.includes("manage/agent-observability"),
+                  },
+              ]
+            : []),
     ];
 
     const navConfiguration = [
@@ -120,27 +142,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         },
     ];
 
-    const navManage = [
-        {
-            title: "API Gateway",
-            url: "manage/api-gateway",
-            icon: IconShieldLock,
-            isActive: pathname.includes("manage/api-gateway"),
-        },
-        {
-            title: "Webhook Apps",
-            url: "manage/webhook-apps",
-            icon: IconWebhook,
-            isActive: pathname.includes("manage/webhook-apps"),
-        },
-        {
-            title: "Agent Observability",
-            url: "manage/agent-observability",
-            icon: IconChartBar,
-            isActive: pathname.includes("manage/agent-observability"),
-        },
-    ];
-
     const navOnboarding = [
         ...(isProductionDeployment
             ? [
@@ -175,7 +176,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <NavMain title="Management" items={navManagement} />
                     <NavMain title="Configuration" items={navConfiguration} />
                     <NavMain title="Developers" items={navDevelopers} />
-                    {hasNewUi && <NavMain title="Manage" items={navManage} />}
                 </div>
             </SidebarContent>
         </Sidebar>
