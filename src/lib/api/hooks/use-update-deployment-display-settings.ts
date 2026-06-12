@@ -1,7 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../client";
 import { useProjects } from "./use-projects";
-import type { LightModeSettings, DarkModeSettings } from "@/types/deployment";
+import type {
+  LightModeSettings,
+  DarkModeSettings,
+  ThemeTokens,
+} from "@/types/deployment";
 
 export interface DeploymentDisplaySettingsUpdates {
   app_name?: string;
@@ -19,6 +23,7 @@ export interface DeploymentDisplaySettingsUpdates {
   signup_terms_statement_shown?: boolean;
   light_mode_settings?: LightModeSettings;
   dark_mode_settings?: DarkModeSettings;
+  theme_tokens?: ThemeTokens;
   after_logo_click_url?: string;
   organization_profile_url?: string;
   create_organization_url?: string;

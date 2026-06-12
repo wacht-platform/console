@@ -10,6 +10,7 @@ type VanityKind = "webhook" | "api-auth";
 
 interface VanityEmbedShellProps {
     kind: VanityKind;
+    appSlug?: string;
 }
 
 interface TicketResponse {
@@ -25,16 +26,19 @@ function createIframePath(kind: VanityKind, pathname: string): string {
 async function createSessionTicket(
     deploymentId: string,
     kind: VanityKind,
+    appSlug?: string,
 ): Promise<TicketResponse> {
+    const slug =
+        appSlug ?? (kind === "webhook" ? `wh_${deploymentId}` : `aa_${deploymentId}`);
     const body =
         kind === "webhook"
             ? {
                   ticket_type: "webhook_app_access",
-                  webhook_app_slug: `wh_${deploymentId}`,
+                  webhook_app_slug: slug,
               }
             : {
                   ticket_type: "api_auth_access",
-                  api_auth_app_slug: `aa_${deploymentId}`,
+                  api_auth_app_slug: slug,
               };
 
     const response = await apiClient.post<TicketResponse>(
@@ -44,7 +48,7 @@ async function createSessionTicket(
     return response.data;
 }
 
-export function VanityEmbedShell({ kind }: VanityEmbedShellProps) {
+export function VanityEmbedShell({ kind, appSlug }: VanityEmbedShellProps) {
     const { deploymentId } = useParams();
     const { pathname } = useLocation();
     const { deployment } = useDeployment();
@@ -85,7 +89,7 @@ export function VanityEmbedShell({ kind }: VanityEmbedShellProps) {
             setSrc(null);
 
             try {
-                const result = await createSessionTicket(deploymentId, kind);
+                const result = await createSessionTicket(deploymentId, kind, appSlug);
                 if (cancelled) return;
                 setTicket(result.ticket);
                 setSrc(
@@ -107,7 +111,7 @@ export function VanityEmbedShell({ kind }: VanityEmbedShellProps) {
         return () => {
             cancelled = true;
         };
-    }, [deploymentId, kind, nonce, vanityBaseUrl, vanityPath]);
+    }, [deploymentId, kind, appSlug, nonce, vanityBaseUrl, vanityPath]);
 
     return (
         <VanityEmbedFrame

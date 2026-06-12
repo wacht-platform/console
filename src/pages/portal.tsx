@@ -26,10 +26,6 @@ interface ValidationErrors {
   afterSigninRedirectUrl?: string;
   afterLogoClickUrl?: string;
   afterCreateOrganizationUrl?: string;
-  primaryColor?: string;
-  backgroundColor?: string;
-  darkModePrimaryColor?: string;
-  darkModeBackgroundColor?: string;
   signupTermsStatement?: string;
   afterSignOutOnePageUrl?: string;
   afterSignOutAllPageUrl?: string;

@@ -80,7 +80,9 @@ function relativeTime(value: string | Date | undefined) {
 
 function mostRecentDeploymentTime(project: ProjectWithDeployments) {
     const times = project.deployments
-        .map((d) => new Date(d.updated_at ?? d.created_at ?? project.created_at))
+        .map(
+            (d) => new Date(d.updated_at ?? d.created_at ?? project.created_at),
+        )
         .map((d) => d.getTime())
         .filter((t) => Number.isFinite(t));
     if (times.length === 0) return new Date(project.created_at).getTime();
@@ -146,9 +148,7 @@ export default function ProjectsPage() {
 
     const hasAnyDeployment = useMemo(
         () =>
-            (projects ?? []).some(
-                (project) => project.deployments.length > 0,
-            ),
+            (projects ?? []).some((project) => project.deployments.length > 0),
         [projects],
     );
     useTourCompletion("first-deployment-create", hasAnyDeployment);
@@ -472,10 +472,9 @@ function ProjectRow({
 
     const lastTouched = mostRecentDeploymentTime(project);
     const initials = project.name.slice(0, 2).toUpperCase();
-    const hosts = [
-        production?.frontend_host,
-        staging?.frontend_host,
-    ].filter(Boolean) as string[];
+    const hosts = [production?.frontend_host, staging?.frontend_host].filter(
+        Boolean,
+    ) as string[];
 
     return (
         <TableRow
@@ -486,7 +485,10 @@ function ProjectRow({
             <TableCell className="py-3">
                 <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
-                        <AvatarImage src={project.image_url} alt={project.name} />
+                        <AvatarImage
+                            src={project.image_url}
+                            alt={project.name}
+                        />
                         <AvatarFallback>{initials}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
@@ -537,4 +539,3 @@ function ProjectRow({
         </TableRow>
     );
 }
-

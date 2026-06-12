@@ -110,6 +110,11 @@ const ConfigureMCPPage = lazyImport(
 );
 const WebhooksEmbedPage = lazyImport(() => import("./pages/webhooks/embed"));
 const ApiKeysEmbedPage = lazyImport(() => import("./pages/api-keys/embed"));
+const ApiGatewayPage = lazyImport(() => import("./pages/manage/api-gateway"));
+const WebhookAppsPage = lazyImport(() => import("./pages/manage/webhook-apps"));
+const AgentObservabilityPage = lazyImport(
+    () => import("./pages/manage/agent-observability"),
+);
 const WebhookCatalogsPage = lazyImport(
     () => import("./pages/webhooks/catalogs"),
 );
@@ -727,6 +732,30 @@ export const router = createBrowserRouter([
                 element: (
                     <Suspense fallback={<SimpleFallback />}>
                         <ApiKeysEmbedPage />
+                    </Suspense>
+                ),
+            },
+            {
+                path: "manage/api-gateway",
+                element: (
+                    <Suspense fallback={<SimpleFallback />}>
+                        <ApiGatewayPage />
+                    </Suspense>
+                ),
+            },
+            {
+                path: "manage/webhook-apps",
+                element: (
+                    <Suspense fallback={<SimpleFallback />}>
+                        <WebhookAppsPage />
+                    </Suspense>
+                ),
+            },
+            {
+                path: "manage/agent-observability",
+                element: (
+                    <Suspense fallback={<SimpleFallback />}>
+                        <AgentObservabilityPage />
                     </Suspense>
                 ),
             },
