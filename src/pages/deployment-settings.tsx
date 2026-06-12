@@ -84,6 +84,7 @@ const THEME_TOKEN_GROUPS: Array<{ title: string; tokens: TokenDef[] }> = [
       { key: "radius", label: "Radius", kind: "length", light: "6px", dark: "6px" },
       { key: "radius_lg", label: "Radius large", kind: "length", light: "10px", dark: "10px" },
       { key: "font_sans", label: "Sans font family", kind: "font", light: "", dark: "" },
+      { key: "font_mono", label: "Mono font family", kind: "font", light: "", dark: "" },
     ],
   },
 ];
