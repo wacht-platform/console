@@ -31,6 +31,79 @@ interface ValidationErrors {
   afterSignOutAllPageUrl?: string;
 }
 
+type ThemeTokenKind = "color" | "length" | "font";
+
+interface ThemeTokenMeta {
+  key: string;
+  label: string;
+  kind: ThemeTokenKind;
+  light: string;
+  dark: string;
+}
+
+interface ThemeTokenGroup {
+  label: string;
+  tokens: ThemeTokenMeta[];
+}
+
+const THEME_TOKEN_GROUPS: ThemeTokenGroup[] = [
+  {
+    label: "Surfaces",
+    tokens: [
+      { key: "surface", label: "Surface", kind: "color", light: "#ffffff", dark: "#131318" },
+      { key: "surface_subtle", label: "Surface subtle", kind: "color", light: "#fafaf8", dark: "#101015" },
+      { key: "background", label: "Background", kind: "color", light: "#f5f5f2", dark: "#0d0d10" },
+      { key: "canvas", label: "Canvas", kind: "color", light: "#ebebe7", dark: "#050507" },
+    ],
+  },
+  {
+    label: "Text",
+    tokens: [
+      { key: "text", label: "Text", kind: "color", light: "#161618", dark: "#ececef" },
+      { key: "text_secondary", label: "Text secondary", kind: "color", light: "#3b3b3f", dark: "#c5c5cb" },
+      { key: "text_muted", label: "Text muted", kind: "color", light: "#76767c", dark: "#8a8a92" },
+      { key: "text_faint", label: "Text faint", kind: "color", light: "#a8a8ad", dark: "#57575e" },
+    ],
+  },
+  {
+    label: "Lines",
+    tokens: [
+      { key: "border", label: "Border", kind: "color", light: "rgba(20, 20, 22, 0.08)", dark: "rgba(255, 255, 255, 0.07)" },
+      { key: "border_strong", label: "Border strong", kind: "color", light: "rgba(20, 20, 22, 0.14)", dark: "rgba(255, 255, 255, 0.14)" },
+    ],
+  },
+  {
+    label: "Brand",
+    tokens: [
+      { key: "primary", label: "Primary", kind: "color", light: "#6b3df5", dark: "#9277ff" },
+      { key: "primary_soft", label: "Primary soft", kind: "color", light: "rgba(107, 61, 245, 0.1)", dark: "rgba(146, 119, 255, 0.16)" },
+      { key: "primary_foreground", label: "Primary foreground", kind: "color", light: "#ffffff", dark: "#ffffff" },
+    ],
+  },
+  {
+    label: "Status",
+    tokens: [
+      { key: "success", label: "Success", kind: "color", light: "#0f8a4a", dark: "#0f8a4a" },
+      { key: "success_soft", label: "Success soft", kind: "color", light: "rgba(15, 138, 74, 0.12)", dark: "rgba(15, 138, 74, 0.18)" },
+      { key: "info", label: "Info", kind: "color", light: "#2f6fdb", dark: "#2f6fdb" },
+      { key: "info_soft", label: "Info soft", kind: "color", light: "rgba(47, 111, 219, 0.1)", dark: "rgba(47, 111, 219, 0.18)" },
+      { key: "warning", label: "Warning", kind: "color", light: "#a8650a", dark: "#a8650a" },
+      { key: "warning_soft", label: "Warning soft", kind: "color", light: "rgba(168, 101, 10, 0.12)", dark: "rgba(168, 101, 10, 0.18)" },
+      { key: "error", label: "Error", kind: "color", light: "#c4271f", dark: "#c4271f" },
+      { key: "error_soft", label: "Error soft", kind: "color", light: "rgba(196, 39, 31, 0.1)", dark: "rgba(196, 39, 31, 0.18)" },
+    ],
+  },
+  {
+    label: "Shape & type",
+    tokens: [
+      { key: "radius", label: "Radius", kind: "length", light: "6px", dark: "6px" },
+      { key: "radius_lg", label: "Radius (large)", kind: "length", light: "10px", dark: "10px" },
+      { key: "font_sans", label: "Font (sans)", kind: "font", light: "", dark: "" },
+      { key: "font_mono", label: "Font (mono)", kind: "font", light: "", dark: "" },
+    ],
+  },
+];
+
 export default function PortalPage() {
   const { deploymentSettings } = useCurrentDeployemnt();
   const updateDisplaySettings = useUpdateDeploymentDisplaySettings();
@@ -45,11 +118,18 @@ export default function PortalPage() {
   const [afterLogoClickUrl, setAfterLogoClickUrl] = useState("");
   const [afterCreateOrganizationUrl, setAfterCreateOrganizationUrl] =
     useState("");
-  const [primaryColor, setPrimaryColor] = useState("oklch(0.205 0 0)");
-  const [backgroundColor, setBackgroundColor] = useState("oklch(1 0 0)");
-  const [darkModePrimaryColor, setDarkModePrimaryColor] = useState("oklch(0.87 0 0)");
-  const [darkModeBackgroundColor, setDarkModeBackgroundColor] =
-    useState("oklch(0.145 0 0)");
+  const [themeTokens, setThemeTokens] = useState<{
+    light: Record<string, string>;
+    dark: Record<string, string>;
+  }>(() => ({ light: {}, dark: {} }));
+
+  const setToken = (mode: "light" | "dark", key: string, value: string) => {
+    setThemeTokens((prev) => ({
+      ...prev,
+      [mode]: { ...prev[mode], [key]: value },
+    }));
+    setIsDirty(true);
+  };
   const [defaultUserProfileImageUrl, setDefaultUserProfileImageUrl] =
     useState("");
   const [
@@ -85,10 +165,6 @@ export default function PortalPage() {
   const orgImageInputRef = useRef<HTMLInputElement>(null);
   const logoImageInputRef = useRef<HTMLInputElement>(null);
   const faviconImageInputRef = useRef<HTMLInputElement>(null);
-  const primaryColorInputRef = useRef<HTMLInputElement>(null);
-  const backgroundColorInputRef = useRef<HTMLInputElement>(null);
-  const darkModePrimaryColorInputRef = useRef<HTMLInputElement>(null);
-  const darkModeBackgroundColorInputRef = useRef<HTMLInputElement>(null);
 
   // Validation functions - memoized for better performance
   const validateUrl = useMemo(() => {
@@ -105,19 +181,6 @@ export default function PortalPage() {
       } catch {
         return "Please enter a valid URL (e.g., https://example.com or /path)";
       }
-    };
-  }, []);
-
-  const validateColor = useMemo(() => {
-    return (color: string): string | undefined => {
-      if (!color) return "Color is required";
-
-      const cssColorRegex =
-        /^(#([A-Fa-f0-9]{3,8})|rgba?\([^)]*\)|hsla?\([^)]*\)|oklch\([^)]*\)|oklab\([^)]*\)|lch\([^)]*\)|lab\([^)]*\)|transparent|currentColor)$/i;
-      if (!cssColorRegex.test(color.trim())) {
-        return "Please enter a valid CSS color";
-      }
-      return undefined;
     };
   }, []);
 
@@ -150,16 +213,11 @@ export default function PortalPage() {
         case "afterSignOutOnePageUrl":
         case "afterSignOutAllPageUrl":
           return validateUrl(value);
-        case "primaryColor":
-        case "backgroundColor":
-        case "darkModePrimaryColor":
-        case "darkModeBackgroundColor":
-          return validateColor(value);
         default:
           return undefined;
       }
     };
-  }, [validateUrl, validateColor]);
+  }, [validateUrl]);
 
   // Validate all fields and return true if valid
   const validateAllFields = useMemo(() => {
@@ -188,19 +246,6 @@ export default function PortalPage() {
       errors.afterCreateOrganizationUrl = validateField(
         "afterCreateOrganizationUrl",
         afterCreateOrganizationUrl
-      );
-      errors.primaryColor = validateField("primaryColor", primaryColor);
-      errors.backgroundColor = validateField(
-        "backgroundColor",
-        backgroundColor
-      );
-      errors.darkModePrimaryColor = validateField(
-        "darkModePrimaryColor",
-        darkModePrimaryColor
-      );
-      errors.darkModeBackgroundColor = validateField(
-        "darkModeBackgroundColor",
-        darkModeBackgroundColor
       );
       errors.afterSignOutOnePageUrl = validateField(
         "afterSignOutOnePageUrl",
@@ -231,10 +276,6 @@ export default function PortalPage() {
     afterSigninRedirectUrl,
     afterLogoClickUrl,
     afterCreateOrganizationUrl,
-    primaryColor,
-    backgroundColor,
-    darkModePrimaryColor,
-    darkModeBackgroundColor,
     afterSignOutOnePageUrl,
     afterSignOutAllPageUrl,
   ]);
@@ -269,18 +310,10 @@ export default function PortalPage() {
       setAfterCreateOrganizationUrl(
         settings.after_create_organization_redirect_url || ""
       );
-      setPrimaryColor(
-        settings.light_mode_settings?.primary_color || "oklch(0.205 0 0)"
-      );
-      setBackgroundColor(
-        settings.light_mode_settings?.background_color || "oklch(1 0 0)"
-      );
-      setDarkModePrimaryColor(
-        settings.dark_mode_settings?.primary_color || "oklch(0.87 0 0)"
-      );
-      setDarkModeBackgroundColor(
-        settings.dark_mode_settings?.background_color || "oklch(0.145 0 0)"
-      );
+      setThemeTokens({
+        light: { ...(settings.theme_tokens?.light ?? {}) },
+        dark: { ...(settings.theme_tokens?.dark ?? {}) },
+      });
       setDefaultUserProfileImageUrl(
         settings.default_user_profile_image_url || ""
       );
@@ -592,26 +625,7 @@ export default function PortalPage() {
           deploymentSettings?.ui_settings?.create_organization_url || "",
         user_profile_url:
           deploymentSettings?.ui_settings?.user_profile_url || "",
-        light_mode_settings: {
-          primary_color: primaryColor,
-          background_color: backgroundColor,
-          text_color:
-            deploymentSettings?.ui_settings?.light_mode_settings?.text_color ||
-            "#1E293B",
-          token_overrides:
-            deploymentSettings?.ui_settings?.light_mode_settings
-              ?.token_overrides,
-        },
-        dark_mode_settings: {
-          primary_color: darkModePrimaryColor,
-          background_color: darkModeBackgroundColor,
-          text_color:
-            deploymentSettings?.ui_settings?.dark_mode_settings?.text_color ||
-            "#F5F5F5",
-          token_overrides:
-            deploymentSettings?.ui_settings?.dark_mode_settings
-              ?.token_overrides,
-        },
+        theme_tokens: { light: themeTokens.light, dark: themeTokens.dark },
       };
 
       await updateDisplaySettings.mutateAsync(updates);
@@ -638,18 +652,10 @@ export default function PortalPage() {
       setAfterCreateOrganizationUrl(
         settings.after_create_organization_redirect_url || ""
       );
-      setPrimaryColor(
-        settings.light_mode_settings?.primary_color || "oklch(0.205 0 0)"
-      );
-      setBackgroundColor(
-        settings.light_mode_settings?.background_color || "oklch(1 0 0)"
-      );
-      setDarkModePrimaryColor(
-        settings.dark_mode_settings?.primary_color || "oklch(0.87 0 0)"
-      );
-      setDarkModeBackgroundColor(
-        settings.dark_mode_settings?.background_color || "oklch(0.145 0 0)"
-      );
+      setThemeTokens({
+        light: { ...(settings.theme_tokens?.light ?? {}) },
+        dark: { ...(settings.theme_tokens?.dark ?? {}) },
+      });
       setDefaultUserProfileImageUrl(
         settings.default_user_profile_image_url || ""
       );
@@ -1325,187 +1331,89 @@ export default function PortalPage() {
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
           <div className="space-y-1 col-span-2">
             <h3 className="text-sm font-medium text-foreground">
-              <span className="font-medium text-foreground">Colors (Light / Dark Mode)</span>
+              <span className="font-medium text-foreground">Theme tokens</span>
             </h3>
             <p className="text-sm text-muted-foreground">
-              Set colors for both light and dark mode versions of your Account
-              Portal.
+              Override the SDK's design tokens for light and dark mode. Leave a
+              field blank to use the default.
             </p>
           </div>
         </section>
 
-        <div className="grid gap-x-8 gap-y-10 sm:grid-cols-2">
-          <section className="space-y-3">
-            <h3 className="text-sm font-medium text-foreground">Primary Color (Light)</h3>
-            <div className="flex items-center gap-4">
-              <div
-                style={{ backgroundColor: primaryColor }}
-                className="h-10 w-10 shrink-0 cursor-pointer rounded-md p-0"
-                onClick={() => primaryColorInputRef.current?.click()}
-              />
-              <input
-                ref={primaryColorInputRef}
-                type="color"
-                value={getColorPickerValue(primaryColor)}
-                onChange={(e) =>
-                  updateField(setPrimaryColor, e.target.value, "primaryColor")
-                }
-                style={{ display: "none" }}
-              />
-              <div className="flex flex-col w-full">
-                <Input
-                  readOnly
-                  value={primaryColor}
-                  className={`font-medium ${validationErrors.primaryColor && showValidationErrors
-                    ? "border-red-500"
-                    : ""
-                    }`}
-                />
-                {validationErrors.primaryColor && showValidationErrors && (
-                  <span className="text-red-500 text-sm mt-1">
-                    {validationErrors.primaryColor}
-                  </span>
-                )}
+        <div className="space-y-8">
+          {THEME_TOKEN_GROUPS.map((group) => (
+            <div key={group.label} className="space-y-4">
+              <h3 className="text-sm font-medium text-foreground">{group.label}</h3>
+              <div className="space-y-4">
+                {group.tokens.map((token) => {
+                  const lightValue = themeTokens.light[token.key] ?? "";
+                  const darkValue = themeTokens.dark[token.key] ?? "";
+                  return (
+                    <div
+                      key={token.key}
+                      className="grid gap-x-8 gap-y-3 sm:grid-cols-3 items-center"
+                    >
+                      <span className="text-sm text-foreground">{token.label}</span>
+                      <div className="space-y-2 sm:col-span-2 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
+                        <div className="flex items-center gap-2">
+                          {token.kind === "color" && (
+                            <input
+                              type="color"
+                              value={getColorPickerValue(lightValue || token.light)}
+                              onChange={(e) =>
+                                setToken("light", token.key, e.target.value)
+                              }
+                              className="h-9 w-9 shrink-0 rounded-md border border-border p-0 bg-transparent cursor-pointer"
+                              aria-label={`${token.label} (light)`}
+                            />
+                          )}
+                          <Input
+                            value={lightValue}
+                            placeholder={
+                              token.light ||
+                              (token.kind === "font"
+                                ? "System default — enter one font family"
+                                : "")
+                            }
+                            onChange={(e) =>
+                              setToken("light", token.key, e.target.value)
+                            }
+                            className="font-mono text-xs"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {token.kind === "color" && (
+                            <input
+                              type="color"
+                              value={getColorPickerValue(darkValue || token.dark)}
+                              onChange={(e) =>
+                                setToken("dark", token.key, e.target.value)
+                              }
+                              className="h-9 w-9 shrink-0 rounded-md border border-border p-0 bg-transparent cursor-pointer"
+                              aria-label={`${token.label} (dark)`}
+                            />
+                          )}
+                          <Input
+                            value={darkValue}
+                            placeholder={
+                              token.dark ||
+                              (token.kind === "font"
+                                ? "System default — enter one font family"
+                                : "")
+                            }
+                            onChange={(e) =>
+                              setToken("dark", token.key, e.target.value)
+                            }
+                            className="font-mono text-xs"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            <div
-              style={{ backgroundColor: primaryColor }}
-              className="h-8 w-full rounded-md"
-            ></div>
-          </section>
-
-          <section className="space-y-3">
-            <h3 className="text-sm font-medium text-foreground">Primary Color (Dark)</h3>
-            <div className="flex items-center gap-4">
-              <div
-                style={{ backgroundColor: darkModePrimaryColor }}
-                className="h-10 w-10 shrink-0 cursor-pointer rounded-md p-0"
-                onClick={() => darkModePrimaryColorInputRef.current?.click()}
-              />
-              <input
-                ref={darkModePrimaryColorInputRef}
-                type="color"
-                value={getColorPickerValue(darkModePrimaryColor)}
-                onChange={(e) =>
-                  updateField(
-                    setDarkModePrimaryColor,
-                    e.target.value,
-                    "darkModePrimaryColor"
-                  )
-                }
-                style={{ display: "none" }}
-              />
-              <div className="flex flex-col w-full">
-                <Input
-                  readOnly
-                  value={darkModePrimaryColor}
-                  className={`font-medium ${validationErrors.darkModePrimaryColor &&
-                    showValidationErrors
-                    ? "border-red-500"
-                    : ""
-                    }`}
-                />
-                {validationErrors.darkModePrimaryColor &&
-                  showValidationErrors && (
-                    <span className="text-red-500 text-sm mt-1">
-                      {validationErrors.darkModePrimaryColor}
-                    </span>
-                  )}
-              </div>
-            </div>
-            <div
-              style={{ backgroundColor: darkModePrimaryColor }}
-              className="h-8 w-full rounded-md"
-            ></div>
-          </section>
-
-          <section className="space-y-3">
-            <h3 className="text-sm font-medium text-foreground">Background Color (Light)</h3>
-            <div className="flex items-center gap-4">
-              <div
-                style={{ backgroundColor: backgroundColor }}
-                className="h-10 w-10 shrink-0 cursor-pointer border border-border rounded-md p-0"
-                onClick={() => backgroundColorInputRef.current?.click()}
-              />
-              <input
-                ref={backgroundColorInputRef}
-                type="color"
-                value={getColorPickerValue(backgroundColor)}
-                onChange={(e) =>
-                  updateField(
-                    setBackgroundColor,
-                    e.target.value,
-                    "backgroundColor"
-                  )
-                }
-                style={{ display: "none" }}
-              />
-              <div className="flex flex-col w-full">
-                <Input
-                  readOnly
-                  value={backgroundColor}
-                  className={`font-medium ${validationErrors.backgroundColor && showValidationErrors
-                    ? "border-red-500"
-                    : ""
-                    }`}
-                />
-                {validationErrors.backgroundColor && showValidationErrors && (
-                  <span className="text-red-500 text-sm mt-1">
-                    {validationErrors.backgroundColor}
-                  </span>
-                )}
-              </div>
-            </div>
-            <div
-              style={{ backgroundColor: backgroundColor }}
-              className="h-8 w-full rounded-md"
-            ></div>
-          </section>
-
-          <section className="space-y-3">
-            <h3 className="text-sm font-medium text-foreground">Background Color (Dark)</h3>
-            <div className="flex items-center gap-4">
-              <div
-                style={{ backgroundColor: darkModeBackgroundColor }}
-                className="h-10 w-10 shrink-0 cursor-pointer rounded-md p-0"
-                onClick={() => darkModeBackgroundColorInputRef.current?.click()}
-              />
-              <input
-                ref={darkModeBackgroundColorInputRef}
-                type="color"
-                value={getColorPickerValue(darkModeBackgroundColor)}
-                onChange={(e) =>
-                  updateField(
-                    setDarkModeBackgroundColor,
-                    e.target.value,
-                    "darkModeBackgroundColor"
-                  )
-                }
-                style={{ display: "none" }}
-              />
-              <div className="flex flex-col w-full">
-                <Input
-                  readOnly
-                  value={darkModeBackgroundColor}
-                  className={`font-medium ${validationErrors.darkModeBackgroundColor &&
-                    showValidationErrors
-                    ? "border-red-500"
-                    : ""
-                    }`}
-                />
-                {validationErrors.darkModeBackgroundColor &&
-                  showValidationErrors && (
-                    <span className="text-red-500 text-sm mt-1">
-                      {validationErrors.darkModeBackgroundColor}
-                    </span>
-                  )}
-              </div>
-            </div>
-            <div
-              style={{ backgroundColor: darkModeBackgroundColor }}
-              className="h-8 w-full rounded-md"
-            ></div>
-          </section>
+          ))}
         </div>
       </div>
     </div>
