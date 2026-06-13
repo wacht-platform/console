@@ -50,7 +50,7 @@ function SignedInRoutes() {
     if (!session?.active_signin) return;
     const signin = session.active_signin;
     posthog?.identify(signin.id, {
-      email: signin.user?.primary_email_address ?? undefined,
+      email: signin.user?.primary_email_address?.email ?? undefined,
     });
   }, [loading, session?.active_signin, posthog]);
 
