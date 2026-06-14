@@ -1,21 +1,23 @@
-import { PageHead } from "@/components/ui/page-head";
+import { useActors } from "@/lib/api/hooks/use-manage-apps";
+import { AppManager } from "./app-manager";
 
 export default function AgentObservabilityPage() {
     return (
-        <div className="flex flex-col gap-4">
-            <PageHead
-                eyebrow="Manage"
-                title="Agent Observability"
-                sub="Runs, tool calls and errors across your agents."
-            />
-            <div className="rounded-lg border border-dashed border-border p-10 text-center">
-                <p className="text-sm font-medium text-foreground">Coming soon</p>
-                <p className="mx-auto mt-1 max-w-md text-xs leading-6 text-muted-foreground">
-                    Tool-call traces (with purpose) and agent error logs are being
-                    wired up. Token usage by model is already on the Overview
-                    dashboard.
-                </p>
-            </div>
-        </div>
+        <AppManager
+            useApps={useActors}
+            navigable={false}
+            eyebrow="Manage"
+            title="Agent Actors"
+            sub="Identities your agents act on behalf of across this deployment."
+            appHeader="Actor"
+            identifierHeader="External key"
+            searchPlaceholder="Search by name or key…"
+            activeLabel="active"
+            inactiveLabel="archived"
+            emptyTitle="No actors"
+            emptyMessage="Actors will appear here once your agents start acting on behalf of subjects."
+            searchEmptyTitle="No actors found"
+            searchEmptyMessage="No actor matches that search."
+        />
     );
 }

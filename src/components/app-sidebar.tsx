@@ -76,7 +76,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       isActive: pathname.includes("manage/webhook-apps"),
                   },
                   {
-                      title: "Agent Observability",
+                      title: "Agent Actors",
                       url: "manage/agent-observability",
                       icon: IconChartBar,
                       isActive: pathname.includes("manage/agent-observability"),

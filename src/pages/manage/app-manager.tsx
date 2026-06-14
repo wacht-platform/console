@@ -46,6 +46,14 @@ export function AppManager({
     sub,
     emptyTitle,
     emptyMessage,
+    navigable = true,
+    appHeader = "App",
+    identifierHeader = "Identifier",
+    searchPlaceholder = "Search by slug…",
+    searchEmptyTitle = "No apps found",
+    searchEmptyMessage = "No app matches that slug.",
+    activeLabel = "active",
+    inactiveLabel = "inactive",
 }: {
     useApps: (params: ManageAppListParams) => ManageAppListResult<ManagedApp>;
     eyebrow: string;
@@ -53,8 +61,17 @@ export function AppManager({
     sub: string;
     emptyTitle: string;
     emptyMessage: string;
+    navigable?: boolean;
+    appHeader?: string;
+    identifierHeader?: string;
+    searchPlaceholder?: string;
+    searchEmptyTitle?: string;
+    searchEmptyMessage?: string;
+    activeLabel?: string;
+    inactiveLabel?: string;
 }) {
     const navigate = useNavigate();
+    const columnCount = navigable ? 4 : 3;
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [page, setPage] = useState(1);
@@ -85,7 +102,7 @@ export function AppManager({
                     <div className="relative">
                         <MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                         <Input
-                            placeholder="Search by slug…"
+                            placeholder={searchPlaceholder}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="h-8 w-56 bg-secondary pl-8 text-[13px]"
@@ -97,34 +114,40 @@ export function AppManager({
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>App</TableHead>
-                        <TableHead>Identifier</TableHead>
+                        <TableHead>{appHeader}</TableHead>
+                        <TableHead>{identifierHeader}</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead className="w-10" />
+                        {navigable ? <TableHead className="w-10" /> : null}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {isLoading ? (
-                        <SkeletonTableRows rows={8} columns={4} withAvatar={false} />
+                        <SkeletonTableRows
+                            rows={8}
+                            columns={columnCount}
+                            withAvatar={false}
+                        />
                     ) : apps.length === 0 ? (
                         <TableEmptyRow
-                            colSpan={4}
+                            colSpan={columnCount}
                             icon={
                                 <Squares2X2Icon className="h-8 w-8 text-muted-foreground/50" />
                             }
-                            title={debouncedSearch ? "No apps found" : emptyTitle}
+                            title={debouncedSearch ? searchEmptyTitle : emptyTitle}
                             description={
-                                debouncedSearch
-                                    ? "No app matches that slug."
-                                    : emptyMessage
+                                debouncedSearch ? searchEmptyMessage : emptyMessage
                             }
                         />
                     ) : (
                         apps.map((app) => (
                             <TableRow
                                 key={app.app_slug}
-                                className="cursor-pointer"
-                                onClick={() => navigate(app.app_slug)}
+                                className={navigable ? "cursor-pointer" : undefined}
+                                onClick={
+                                    navigable
+                                        ? () => navigate(app.app_slug)
+                                        : undefined
+                                }
                             >
                                 <TableCell>
                                     <div className="flex flex-col">
@@ -143,12 +166,14 @@ export function AppManager({
                                 </TableCell>
                                 <TableCell>
                                     <Pill tone={app.is_active ? "ok" : "mute"}>
-                                        {app.is_active ? "active" : "inactive"}
+                                        {app.is_active ? activeLabel : inactiveLabel}
                                     </Pill>
                                 </TableCell>
-                                <TableCell className="w-10 text-muted-foreground">
-                                    <ChevronRightIcon className="size-4" />
-                                </TableCell>
+                                {navigable ? (
+                                    <TableCell className="w-10 text-muted-foreground">
+                                        <ChevronRightIcon className="size-4" />
+                                    </TableCell>
+                                ) : null}
                             </TableRow>
                         ))
                     )}

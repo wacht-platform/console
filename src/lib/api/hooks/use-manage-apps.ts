@@ -19,6 +19,14 @@ export interface WebhookAppSummary {
   event_catalog_slug?: string | null;
 }
 
+export interface ActorSummary {
+  id: string;
+  subject_type: string;
+  external_key: string;
+  display_name?: string | null;
+  archived_at?: string | null;
+}
+
 export interface ManageAppListParams {
   page: number;
   limit: number;
@@ -82,6 +90,43 @@ export const useWebhookApps = (
   });
   return {
     apps: query.data?.data ?? [],
+    hasMore: query.data?.has_more ?? false,
+    isLoading: query.isLoading,
+  };
+};
+
+export interface AgentActorRow {
+  app_slug: string;
+  name: string;
+  description?: string | null;
+  is_active: boolean;
+}
+
+export const useActors = (
+  args: ManageAppListParams,
+): ManageAppListResult<AgentActorRow> => {
+  const { selectedDeployment } = useProjects();
+  const deploymentId = selectedDeployment?.id;
+  const params = buildParams(args);
+  const query = useQuery({
+    queryKey: ["agent-actors", deploymentId, params],
+    queryFn: async () => {
+      const { data } = await apiClient.get<PaginatedResponse<ActorSummary>>(
+        `/deployments/${deploymentId}/ai/actors`,
+        { params },
+      );
+      return data;
+    },
+    enabled: !!deploymentId,
+  });
+  const rows: AgentActorRow[] = (query.data?.data ?? []).map((actor) => ({
+    app_slug: actor.external_key,
+    name: actor.display_name?.trim() || actor.external_key,
+    description: actor.subject_type,
+    is_active: !actor.archived_at,
+  }));
+  return {
+    apps: rows,
     hasMore: query.data?.has_more ?? false,
     isLoading: query.isLoading,
   };
