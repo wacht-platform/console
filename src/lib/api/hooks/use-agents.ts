@@ -4,292 +4,295 @@ import { useProjects } from "./use-projects";
 import type { PaginatedResponse } from "@/types/api";
 
 export interface AgentConfiguration {
-  [key: string]: unknown;
+    [key: string]: unknown;
 }
 
 export interface AgentModelOverride {
-  provider?: string;
-  model?: string;
-  profile_id?: string;
+    provider?: string;
+    model?: string;
+    profile_id?: string;
 }
 
 export interface AgentHookStep {
-  tool_name: string;
-  args?: Record<string, unknown>;
+    tool_name: string;
+    args?: Record<string, unknown>;
 }
 
 export interface AgentHooksConfig {
-  execution_start?: AgentHookStep[];
-  execution_end?: AgentHookStep[];
+    execution_start?: AgentHookStep[];
+    execution_end?: AgentHookStep[];
 }
 
 export type ApprovalAction = "allow" | "deny" | "review";
 
 export interface AgentToolApprovalRule {
-  pattern: string;
-  action: ApprovalAction;
+    pattern: string;
+    action: ApprovalAction;
 }
 
 export interface AgentLimits {
-  context_window_tokens?: number;
-  run_token_budget?: number;
+    context_window_tokens?: number;
+    run_token_budget?: number;
 }
 
 export interface Agent {
-  id: string;
-  created_at: string;
-  updated_at: string;
-  name: string;
-  description?: string;
-  deployment_id: string;
-  configuration: AgentConfiguration;
-  tools_count: number;
-  knowledge_bases_count: number;
-  sub_agents?: Array<string | number>;
-  reviewer_agent_id?: string | null;
-  conversation_agent_id?: string | null;
-  strong_model?: AgentModelOverride;
-  weak_model?: AgentModelOverride;
-  hooks?: AgentHooksConfig;
-  require_approval_mcp?: boolean;
-  require_approval_virtual?: boolean;
-  tool_approval_rules?: AgentToolApprovalRule[];
-  limits?: AgentLimits;
+    id: string;
+    created_at: string;
+    updated_at: string;
+    name: string;
+    description?: string;
+    deployment_id: string;
+    configuration: AgentConfiguration;
+    tools_count: number;
+    knowledge_bases_count: number;
+    sub_agents?: Array<string | number>;
+    reviewer_agent_id?: string | null;
+    conversation_agent_id?: string | null;
+    strong_model?: AgentModelOverride;
+    weak_model?: AgentModelOverride;
+    hooks?: AgentHooksConfig;
+    require_approval_mcp?: boolean;
+    require_approval_virtual?: boolean;
+    tool_approval_rules?: AgentToolApprovalRule[];
+    limits?: AgentLimits;
+    disabled_internal_tools?: string[];
 }
 
 export interface CreateAgentRequest {
-  name: string;
-  description?: string;
-  configuration?: AgentConfiguration;
-  tool_ids?: string[];
-  knowledge_base_ids?: string[];
-  sub_agents?: number[];
-  strong_model?: AgentModelOverride;
-  weak_model?: AgentModelOverride;
-  hooks?: AgentHooksConfig;
-  require_approval_mcp?: boolean;
-  require_approval_virtual?: boolean;
-  tool_approval_rules?: AgentToolApprovalRule[];
-  limits?: AgentLimits;
+    name: string;
+    description?: string;
+    configuration?: AgentConfiguration;
+    tool_ids?: string[];
+    knowledge_base_ids?: string[];
+    sub_agents?: number[];
+    strong_model?: AgentModelOverride;
+    weak_model?: AgentModelOverride;
+    hooks?: AgentHooksConfig;
+    require_approval_mcp?: boolean;
+    require_approval_virtual?: boolean;
+    tool_approval_rules?: AgentToolApprovalRule[];
+    limits?: AgentLimits;
+    disabled_internal_tools?: string[];
 }
 
 export interface UpdateAgentRequest {
-  name?: string;
-  description?: string;
-  status?: string;
-  configuration?: AgentConfiguration;
-  sub_agents?: number[];
-  strong_model?: AgentModelOverride;
-  clear_strong_model?: boolean;
-  weak_model?: AgentModelOverride;
-  clear_weak_model?: boolean;
-  hooks?: AgentHooksConfig;
-  require_approval_mcp?: boolean;
-  require_approval_virtual?: boolean;
-  tool_approval_rules?: AgentToolApprovalRule[];
-  limits?: AgentLimits;
+    name?: string;
+    description?: string;
+    status?: string;
+    configuration?: AgentConfiguration;
+    sub_agents?: number[];
+    strong_model?: AgentModelOverride;
+    clear_strong_model?: boolean;
+    weak_model?: AgentModelOverride;
+    clear_weak_model?: boolean;
+    hooks?: AgentHooksConfig;
+    require_approval_mcp?: boolean;
+    require_approval_virtual?: boolean;
+    tool_approval_rules?: AgentToolApprovalRule[];
+    limits?: AgentLimits;
+    disabled_internal_tools?: string[];
 }
 
 interface GetAgentsParams {
-  limit?: number;
-  offset?: number;
-  search?: string;
+    limit?: number;
+    offset?: number;
+    search?: string;
 }
 
 async function fetchAgents(
-  deploymentId: string,
-  params: GetAgentsParams = {},
+    deploymentId: string,
+    params: GetAgentsParams = {},
 ): Promise<PaginatedResponse<Agent>> {
-  const { data } = await apiClient.get<PaginatedResponse<Agent>>(
-    `/deployments/${deploymentId}/ai/agents`,
-    { params },
-  );
-  return data;
+    const { data } = await apiClient.get<PaginatedResponse<Agent>>(
+        `/deployments/${deploymentId}/ai/agents`,
+        { params },
+    );
+    return data;
 }
 
 async function fetchAgent(
-  deploymentId: string,
-  agentId: string,
+    deploymentId: string,
+    agentId: string,
 ): Promise<Agent> {
-  const { data } = await apiClient.get<{ data?: Agent } & Agent>(
-    `/deployments/${deploymentId}/ai/agents/${agentId}`,
-  );
-  return data.data ?? (data as Agent);
+    const { data } = await apiClient.get<{ data?: Agent } & Agent>(
+        `/deployments/${deploymentId}/ai/agents/${agentId}`,
+    );
+    return data.data ?? (data as Agent);
 }
 
 async function createAgent(
-  deploymentId: string,
-  agent: CreateAgentRequest,
+    deploymentId: string,
+    agent: CreateAgentRequest,
 ): Promise<Agent> {
-  const { data } = await apiClient.post<{ data?: Agent } & Agent>(
-    `/deployments/${deploymentId}/ai/agents`,
-    agent,
-  );
-  return data.data ?? (data as Agent);
+    const { data } = await apiClient.post<{ data?: Agent } & Agent>(
+        `/deployments/${deploymentId}/ai/agents`,
+        agent,
+    );
+    return data.data ?? (data as Agent);
 }
 
 async function updateAgent(
-  deploymentId: string,
-  agentId: string,
-  agent: UpdateAgentRequest,
+    deploymentId: string,
+    agentId: string,
+    agent: UpdateAgentRequest,
 ): Promise<Agent> {
-  const { data } = await apiClient.patch<{ data?: Agent } & Agent>(
-    `/deployments/${deploymentId}/ai/agents/${agentId}`,
-    agent,
-  );
-  return data.data ?? (data as Agent);
+    const { data } = await apiClient.patch<{ data?: Agent } & Agent>(
+        `/deployments/${deploymentId}/ai/agents/${agentId}`,
+        agent,
+    );
+    return data.data ?? (data as Agent);
 }
 
 async function deleteAgent(
-  deploymentId: string,
-  agentId: string,
+    deploymentId: string,
+    agentId: string,
 ): Promise<void> {
-  await apiClient.delete(`/deployments/${deploymentId}/ai/agents/${agentId}`);
+    await apiClient.delete(`/deployments/${deploymentId}/ai/agents/${agentId}`);
 }
 
 export function useAgents(params: GetAgentsParams = {}) {
-  const { selectedDeployment } = useProjects();
+    const { selectedDeployment } = useProjects();
 
-  return useQuery({
-    queryKey: ["agents", selectedDeployment?.id, params],
-    queryFn: () => fetchAgents(selectedDeployment!.id, params),
-    enabled: !!selectedDeployment?.id,
-    select: (data) => ({
-      agents: data.data,
-      hasMore: data.has_more,
-    }),
-  });
+    return useQuery({
+        queryKey: ["agents", selectedDeployment?.id, params],
+        queryFn: () => fetchAgents(selectedDeployment!.id, params),
+        enabled: !!selectedDeployment?.id,
+        select: (data) => ({
+            agents: data.data,
+            hasMore: data.has_more,
+        }),
+    });
 }
 
 export function useAgent(agentId: string) {
-  const { selectedDeployment } = useProjects();
+    const { selectedDeployment } = useProjects();
 
-  return useQuery({
-    queryKey: ["agent", selectedDeployment?.id, agentId],
-    queryFn: () => fetchAgent(selectedDeployment!.id, agentId),
-    enabled: !!selectedDeployment?.id && !!agentId,
-  });
+    return useQuery({
+        queryKey: ["agent", selectedDeployment?.id, agentId],
+        queryFn: () => fetchAgent(selectedDeployment!.id, agentId),
+        enabled: !!selectedDeployment?.id && !!agentId,
+    });
 }
 
 // Extended agent type with attached features
 export interface AgentWithFeatures extends Agent {
-  tools: Array<{
-    id: string;
-    name: string;
-    tool_type: string;
-    description?: string;
-  }>;
-  knowledge_bases: Array<{
-    id: string;
-    name: string;
-    description?: string;
-  }>;
+    tools: Array<{
+        id: string;
+        name: string;
+        tool_type: string;
+        description?: string;
+    }>;
+    knowledge_bases: Array<{
+        id: string;
+        name: string;
+        description?: string;
+    }>;
 }
 
 async function fetchAgentDetails(
-  deploymentId: string,
-  agentId: string,
+    deploymentId: string,
+    agentId: string,
 ): Promise<AgentWithFeatures> {
-  const { data } = await apiClient.get<AgentWithFeatures>(
-    `/deployments/${deploymentId}/ai/agents/${agentId}/details`,
-  );
-  return data;
+    const { data } = await apiClient.get<AgentWithFeatures>(
+        `/deployments/${deploymentId}/ai/agents/${agentId}/details`,
+    );
+    return data;
 }
 
 export function useAgentById(agentId: string) {
-  const { selectedDeployment } = useProjects();
+    const { selectedDeployment } = useProjects();
 
-  return useQuery({
-    queryKey: ["agent-details", selectedDeployment?.id, agentId],
-    queryFn: () => fetchAgentDetails(selectedDeployment!.id, agentId),
-    enabled: !!selectedDeployment?.id && !!agentId,
-  });
+    return useQuery({
+        queryKey: ["agent-details", selectedDeployment?.id, agentId],
+        queryFn: () => fetchAgentDetails(selectedDeployment!.id, agentId),
+        enabled: !!selectedDeployment?.id && !!agentId,
+    });
 }
 
 export function useCreateAgent() {
-  const { selectedDeployment } = useProjects();
-  const queryClient = useQueryClient();
+    const { selectedDeployment } = useProjects();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (agent: CreateAgentRequest) =>
-      createAgent(selectedDeployment!.id, agent),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["agents", selectedDeployment!.id],
-      });
-    },
-  });
+    return useMutation({
+        mutationFn: (agent: CreateAgentRequest) =>
+            createAgent(selectedDeployment!.id, agent),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["agents", selectedDeployment!.id],
+            });
+        },
+    });
 }
 
 export function useUpdateAgent() {
-  const { selectedDeployment } = useProjects();
-  const queryClient = useQueryClient();
+    const { selectedDeployment } = useProjects();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: ({
-      agentId,
-      agent,
-    }: {
-      agentId: string;
-      agent: UpdateAgentRequest;
-    }) => updateAgent(selectedDeployment!.id, agentId, agent),
-    onSuccess: (_, { agentId }) => {
-      queryClient.invalidateQueries({
-        queryKey: ["agents", selectedDeployment!.id],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["agent", selectedDeployment!.id, agentId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["agent-details", selectedDeployment!.id, agentId],
-      });
-    },
-  });
+    return useMutation({
+        mutationFn: ({
+            agentId,
+            agent,
+        }: {
+            agentId: string;
+            agent: UpdateAgentRequest;
+        }) => updateAgent(selectedDeployment!.id, agentId, agent),
+        onSuccess: (_, { agentId }) => {
+            queryClient.invalidateQueries({
+                queryKey: ["agents", selectedDeployment!.id],
+            });
+            queryClient.invalidateQueries({
+                queryKey: ["agent", selectedDeployment!.id, agentId],
+            });
+            queryClient.invalidateQueries({
+                queryKey: ["agent-details", selectedDeployment!.id, agentId],
+            });
+        },
+    });
 }
 
 export function useDeleteAgent() {
-  const { selectedDeployment } = useProjects();
-  const queryClient = useQueryClient();
+    const { selectedDeployment } = useProjects();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (agentId: string) =>
-      deleteAgent(selectedDeployment!.id, agentId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["agents", selectedDeployment!.id],
-      });
-    },
-  });
+    return useMutation({
+        mutationFn: (agentId: string) =>
+            deleteAgent(selectedDeployment!.id, agentId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["agents", selectedDeployment!.id],
+            });
+        },
+    });
 }
 
 // Agent Token Generation
 export interface GenerateAgentTokenRequest {
-  subject: string;
-  agent_name: string;
-  validity_hours?: number;
+    subject: string;
+    agent_name: string;
+    validity_hours?: number;
 }
 
 export interface GenerateAgentTokenResponse {
-  token: string;
+    token: string;
 }
 
 async function generateAgentToken(
-  deploymentId: string,
-  request: GenerateAgentTokenRequest,
+    deploymentId: string,
+    request: GenerateAgentTokenRequest,
 ): Promise<GenerateAgentTokenResponse> {
-  const { data } = await apiClient.post<GenerateAgentTokenResponse>(
-    `/deployments/${deploymentId}/token/agent`,
-    request,
-  );
-  console.log(data);
-  return data;
+    const { data } = await apiClient.post<GenerateAgentTokenResponse>(
+        `/deployments/${deploymentId}/token/agent`,
+        request,
+    );
+    console.log(data);
+    return data;
 }
 
 export function useGenerateAgentToken() {
-  const { selectedDeployment } = useProjects();
+    const { selectedDeployment } = useProjects();
 
-  return useMutation({
-    mutationFn: (request: GenerateAgentTokenRequest) =>
-      generateAgentToken(selectedDeployment!.id, request),
-  });
+    return useMutation({
+        mutationFn: (request: GenerateAgentTokenRequest) =>
+            generateAgentToken(selectedDeployment!.id, request),
+    });
 }

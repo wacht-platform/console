@@ -16,13 +16,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { useAgentById } from "@/lib/api/hooks/use-agents";
+import { Switch } from "@/components/ui/switch";
+import { useAgentById, useUpdateAgent } from "@/lib/api/hooks/use-agents";
 import {
   type ApprovalAction,
   useAttachTool,
   useDetachTool,
   useTools,
   useAgentTools,
+  useInternalTools,
   useSetAgentToolApprovalAction,
 } from "@/lib/api/hooks/use-tools";
 import type { AiToolType } from "@/types/ai-tool";
@@ -45,6 +47,9 @@ export default function AgentToolsPage() {
   const attachTool = useAttachTool(agentId || "");
   const detachTool = useDetachTool(agentId || "");
   const setApprovalAction = useSetAgentToolApprovalAction();
+  const { data: internalTools = [], isLoading: internalLoading } =
+    useInternalTools();
+  const updateAgent = useUpdateAgent();
 
   if (isLoading || toolsLoading || attachedLoading) {
     return <ToolCardGridSkeleton />;
@@ -66,8 +71,81 @@ export default function AgentToolsPage() {
     (t) => !attachedById.has(String(t.id)),
   );
 
+  const disabledInternal = new Set(agent.disabled_internal_tools ?? []);
+  const toggleInternalTool = (name: string, enabled: boolean) => {
+    const next = new Set(agent.disabled_internal_tools ?? []);
+    if (enabled) next.delete(name);
+    else next.add(name);
+    updateAgent.mutate({
+      agentId: agentId || "",
+      agent: { disabled_internal_tools: Array.from(next) },
+    });
+  };
+
   return (
     <div className="space-y-8">
+      {/* System (built-in) tools */}
+      <section className="space-y-3">
+        <div>
+          <h3 className="text-sm font-medium text-foreground">
+            System tools{" "}
+            <span className="font-normal text-muted-foreground">
+              · {internalTools.length}
+            </span>
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Built-in tools the agent can use out of the box. Turn one off to
+            remove it from this agent.
+          </p>
+        </div>
+        {internalLoading ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-[72px] rounded-lg" />
+            ))}
+          </div>
+        ) : internalTools.length === 0 ? (
+          <EmptyState
+            compact
+            icon={<WrenchScrewdriverIcon />}
+            title="No built-in tools"
+            description="This runtime exposes no built-in tools."
+          />
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {internalTools.map((tool) => {
+              const enabled = !disabledInternal.has(tool.name);
+              return (
+                <div
+                  key={tool.name}
+                  className="flex items-start gap-3 rounded-lg border border-border bg-card p-4"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <WrenchScrewdriverIcon className="h-[18px] w-[18px]" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <span className="block truncate font-mono text-sm font-medium text-foreground">
+                      {tool.name}
+                    </span>
+                    <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                      {tool.description || "No description"}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={enabled}
+                    onCheckedChange={(value) =>
+                      toggleInternalTool(tool.name, value)
+                    }
+                    disabled={updateAgent.isPending}
+                    aria-label={`${enabled ? "Disable" : "Enable"} ${tool.name}`}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
       {/* Attached */}
       <section className="space-y-3">
         <h3 className="text-sm font-medium text-foreground">
