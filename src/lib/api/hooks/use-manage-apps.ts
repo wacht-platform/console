@@ -95,16 +95,9 @@ export const useWebhookApps = (
   };
 };
 
-export interface AgentActorRow {
-  app_slug: string;
-  name: string;
-  description?: string | null;
-  is_active: boolean;
-}
-
 export const useActors = (
   args: ManageAppListParams,
-): ManageAppListResult<AgentActorRow> => {
+): ManageAppListResult<ActorSummary> => {
   const { selectedDeployment } = useProjects();
   const deploymentId = selectedDeployment?.id;
   const params = buildParams(args);
@@ -119,14 +112,8 @@ export const useActors = (
     },
     enabled: !!deploymentId,
   });
-  const rows: AgentActorRow[] = (query.data?.data ?? []).map((actor) => ({
-    app_slug: actor.external_key,
-    name: actor.display_name?.trim() || actor.external_key,
-    description: actor.subject_type,
-    is_active: !actor.archived_at,
-  }));
   return {
-    apps: rows,
+    apps: query.data?.data ?? [],
     hasMore: query.data?.has_more ?? false,
     isLoading: query.isLoading,
   };

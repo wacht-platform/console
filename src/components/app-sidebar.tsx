@@ -11,8 +11,6 @@ import {
     IconCreditCard,
     IconRocket,
     IconShieldLock,
-    IconWebhook,
-    IconChartBar,
 } from "@tabler/icons-react";
 import { useLocation } from "react-router";
 import { NavMain } from "@/components/nav-main";
@@ -64,22 +62,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ...(hasNewUi
             ? [
                   {
-                      title: "API Gateway",
-                      url: "manage/api-gateway",
+                      title: "Access",
+                      url: "access",
                       icon: IconShieldLock,
-                      isActive: pathname.includes("manage/api-gateway"),
-                  },
-                  {
-                      title: "Webhook Apps",
-                      url: "manage/webhook-apps",
-                      icon: IconWebhook,
-                      isActive: pathname.includes("manage/webhook-apps"),
-                  },
-                  {
-                      title: "Agent Actors",
-                      url: "manage/agent-observability",
-                      icon: IconChartBar,
-                      isActive: pathname.includes("manage/agent-observability"),
+                      isActive: pathname.includes("/access"),
                   },
               ]
             : []),

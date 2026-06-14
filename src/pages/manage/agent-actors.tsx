@@ -1,17 +1,21 @@
+import { useOutletContext } from "react-router";
 import { useActors } from "@/lib/api/hooks/use-manage-apps";
 import { AppManager } from "./app-manager";
+import type { ManageListContext } from "./layout";
 
-export default function AgentObservabilityPage() {
+export default function AgentActorsPage() {
+    const { search } = useOutletContext<ManageListContext>();
     return (
         <AppManager
+            search={search}
             useApps={useActors}
-            navigable={false}
-            eyebrow="Manage"
-            title="Agent Actors"
-            sub="Identities your agents act on behalf of across this deployment."
+            getKey={(a) => a.id}
+            getTitle={(a) => a.display_name?.trim() || a.external_key}
+            getIdentifier={(a) => a.external_key}
+            getActive={(a) => !a.archived_at}
+            getSubtitle={(a) => a.subject_type}
             appHeader="Actor"
             identifierHeader="External key"
-            searchPlaceholder="Search by name or key…"
             activeLabel="active"
             inactiveLabel="archived"
             emptyTitle="No actors"

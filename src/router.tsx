@@ -109,6 +109,7 @@ const ConfigureMCPPage = lazyImport(
 );
 const WebhooksEmbedPage = lazyImport(() => import("./pages/webhooks/embed"));
 const ApiKeysEmbedPage = lazyImport(() => import("./pages/api-keys/embed"));
+const ManageLayout = lazyImport(() => import("./pages/manage/layout"));
 const ApiGatewayPage = lazyImport(() => import("./pages/manage/api-gateway"));
 const ApiGatewayDetailPage = lazyImport(
     () => import("./pages/manage/api-gateway-detail"),
@@ -117,9 +118,8 @@ const WebhookAppsPage = lazyImport(() => import("./pages/manage/webhook-apps"));
 const WebhookAppsDetailPage = lazyImport(
     () => import("./pages/manage/webhook-apps-detail"),
 );
-const AgentObservabilityPage = lazyImport(
-    () => import("./pages/manage/agent-observability"),
-);
+const AgentActorsPage = lazyImport(() => import("./pages/manage/agent-actors"));
+const ActorDetailPage = lazyImport(() => import("./pages/manage/actor-detail"));
 const WebhookCatalogsPage = lazyImport(
     () => import("./pages/webhooks/catalogs"),
 );
@@ -733,10 +733,19 @@ export const router = createBrowserRouter([
                 ),
             },
             {
-                path: "manage/api-gateway",
+                path: "access",
+                element: (
+                    <Suspense fallback={<SimpleFallback />}>
+                        <ManageLayout />
+                    </Suspense>
+                ),
                 children: [
                     {
                         index: true,
+                        element: <Navigate to="api-gateway" replace />,
+                    },
+                    {
+                        path: "api-gateway",
                         element: (
                             <Suspense fallback={<SimpleFallback />}>
                                 <ApiGatewayPage />
@@ -744,20 +753,7 @@ export const router = createBrowserRouter([
                         ),
                     },
                     {
-                        path: ":slug",
-                        element: (
-                            <Suspense fallback={<SimpleFallback />}>
-                                <ApiGatewayDetailPage />
-                            </Suspense>
-                        ),
-                    },
-                ],
-            },
-            {
-                path: "manage/webhook-apps",
-                children: [
-                    {
-                        index: true,
+                        path: "webhook-apps",
                         element: (
                             <Suspense fallback={<SimpleFallback />}>
                                 <WebhookAppsPage />
@@ -765,20 +761,36 @@ export const router = createBrowserRouter([
                         ),
                     },
                     {
-                        path: ":slug",
+                        path: "agent-actors",
                         element: (
                             <Suspense fallback={<SimpleFallback />}>
-                                <WebhookAppsDetailPage />
+                                <AgentActorsPage />
                             </Suspense>
                         ),
                     },
                 ],
             },
             {
-                path: "manage/agent-observability",
+                path: "access/api-gateway/:slug",
                 element: (
                     <Suspense fallback={<SimpleFallback />}>
-                        <AgentObservabilityPage />
+                        <ApiGatewayDetailPage />
+                    </Suspense>
+                ),
+            },
+            {
+                path: "access/webhook-apps/:slug",
+                element: (
+                    <Suspense fallback={<SimpleFallback />}>
+                        <WebhookAppsDetailPage />
+                    </Suspense>
+                ),
+            },
+            {
+                path: "access/agent-actors/:actorId",
+                element: (
+                    <Suspense fallback={<SimpleFallback />}>
+                        <ActorDetailPage />
                     </Suspense>
                 ),
             },

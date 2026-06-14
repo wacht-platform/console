@@ -1,16 +1,5 @@
-import {
-    UserGroupIcon,
-    ChevronLeftIcon,
-    ChevronRightIcon,
-} from "@heroicons/react/24/outline";
+import { UserGroupIcon } from "@heroicons/react/24/outline";
 import { useOutletContext } from "react-router";
-import {
-    Select,
-    SelectTrigger,
-    SelectValue,
-    SelectContent,
-    SelectItem,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import {
     Table,
@@ -20,6 +9,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/app-table";
+import { TablePagination } from "@/components/ui/table-pagination";
 import { useDeploymentInvitedUsers } from "@/lib/api/hooks/use-deployment-users";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
@@ -54,7 +44,6 @@ export default function InvitedUsersPage() {
     const deleteInvitation = useDeleteInvitation();
 
     const hasNextPage = data?.has_more ?? false;
-    const hasPrevPage = page > 1;
 
     const handleDeleteInvitation = async (id: string) => {
         await deleteInvitation.mutateAsync(id);
@@ -138,52 +127,17 @@ export default function InvitedUsersPage() {
             </Table>
 
             {!isLoading && (data?.data.length ?? 0) > 0 && (
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>Show</span>
-                        <Select
-                            value={itemsPerPage.toString()}
-                            onValueChange={(value) => {
-                                setItemsPerPage(Number.parseInt(value, 10));
-                                setPage(1);
-                            }}
-                        >
-                            <SelectTrigger className="w-[70px]">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {ITEMS_PER_PAGE_OPTIONS.map((value) => (
-                                    <SelectItem
-                                        key={value}
-                                        value={value.toString()}
-                                    >
-                                        {value}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <span>per page</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={!hasPrevPage}
-                            onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        >
-                            <ChevronLeftIcon className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={!hasNextPage}
-                            onClick={() => setPage((p) => p + 1)}
-                        >
-                            <ChevronRightIcon className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
+                <TablePagination
+                    page={page}
+                    onPageChange={setPage}
+                    hasMore={hasNextPage}
+                    itemsPerPage={itemsPerPage}
+                    onItemsPerPageChange={(value) => {
+                        setItemsPerPage(value);
+                        setPage(1);
+                    }}
+                    perPageOptions={ITEMS_PER_PAGE_OPTIONS}
+                />
             )}
 
             {invitationToDelete && (
