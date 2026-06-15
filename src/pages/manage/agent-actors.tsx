@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { useOutletContext } from "react-router";
-import { ChevronRightIcon } from "@heroicons/react/24/outline";
+import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogBody,
     DialogContent,
     DialogDescription,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { InlineLoader } from "@/components/ui/loading-screen";
+import { MultiSelect } from "@/components/ui/multi-select";
 import {
     useActors,
     type ActorSummary,
@@ -28,14 +29,21 @@ export default function AgentActorsPage() {
     const generateTicket = useGenerateAgentTicket();
 
     const [selectedActor, setSelectedActor] = useState<ActorSummary | null>(null);
+    const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
 
-    const openSession = async (agentId: string) => {
-        if (!selectedActor || !selectedDeployment) return;
+    const closeDialog = () => {
+        setSelectedActor(null);
+        setSelectedAgentIds([]);
+    };
+
+    const openSession = async () => {
+        if (!selectedActor || !selectedDeployment || selectedAgentIds.length === 0)
+            return;
         try {
             const result = await generateTicket.mutateAsync({
                 deployment_id: String(selectedDeployment.id),
-                agent_ids: [agentId],
-                selected_agent_id: agentId,
+                agent_ids: selectedAgentIds,
+                selected_agent_id: selectedAgentIds[0],
                 actor_id: selectedActor.id,
                 expires_in: 60 * 60 * 12,
             });
@@ -43,7 +51,7 @@ export default function AgentActorsPage() {
                 `https://${selectedDeployment.backend_host}/vanity/agents?ticket=${result.ticket}`,
                 "_blank",
             );
-            setSelectedActor(null);
+            closeDialog();
         } catch (e) {
             console.error("Failed to open agent session", e);
         }
@@ -75,13 +83,13 @@ export default function AgentActorsPage() {
 
             <Dialog
                 open={!!selectedActor}
-                onOpenChange={(open) => !open && setSelectedActor(null)}
+                onOpenChange={(open) => !open && closeDialog()}
             >
                 <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle>Open a session</DialogTitle>
                         <DialogDescription>
-                            Choose an agent to open a session as{" "}
+                            Choose the agents to open a session as{" "}
                             <span className="font-medium text-foreground">
                                 {actorLabel}
                             </span>
@@ -89,31 +97,45 @@ export default function AgentActorsPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogBody>
-                        {isLoadingAgents ? (
-                            <InlineLoader />
-                        ) : agents.length === 0 ? (
-                            <p className="py-6 text-center text-sm text-muted-foreground">
+                        <MultiSelect
+                            label="Agents"
+                            modal
+                            options={agents.map((agent) => ({
+                                id: agent.id,
+                                name: agent.name,
+                                description: agent.description,
+                            }))}
+                            selectedValues={selectedAgentIds}
+                            onChange={setSelectedAgentIds}
+                            placeholder={
+                                isLoadingAgents
+                                    ? "Loading agents…"
+                                    : "Select agents…"
+                            }
+                            disabled={isLoadingAgents || agents.length === 0}
+                        />
+                        {!isLoadingAgents && agents.length === 0 ? (
+                            <p className="text-xs text-muted-foreground">
                                 Create an agent first to open a session.
                             </p>
-                        ) : (
-                            <div className="max-h-80 space-y-0.5 overflow-y-auto">
-                                {agents.map((agent) => (
-                                    <button
-                                        key={agent.id}
-                                        type="button"
-                                        disabled={generateTicket.isPending}
-                                        onClick={() => openSession(agent.id)}
-                                        className="flex w-full items-center justify-between rounded-md px-2 py-2 text-[13px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
-                                    >
-                                        <span className="truncate">
-                                            {agent.name}
-                                        </span>
-                                        <ChevronRightIcon className="size-4 shrink-0" />
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                        ) : null}
                     </DialogBody>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={closeDialog}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={openSession}
+                            disabled={
+                                selectedAgentIds.length === 0 ||
+                                generateTicket.isPending
+                            }
+                        >
+                            {generateTicket.isPending
+                                ? "Opening…"
+                                : "Open session"}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </>
