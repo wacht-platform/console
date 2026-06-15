@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useOutletContext } from "react-router";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +10,19 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { MultiSelect } from "@/components/ui/multi-select";
+import {
+    Combobox,
+    ComboboxChip,
+    ComboboxChips,
+    ComboboxChipsInput,
+    ComboboxContent,
+    ComboboxEmpty,
+    ComboboxItem,
+    ComboboxList,
+    ComboboxValue,
+    useComboboxAnchor,
+} from "@/components/ui/combobox";
+import { Label } from "@/components/ui/fieldset";
 import {
     useActors,
     type ActorSummary,
@@ -21,29 +33,37 @@ import { useProjects } from "@/lib/api/hooks/use-projects";
 import { AppManager } from "./app-manager";
 import type { ManageListContext } from "./layout";
 
+type AgentOption = { id: string; name: string };
+
 export default function AgentActorsPage() {
     const { search } = useOutletContext<ManageListContext>();
     const { selectedDeployment } = useProjects();
     const { data, isLoading: isLoadingAgents } = useAgents({ limit: 100 });
-    const agents = data?.agents ?? [];
     const generateTicket = useGenerateAgentTicket();
+    const anchor = useComboboxAnchor();
+
+    const agentOptions = useMemo<AgentOption[]>(
+        () => (data?.agents ?? []).map((a) => ({ id: a.id, name: a.name })),
+        [data?.agents],
+    );
 
     const [selectedActor, setSelectedActor] = useState<ActorSummary | null>(null);
-    const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
+    const [selectedAgents, setSelectedAgents] = useState<AgentOption[]>([]);
 
     const closeDialog = () => {
         setSelectedActor(null);
-        setSelectedAgentIds([]);
+        setSelectedAgents([]);
     };
 
     const openSession = async () => {
-        if (!selectedActor || !selectedDeployment || selectedAgentIds.length === 0)
+        if (!selectedActor || !selectedDeployment || selectedAgents.length === 0)
             return;
         try {
+            const agentIds = selectedAgents.map((a) => a.id);
             const result = await generateTicket.mutateAsync({
                 deployment_id: String(selectedDeployment.id),
-                agent_ids: selectedAgentIds,
-                selected_agent_id: selectedAgentIds[0],
+                agent_ids: agentIds,
+                selected_agent_id: agentIds[0],
                 actor_id: selectedActor.id,
                 expires_in: 60 * 60 * 12,
             });
@@ -97,24 +117,56 @@ export default function AgentActorsPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogBody>
-                        <MultiSelect
-                            label="Agents"
-                            modal
-                            options={agents.map((agent) => ({
-                                id: agent.id,
-                                name: agent.name,
-                                description: agent.description,
-                            }))}
-                            selectedValues={selectedAgentIds}
-                            onChange={setSelectedAgentIds}
-                            placeholder={
-                                isLoadingAgents
-                                    ? "Loading agents…"
-                                    : "Select agents…"
-                            }
-                            disabled={isLoadingAgents || agents.length === 0}
-                        />
-                        {!isLoadingAgents && agents.length === 0 ? (
+                        <div className="flex flex-col gap-1.5">
+                            <Label>Agents</Label>
+                            <Combobox
+                                items={agentOptions}
+                                multiple
+                                value={selectedAgents}
+                                onValueChange={setSelectedAgents}
+                                isItemEqualToValue={(a, b) => a.id === b.id}
+                                itemToStringLabel={(a) => a.name}
+                            >
+                                <ComboboxChips ref={anchor}>
+                                    <ComboboxValue>
+                                        {(value: AgentOption[]) =>
+                                            value.map((item) => (
+                                                <ComboboxChip key={item.id}>
+                                                    {item.name}
+                                                </ComboboxChip>
+                                            ))
+                                        }
+                                    </ComboboxValue>
+                                    <ComboboxChipsInput
+                                        placeholder={
+                                            isLoadingAgents
+                                                ? "Loading agents…"
+                                                : "Select agents…"
+                                        }
+                                        disabled={
+                                            isLoadingAgents ||
+                                            agentOptions.length === 0
+                                        }
+                                    />
+                                </ComboboxChips>
+                                <ComboboxContent anchor={anchor}>
+                                    <ComboboxEmpty>
+                                        No agents found.
+                                    </ComboboxEmpty>
+                                    <ComboboxList>
+                                        {(item: AgentOption) => (
+                                            <ComboboxItem
+                                                key={item.id}
+                                                value={item}
+                                            >
+                                                {item.name}
+                                            </ComboboxItem>
+                                        )}
+                                    </ComboboxList>
+                                </ComboboxContent>
+                            </Combobox>
+                        </div>
+                        {!isLoadingAgents && agentOptions.length === 0 ? (
                             <p className="text-xs text-muted-foreground">
                                 Create an agent first to open a session.
                             </p>
@@ -127,7 +179,7 @@ export default function AgentActorsPage() {
                         <Button
                             onClick={openSession}
                             disabled={
-                                selectedAgentIds.length === 0 ||
+                                selectedAgents.length === 0 ||
                                 generateTicket.isPending
                             }
                         >
