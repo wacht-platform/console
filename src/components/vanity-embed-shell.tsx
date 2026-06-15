@@ -6,13 +6,11 @@ import { apiClient } from "@/lib/api/client";
 import { useTheme } from "@/lib/providers/theme";
 import { useDeployment } from "@wacht/react-router";
 
-type VanityKind = "webhook" | "api-auth" | "agent";
+type VanityKind = "webhook" | "api-auth";
 
 interface VanityEmbedShellProps {
     kind: VanityKind;
     appSlug?: string;
-    actorId?: string;
-    agentIds?: string[];
 }
 
 interface TicketResponse {
@@ -22,7 +20,6 @@ interface TicketResponse {
 
 function createIframePath(kind: VanityKind, pathname: string): string {
     if (kind === "api-auth") return "/api-auth";
-    if (kind === "agent") return "/agents";
     return `/webhook${pathname.split("/webhooks")[1] ?? ""}`;
 }
 
@@ -30,27 +27,19 @@ async function createSessionTicket(
     deploymentId: string,
     kind: VanityKind,
     appSlug?: string,
-    actorId?: string,
-    agentIds?: string[],
 ): Promise<TicketResponse> {
-    let body: Record<string, unknown>;
-    if (kind === "agent") {
-        body = {
-            ticket_type: "agent_access",
-            actor_id: actorId,
-            agent_ids: agentIds ?? [],
-        };
-    } else if (kind === "webhook") {
-        body = {
-            ticket_type: "webhook_app_access",
-            webhook_app_slug: appSlug ?? `wh_${deploymentId}`,
-        };
-    } else {
-        body = {
-            ticket_type: "api_auth_access",
-            api_auth_app_slug: appSlug ?? `aa_${deploymentId}`,
-        };
-    }
+    const slug =
+        appSlug ?? (kind === "webhook" ? `wh_${deploymentId}` : `aa_${deploymentId}`);
+    const body =
+        kind === "webhook"
+            ? {
+                  ticket_type: "webhook_app_access",
+                  webhook_app_slug: slug,
+              }
+            : {
+                  ticket_type: "api_auth_access",
+                  api_auth_app_slug: slug,
+              };
 
     const response = await apiClient.post<TicketResponse>(
         `/deployments/${deploymentId}/session/tickets`,
@@ -59,12 +48,7 @@ async function createSessionTicket(
     return response.data;
 }
 
-export function VanityEmbedShell({
-    kind,
-    appSlug,
-    actorId,
-    agentIds,
-}: VanityEmbedShellProps) {
+export function VanityEmbedShell({ kind, appSlug }: VanityEmbedShellProps) {
     const { deploymentId } = useParams();
     const { pathname } = useLocation();
     const { deployment } = useDeployment();
@@ -90,10 +74,6 @@ export function VanityEmbedShell({
         [kind, pathname],
     );
 
-    // Join the ids so a fresh array with the same contents doesn't re-mint the
-    // one-time ticket. agentIds itself is intentionally read inside the effect.
-    const agentIdsKey = agentIds?.join(",") ?? "";
-
     useEffect(() => {
         let cancelled = false;
 
@@ -109,13 +89,7 @@ export function VanityEmbedShell({
             setSrc(null);
 
             try {
-                const result = await createSessionTicket(
-                    deploymentId,
-                    kind,
-                    appSlug,
-                    actorId,
-                    agentIds,
-                );
+                const result = await createSessionTicket(deploymentId, kind, appSlug);
                 if (cancelled) return;
                 setTicket(result.ticket);
                 setSrc(
@@ -137,17 +111,7 @@ export function VanityEmbedShell({
         return () => {
             cancelled = true;
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- agentIds read via agentIdsKey
-    }, [
-        deploymentId,
-        kind,
-        appSlug,
-        actorId,
-        agentIdsKey,
-        nonce,
-        vanityBaseUrl,
-        vanityPath,
-    ]);
+    }, [deploymentId, kind, appSlug, nonce, vanityBaseUrl, vanityPath]);
 
     return (
         <VanityEmbedFrame
@@ -237,13 +201,7 @@ function VanityEmbedFrame({
                 ref={iframeRef}
                 key={`${kind}:${deploymentId ?? ""}:${vanityPath}:${ticket}`}
                 src={src}
-                title={
-                    kind === "webhook"
-                        ? "Webhook"
-                        : kind === "agent"
-                          ? "Agent Sessions"
-                          : "API Auth"
-                }
+                title={kind === "webhook" ? "Webhook" : "API Auth"}
                 className="h-full w-full border-0 outline-none"
                 allow="clipboard-read; clipboard-write"
             />

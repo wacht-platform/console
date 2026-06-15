@@ -119,7 +119,6 @@ const WebhookAppsDetailPage = lazyImport(
     () => import("./pages/manage/webhook-apps-detail"),
 );
 const AgentActorsPage = lazyImport(() => import("./pages/manage/agent-actors"));
-const ActorDetailPage = lazyImport(() => import("./pages/manage/actor-detail"));
 const WebhookCatalogsPage = lazyImport(
     () => import("./pages/webhooks/catalogs"),
 );
@@ -783,14 +782,6 @@ export const router = createBrowserRouter([
                 element: (
                     <Suspense fallback={<SimpleFallback />}>
                         <WebhookAppsDetailPage />
-                    </Suspense>
-                ),
-            },
-            {
-                path: "access/agent-actors/:actorId",
-                element: (
-                    <Suspense fallback={<SimpleFallback />}>
-                        <ActorDetailPage />
                     </Suspense>
                 ),
             },

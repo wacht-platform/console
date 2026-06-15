@@ -1,8 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Outlet, useLocation, useParams } from "react-router";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { FunnelIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHead } from "@/components/ui/page-head";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import { SectionTabs, type SectionTab } from "@/components/ui/section-tabs";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 
@@ -74,20 +80,31 @@ export default function ManageLayout() {
                 eyebrow="Access"
                 title={config.title}
                 sub={config.sub}
-                actions={
-                    <div className="relative">
-                        <MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                            placeholder={config.placeholder}
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="h-8 w-56 bg-secondary pl-8 text-[13px]"
-                        />
-                    </div>
-                }
             />
 
-            <SectionTabs tabs={tabs} />
+            <div className="flex items-center justify-between gap-3">
+                <SectionTabs tabs={tabs} />
+
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-1.5">
+                            <FunnelIcon className="size-4" />
+                            Filter
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="w-64 p-3">
+                        <div className="relative">
+                            <MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                placeholder={config.placeholder}
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="h-8 bg-secondary pl-8 text-[13px]"
+                            />
+                        </div>
+                    </PopoverContent>
+                </Popover>
+            </div>
 
             <Outlet context={context} />
         </div>

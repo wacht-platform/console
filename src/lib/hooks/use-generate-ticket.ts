@@ -5,6 +5,7 @@ interface GenerateTicketRequest {
     deployment_id: string;
     agent_ids: string[];
     selected_agent_id?: string;
+    actor_id?: string;
     expires_in?: number;
 }
 
@@ -20,6 +21,7 @@ export function useGenerateAgentTicket() {
                 ticket_type: "agent_access",
                 agent_ids: req.agent_ids,
                 selected_agent_id: req.selected_agent_id,
+                actor_id: req.actor_id,
                 expires_in: req.expires_in,
             });
             return response.data;

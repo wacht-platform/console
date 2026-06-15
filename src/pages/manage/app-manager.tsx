@@ -37,6 +37,8 @@ export interface AppManagerProps<T> {
     getSubtitle?: (row: T) => string | null | undefined;
     /** Navigation target on row click; defaults to getKey. */
     getHref?: (row: T) => string;
+    /** When set, a row click calls this instead of navigating. */
+    onRowClick?: (row: T) => void;
     emptyTitle: string;
     emptyMessage: string;
     navigable?: boolean;
@@ -57,6 +59,7 @@ export function AppManager<T>({
     getActive,
     getSubtitle,
     getHref,
+    onRowClick,
     emptyTitle,
     emptyMessage,
     navigable = true,
@@ -68,7 +71,8 @@ export function AppManager<T>({
     inactiveLabel = "inactive",
 }: AppManagerProps<T>) {
     const navigate = useNavigate();
-    const columnCount = navigable ? 4 : 3;
+    const clickable = navigable || !!onRowClick;
+    const columnCount = clickable ? 4 : 3;
     const [page, setPage] = useState(1);
 
     // Reset to the first page whenever the search term changes.
@@ -90,7 +94,7 @@ export function AppManager<T>({
                         <TableHead>{appHeader}</TableHead>
                         <TableHead>{identifierHeader}</TableHead>
                         <TableHead>Status</TableHead>
-                        {navigable ? <TableHead className="w-10" /> : null}
+                        {clickable ? <TableHead className="w-10" /> : null}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -117,17 +121,19 @@ export function AppManager<T>({
                                 <TableRow
                                     key={getKey(app)}
                                     className={
-                                        navigable ? "cursor-pointer" : undefined
+                                        clickable ? "cursor-pointer" : undefined
                                     }
                                     onClick={
-                                        navigable
-                                            ? () =>
-                                                  navigate(
-                                                      getHref
-                                                          ? getHref(app)
-                                                          : getKey(app),
-                                                  )
-                                            : undefined
+                                        onRowClick
+                                            ? () => onRowClick(app)
+                                            : navigable
+                                              ? () =>
+                                                    navigate(
+                                                        getHref
+                                                            ? getHref(app)
+                                                            : getKey(app),
+                                                    )
+                                              : undefined
                                     }
                                 >
                                     <TableCell>
@@ -150,7 +156,7 @@ export function AppManager<T>({
                                             {active ? activeLabel : inactiveLabel}
                                         </Pill>
                                     </TableCell>
-                                    {navigable ? (
+                                    {clickable ? (
                                         <TableCell className="w-10 text-muted-foreground">
                                             <ChevronRightIcon className="size-4" />
                                         </TableCell>
