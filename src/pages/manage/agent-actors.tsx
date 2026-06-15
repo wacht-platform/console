@@ -27,7 +27,7 @@ import {
     type ActorSummary,
 } from "@/lib/api/hooks/use-manage-apps";
 import { useAgents } from "@/lib/api/hooks/use-agents";
-import { useGenerateAgentTicket } from "@/lib/hooks/use-generate-ticket";
+import { useGenerateAccessSessionTicket } from "@/lib/hooks/use-generate-ticket";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { AppManager } from "./app-manager";
 import type { ManageListContext } from "./layout";
@@ -38,7 +38,7 @@ export default function AgentActorsPage() {
     const { search } = useOutletContext<ManageListContext>();
     const { selectedDeployment } = useProjects();
     const { data, isLoading: isLoadingAgents } = useAgents({ limit: 100 });
-    const generateTicket = useGenerateAgentTicket();
+    const generateTicket = useGenerateAccessSessionTicket();
     const anchor = useComboboxAnchor();
 
     const agentOptions = useMemo<AgentOption[]>(
@@ -58,18 +58,14 @@ export default function AgentActorsPage() {
         if (!selectedActor || !selectedDeployment || selectedAgents.length === 0)
             return;
         try {
-            const agentIds = selectedAgents.map((a) => a.id);
             const result = await generateTicket.mutateAsync({
                 deployment_id: String(selectedDeployment.id),
-                agent_ids: agentIds,
-                selected_agent_id: agentIds[0],
+                ticket_type: "agent_access",
+                agent_ids: selectedAgents.map((a) => a.id),
                 actor_id: selectedActor.id,
                 expires_in: 60 * 60 * 12,
             });
-            window.open(
-                `https://${selectedDeployment.backend_host}/vanity/agents?ticket=${result.ticket}`,
-                "_blank",
-            );
+            window.open(result.url, "_blank");
             closeDialog();
         } catch (e) {
             console.error("Failed to open agent session", e);
