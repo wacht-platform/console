@@ -5,7 +5,6 @@ import {
     Dialog,
     DialogBody,
     DialogContent,
-    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -77,9 +76,6 @@ export default function AgentActorsPage() {
         }
     };
 
-    const actorLabel =
-        selectedActor?.display_name?.trim() || selectedActor?.external_key;
-
     return (
         <>
             <AppManager
@@ -108,13 +104,6 @@ export default function AgentActorsPage() {
                 <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle>Open a session</DialogTitle>
-                        <DialogDescription>
-                            Choose the agents to open a session as{" "}
-                            <span className="font-medium text-foreground">
-                                {actorLabel}
-                            </span>
-                            .
-                        </DialogDescription>
                     </DialogHeader>
                     <DialogBody>
                         <div className="flex flex-col gap-1.5">
