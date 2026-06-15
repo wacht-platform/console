@@ -100,6 +100,7 @@ export default function AgentActorsPage() {
             <Dialog
                 open={!!selectedActor}
                 onOpenChange={(open) => !open && closeDialog()}
+                modal={false}
             >
                 <DialogContent className="max-w-md">
                     <DialogHeader>
