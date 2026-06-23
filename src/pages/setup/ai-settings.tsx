@@ -1279,6 +1279,7 @@ interface ProviderProfileForm {
     enabled: boolean;
     disablePromptCaching: boolean;
     disableReasoningEffort: boolean;
+    supportsImage: boolean;
 }
 
 function ProviderProfileDialog({
@@ -1309,6 +1310,7 @@ function ProviderProfileDialog({
         enabled: true,
         disablePromptCaching: false,
         disableReasoningEffort: false,
+        supportsImage: true,
     });
 
     useEffect(() => {
@@ -1324,6 +1326,7 @@ function ProviderProfileDialog({
             enabled: profile?.enabled ?? true,
             disablePromptCaching: profile?.disable_prompt_caching ?? false,
             disableReasoningEffort: profile?.disable_reasoning_effort ?? false,
+            supportsImage: profile?.supports_image ?? true,
         });
     }, [open, profile]);
 
@@ -1366,6 +1369,7 @@ function ProviderProfileDialog({
             enabled: form.enabled,
             disable_prompt_caching: form.disablePromptCaching,
             disable_reasoning_effort: form.disableReasoningEffort,
+            supports_image: form.supportsImage,
         };
 
         if (isEditing) {
@@ -1553,6 +1557,23 @@ function ProviderProfileDialog({
                             checked={form.disableReasoningEffort}
                             onCheckedChange={(disableReasoningEffort) =>
                                 setForm({ ...form, disableReasoningEffort })
+                            }
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-4 rounded-md border border-border px-4 py-3 dark:border-border">
+                        <div>
+                            <div className="text-sm font-medium text-foreground">
+                                Supports image input
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                                When off, images read by the agent are not sent inline to the model. Instead, the model is told it cannot see images.
+                            </div>
+                        </div>
+                        <Switch
+                            checked={form.supportsImage}
+                            onCheckedChange={(supportsImage) =>
+                                setForm({ ...form, supportsImage })
                             }
                         />
                     </div>
