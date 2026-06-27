@@ -283,6 +283,20 @@ function ProviderSettingsDialog({
 
           {useCustomCredentials && (
             <FieldGroup className="border-t border-border pt-4 mt-4 space-y-3">
+              {ssoCallbackUrl && (
+                <Field>
+                  <Label>Redirect URL</Label>
+                  <Input
+                    value={ssoCallbackUrl}
+                    readOnly
+                    disabled
+                    className="cursor-default text-muted-foreground"
+                  />
+                  <Description>
+                    Enter this URL in your {providerName} OAuth app as the authorized redirect URI.
+                  </Description>
+                </Field>
+              )}
               <Field>
                 <Label>Client ID</Label>
                 <Input
