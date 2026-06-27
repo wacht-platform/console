@@ -92,7 +92,6 @@ function ProviderSettingsDialog({
   const [useCustomCredentials, setUseCustomCredentials] = useState(false);
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
-  const [redirectUri, setRedirectUri] = useState("");
   const [currentScope, setCurrentScope] = useState("");
   const [addedScopes, setAddedScopes] = useState<string[]>([]);
 
@@ -100,7 +99,6 @@ function ProviderSettingsDialog({
   const [clientSecretError, setClientSecretError] = useState<string | null>(
     null,
   );
-  const [redirectUriError, setRedirectUriError] = useState<string | null>(null);
 
   const posthogDialog = usePostHog();
   const { mutate: upsertConnection, isPending: isSaving } =
@@ -111,23 +109,19 @@ function ProviderSettingsDialog({
       const defaultScopes = getDefaultScopesForProvider(provider);
       setClientId("");
       setClientSecret("");
-      setRedirectUri("");
       setCurrentScope("");
       setAddedScopes(defaultScopes);
       setClientIdError(null);
       setClientSecretError(null);
-      setRedirectUriError(null);
       const hasExistingCredentials =
         !!connection?.credentials &&
         !!connection.credentials.client_id &&
-        !!connection.credentials.client_secret &&
-        !!connection.credentials.redirect_uri;
+        !!connection.credentials.client_secret;
       setSignInEnabled(connection?.enabled ?? false);
       setUseCustomCredentials(hasExistingCredentials);
       if (connection?.credentials) {
         setClientId(connection.credentials.client_id);
         setClientSecret(connection.credentials.client_secret);
-        setRedirectUri(connection.credentials.redirect_uri);
         const configuredScopes = connection.credentials.scopes ?? [];
         setAddedScopes(
           configuredScopes.length > 0 ? configuredScopes : defaultScopes,
@@ -152,7 +146,6 @@ function ProviderSettingsDialog({
     let isValid = true;
     setClientIdError(null);
     setClientSecretError(null);
-    setRedirectUriError(null);
 
     const customCredentialsRequired =
       isProductionDeployment && !!signInEnabled;
@@ -160,7 +153,6 @@ function ProviderSettingsDialog({
     if (customCredentialsRequired && !useCustomCredentials) {
       setClientIdError("Custom credentials are required in production.");
       setClientSecretError("Custom credentials are required in production.");
-      setRedirectUriError("Custom credentials are required in production.");
       return false;
     }
 
@@ -171,16 +163,6 @@ function ProviderSettingsDialog({
       }
       if (!clientSecret.trim()) {
         setClientSecretError("Client Secret is required.");
-        isValid = false;
-      }
-      if (!redirectUri.trim()) {
-        setRedirectUriError("Redirect URI is required.");
-        isValid = false;
-      } else if (
-        !redirectUri.startsWith("http://") &&
-        !redirectUri.startsWith("https://")
-      ) {
-        setRedirectUriError("Redirect URI must start with http:// or https://");
         isValid = false;
       }
     }
@@ -204,7 +186,7 @@ function ProviderSettingsDialog({
       credentialsPayload = {
         client_id: clientId.trim(),
         client_secret: clientSecret,
-        redirect_uri: redirectUri.trim(),
+        redirect_uri: ssoCallbackUrl ?? "",
         scopes,
       };
     }
@@ -240,10 +222,8 @@ function ProviderSettingsDialog({
     ((useCustomCredentials || (isProductionDeployment && signInEnabled)) &&
       (!clientId ||
         !clientSecret ||
-        !redirectUri ||
         !!clientIdError ||
-        !!clientSecretError ||
-        !!redirectUriError));
+        !!clientSecretError));
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
@@ -358,28 +338,6 @@ function ProviderSettingsDialog({
                 {clientSecretError && (
                   <ErrorMessage id="client-secret-error">
                     {clientSecretError}
-                  </ErrorMessage>
-                )}
-              </Field>
-              <Field>
-                <Label>Authorized Redirect URI</Label>
-                <Input
-                  placeholder="Enter redirect URI"
-                  value={redirectUri}
-                  onChange={(e) => {
-                    setRedirectUri(e.target.value);
-                    setRedirectUriError(null);
-                  }}
-                  disabled={isSaving}
-                  required
-                  aria-invalid={!!redirectUriError}
-                  aria-describedby={
-                    redirectUriError ? "redirect-uri-error" : undefined
-                  }
-                />
-                {redirectUriError && (
-                  <ErrorMessage id="redirect-uri-error">
-                    {redirectUriError}
                   </ErrorMessage>
                 )}
               </Field>
