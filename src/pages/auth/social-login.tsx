@@ -522,7 +522,7 @@ export default function SSOConnectionsPage() {
 
   const socialCallbackUrl = useMemo(() => {
     if (!selectedDeployment?.frontend_host) return undefined;
-    return `https://${selectedDeployment.frontend_host}/social/login`;
+    return `https://${selectedDeployment.frontend_host}/social/callback`;
   }, [selectedDeployment]);
 
   if (isLoading) {
