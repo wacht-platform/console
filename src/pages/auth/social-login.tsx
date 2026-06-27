@@ -51,6 +51,7 @@ interface ProviderSettingsDialogProps {
   connection?: DeploymentSocialConnection;
   deploymentId?: string;
   isProductionDeployment?: boolean;
+  ssoCallbackUrl?: string;
 }
 
 const DialogDescription = DialogDescriptionBase;
@@ -85,6 +86,7 @@ function ProviderSettingsDialog({
   connection,
   deploymentId,
   isProductionDeployment = false,
+  ssoCallbackUrl,
 }: ProviderSettingsDialogProps) {
   const [signInEnabled, setSignInEnabled] = useState(false);
   const [useCustomCredentials, setUseCustomCredentials] = useState(false);
@@ -132,7 +134,7 @@ function ProviderSettingsDialog({
         );
       }
     }
-  }, [open, connection, provider]);
+  }, [open, connection, provider, ssoCallbackUrl]);
 
   const handleAddScope = () => {
     const scopeToAdd = currentScope.trim();
@@ -301,6 +303,21 @@ function ProviderSettingsDialog({
 
           {useCustomCredentials && (
             <FieldGroup className="border-t border-border pt-4 mt-4 space-y-3">
+              {ssoCallbackUrl && (
+                <Field>
+                  <Label>SSO Callback URL</Label>
+                  <Input
+                    value={ssoCallbackUrl}
+                    readOnly
+                    disabled
+                    className="cursor-default text-muted-foreground"
+                    aria-describedby="sso-callback-description"
+                  />
+                  <Description id="sso-callback-description">
+                    Enter this URL in your {providerName} OAuth app configuration as the authorized redirect URI.
+                  </Description>
+                </Field>
+              )}
               <Field>
                 <Label>Client ID</Label>
                 <Input
@@ -546,6 +563,11 @@ export default function SSOConnectionsPage() {
     }
   };
 
+  const ssoCallbackUrl = useMemo(() => {
+    if (!selectedDeployment?.frontend_host) return undefined;
+    return `https://${selectedDeployment.frontend_host}/sso-callback`;
+  }, [selectedDeployment]);
+
   if (isLoading) {
     return <InlineLoader />;
   }
@@ -560,6 +582,7 @@ export default function SSOConnectionsPage() {
         connection={selectedProviderInfo?.connection}
         deploymentId={selectedDeployment?.id}
         isProductionDeployment={selectedDeployment?.mode === "production"}
+        ssoCallbackUrl={ssoCallbackUrl}
         onSuccess={() => {
           handleCloseSettings();
         }}
