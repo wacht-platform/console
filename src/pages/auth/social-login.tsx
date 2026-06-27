@@ -51,7 +51,7 @@ interface ProviderSettingsDialogProps {
   connection?: DeploymentSocialConnection;
   deploymentId?: string;
   isProductionDeployment?: boolean;
-  ssoCallbackUrl?: string;
+  socialCallbackUrl?: string;
 }
 
 const DialogDescription = DialogDescriptionBase;
@@ -86,7 +86,7 @@ function ProviderSettingsDialog({
   connection,
   deploymentId,
   isProductionDeployment = false,
-  ssoCallbackUrl,
+  socialCallbackUrl,
 }: ProviderSettingsDialogProps) {
   const [signInEnabled, setSignInEnabled] = useState(false);
   const [useCustomCredentials, setUseCustomCredentials] = useState(false);
@@ -128,7 +128,7 @@ function ProviderSettingsDialog({
         );
       }
     }
-  }, [open, connection, provider, ssoCallbackUrl]);
+  }, [open, connection, provider, socialCallbackUrl]);
 
   const handleAddScope = () => {
     const scopeToAdd = currentScope.trim();
@@ -186,7 +186,7 @@ function ProviderSettingsDialog({
       credentialsPayload = {
         client_id: clientId.trim(),
         client_secret: clientSecret,
-        redirect_uri: ssoCallbackUrl ?? "",
+        redirect_uri: socialCallbackUrl ?? "",
         scopes,
       };
     }
@@ -283,11 +283,11 @@ function ProviderSettingsDialog({
 
           {useCustomCredentials && (
             <FieldGroup className="border-t border-border pt-4 mt-4 space-y-3">
-              {ssoCallbackUrl && (
+              {socialCallbackUrl && (
                 <Field>
                   <Label>Redirect URL</Label>
                   <Input
-                    value={ssoCallbackUrl}
+                    value={socialCallbackUrl}
                     readOnly
                     disabled
                     className="cursor-default text-muted-foreground"
@@ -520,9 +520,9 @@ export default function SSOConnectionsPage() {
     }
   };
 
-  const ssoCallbackUrl = useMemo(() => {
+  const socialCallbackUrl = useMemo(() => {
     if (!selectedDeployment?.frontend_host) return undefined;
-    return `https://${selectedDeployment.frontend_host}/sso-callback`;
+    return `https://${selectedDeployment.frontend_host}/social/login`;
   }, [selectedDeployment]);
 
   if (isLoading) {
@@ -539,7 +539,7 @@ export default function SSOConnectionsPage() {
         connection={selectedProviderInfo?.connection}
         deploymentId={selectedDeployment?.id}
         isProductionDeployment={selectedDeployment?.mode === "production"}
-        ssoCallbackUrl={ssoCallbackUrl}
+        socialCallbackUrl={socialCallbackUrl}
         onSuccess={() => {
           handleCloseSettings();
         }}
