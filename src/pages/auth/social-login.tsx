@@ -305,15 +305,15 @@ function ProviderSettingsDialog({
             <FieldGroup className="border-t border-border pt-4 mt-4 space-y-3">
               {ssoCallbackUrl && (
                 <Field>
-                  <Label>SSO Callback URL</Label>
+                  <Label>SSO Redirect URL</Label>
                   <Input
                     value={ssoCallbackUrl}
                     readOnly
                     disabled
                     className="cursor-default text-muted-foreground"
-                    aria-describedby="sso-callback-description"
+                    aria-describedby="sso-redirect-description"
                   />
-                  <Description id="sso-callback-description">
+                  <Description id="sso-redirect-description">
                     Enter this URL in your {providerName} OAuth app configuration as the authorized redirect URI.
                   </Description>
                 </Field>
