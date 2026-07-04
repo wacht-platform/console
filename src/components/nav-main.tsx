@@ -6,6 +6,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 
 export function NavMain({
@@ -20,6 +21,8 @@ export function NavMain({
   }[]
   title?: string
 }) {
+  const { isMobile, setOpenMobile } = useSidebar()
+
   return (
     <SidebarGroup>
       {title && <div className="px-1.5 pt-2 pb-1 font-mono text-[10px] font-medium uppercase tracking-[0.07em] text-muted-foreground/70">{title}</div>}
@@ -29,7 +32,12 @@ export function NavMain({
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild tooltip={item.title} isActive={item.isActive}>
-                <Link to={item.url}>
+                <Link
+                  to={item.url}
+                  onClick={() => {
+                    if (isMobile) setOpenMobile(false)
+                  }}
+                >
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
                 </Link>

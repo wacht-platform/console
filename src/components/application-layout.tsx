@@ -1,4 +1,4 @@
-import { Outlet, useNavigate, useLocation, useParams } from "react-router";
+import { Outlet, useNavigate, useLocation, useParams, useNavigation } from "react-router";
 import { useState, useEffect } from "react";
 import { useProjects } from "@/lib/api/hooks/use-projects";
 import { AppLoading } from "./ui/loading-screen";
@@ -31,6 +31,7 @@ import { useTourAction, useTourCompletion } from "@/lib/tour";
 export function ApplicationLayout() {
     useTourCompletion("first-deployment-create", true);
     const navigate = useNavigate();
+    const navigation = useNavigation();
     const location = useLocation();
     const params = useParams();
     useTourAction("tour:navigate", (rel) => {
@@ -257,6 +258,11 @@ export function ApplicationLayout() {
                     canCreateProduction={!!selectedProject}
                 />
                 <div className="flex flex-1 flex-col overflow-y-auto">
+                    {navigation.state !== "idle" && (
+                        <div className="h-0.5 w-full overflow-hidden bg-primary/10">
+                            <div className="h-full w-1/3 animate-pulse bg-primary" />
+                        </div>
+                    )}
                     <div className="@container/main flex flex-1 flex-col gap-2">
                         {((isLLMRoute && !isAgentDetailRoute) ||
                             isBillingRoute) && (
