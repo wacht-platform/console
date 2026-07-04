@@ -8,8 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import {
-  Sheet,
-  SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
@@ -175,30 +173,44 @@ function Sidebar({
       </div>
     )
   }
-
   if (isMobile) {
     return (
-      <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-        <SheetContent
+      <>
+        <button
+          type="button"
+          aria-label="Close sidebar"
+          tabIndex={openMobile ? 0 : -1}
+          onClick={() => setOpenMobile(false)}
+          className={cn(
+            "fixed inset-0 z-40 bg-black/10 transition-opacity duration-75 md:hidden",
+            openMobile ? "opacity-100" : "pointer-events-none opacity-0"
+          )}
+        />
+        <div
           dir={dir}
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+          data-state={openMobile ? "open" : "closed"}
+          className={cn(
+            "fixed inset-y-0 left-0 z-50 flex h-svh w-(--sidebar-width) flex-col bg-sidebar p-0 text-sidebar-foreground shadow-lg transition-transform duration-100 ease-out md:hidden",
+            openMobile ? "translate-x-0" : "-translate-x-full",
+            className
+          )}
           style={
             {
               "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
             } as React.CSSProperties
           }
-          side={side}
+          {...props}
         >
           <SheetHeader className="sr-only">
             <SheetTitle>Sidebar</SheetTitle>
             <SheetDescription>Displays the mobile sidebar.</SheetDescription>
           </SheetHeader>
           <div className="flex h-full w-full flex-col">{children}</div>
-        </SheetContent>
-      </Sheet>
+        </div>
+      </>
     )
   }
 
