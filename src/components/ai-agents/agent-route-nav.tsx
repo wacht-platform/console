@@ -43,13 +43,10 @@ export function AgentRouteNav() {
   const params = useParams();
 
   return (
-    <nav className="flex flex-col gap-1.5 lg:sticky lg:top-4">
-      {groups.map((grp) => (
-        <div key={grp.group} className="mb-1">
-          <div className="px-2.5 pb-[7px] pt-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.07em] text-muted-foreground/70">
-            {grp.group}
-          </div>
-          {grp.items.map((item) => {
+    <nav className="overflow-x-auto border-b border-border pb-2">
+      <div className="flex min-w-max items-center gap-2">
+        {groups.flatMap((grp) =>
+          grp.items.map((item) => {
             const href = buildAgentResourcePath(params, item.suffix);
             const active = location.pathname === href;
             const Icon = item.icon;
@@ -59,28 +56,26 @@ export function AgentRouteNav() {
                 key={item.key}
                 to={href}
                 data-tour-id={`agent-tab-${item.key}`}
+                aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative flex h-[34px] items-center gap-2.5 rounded-md px-2.5 text-[13px] transition-colors",
+                  "relative flex h-9 items-center gap-2 rounded-md border px-3 text-[13px] transition-colors",
                   active
-                    ? "bg-primary/10 font-medium text-primary"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                    ? "border-primary/20 bg-primary/10 font-medium text-primary"
+                    : "border-transparent text-muted-foreground hover:border-border hover:bg-accent hover:text-foreground",
                 )}
               >
-                {active ? (
-                  <span className="absolute bottom-[7px] left-[-2px] top-[7px] w-0.5 rounded-full bg-primary" />
-                ) : null}
                 <Icon
                   className={cn(
                     "h-[15px] w-[15px] shrink-0",
                     active ? "opacity-100" : "opacity-75",
                   )}
                 />
-                <span className="flex-1 truncate">{item.label}</span>
+                <span className="whitespace-nowrap">{item.label}</span>
               </Link>
             );
-          })}
-        </div>
-      ))}
+          }),
+        )}
+      </div>
     </nav>
   );
 }

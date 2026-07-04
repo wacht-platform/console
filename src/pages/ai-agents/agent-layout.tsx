@@ -159,7 +159,7 @@ export default function AgentLayoutPage() {
         </div>
       </section>
 
-      <div className="grid items-start gap-8 lg:grid-cols-[212px_1fr]">
+      <div className="space-y-5">
         <AgentRouteNav />
         <div className="min-w-0">
           <Outlet />
