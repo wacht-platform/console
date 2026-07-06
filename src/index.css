@@ -364,6 +364,10 @@
 
 /* Milkdown Crepe (system prompt editor) — map to design tokens so it follows
    light/dark, and drop the frame theme's own card chrome since we wrap it. */
+.wa-prompt-editor {
+    max-height: min(520px, 62vh);
+    overflow-y: auto;
+}
 .wa-prompt-editor .milkdown {
     --crepe-color-background: transparent;
     --crepe-color-on-background: var(--foreground);
@@ -394,7 +398,7 @@
     font-size: 13px;
 }
 .wa-prompt-editor .milkdown .ProseMirror {
-    min-height: 440px;
+    min-height: 260px;
     padding: 12px 16px;
 }
 .wa-prompt-editor .milkdown .ProseMirror[data-milkdown-root] {
