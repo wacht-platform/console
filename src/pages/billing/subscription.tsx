@@ -267,7 +267,7 @@ export default function BillingSubscriptionPage() {
 
   const renderEnterprise = () => (
     <div className="mt-6 rounded-lg border border-border bg-card p-6">
-      <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+      <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-8">
         <div className="min-w-0">
           <div className="flex items-center gap-2.5">
             <h3 className="text-base font-medium text-foreground">
@@ -275,7 +275,7 @@ export default function BillingSubscriptionPage() {
             </h3>
             <Tag>Custom</Tag>
           </div>
-          <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-1.5 max-w-2xl text-pretty text-sm leading-relaxed text-muted-foreground">
             For large-scale deployments requiring dedicated support, custom
             contracts, and unlimited volume. Tailored SLA guarantees and
             on-premise deployment options.
@@ -284,9 +284,9 @@ export default function BillingSubscriptionPage() {
             {enterprisePlan.features.slice(0, 3).map((f, i) => (
               <div
                 key={i}
-                className="flex items-center gap-1.5 text-[11px] text-muted-foreground"
+                className="flex items-center gap-1.5 whitespace-nowrap text-[11px] text-muted-foreground"
               >
-                <CheckIcon className="h-3.5 w-3.5 text-primary" />
+                <CheckIcon className="h-3.5 w-3.5 shrink-0 text-primary" />
                 {f}
               </div>
             ))}
@@ -294,7 +294,7 @@ export default function BillingSubscriptionPage() {
         </div>
         <Button
           variant="outline"
-          className="w-full md:w-auto md:min-w-[180px]"
+          className="w-fit shrink-0 justify-self-start"
           onClick={() => handleSelectPlan("enterprise")}
         >
           Contact sales
