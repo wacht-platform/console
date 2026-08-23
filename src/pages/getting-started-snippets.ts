@@ -41,7 +41,6 @@ export default function RootLayout({ children }) {
     } else {
       setup = `// main.tsx
 import { DeploymentProvider } from "${activeFramework.pkg}";
-import "${activeFramework.pkg}/styles.css";
 import App from "./App";
 
 createRoot(document.getElementById("root")!).render(
