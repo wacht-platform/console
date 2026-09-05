@@ -96,57 +96,60 @@ function MultiSessionSettingsDialog({ open, onClose }: DialogProps) {
 
     return (
         <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-sm">
                 <DialogHeader>
-                    <DialogTitle>Customize session token</DialogTitle>
+                    <DialogTitle>Multi-session limits</DialogTitle>
                     <DialogDescription>
-                        Customize the session token to include additional
-                        information.
+                        Cap how many accounts and logins can be active at once.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 pt-2">
-                    <FieldGroup>
-                        <Field>
-                            <Label>Maximum accounts per session</Label>
-                            <Description>
-                                Limit the number of accounts that can be active
-                                within a single session. Set a value between 1
-                                and 10.
-                            </Description>
+                <div className="flex flex-col gap-4">
+                    <Field>
+                        <div className="flex items-center justify-between gap-4">
+                            <Label>Accounts per session</Label>
                             <Input
-                                className="w-24"
+                                className="w-16 text-right"
                                 aria-label="Max accounts"
                                 name="maxAccounts"
+                                type="number"
+                                min="1"
+                                max="10"
                                 value={maxAccountsPerSession}
                                 onChange={(e) =>
                                     setMaxAccountsPerSession(e.target.value)
                                 }
                             />
-                        </Field>
-                        <Field>
-                            <Label>Maximum user logins</Label>
-                            <Description>
-                                Set the maximum number of active sessions a user
-                                can have at the same time. Set a value between 1
-                                and 10.
-                            </Description>
+                        </div>
+                        <Description>
+                            1–10 accounts in a single session.
+                        </Description>
+                    </Field>
+                    <Field>
+                        <div className="flex items-center justify-between gap-4">
+                            <Label>Logins per user</Label>
                             <Input
                                 aria-label="Max user logins"
                                 name="maxUserLogins"
-                                className="w-24"
+                                className="w-16 text-right"
+                                type="number"
+                                min="1"
+                                max="10"
                                 value={maxSessionsPerAccount}
                                 onChange={(e) =>
                                     setMaxSessionsPerAccount(e.target.value)
                                 }
                             />
-                        </Field>
-                    </FieldGroup>
+                        </div>
+                        <Description>
+                            1–10 active sessions at the same time.
+                        </Description>
+                    </Field>
                 </div>
-                <DialogFooter className="mt-2">
-                    <Button variant="ghost" onClick={onClose}>
+                <DialogFooter>
+                    <Button variant="outline" onClick={onClose}>
                         Cancel
                     </Button>
-                    <Button onClick={handleSubmit}>Submit</Button>
+                    <Button onClick={handleSubmit}>Done</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

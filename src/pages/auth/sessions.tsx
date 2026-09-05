@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { SectionLabel } from "@/components/ui/section-label";
 import { Input } from "@/components/ui/input";
-import { Field, FieldGroup } from "@/components/ui/fieldset";
+import { Description, Field, Label } from "@/components/ui/fieldset";
 import {
   Select,
   SelectContent,
@@ -314,77 +314,54 @@ export default function SessionsPage() {
               open={isOpen}
               onOpenChange={setIsOpen}
             >
-              <DialogContent className="sm:max-w-xl">
+              <DialogContent className="sm:max-w-sm">
                 <DialogHeader>
                   <DialogTitle>
-                    Customize session token
+                    Multi-session limits
                   </DialogTitle>
                   <DialogDescription>
-                    Customize the session token to include additional information.
+                    Cap how many accounts and logins can be active at once.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-8 py-4">
-                  <section className="grid gap-6 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <h3 className="text-sm font-medium text-foreground">Maximum accounts per session</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Limit the number of accounts that can be active within a
-                        single session.
-                      </p>
+                <div className="flex flex-col gap-4">
+                  <Field>
+                    <div className="flex items-center justify-between gap-4">
+                      <Label>Accounts per session</Label>
+                      <Input
+                        aria-label="Max accounts"
+                        name="maxAccounts"
+                        className="w-16 text-right"
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={maxAccountsPerSession}
+                        onChange={(e) => handleMaxAccountsChange(parseInt(e.target.value) || 1)}
+                      />
                     </div>
-                    <div className="space-y-4">
-                      <Field className="flex items-center gap-4">
-                        <FieldGroup>
-                          <Input
-                            aria-label="Max accounts"
-                            name="maxAccounts"
-                            className="w-20 text-right"
-                            type="number"
-                            min="1"
-                            max="10"
-                            value={maxAccountsPerSession}
-                            onChange={(e) => handleMaxAccountsChange(parseInt(e.target.value) || 1)}
-                          />
-                        </FieldGroup>
-                      </Field>
-                      <p className="text-sm text-muted-foreground">Set a value between 1 and 10.</p>
+                    <Description>1–10 accounts in a single session.</Description>
+                  </Field>
+                  <Field>
+                    <div className="flex items-center justify-between gap-4">
+                      <Label>Logins per user</Label>
+                      <Input
+                        aria-label="Max user logins"
+                        name="maxUserLogins"
+                        className="w-16 text-right"
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={maxSessionsPerAccount}
+                        onChange={(e) => handleMaxSessionsChange(parseInt(e.target.value) || 1)}
+                      />
                     </div>
-                  </section>
-
-                  <div className="my-8 border-t border-border" />
-
-                  <section className="grid gap-6 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <h3 className="text-sm font-medium text-foreground">Maximum user logins</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Set the maximum number of active sessions a user can
-                        have at the same time.
-                      </p>
-                    </div>
-                    <div className="space-y-4">
-                      <Field className="flex items-center gap-4">
-                        <FieldGroup>
-                          <Input
-                            aria-label="Max user logins"
-                            name="maxUserLogins"
-                            className="w-20 text-right"
-                            type="number"
-                            min="1"
-                            max="10"
-                            value={maxSessionsPerAccount}
-                            onChange={(e) => handleMaxSessionsChange(parseInt(e.target.value) || 1)}
-                          />
-                        </FieldGroup>
-                      </Field>
-                      <p className="text-sm text-muted-foreground">Set a value between 1 and 10.</p>
-                    </div>
-                  </section>
+                    <Description>1–10 active sessions at the same time.</Description>
+                  </Field>
                 </div>
                 <DialogFooter>
-                  <Button variant="ghost" onClick={() => setIsOpen(false)}>
+                  <Button variant="outline" onClick={() => setIsOpen(false)}>
                     Cancel
                   </Button>
-                  <Button onClick={() => setIsOpen(false)}>Submit</Button>
+                  <Button onClick={() => setIsOpen(false)}>Done</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
