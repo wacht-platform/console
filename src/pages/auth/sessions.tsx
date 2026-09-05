@@ -314,7 +314,7 @@ export default function SessionsPage() {
               open={isOpen}
               onOpenChange={setIsOpen}
             >
-              <DialogContent className="sm:max-w-sm">
+              <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle>
                     Multi-session limits
@@ -325,36 +325,32 @@ export default function SessionsPage() {
                 </DialogHeader>
                 <div className="flex flex-col gap-4">
                   <Field>
-                    <div className="flex items-center justify-between gap-4">
-                      <Label>Accounts per session</Label>
-                      <Input
-                        aria-label="Max accounts"
-                        name="maxAccounts"
-                        className="w-16 text-right"
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={maxAccountsPerSession}
-                        onChange={(e) => handleMaxAccountsChange(parseInt(e.target.value) || 1)}
-                      />
-                    </div>
+                    <Label>Accounts per session</Label>
                     <Description>1–10 accounts in a single session.</Description>
+                    <Input
+                      aria-label="Max accounts"
+                      name="maxAccounts"
+                      className="w-full"
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={maxAccountsPerSession}
+                      onChange={(e) => handleMaxAccountsChange(parseInt(e.target.value) || 1)}
+                    />
                   </Field>
                   <Field>
-                    <div className="flex items-center justify-between gap-4">
-                      <Label>Logins per user</Label>
-                      <Input
-                        aria-label="Max user logins"
-                        name="maxUserLogins"
-                        className="w-16 text-right"
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={maxSessionsPerAccount}
-                        onChange={(e) => handleMaxSessionsChange(parseInt(e.target.value) || 1)}
-                      />
-                    </div>
+                    <Label>Logins per user</Label>
                     <Description>1–10 active sessions at the same time.</Description>
+                    <Input
+                      aria-label="Max user logins"
+                      name="maxUserLogins"
+                      className="w-full"
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={maxSessionsPerAccount}
+                      onChange={(e) => handleMaxSessionsChange(parseInt(e.target.value) || 1)}
+                    />
                   </Field>
                 </div>
                 <DialogFooter>

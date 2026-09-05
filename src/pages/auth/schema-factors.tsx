@@ -96,7 +96,7 @@ function MultiSessionSettingsDialog({ open, onClose }: DialogProps) {
 
     return (
         <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-            <DialogContent className="sm:max-w-sm">
+            <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle>Multi-session limits</DialogTitle>
                     <DialogDescription>
@@ -105,44 +105,40 @@ function MultiSessionSettingsDialog({ open, onClose }: DialogProps) {
                 </DialogHeader>
                 <div className="flex flex-col gap-4">
                     <Field>
-                        <div className="flex items-center justify-between gap-4">
-                            <Label>Accounts per session</Label>
-                            <Input
-                                className="w-16 text-right"
-                                aria-label="Max accounts"
-                                name="maxAccounts"
-                                type="number"
-                                min="1"
-                                max="10"
-                                value={maxAccountsPerSession}
-                                onChange={(e) =>
-                                    setMaxAccountsPerSession(e.target.value)
-                                }
-                            />
-                        </div>
+                        <Label>Accounts per session</Label>
                         <Description>
                             1–10 accounts in a single session.
                         </Description>
+                        <Input
+                            className="w-full"
+                            aria-label="Max accounts"
+                            name="maxAccounts"
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={maxAccountsPerSession}
+                            onChange={(e) =>
+                                setMaxAccountsPerSession(e.target.value)
+                            }
+                        />
                     </Field>
                     <Field>
-                        <div className="flex items-center justify-between gap-4">
-                            <Label>Logins per user</Label>
-                            <Input
-                                aria-label="Max user logins"
-                                name="maxUserLogins"
-                                className="w-16 text-right"
-                                type="number"
-                                min="1"
-                                max="10"
-                                value={maxSessionsPerAccount}
-                                onChange={(e) =>
-                                    setMaxSessionsPerAccount(e.target.value)
-                                }
-                            />
-                        </div>
+                        <Label>Logins per user</Label>
                         <Description>
                             1–10 active sessions at the same time.
                         </Description>
+                        <Input
+                            aria-label="Max user logins"
+                            name="maxUserLogins"
+                            className="w-full"
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={maxSessionsPerAccount}
+                            onChange={(e) =>
+                                setMaxSessionsPerAccount(e.target.value)
+                            }
+                        />
                     </Field>
                 </div>
                 <DialogFooter>
