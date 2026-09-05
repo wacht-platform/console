@@ -1072,13 +1072,9 @@ function FirstFactorDialog({
 
     return (
         <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
                 <DialogHeader>
                     <DialogTitle>Default Sign-in Method</DialogTitle>
-                    <DialogDescription>
-                        Choose the primary authentication method presented to
-                        users when they sign in.
-                    </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 pt-2">
                     {availableOptions.length === 0 ? (

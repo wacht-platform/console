@@ -5,6 +5,7 @@ import {
     Dialog,
     DialogBody,
     DialogContent,
+    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -96,11 +97,29 @@ export default function AgentActorsPage() {
             <Dialog
                 open={!!selectedActor}
                 onOpenChange={(open) => !open && closeDialog()}
-                modal={false}
             >
-                <DialogContent className="max-w-md">
+                <DialogContent
+                    className="sm:max-w-md"
+                    onPointerDownOutside={(event) => {
+                        const target = event.target as HTMLElement | null;
+                        if (target?.closest("[data-slot='combobox-content']")) {
+                            event.preventDefault();
+                        }
+                    }}
+                    onFocusOutside={(event) => {
+                        const target = event.target as HTMLElement | null;
+                        if (target?.closest("[data-slot='combobox-content']")) {
+                            event.preventDefault();
+                        }
+                    }}
+                >
                     <DialogHeader>
                         <DialogTitle>Open a session</DialogTitle>
+                        <DialogDescription>
+                            {selectedActor
+                                ? `Choose agents for ${selectedActor.display_name?.trim() || selectedActor.external_key}.`
+                                : "Choose which agents should join this session."}
+                        </DialogDescription>
                     </DialogHeader>
                     <DialogBody>
                         <div className="flex flex-col gap-1.5">
