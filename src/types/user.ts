@@ -43,6 +43,8 @@ export enum VerificationStrategy {
 	OauthLinkedin = "oauth_linkedin",
 	OauthDiscord = "oauth_discord",
 	OauthApple = "oauth_apple",
+	EnterpriseSso = "enterprise_sso",
+	Scim = "scim",
 }
 
 export enum SchemaVersion {
